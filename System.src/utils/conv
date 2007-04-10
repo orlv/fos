@@ -1,0 +1,4 @@
+#!/bin/sh
+iconv -c -f CP1251 -t KOI8-R $1 > $1.tmp
+rm -f $"
+mv $1.tmp $1

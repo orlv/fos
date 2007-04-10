@@ -1,0 +1,18 @@
+# -----------------------------------------------------------------------------
+# Copyright (C) 2007 Oleg Fedorov
+# -----------------------------------------------------------------------------
+
+include Makefile.conf
+
+
+all:
+	@echo "# GRUB Config: generated automatically - do not edit!" > $(GRUB_MENU)
+	@echo "timeout $(GRUB_TIMEOUT)" >> $(GRUB_MENU)
+	@echo "default 0" >> $(GRUB_MENU)
+	@echo "hiddenmenu" >> $(GRUB_MENU)
+	@echo "title $(GRUB_TITLE) (VERSION `cat VERSION`, BUILD `cat BUILD`)" >> $(GRUB_MENU)
+	@echo "	root($(GRUB_ROOT))" >> $(GRUB_MENU)
+	@echo "	kernel $(GRUB_KERNEL)" >> $(GRUB_MENU)
+	@echo $(GRUB_MODULES) | sed 's/ /\n/g' | sed 's/\/System.root/\tmodule \/System.root/g'  >> $(GRUB_MENU)
+
+# -----------------------------------------------------------------------------

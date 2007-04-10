@@ -1,0 +1,27 @@
+
+include Makefile.conf
+
+ISO_DIR_PATH=$(ISO_BUILD_DIR)/iso.image/$(ISO_DIR_NAME)
+FN=$(SYSTEM_NAME).iso
+
+all: clean
+	mkdir $(ISO_BUILD_DIR)/iso.image
+	mkdir $(ISO_BUILD_DIR)/iso.image/$(SRC_DIR_NAME)
+	cp -r $(SYSTEM_SRC) $(ISO_BUILD_DIR)/iso.image/
+	cp -r $(TOPDIR)/boot $(ISO_BUILD_DIR)/iso.image/
+	cp -rf $(SYSTEM_ROOT) $(ISO_BUILD_DIR)/iso.image/$(ROOT_DIR_NAME)
+	rm -rf `find $(ISO_BUILD_DIR)/iso.image/ -name .svn`
+	rm -f `find $(ISO_BUILD_DIR)/iso.image/ -name *.o`
+
+	mkisofs -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table \
+		 -iso-level 3 -r -J \
+		 -publisher "Oleg Fedorov (o.s.fedorov@gmail.com)" \
+		 -o $(ISO_BUILD_DIR)/$(FN) $(ISO_BUILD_DIR)/iso.image
+
+	bzip2 -kf $(ISO_BUILD_DIR)/$(FN)
+	rm -f $(SYSTEM_NAME)-current.iso
+	ln -s $(ISO_BUILD_DIR)/$(FN) $(SYSTEM_NAME)-current.iso
+
+
+clean:
+	rm -rf $(ISO_BUILD_DIR)/*

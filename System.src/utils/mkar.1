@@ -1,0 +1,15 @@
+#!/bin/sh
+# Copyright (C) 2005-2006 Oleg Fedorov
+
+NAME=fos-`cat fos/VERSION`-`cat fos/BUILD`
+
+if [ ! -x arch/$NAME ]; then
+    mkdir arch/$NAME
+    tar cvj --exclude="lost+found" -f $NAME-src.tar.bz2 fos 
+    mv $NAME-src.tar.bz2 arch/$NAME/
+    cp ~/fos.utils/floppy.img arch/$NAME/$NAME.img
+    bzip2 -9 arch/$NAME/$NAME.img
+    echo Archive $NAME was created.
+else
+    echo Archive already exist.
+fi

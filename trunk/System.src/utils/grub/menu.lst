@@ -1,0 +1,20 @@
+# 
+# Config file for GRUB
+#
+
+default=0
+timeout=0
+hiddenmenu
+
+title FOS
+	root (fd0)
+	kernel /fos/kernel
+	module /fos/ramdisk.gz
+
+title M$ W*NDOWS
+	root (hd0,0)
+	chainloader +1
+
+title Floppy
+	root (fd0)
+	chainloader +1

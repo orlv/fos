@@ -1,0 +1,59 @@
+
+
+******** Использование FSLayer *********
+
+Получаем доступ к корневому каталогу:
+	dir = fs = new Tdirectory(new RamFS(0), 0);
+
+Создание подкаталога:
+	dir->construct("dev", FTypeDirectory, 0);
+
+Открытие подкаталога каталога "dev":
+	obj = dir->access("dev");
+	dir = obj->directory;
+
+Пример функции для вывода списка объектов в директории: 
+	static inline void ls(Tdirectory *dir)
+	{
+	  obj_info_t *dirent;
+	  off_t i;
+	  for(i=0; (dirent = dir->list(i)); i++)
+	    {
+	      if(dirent->info.type == FTypeDirectory)
+		printk("drwxrwxrwx 1 root:root %6d %s\n", dirent->info.size, dirent->name);
+	      else
+		printk("-rwxrwxrwx 1 root:root %6d %s\n", dirent->info.size, dirent->name);
+	
+	      delete dirent;
+	    }
+	}
+
+
+Создание файла устройства в RamFS:
+	dir->construct("tty1", FTypeObject, tty1);
+или:
+	CMOS *cmos = new CMOS;
+	dir->construct("hwclock", FTypeObject, cmos);
+
+
+Открытие устройства и запись в него:
+	Tobject *device;
+	device = dir->access("tty1");
+	device->object->write(0, "test", 4);
+
+
+******* Объекты устройств *******
+
+Доступ к объекту производится через интерфейс Tinterface.
+Запись/чтение данных: 
+	size_t read(off_t offset, void * buf, size_t count);
+	size_t write(off_t offset, const void *buf, size_t count);
+
+Отличие символьного и блочного устройства в том, что символьное
+устройство игнорирует параметр offset.
+
+Некоторые драйвера могут использувать поле stdout или stdin для
+обмена данными. Например, драйвер tty. Это позволяет прозрачно
+подключать его к драйверу консоли vga.
+
+****** 2004-2006 Oleg Fedorov

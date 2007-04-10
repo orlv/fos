@@ -1,0 +1,2 @@
+#!/bin/sh
+indent -npro -kr -i2 -ts8 -sob -l80 -lc80 -ss -ncs "$@"

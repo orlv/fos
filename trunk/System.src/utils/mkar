@@ -1,0 +1,14 @@
+#!/bin/sh
+# Copyright (C) 2005-2007 Oleg Fedorov
+
+NAME=fos-`cat fos/System.src/VERSION`-`cat fos/System.src/BUILD`
+
+if [ ! -x arch/$NAME ]; then
+    mkdir arch/$NAME
+    tar cvj --exclude="lost+found" -f $NAME-src.tar.bz2 fos 
+    mv $NAME-src.tar.bz2 arch/$NAME/
+    cp ~/fos.tmp/FOS.iso.bz2 arch/$NAME/$NAME.iso.bz2
+    echo Archive $NAME was created.
+else
+    echo Archive already exist.
+fi

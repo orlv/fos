@@ -1,0 +1,4 @@
+#!/bin/sh
+
+tr -d '\r' <$1 > f.tmp
+mv f.tmp $1

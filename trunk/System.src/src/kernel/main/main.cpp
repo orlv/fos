@@ -484,7 +484,7 @@ asmlinkage void init()
 #if 1
   extern multiboot_info_t *__mbi;
   ModuleFS *modules = new ModuleFS(__mbi);
-
+  /*
   obj_info_t *dirent;
   off_t i;
   for (i = 0; (dirent = modules->list(i)); i++) {
@@ -497,7 +497,7 @@ asmlinkage void init()
 
     delete dirent;
   }
-
+  */
   Tinterface *obj;
   obj = modules->access("tty");
   string elf_buf = new char[obj->info.size];
@@ -675,12 +675,10 @@ asmlinkage void init()
   //  offs = x + y*640;
 #endif
 
-  printk
-      ("\n--------------------------------------------------------------------------------");
+  printk("\n--------------------------------------------------------------------------------");
   printk("All OK. System Halted.\n");
   printk("You can get new version at http://fos.codeworld.ru/");
-  printk
-      ("\n--------------------------------------------------------------------------------");
+  printk("\n--------------------------------------------------------------------------------");
 
   while (1) {
     asm("incb 0xb8000+154\n" "movb $0x5e,0xb8000+155 ");

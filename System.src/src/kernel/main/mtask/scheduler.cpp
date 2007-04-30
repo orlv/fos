@@ -7,16 +7,13 @@
 #include <tasks.h>
 #include <stdio.h>
 #include <system.h>
-#include <traps.h>
 #include <drivers/char/timer/timer.h>
-#include <io.h>
-#include <dt.h>
+#include <hal.h>
 #include <fs.h>
 #include <elf32.h>
 
 asmlinkage void scheduler_starter();
 extern TTime *SysTimer;
-extern TProcMan *ProcMan;
 
 /*
  * Для флоппи
@@ -28,10 +25,8 @@ extern u16_t tmout;		/* Просто таймер, его небходимо б�
 
 void start_sched()
 {
-  ProcMan->scheduler();
+  hal->ProcMan->scheduler();
 }
-
-volatile TProcess *CurrentProcess;
 
 void TProcMan::scheduler()
 {

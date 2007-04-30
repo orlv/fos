@@ -4,7 +4,7 @@
 */
 
 #include "hd.h"
-#include <io.h>
+#include <hal.h>
 #include <stdio.h>
 #include <system.h>
 #include <drivers/char/timer/timer.h>
@@ -12,7 +12,7 @@
 hd::hd()
 {
   if (get_info() != RES_SUCCESS)
-    panic("Kernel panic: hda initialization error");
+    hal->panic("Kernel panic: hda initialization error");
 
   printk("\nhda: \n");
   printk("Serial number - %s\n", drive_id->serial_no);
@@ -35,7 +35,7 @@ res_t hd::ready()
 {
 #warning FIX: изменить интервал времени для uptime()   (слишком велик)
   u32_t timeout = uptime() + 2;
-  while (!(inportb(HD_STATUS) & 0x40)) {
+  while (!(hal->inportb(HD_STATUS) & 0x40)) {
     if (timeout < uptime()) {
       printk("HD_Timeout: ready\n");
       return RES_FAULT;
@@ -47,7 +47,7 @@ res_t hd::ready()
 res_t hd::busy()
 {
   u32_t timeout = uptime() + 2;
-  while (inportb(HD_STATUS) & 0x80) {
+  while (hal->inportb(HD_STATUS) & 0x80) {
     if (timeout < uptime()) {
       printk("HD_Timeout: busy\n");
       return RES_FAULT2;
@@ -58,8 +58,8 @@ res_t hd::busy()
 
 void hd::check_error()
 {
-  if (inportb(HD_STATUS) & 0x1)
-    panic("HD_STATUS: ERROR!!!!");
+  if (hal->inportb(HD_STATUS) & 0x1)
+    hal->panic("HD_STATUS: ERROR!!!!");
 }
 
 res_t hd::get_info()
@@ -70,19 +70,19 @@ res_t hd::get_info()
   if ((errno = busy()) != RES_SUCCESS)
     return errno;
 
-  outportb(HD_CURRENT, 0xa0);
+  hal->outportb(HD_CURRENT, 0xa0);
   if ((errno = ready()) != RES_SUCCESS)
     return errno;
 
-  outportb(HD_STATUS, 0xec);	/* идентификация */
+  hal->outportb(HD_STATUS, 0xec);	/* идентификация */
   if ((errno = busy()) != RES_SUCCESS)
     return errno;
 
-  for (i = 0; (i < 256) && (inportb(HD_STATUS) & 0x08); i++) {
+  for (i = 0; (i < 256) && (hal->inportb(HD_STATUS) & 0x08); i++) {
     if ((errno = busy()) != RES_SUCCESS)
       return errno;
     check_error();
-    ((u16_t *) drive_id)[i] = inportw(HD_DATA);
+    ((u16_t *) drive_id)[i] = hal->inportw(HD_DATA);
     if ((i >= 10 && i <= 19) || (i >= 27 && i <= 46)) {
     asm("xchgb %%ah, %%al":"=a"(((u16_t *) drive_id)[i])
     :	  "a"(((u16_t *) drive_id)[i]));
@@ -161,20 +161,20 @@ u32_t hd::read_chs(u16_t head, u16_t track, u16_t sector, void *buffer)
   u32_t errno;
   if ((errno = busy()) != RES_SUCCESS)
     return errno;
-  outportb(HD_CURRENT, 0xa0 | head);
+  hal->outportb(HD_CURRENT, 0xa0 | head);
   if ((errno = ready()) != RES_SUCCESS)
     return errno;
-  outportb(HD_NSECTOR, 1);
-  outportb(HD_SECTOR, sector);
-  outportb(HD_LCYL, track);
-  outportb(HD_HCYL, track >> 8);
-  outportb(HD_STATUS, 0x20);
+  hal->outportb(HD_NSECTOR, 1);
+  hal->outportb(HD_SECTOR, sector);
+  hal->outportb(HD_LCYL, track);
+  hal->outportb(HD_HCYL, track >> 8);
+  hal->outportb(HD_STATUS, 0x20);
 
-  for (i = 0; (i < 256) && (inportb(HD_STATUS) & 0x08); i++) {
+  for (i = 0; (i < 256) && (hal->inportb(HD_STATUS) & 0x08); i++) {
     if ((errno = busy()) != RES_SUCCESS)
       return errno;
     check_error();
-    ((u16_t *) buffer)[i] = inportw(HD_DATA);
+    ((u16_t *) buffer)[i] = hal->inportw(HD_DATA);
   }
 
   return (i * 2);

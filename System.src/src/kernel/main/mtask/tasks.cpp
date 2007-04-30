@@ -8,10 +8,10 @@
 #include <tasks.h>
 #include <stdio.h>
 #include <system.h>
-#include <traps.h>
+//#include <traps.h>
 #include <drivers/char/timer/timer.h>
-#include <io.h>
-#include <dt.h>
+//#include <io.h>
+#include <hal.h>
 #include <fs.h>
 #include <elf32.h>
 #include <string.h>
@@ -19,7 +19,6 @@
 asmlinkage void scheduler_starter();
 asmlinkage u32_t terminate(pid_t pid);
 extern TTime *SysTimer;
-extern TProcMan *ProcMan;
 
 volatile u32_t top_pid = 0;
 
@@ -30,10 +29,14 @@ u32_t get_pid()
   return res;
 }
 
+struct dt{
+  u32_t a, b;
+}__attribute__ ((packed));
+
 /* Хорошо бы этот класс в будущем преобразовать в ProcessFS */
 TProcMan::TProcMan()
 {
-  ProcMan = this;
+  hal->ProcMan = this;
   extern u32_t *mpagedir;
   kPageDir = mpagedir;
 
@@ -58,15 +61,16 @@ TProcMan::TProcMan()
 
   proclist = new List(rootproc);
 
-  setup_tss(&rootproc->descr, (off_t) rootproc->tss);
-  DTman->load_tss(BASE_TSK_SEL_N, &rootproc->descr);
+  hal->gdt->set_tss_descriptor((off_t) rootproc->tss, &rootproc->descr);
 
+  hal->gdt->load_tss(BASE_TSK_SEL_N, &rootproc->descr);
   ltr(BASE_TSK_SEL);
   lldt(0);
 
   /* --------------------------------------------------- */
   TProcess *sched = NewLightProc((off_t) & start_sched, 0);
-  DTman->load_tss(BASE_TSK_SEL_N + 1, &sched->descr);
+  hal->gdt->set_tss_descriptor((off_t) sched->tss, &sched->descr);
+  hal->gdt->load_tss(BASE_TSK_SEL_N + 1, &sched->descr);
 }
 
 u32_t TProcMan::exec(void *image)
@@ -179,7 +183,7 @@ u32_t TProcess::LoadELF(void *image)
 
       if (p->p_filesz > p->p_memsz) {
 	printk("Invalid section!");
-	panic("666");
+	hal->panic("666");
       }
 
       object = (u32_t *) kmalloc(p->p_memsz);
@@ -222,7 +226,7 @@ u32_t TProcess::umount_page(u32_t log_page)
 void TProcess::set_stack_pl0()
 {
   if (!(stack_pl0 = (off_t) kmalloc(STACK_SIZE)))	/* Не удалось выделить память */
-    panic("No memory left.");
+    hal->panic("No memory left.");
 
   stack_pl0 += STACK_SIZE - 1;	/* Пусть указатель указывает на конец стека */
 }
@@ -230,7 +234,7 @@ void TProcess::set_stack_pl0()
 void TProcess::set_tss(off_t eip, u32_t cr3, u32_t crunch)
 {
   if (!(tss = (struct TSS *)kmalloc(sizeof(struct TSS))))
-    panic("No memory left.");
+    hal->panic("No memory left.");
 
   /* Заполним TSS */
   tss->cr3 = cr3;
@@ -280,12 +284,12 @@ void TProcess::set_tss(off_t eip, u32_t cr3, u32_t crunch)
   tss->IOPB = 0xffffffff;
 
   /* Установим TSS */
-  setup_tss(&descr, (off_t) tss);
+  hal->gdt->set_tss_descriptor((off_t) tss, &descr);
 }
 
 void TProcess::run()
 {
-  DTman->load_tss(BASE_TSK_SEL_N, &descr);
+  hal->gdt->load_tss(BASE_TSK_SEL_N, &descr);
   asm("ljmp $0x38, $0");
 }
 
@@ -294,7 +298,7 @@ void *TProcess::mem_alloc(size_t size)
   /* выделим страницы памяти */
   offs_t ptr = (offs_t) kmalloc(size);
   if (!ptr)
-    panic("TaskMem: Can't allocate memory!");
+    hal->panic("TaskMem: Can't allocate memory!");
 
   return this->mem_alloc(ptr, size);
 }
@@ -434,7 +438,7 @@ void *TProcess::mem_alloc(void *ptr, size_t size, void *ph_ptr)
     /* выделим страницы памяти */
     void *ptr = kmalloc(asize);
     if (!ptr)
-      panic("TaskMem: Can't allocate memory!");
+      hal->panic("TaskMem: Can't allocate memory!");
   } else {
     ptr = ph_ptr;
   }

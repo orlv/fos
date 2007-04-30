@@ -1,192 +1,137 @@
 /*
-	kernel/main/exception/traps.cpp
-	Copyright (C) 2004-2006 Oleg Fedorov
+  kernel/main/exception/traps.cpp
+  Copyright (C) 2004-2007 Oleg Fedorov
 */
 
 #include <traps.h>
 #include <stdio.h>
 #include <system.h>
 #include <mm.h>
-#include <dt.h>
+#include <hal.h>
 #include <tasks.h>
 
 /*
-	Из файла kernel/exceprion/traps.s:
+  Из файла kernel/exceprion/traps.s:
 */
 
 asmlinkage void timer_handler_wrapper();
 asmlinkage void floppy_handler_wrapper();
 asmlinkage void keyboard_handler_wrapper();
 
-asmlinkage void divide_error_trap();
-asmlinkage void debug_trap();
-asmlinkage void NMI_trap();
-asmlinkage void int3();
-asmlinkage void overflow();
-asmlinkage void BR();
-asmlinkage void invalid_operation_trap();
-asmlinkage void FPU_not_present_trap();
-asmlinkage void double_fault_trap();
-asmlinkage void reserved_trap();
-asmlinkage void invalid_TSS_trap();
-asmlinkage void segment_not_present_trap();
-asmlinkage void stack_fault_trap();
-asmlinkage void general_protection_fault_trap();
-asmlinkage void page_fault_trap();
-asmlinkage void FPU_error_trap();
-asmlinkage void align_error_trap();
-asmlinkage void machine_depend_error_trap();
-
-asmlinkage void interrupt_hdl_not_present_trap();
-
 asmlinkage void trap_gate();
 
-volatile extern TProcess *CurrentProcess;
+#define EXCEPTION_HANDLER(func) extern "C" void func (unsigned int errcode); \
+  asm(".globl " #func"\n"						\
+      #func ": \n"							\
+      "pusha \n"							\
+      "push %ds \n"							\
+      "push %es \n"							\
+      "mov $0x10, %ax \n"     /* загрузим DS ядра */			\
+      "mov %ax, %ds \n"							\
+      "mov %ax, %es \n"							\
+      "mov 48(%esp), %eax \n" /* сохраним errorcode */			\
+      "push %eax \n"							\
+      "mov 48(%esp), %eax \n" /* сохраним eip */			\
+      "push %eax \n"							\
+      "xor %eax, %eax \n"						\
+      "mov 48(%esp), %ax \n"  /* сохраним cs */				\
+      "push %eax \n"							\
+      "call _" #func " \n"						\
+      "add $10, %esp \n"						\
+      "pop %es \n"							\
+      "pop %ds \n"							\
+      "popa \n"								\
+      "iret");								\
+  extern "C" void _ ## func(unsigned int cs, unsigned int address, unsigned int errorcode)
 
-void halt()
+void exception(string str, unsigned int cs,  unsigned int address, unsigned int errorcode)
 {
-  cli();
-  while (1)
-    hlt();
-}
+  hal->cli();
 
-void panic(string str)
-{
-  cli();
-
-  printk
-      ("\n--------------------------------------------------------------------------------");
-  printk("Kernel panic: %s \n", str);
+  printk("\n--------------------------------------------------------------------------------");
+  printk("Exception: %s \n", str);
+  printk("\nAt addr: 0x%02X:0x%08lX\n", cs, address);
   u16_t id = curPID();
   printk("ID: %d \n", id);
-  if (CurrentProcess)
-    printk("PID: %d \n", CurrentProcess->pid);
+  if (hal->ProcMan->CurrentProcess)
+    printk("PID: %d \n", hal->ProcMan->CurrentProcess->pid);
+  printk("Errorcode: 0x%X\n",errorcode);
   printk("System Halted!\n");
-  printk
-      ("--------------------------------------------------------------------------------");
-  halt();
+  printk("--------------------------------------------------------------------------------");
+  hal->halt();
 }
 
-void end_process(u32_t eip, u16_t cs)
+EXCEPTION_HANDLER(divide_error_exception)
 {
-  printk("\nEIP: 0x%04X:0x%08lX", cs, eip);
-  panic("SUXX");
+  exception("[0x00] Divide Error", cs, address, errorcode);
 }
 
-asmlinkage void divide_error_handler(u32_t eip, u16_t cs)
+EXCEPTION_HANDLER(debug_exception)
 {
-  end_process(eip, cs);
+  exception("[0x01] Debug", cs, address, errorcode);
 }
 
-asmlinkage void debug_handler(u32_t eip, u16_t cs)
+EXCEPTION_HANDLER(NMI_exception)
 {
-  printk
-      ("\n-------------------------------------------------------------------------------");
-  printk("\n[0x01] Debug");
-  end_process(eip, cs);
+  exception("[0x02] NMI", cs, address, errorcode);
 }
 
-asmlinkage void NMI_handler(u32_t eip, u16_t cs)
+EXCEPTION_HANDLER(int3_exception)
 {
-  printk
-      ("\n-------------------------------------------------------------------------------");
-  printk("\n[0x02] NMI");
-  end_process(eip, cs);
+  exception("int3", cs, address, errorcode);
 }
 
-asmlinkage void int3_handler(u32_t eip, u16_t cs)
+EXCEPTION_HANDLER(overflow_exception)
 {
-  pause();
+  exception("[0x04] overflow", cs, address, errorcode);
 }
 
-asmlinkage void overflow_handler(u32_t eip, u16_t cs)
+EXCEPTION_HANDLER(bound_exception)
 {
-  printk
-      ("\n-------------------------------------------------------------------------------");
-  printk("\n[0x04] overflow");
-  end_process(eip, cs);
+  exception("[0x05] bound", cs, address, errorcode);
 }
 
-asmlinkage void bound_handler(u32_t eip, u16_t cs)
+EXCEPTION_HANDLER(invalid_operation_exception)
 {
-  printk
-      ("\n-------------------------------------------------------------------------------");
-  printk("\n[0x05] bound");
-  end_process(eip, cs);
+  exception("[0x06] invalid operation", cs, address, errorcode);
 }
 
-asmlinkage void invalid_operation_handler(u32_t eip, u16_t cs)
+EXCEPTION_HANDLER(FPU_not_present_exception)
 {
-  printk
-      ("\n-------------------------------------------------------------------------------");
-  printk("\n[0x06] invalid operation");
-  end_process(eip, cs);
+  exception("[0x07] FPU not present", cs, address, errorcode);
 }
 
-asmlinkage void FPU_not_present_handler(u32_t eip, u16_t cs)
+EXCEPTION_HANDLER(double_fault_exception)
 {
-  printk
-      ("\n-------------------------------------------------------------------------------");
-  printk("\n[0x07] FPU not present");
-  end_process(eip, cs);
+  exception("[0x08] double fault", cs, address, errorcode);
 }
 
-asmlinkage void double_fault_handler(u16_t errorcode, u32_t eip, u16_t cs)
+EXCEPTION_HANDLER(reserved_exception)
 {
-  printk
-      ("\n-------------------------------------------------------------------------------");
-  printk("\n[0x08] double fault");
-  printk("\nErrorcode: [0x%X]", errorcode);
-  end_process(eip, cs);
+  exception("reserved interrupt", cs, address, errorcode);
 }
 
-asmlinkage void reserved_handler(u32_t eip, u16_t cs)
+EXCEPTION_HANDLER(invalid_TSS_exception)
 {
-  printk
-      ("\n-------------------------------------------------------------------------------");
-  printk("\nreserved interrupt");
-  end_process(eip, cs);
+  exception("[0x0A] invalid TSS", cs, address, errorcode);
 }
 
-asmlinkage void invalid_TSS_handler(u16_t errorcode, u32_t eip, u16_t cs)
+EXCEPTION_HANDLER(segment_not_present_exception)
 {
-  printk
-      ("\n-------------------------------------------------------------------------------");
-  printk("\n[0x0A] invalid TSS");
-  printk("\nErrorcode: [0x%X]", errorcode);
-  end_process(eip, cs);
+  exception("[0x0B] segment not present", cs, address, errorcode);
 }
 
-asmlinkage void segment_not_present_handler(u16_t errorcode, u32_t eip,
-					    u16_t cs)
+EXCEPTION_HANDLER(stack_fault_exception)
 {
-  printk
-      ("\n-------------------------------------------------------------------------------");
-  printk("\n[0x0B] segment not present");
-  printk("\nErrorcode: [0x%X]", errorcode);
-  end_process(eip, cs);
+  exception("[0x0C] stack fault", cs, address, errorcode);
 }
 
-asmlinkage void stack_fault_handler(u16_t errorcode, u32_t eip, u16_t cs)
+EXCEPTION_HANDLER(general_protection_fault_exception)
 {
-  printk
-      ("\n-------------------------------------------------------------------------------");
-  printk("\n[0x0C] stack fault");
-  printk("\nErrorcode: [0x%X]", errorcode);
-  end_process(eip, cs);
+  exception("[0x0D] general protection fault", cs, address, errorcode);
 }
 
-asmlinkage void general_protection_fault_handler(u16_t errorcode, u32_t eip,
-						 u32_t cs)
-{
-  printk
-      ("\n-------------------------------------------------------------------------------");
-  printk("\n[0x0D] general protection fault");
-  printk("\nErrorcode: [0x%X]", errorcode);
-  end_process(eip, cs);
-}
-
-asmlinkage void page_fault_handler(u16_t errorcode, u32_t eip, u16_t cs)
+EXCEPTION_HANDLER(page_fault_exception)
 {
   u32_t cr2;
   asm volatile ("mov %%cr2, %%eax":"=a" (cr2));
@@ -206,77 +151,62 @@ asmlinkage void page_fault_handler(u16_t errorcode, u32_t eip, u16_t cs)
     printk("Permission denied");
   else
     printk("Page not found");
-  end_process(eip, cs);
+
+  exception("[0x0E] page fault", cs, address, errorcode);
 }
 
-asmlinkage void FPU_error_handler(u32_t eip, u16_t cs)
+EXCEPTION_HANDLER(FPU_error_exception)
 {
-  printk
-      ("\n-------------------------------------------------------------------------------");
-  printk("\n[0x10] FPU error");
-  end_process(eip, cs);
+  exception("[0x10] FPU error", cs, address, errorcode);
 }
 
-asmlinkage void align_error_handler(u16_t errorcode, u32_t eip, u16_t cs)
+EXCEPTION_HANDLER(align_error_exception)
 {
-  printk
-      ("\n-------------------------------------------------------------------------------");
-  printk("\nErrorcode: [0x%X]", errorcode);
-  printk("\n[0x11] align error");
-  end_process(eip, cs);
+  exception("[0x11] align error", cs, address, errorcode);
 }
 
-asmlinkage void machine_depend_error_handler()
+EXCEPTION_HANDLER(machine_depend_error_exception)
 {
-  printk
-      ("\n-------------------------------------------------------------------------------");
-  printk("\n[0x12] machine depend error");
-  halt();
+  exception("[0x12] machine depend error", cs, address, errorcode);
 }
 
-asmlinkage void interrupt_hdl_not_present_handler()
+EXCEPTION_HANDLER(interrupt_hdl_not_present_exception)
 {
-  printk
-      ("\n-------------------------------------------------------------------------------");
-  printk("\n[0x??] Unknown interrupt");
-  halt();
+  exception("interrupt_hdl_not_present", cs, address, errorcode);
 }
 
-asmlinkage void setup_idt()
+void setup_idt()
 {
   u16_t i;
-  extern DTMan *DTman;
 
-  DTman->set_trap_gate(0x00, (off_t) & divide_error_trap, 0);
-  DTman->set_trap_gate(0x01, (off_t) debug_trap, 0);
-  DTman->set_trap_gate(0x02, (off_t) NMI_trap, 0);
-  DTman->set_trap_gate(0x03, (off_t) & int3, 3);	/* прерывания 3-5 могут вызываться из задач */
-  DTman->set_trap_gate(0x04, (off_t) & overflow, 3);
-  DTman->set_trap_gate(0x05, (off_t) & BR, 3);
-  DTman->set_trap_gate(0x06, (off_t) & invalid_operation_trap, 0);
-  DTman->set_trap_gate(0x07, (off_t) & FPU_not_present_trap, 0);
-  DTman->set_trap_gate(0x08, (off_t) & double_fault_trap, 0);
-  DTman->set_trap_gate(0x09, (off_t) & reserved_trap, 0);
-  DTman->set_trap_gate(0x0A, (off_t) & invalid_TSS_trap, 0);
-  DTman->set_trap_gate(0x0B, (off_t) & segment_not_present_trap, 0);
-  DTman->set_trap_gate(0x0D, (off_t) & general_protection_fault_trap, 0);
-  DTman->set_trap_gate(0x0E, (off_t) & page_fault_trap, 0);
-  DTman->set_trap_gate(0x0F, (off_t) & reserved_trap, 0);
-  DTman->set_trap_gate(0x10, (off_t) & FPU_error_trap, 0);
-  DTman->set_trap_gate(0x11, (off_t) & align_error_trap, 0);
-  DTman->set_trap_gate(0x12, (off_t) & machine_depend_error_trap, 0);
+  hal->idt->set_trap_gate(0x00, (off_t) & divide_error_exception, 0);
+  hal->idt->set_trap_gate(0x01, (off_t) & debug_exception, 0);
+  hal->idt->set_trap_gate(0x02, (off_t) & NMI_exception, 0);
+  hal->idt->set_trap_gate(0x03, (off_t) & int3_exception, 3);	/* прерывания 3-5 могут вызываться из задач */
+  hal->idt->set_trap_gate(0x04, (off_t) & overflow_exception, 3);
+  hal->idt->set_trap_gate(0x05, (off_t) & bound_exception, 3);
+  hal->idt->set_trap_gate(0x06, (off_t) & invalid_operation_exception, 0);
+  hal->idt->set_trap_gate(0x07, (off_t) & FPU_not_present_exception, 0);
+  hal->idt->set_trap_gate(0x08, (off_t) & double_fault_exception, 0);
+  hal->idt->set_trap_gate(0x09, (off_t) & reserved_exception, 0);
+  hal->idt->set_trap_gate(0x0A, (off_t) & invalid_TSS_exception, 0);
+  hal->idt->set_trap_gate(0x0B, (off_t) & segment_not_present_exception, 0);
+  hal->idt->set_trap_gate(0x0D, (off_t) & general_protection_fault_exception, 0);
+  hal->idt->set_trap_gate(0x0E, (off_t) & page_fault_exception, 0);
+  hal->idt->set_trap_gate(0x0F, (off_t) & reserved_exception, 0);
+  hal->idt->set_trap_gate(0x10, (off_t) & FPU_error_exception, 0);
+  hal->idt->set_trap_gate(0x11, (off_t) & align_error_exception, 0);
+  hal->idt->set_trap_gate(0x12, (off_t) & machine_depend_error_exception, 0);
   for (i = 0x13; i < 0x20; i++)
-    DTman->set_trap_gate(i, (off_t) & reserved_trap, 0);
+    hal->idt->set_trap_gate(i, (off_t) & reserved_exception, 0);
 
   for (i = 0x20; i < 0x100; i++)
-    DTman->set_trap_gate(i, (off_t) & interrupt_hdl_not_present_trap, 0);
+    hal->idt->set_trap_gate(i, (off_t) & interrupt_hdl_not_present_exception, 0);
 
-  DTman->set_intr_gate(0x20, (off_t) & timer_handler_wrapper);
+  hal->idt->set_intr_gate(0x20, (off_t) & timer_handler_wrapper);
+  hal->idt->set_intr_gate(0x21, (off_t) & keyboard_handler_wrapper);
+  hal->idt->set_intr_gate(0x26, (off_t) & floppy_handler_wrapper);
 
-  DTman->set_intr_gate(0x21, (off_t) & keyboard_handler_wrapper);
-
-  DTman->set_intr_gate(0x26, (off_t) & floppy_handler_wrapper);
-
-  DTman->set_trap_gate(0x30, (off_t) & trap_gate, 3);
-  //  DTman->set_call_gate(BASE_TSK_SEL_N-1, (off_t)&call_gate, 3, 4);
+  hal->idt->set_trap_gate(0x30, (off_t) & trap_gate, 3);
+  //  hal->idt->set_call_gate(BASE_TSK_SEL_N-1, (off_t)&call_gate, 3, 4);
 }

@@ -7,7 +7,7 @@
 #include <multiboot.h>
 #include <paging.h>
 #include <stdio.h>
-#include <dt.h>
+#include <hal.h>
 
 //#define       DEBUG_KMEMORY 0
 //#define DEBUG_UMEMORY 0
@@ -20,13 +20,13 @@ size_t memory_used;
 
 //#define FREE_MEM_START 0x13000
 
-asmlinkage void init_memory()
+void init_memory()
 {
   extern multiboot_info_t *__mbi;
 
   memory_size = __mbi->mem_upper + 1024;
   offs_t mods_end_ptr =
-      (((module_t *) __mbi->mods_addr)[__mbi->mods_count - 1].mod_end);
+    (((module_t *) __mbi->mods_addr)[__mbi->mods_count - 1].mod_end);
   if (mods_end_ptr & 0xfff) {
     mods_end_ptr += 0x1000;
     mods_end_ptr &= 0xfffff000;
@@ -36,7 +36,7 @@ asmlinkage void init_memory()
   //  mem_free((void *)FREE_MEM_START, 0xA0000 - FREE_MEM_START);
 
   setup_paging();
-  DTman = new DTMan;
+  //DTman = new DTMan;
   /*  printk("Memory: %dK (%dK kernel, %dK ramdisk)\n",
      memory_size,
      bi.ksize*4,

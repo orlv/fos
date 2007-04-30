@@ -1,12 +1,13 @@
 /*
  * kernel/main/syscall.cpp
- * Copyright (C) 2005-2006 Oleg Fedorov
+ * Copyright (C) 2005-2007 Oleg Fedorov
  */
 
 #include <system.h>
 #include <stdio.h>
 #include <tasks.h>
 #include <string.h>
+#include <hal.h>
 
 void putpixel(u32_t offs, u16_t code);
 
@@ -86,24 +87,22 @@ struct memmap {
 
 asmlinkage u32_t sys_call(u32_t arg1, u32_t arg2)
 {
-  extern TProcess *CurrentProcess;
-
   struct message *message;
   struct message *msg;
   size_t size;
   TProcess *p;
 
-  //printk("\nSyscall #%d, Process %d ", arg1,  CurrentProcess->pid);
+  //printk("\nSyscall #%d, Process %d ", arg1,  hal->ProcMan->CurrentProcess->pid);
   
   switch (arg1) {
   case MEM_ALLOC:
-    *(u32_t *) arg2 = (u32_t) CurrentProcess->mem_alloc(*(u32_t *) arg2);
+    *(u32_t *) arg2 = (u32_t) hal->ProcMan->CurrentProcess->mem_alloc(*(u32_t *) arg2);
     break;
 
   case MEM_MAP:
     struct memmap *mmp;
     mmp = (struct memmap *)arg2;
-    mmp->ptr = (u32_t) CurrentProcess->mem_alloc(mmp->ptr, mmp->size);
+    mmp->ptr = (u32_t) hal->ProcMan->CurrentProcess->mem_alloc(mmp->ptr, mmp->size);
     break;
     /*
        case PRINT:
@@ -114,15 +113,15 @@ asmlinkage u32_t sys_call(u32_t arg1, u32_t arg2)
      */
   case RECEIVE:
     /* если нет ни одного входящего сообщения, отключаемся в ожидании */
-    if (CurrentProcess->msg->empty()) {
-      CurrentProcess->flags |= FLAG_TSK_RECV;
+    if (hal->ProcMan->CurrentProcess->msg->empty()) {
+      hal->ProcMan->CurrentProcess->flags |= FLAG_TSK_RECV;
       pause();
     }
 
     /* SEND-->> */
 #warning ЗАМЕНИТЬ cli() на мьютекс!
-    cli();
-    msg = (struct message *)CurrentProcess->msg->next->data;
+    hal->cli();
+    msg = (struct message *)hal->ProcMan->CurrentProcess->msg->next->data;
     message = (struct message *)arg2;
 
     if (msg->send_size > message->recv_size)
@@ -139,7 +138,7 @@ asmlinkage u32_t sys_call(u32_t arg1, u32_t arg2)
     msg->send_size = message->recv_size = size;
 
     delete(u32_t *) msg->send_buf;
-    sti();
+    hal->sti();
     break;
 
     /*
@@ -150,9 +149,8 @@ asmlinkage u32_t sys_call(u32_t arg1, u32_t arg2)
      */
   case SEND:
     message = (struct message *)arg2;
-    extern TProcMan *ProcMan;
 
-    if (!(p = ProcMan->get_process_by_pid(message->pid)))
+    if (!(p = hal->ProcMan->get_process_by_pid(message->pid)))
       break;
 
     /* скопируем сообщение в память ядра */
@@ -164,15 +162,15 @@ asmlinkage u32_t sys_call(u32_t arg1, u32_t arg2)
 
     msg->recv_buf = 0;
     msg->recv_size = message->recv_size;
-    msg->pid = (u32_t) CurrentProcess;
+    msg->pid = (u32_t) hal->ProcMan->CurrentProcess;
 
 #warning ЗАМЕНИТЬ cli() на мьютекс!
-    cli();
+    hal->cli();
     p->msg->add_tail(msg);
 
     p->flags &= ~FLAG_TSK_RECV;	/* сбросим флаг ожидания получения сообщения (если он там есть) */
-    CurrentProcess->flags |= FLAG_TSK_SEND;	/* ожидаем ответа */
-    sti();
+    hal->ProcMan->CurrentProcess->flags |= FLAG_TSK_SEND;	/* ожидаем ответа */
+    hal->sti();
     pause();
 
     /* REPLY-->> */
@@ -187,7 +185,7 @@ asmlinkage u32_t sys_call(u32_t arg1, u32_t arg2)
     break;
 
   case REPLY:
-    msg = (struct message *)CurrentProcess->msg->next->data;
+    msg = (struct message *)hal->ProcMan->CurrentProcess->msg->next->data;
     message = (struct message *)arg2;
 
     if (msg->recv_size < message->send_size)
@@ -201,10 +199,10 @@ asmlinkage u32_t sys_call(u32_t arg1, u32_t arg2)
       memcpy((u32_t *) msg->recv_buf, (u32_t *) message->send_buf, size);
     }
 #warning ЗАМЕНИТЬ cli() на мьютекс!
-    cli();
+    hal->cli();
     ((TProcess *) msg->pid)->flags &= ~FLAG_TSK_SEND;	/* сбросим флаг SEND */
-    delete CurrentProcess->msg->next;
-    sti();
+    delete hal->ProcMan->CurrentProcess->msg->next;
+    hal->sti();
 
     //pause();
 

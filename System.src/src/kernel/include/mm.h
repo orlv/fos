@@ -55,4 +55,6 @@ public:
   void *realloc(void *ptr, size_t size);
 };
 
+void init_memory();
+
 #endif

@@ -9,6 +9,7 @@ asmlinkage void _start()
   struct msg *msg = new(struct msg);
   char *buf = new char[256];
   VGA *vga = new VGA;
+
   vga->init();
 
   TTY *tty = new TTY(80, 25);

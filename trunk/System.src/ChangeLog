@@ -1,3 +1,7 @@
+Sat Apr 21 01:28:24 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 11903 (Version 0.0.26.6)
+	-в exception.cpp изменены обработчики исключений
+
 Fri Apr  6 00:05:30 2007
 Build 11662 (Version 0.0.26.5)
 	-TList полностью заменён на List
@@ -5,7 +9,7 @@ Build 11662 (Version 0.0.26.5)
 Mon Apr  2 00:58:49 2007
 Build 11658 (Version 0.0.26.4)
 	-Новый класс: кольцевой связанный список List (замена для TList)
-	
+
 Sun Apr  1 23:32:10 2007
 Build 11640 (Version 0.0.26.3)
 	-удалён ramdisk

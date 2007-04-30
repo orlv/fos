@@ -2,14 +2,14 @@
  * kernel/memory/heap.cpp
  * Copyright (C) 2006 Oleg Fedorov
  *
- * malloc НЯМНБЮМ МЮ ОПХЛЕПЕ ХГ ЙМХЦХ "ъГШЙ ОПНЦПЮЛЛХПНБЮМХЪ яХ" (я) а.йЕПМХЦЮМ, д.пХРВХ
+ * malloc был основан на примере из книги "Язык программирования Си"" (C) Б.Керниган, Д.Ритчи
  * :)
  */
 
 #include <mm.h>
 #include <stdio.h>
+#include <hal.h>
 
-void halt();
 Heap SystemHeap;
 
 Heap::Heap()
@@ -57,7 +57,7 @@ void *Heap::malloc(size_t size)
 
     if (p == free_ptr)		/* прошли первый цикл по списку */
       if ((p = morecore(nunits * sizeof(HeapMemBlock))) == NULL) {
-	halt();
+	hal->halt();
 	return NULL;		/* больше памяти нет */
       }
   }

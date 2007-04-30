@@ -8,6 +8,6 @@
 
 #include <types.h>
 
-//void system_call();
+void setup_idt();
 
 #endif

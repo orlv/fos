@@ -11,21 +11,6 @@
 #define BASE_TSK_SEL 0x38
 #define BASE_TSK_SEL_N 7
 
-inline void hlt()
-{
-  asm("hlt");
-}
-
-inline void cli()
-{
-  asm("cli");
-};
-
-inline void sti()
-{
-  asm("sti");
-}
-
 inline void pause()
 {
   asm volatile ("ljmp $0x40, $0");
@@ -59,7 +44,5 @@ inline void lldt(u16_t ldt)
 {
   asm volatile ("lldt %0"::"a" (ldt));
 }
-
-void panic(string str);
 
 #endif

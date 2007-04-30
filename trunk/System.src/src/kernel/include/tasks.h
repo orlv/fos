@@ -9,7 +9,7 @@
 #include <types.h>
 #include <tss.h>
 #include <list.h>
-#include <dt.h>
+#include <gdt.h>
 
 #define MAX_PROCS 250
 #define STACK_SIZE 4096
@@ -56,7 +56,7 @@ public:
   void run();
 
   struct TSS *tss;
-  dt_t descr;
+  gdt_entry descr;
   u8_t flags;
   u32_t alarm;
 
@@ -82,7 +82,7 @@ private:
   u32_t *CreatePageDir();
 
 public:
-   TProcMan();
+  TProcMan();
 
   void add(TProcess * Process);
   void del(List * proc);
@@ -97,6 +97,8 @@ public:
   TProcess *get_process_by_pid(u32_t pid);
 
   u32_t curr_proc;
+
+  TProcess *CurrentProcess;
 };
 
 void start_sched();

@@ -19,7 +19,7 @@ include ../../Makefile.conf
 ASFLAGS =-Wall -nostdlib -nostdinc -Iinclude
 CFLAGS  =-Wall -ffreestanding -nostdlib -nostdinc -fno-stack-protector -Iinclude
 
-CXXFLAGS =-Wall -nostdinc -nostdinc++ -Iinclude -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin -fno-stack-protector -O0
+CXXFLAGS =-Wall -nostdinc -nostdinc++ -Iinclude -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin -fno-stack-protector -O3
 
 LDFLAGS =-nostdlib -static
 
@@ -43,36 +43,39 @@ LDFLAGS =-nostdlib -static
 
 #-----------------------------------------------------------------------------#
 
-Objects =	main/boot/setup.o	\
-		main/mtask/tasks.o	\
-		main/mtask/scheduler.o	\
-		main/exception/exception.o     \
-		main/exception/traps.o	\
-		main/memory/paging.o	\
-		main/memory/kmalloc.o	\
-		main/memory/heap.o	\
-		main/memory/dt.o	\
-		main/pure.o		\
-		main/main.o		\
-		main/version.o		\
-		main/tinterface.o	\
-		main/fs/layer.o		\
-		main/fs/fs.o		\
-		lib/vsprintf.o		\
-		lib/stdio.o		\
-		lib/list.o		\
-		lib/time.o		\
-		main/syscall/syscall.o  \
-		main/syscall/trapgate.o \
+Objects =	main/boot/setup.o		\
+		main/hal.o			\
+		main/mtask/tasks.o		\
+		main/mtask/scheduler.o		\
+		main/exception/exception.o	\
+		main/exception/traps.o		\
+		main/memory/paging.o		\
+		main/memory/kmalloc.o		\
+		main/memory/heap.o		\
+		main/gdt.o			\
+		main/idt.o			\
+		main/pure.o			\
+		main/main.o			\
+		main/version.o			\
+		main/tinterface.o		\
+		main/fs/layer.o			\
+		main/fs/fs.o			\
+		lib/vsprintf.o			\
+		lib/stdio.o			\
+		lib/list.o			\
+		lib/time.o			\
+		main/syscall/syscall.o  	\
+		main/syscall/trapgate.o 	\
 		drivers/char/tty/tty.o		\
 		drivers/block/vga/vga.o		\
 		drivers/char/timer/timer.o	\
 		drivers/char/cmos/cmos.o	\
 		drivers/block/floppy/floppy.o	\
-		drivers/dma.o		\
-		drivers/block/hd/hd.o	\
-		drivers/fs/modulefs/modulefs.o   \
-		drivers/fs/objectfs/objectfs.o	 \
+		drivers/dma.o			\
+		drivers/pic.o			\
+		drivers/block/hd/hd.o		\
+		drivers/fs/modulefs/modulefs.o 	\
+		drivers/fs/objectfs/objectfs.o	\
 		drivers/char/keyboard/keyboard.o
 
 

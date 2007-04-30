@@ -5,7 +5,7 @@
 
 #include <types.h>
 #include <drivers/dma.h>
-#include <io.h>
+#include <hal.h>
 #include <system.h>
 
 #if 1
@@ -25,25 +25,25 @@ void dma_xfer(u16_t channel, u32_t physaddr, u16_t length, u8_t read)
   offset = physaddr & 0xffff;
   length -= 1;			/* with dma, if you want k unsigned chars, you ask for k - 1 */
 
-  cli();			/* disable irq's */
+  hal->cli();			/* disable irq's */
 
   /* set the mask bit for the channel */
-  outportb(0x0a, channel | 4);
+  hal->outportb(0x0a, channel | 4);
   /* clear flipflop */
-  outportb(0x0c, 0);
+  hal->outportb(0x0c, 0);
   /* set DMA mode (write+single+r/w) */
-  outportb(0x0b, (read ? 0x48 : 0x44) + channel);
+  hal->outportb(0x0b, (read ? 0x48 : 0x44) + channel);
   /* set DMA page */
-  outportb(dmainfo[channel].page, page);
+  hal->outportb(dmainfo[channel].page, page);
   /* set DMA offset */
-  outportb(dmainfo[channel].offset, offset & 0xff);	/* low unsigned char */
-  outportb(dmainfo[channel].offset, offset >> 8);	/* high unsigned char */
+  hal->outportb(dmainfo[channel].offset, offset & 0xff);	/* low unsigned char */
+  hal->outportb(dmainfo[channel].offset, offset >> 8);	/* high unsigned char */
   /* set DMA length */
-  outportb(dmainfo[channel].length, length & 0xff);	/* low unsigned char */
-  outportb(dmainfo[channel].length, length >> 8);	/* high unsigned char */
+  hal->outportb(dmainfo[channel].length, length & 0xff);	/* low unsigned char */
+  hal->outportb(dmainfo[channel].length, length >> 8);	/* high unsigned char */
   /* clear DMA mask bit */
-  outportb(0x0a, channel);
-
-  sti();			/* enable irq's */
+  hal->outportb(0x0a, channel);
+  
+  hal->sti();			/* enable irq's */
 }
 #endif

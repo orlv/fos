@@ -13,35 +13,38 @@
 #include <system.h>
 #include <stdio.h>
 #include <drivers/char/timer/timer.h>
-#include <dt.h>
+#include <hal.h>
+#include <traps.h>
 
-#include <drivers/fs/objectfs/objectfs.h>
-#include <fslayer.h>
+//#include <drivers/fs/objectfs/objectfs.h>
+//#include <fslayer.h>
 
-#include <drivers/char/cmos/cmos.h>
-#include <drivers/block/floppy/floppy.h>
-#include <drivers/block/hd/hd.h>
+//#include <drivers/char/cmos/cmos.h>
+//#include <drivers/block/floppy/floppy.h>
+//#include <drivers/block/hd/hd.h>
 #include <drivers/fs/modulefs/modulefs.h>
 
 #include <drivers/char/keyboard/keyboard.h>
 
-#include <elf32.h>
+//#include <elf32.h>
 
 #include <io.h>
 
 void halt();
 
 TTY *stdout;
-TProcMan *ProcMan;
-DTMan *DTman;
-TTime *SysTimer;
+
 Keyboard *keyb;
-Tdirectory *fs;
+TTime *SysTimer;
 
 asmlinkage void keyboard_handler()
 {
   keyb->handler();
 };
+
+#if 0
+TProcMan *ProcMan;
+Tdirectory *fs;
 
 #define sys_call(arg1,arg2,arg3, arg4) asm("int $0x30"::"a"(arg1), "b"(arg2),"c"(arg3),"d"(arg4))
 
@@ -442,10 +445,14 @@ void hide_bar(u32_t x, u32_t y, u32_t size)
       putpixel(j + i * 640, 0xffff);
 }
 
+#endif
+
 static inline void EnableTimer()
 {
   outportb(0x21, inportb(0x21) & 0xfe);	/* Enable timer */
 }
+
+HAL *hal;
 
 asmlinkage void init()
 {
@@ -453,6 +460,27 @@ asmlinkage void init()
   extern u32_t build;
   extern const string compile_date, compile_time;
 
+  extern multiboot_info_t *__mbi;
+
+
+  init_memory();
+  
+  hal = new HAL(__mbi);
+  
+  hal->cli();
+  hal->pic = new PIC;
+  hal->pic->remap(0x20, 0x28);
+
+  int i;
+  for(i = 0; i < 16; i++)
+    hal->pic->mask(i);
+  
+  hal->gdt = new GDT;
+  hal->idt = new IDT;
+
+  setup_idt();
+  hal->sti();
+  
   VGA *con = new VGA;
   TTY *tty1 = new TTY(80, 25);
 
@@ -461,14 +489,14 @@ asmlinkage void init()
 
   stdout = tty1;
 
-  *stdout << "FOS OS. Revision " << version << ". Build #" << build << " " <<
-      compile_date << " " << compile_time << "\n";
+  *stdout << "FOS OS. Revision " << version << ". Build #" << build << " " << compile_date << " " << compile_time << "\n";
 
-  printk
-      ("--------------------------------------------------------------------------------");
+  printk("--------------------------------------------------------------------------------");
 
 #if 1
-  ProcMan = new TProcMan;
+  
+#if 1
+  hal->ProcMan = new TProcMan;
   SysTimer = new TTime;
   EnableTimer();
 #endif
@@ -503,12 +531,12 @@ asmlinkage void init()
   string elf_buf = new char[obj->info.size];
   obj->read(0, elf_buf, obj->info.size);
 
-  ProcMan->exec(elf_buf);
+  hal->ProcMan->exec(elf_buf);
 
   obj = modules->access("fs");
   elf_buf = new char[obj->info.size];
   obj->read(0, elf_buf, obj->info.size);
-  ProcMan->exec(elf_buf);
+  hal->ProcMan->exec(elf_buf);
 #endif
 
 #if 0
@@ -675,6 +703,8 @@ asmlinkage void init()
   //  offs = x + y*640;
 #endif
 
+#endif
+  
   printk("\n--------------------------------------------------------------------------------");
   printk("All OK. System Halted.\n");
   printk("You can get new version at http://fos.codeworld.ru/");

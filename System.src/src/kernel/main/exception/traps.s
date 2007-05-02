@@ -3,31 +3,11 @@
 	Copyright (C) 2004-2007 Oleg Fedorov 
 */
 
-.globl timer_handler_wrapper
+//.globl timer_handler_wrapper
 .globl floppy_handler_wrapper
 .globl keyboard_handler_wrapper
 	
 .text
-.align 4
-timer_handler_wrapper:
-    pusha
-    push %ds
-    push %es
-
-    mov $0x10, %ax
-    mov %ax,%ds
-    mov %ax,%es
-
-    movw 40(%esp), %ax /* сохраним cs */
-    push %ax
-    call timer_handler
-    add $2, %esp
-
-    pop %es
-    pop %ds
-    popa
-    iret
-
 .align 4
 floppy_handler_wrapper:
     pusha

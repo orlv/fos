@@ -13,7 +13,7 @@
 //#define DEBUG_UMEMORY 0
 //#define DEBUG_MOUNT_MEMORY 0
 
-void init_alloc(void *ptr, size_t size);
+void init_alloc(register void *ptr, register  size_t size);
 
 size_t memory_size;		/* Размер памяти (в Kb) */
 size_t memory_used;
@@ -51,14 +51,19 @@ typedef struct mem_block_t {
 
 static mem_block_t *start_block;
 
-void init_alloc(void *ptr, size_t size)
+void init_alloc(register void *ptr, register size_t size)
 {
   start_block = (mem_block_t *) ptr;
   start_block->size = size;
   start_block->next = 0;
+
+  u32_t *p = (u32_t *) ptr;
+  u32_t end_p = (u32_t) ptr + size; 
+  for(; (u32_t)p < end_p; p += sizeof(u32_t))
+  *p = 0;
 }
 
-void *kmalloc(size_t size)
+void * kmalloc(register size_t size)
 {
   //printk("\n{ [%d]",size);
   if (!size)
@@ -113,8 +118,14 @@ void *kmalloc(size_t size)
   ptr - указатель на начало блока
   size - размер блока в байтах
 */
-void kmfree(void *ptr, size_t size)
+void kmfree(register void *ptr, register size_t size)
 {
+  u32_t *pt = (u32_t *) ptr;
+  u32_t end_pt = (u32_t) ptr + size; 
+  for(; (u32_t)pt < end_pt; pt += sizeof(u32_t))
+  *pt = 0;
+
+
   //printk("Freing 0x%X(0x%X)\n", (u32_t)ptr, (u32_t)size);
   mem_block_t *block = (mem_block_t *) ptr;
   mem_block_t *p = start_block;

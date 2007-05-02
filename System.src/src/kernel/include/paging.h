@@ -8,7 +8,7 @@
 
 void setup_paging();
 
-u32_t k_umount_page(u32_t log_page, u32_t * pagedir);
-u32_t k_mount_page(u32_t phys_page, u32_t log_page, u32_t * pagedir, u8_t c3wp);
+u32_t k_umount_page(register u32_t log_page, register u32_t * pagedir);
+u32_t k_mount_page(register u32_t phys_page, register u32_t log_page, register u32_t * pagedir, register u8_t c3wp);
 
 #endif

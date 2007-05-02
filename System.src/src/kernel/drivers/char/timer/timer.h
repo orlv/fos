@@ -19,7 +19,7 @@ public:
   u32_t uptime();		/* получить показания таймера */
 };
 
-extern "C" void timer_handler(u16_t cs);
+//extern "C" void timer_handler(u16_t cs);
 
 u32_t uptime();			/* получить показания таймера */
 

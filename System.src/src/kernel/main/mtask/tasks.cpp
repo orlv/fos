@@ -73,7 +73,7 @@ TProcMan::TProcMan()
   hal->gdt->load_tss(BASE_TSK_SEL_N + 1, &sched->descr);
 }
 
-u32_t TProcMan::exec(void *image)
+u32_t TProcMan::exec(register void *image)
 {
   u32_t *PageDir = CreatePageDir();
   TProcess *Process = new TProcess(image, FLAG_TSK_READY, PageDir, 0);
@@ -82,18 +82,18 @@ u32_t TProcMan::exec(void *image)
 }
 
 /* Добавляет процесс в список процессов */
-void TProcMan::add(TProcess * process)
+void TProcMan::add(register TProcess * process)
 {
   proclist->add_tail(process);
 }
 
-void TProcMan::del(List * proc)
+void TProcMan::del(register List * proc)
 {
   delete(TProcess *) proc->data;
   delete proc;
 }
 
-res_t TProcMan::stop(pid_t pid)
+res_t TProcMan::stop(register pid_t pid)
 {
 #warning TODO: FIX!!!!!!!!!!!!!!!
 #if 0
@@ -115,7 +115,7 @@ res_t TProcMan::stop(pid_t pid)
   return RES_FAULT;
 }
 
-TProcess *TProcMan::get_process_by_pid(u32_t pid)
+TProcess *TProcMan::get_process_by_pid(register u32_t pid)
 {
   List *current = proclist;
 
@@ -131,7 +131,7 @@ TProcess *TProcMan::get_process_by_pid(u32_t pid)
 
 #define HELLOW_STRING "[FOS]"
 
-TProcess::TProcess(void *image, u16_t flags, u32_t * PageDir, u32_t crutch)
+TProcess::TProcess(register void *image, register u16_t flags, register u32_t * PageDir, register u32_t crutch)
 {
   pid = get_pid();
   /* ------------- */
@@ -165,7 +165,7 @@ TProcess::TProcess(void *image, u16_t flags, u32_t * PageDir, u32_t crutch)
   this->flags = flags;
 }
 
-u32_t TProcess::LoadELF(void *image)
+u32_t TProcess::LoadELF(register void *image)
 {
   u32_t i;
   u32_t *object, *filedata;
@@ -213,12 +213,12 @@ u32_t TProcess::LoadELF(void *image)
   return h->e_entry;
 }
 
-u32_t TProcess::mount_page(u32_t phys_page, u32_t log_page)
+u32_t TProcess::mount_page(register u32_t phys_page, register u32_t log_page)
 {
   return k_mount_page(phys_page, log_page, PageDir, 1);
 }
 
-u32_t TProcess::umount_page(u32_t log_page)
+u32_t TProcess::umount_page(register u32_t log_page)
 {
   return k_umount_page(log_page, PageDir);
 }
@@ -231,7 +231,7 @@ void TProcess::set_stack_pl0()
   stack_pl0 += STACK_SIZE - 1;	/* Пусть указатель указывает на конец стека */
 }
 
-void TProcess::set_tss(off_t eip, u32_t cr3, u32_t crunch)
+void TProcess::set_tss(register off_t eip, register u32_t cr3, register u32_t crunch)
 {
   if (!(tss = (struct TSS *)kmalloc(sizeof(struct TSS))))
     hal->panic("No memory left.");
@@ -239,13 +239,10 @@ void TProcess::set_tss(off_t eip, u32_t cr3, u32_t crunch)
   /* Заполним TSS */
   tss->cr3 = cr3;
   tss->eip = eip;
-  tss->trace = 0;
+  //tss->trace = 0;
 
-  tss->eflags = 0x00000202;
-  tss->eax = 0;
-  tss->ecx = 0;
-  tss->edx = 0;
-  tss->ebx = 0;
+   tss->eflags = 0x00000202;
+  //  tss->eax = tss->ebx = tss->ecx = tss->edx = 0;
 
   if (crunch) {
     tss->esp = stack_pl0;
@@ -260,8 +257,7 @@ void TProcess::set_tss(off_t eip, u32_t cr3, u32_t crunch)
     tss->esp0 = stack_pl0;
   }
 
-  tss->esi = 0;
-  tss->edi = 0;
+  //tss->esi = tss->edi = 0;
 
   if (crunch) {
     tss->cs = KERNEL_CODE;
@@ -276,11 +272,11 @@ void TProcess::set_tss(off_t eip, u32_t cr3, u32_t crunch)
     tss->ss0 = KERNEL_DATA;
   }
 
-  tss->fs = 0;
-  tss->gs = 0;
-  tss->ldtr = 0;
-  tss->trace = 0;
-  tss->io_map_addr = 0;
+  //tss->fs = 0;
+  //tss->gs = 0;
+  //tss->ldtr = 0;
+  //tss->trace = 0;
+  //tss->io_map_addr = 0;
   tss->IOPB = 0xffffffff;
 
   /* Установим TSS */
@@ -293,7 +289,7 @@ void TProcess::run()
   asm("ljmp $0x38, $0");
 }
 
-void *TProcess::mem_alloc(size_t size)
+void *TProcess::mem_alloc(register size_t size)
 {
   /* выделим страницы памяти */
   offs_t ptr = (offs_t) kmalloc(size);
@@ -303,7 +299,7 @@ void *TProcess::mem_alloc(size_t size)
   return this->mem_alloc(ptr, size);
 }
 
-void *TProcess::mem_alloc(offs_t ph_ptr, size_t size)
+void *TProcess::mem_alloc(register offs_t ph_ptr, register size_t size)
 {
   /*
      Определимся с местом под выделяемый блок в списке свободной памяти процесса
@@ -375,7 +371,7 @@ void *TProcess::mem_alloc(offs_t ph_ptr, size_t size)
   return (void *)block;
 }
 
-void *TProcess::mem_alloc(void *ptr, size_t size, void *ph_ptr)
+void *TProcess::mem_alloc(register void *ptr, register size_t size, register void *ph_ptr)
 {
   //  printk("\nptr=0x%X, size=0x%X, ph_ptr=0x%X \n", ptr, size, ph_ptr);
 
@@ -465,7 +461,7 @@ void *TProcess::mem_alloc(void *ptr, size_t size, void *ph_ptr)
   return block;
 }
 
-void TProcess::mem_free(void *ptr)
+void TProcess::mem_free(register void *ptr)
 {
   /*
      выяснить size
@@ -562,7 +558,7 @@ void TProcess::mem_init()
   Создаёт "облегчённый" процесс: выполняющийся в том же адресном пространстве
   (не имеет собственного каталога страниц)
 */
-TProcess *TProcMan::NewLightProc(off_t eip, u16_t flags)
+TProcess *TProcMan::NewLightProc(register off_t eip, register u16_t flags)
 {
   TProcess *proc = new TProcess(0, 0, 0, 1);
   if (!proc)

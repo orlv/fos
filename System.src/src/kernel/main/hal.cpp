@@ -10,12 +10,12 @@
 #include <system.h>
 #include <tasks.h>
 
-HAL::HAL(multiboot_info_t * mbi)
+HAL::HAL(register multiboot_info_t * mbi)
 {
   this->mbi = mbi;
 }
 
-void HAL::panic(const char *fmt, ...)
+void HAL::panic(register const char *fmt, ...)
 {
   char panic_buf[512];
   hal->cli();

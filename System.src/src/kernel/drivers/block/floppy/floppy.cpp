@@ -4,13 +4,13 @@
 */
 
 #include "floppy.h"
-#include <io.h>
+#include <hal.h>
 #include <stdio.h>
 #include <mm.h>
 
 void dma_xfer(u16_t channel, u32_t physaddr, u16_t length, u8_t read);
 
-#define ENABLE_FLOPPY_IRQ()	outportb(0x21, inportb(0x21) & 0xbf  )
+#define ENABLE_FLOPPY_IRQ()	hal->outportb(0x21, hal->inportb(0x21) & 0xbf  )
 
 volatile u8_t done;
 volatile u8_t motor;		/* Отображает состояние мотора 0-выключен, 1-включен */
@@ -57,12 +57,12 @@ void floppy::sendbyte(u16_t count)
   u8_t tmo;
 
   for (tmo = 0; tmo < 128; tmo++) {
-    msr = inportb(FDC_MSR);
+    msr = hal->inportb(FDC_MSR);
     if ((msr & 0xc0) == 0x80) {
-      outportb(FDC_DATA, count);
+      hal->outportb(FDC_DATA, count);
       return;
     }
-    inportb(0x80);		/* задержка */
+    hal->inportb(0x80);		/* задержка */
   }
 }
 
@@ -72,10 +72,10 @@ u16_t floppy::getbyte()
   u8_t tmo;
 
   for (tmo = 0; tmo < 128; tmo++) {
-    msr = inportb(FDC_MSR);
+    msr = hal->inportb(FDC_MSR);
     if ((msr & 0xd0) == 0xd0)
-      return inportb(FDC_DATA);
-    inportb(0x80);
+      return hal->inportb(FDC_DATA);
+    hal->inportb(0x80);
   }
 
   return 0;
@@ -93,7 +93,7 @@ u8_t floppy::waitfdc(u8_t sensei)
 
   /* узнаем результат */
   statsz = 0;
-  while ((statsz < 7) && (inportb(FDC_MSR) & (1 << 4))) {
+  while ((statsz < 7) && (hal->inportb(FDC_MSR) & (1 << 4))) {
     status[statsz++] = getbyte();
   }
 
@@ -106,7 +106,7 @@ u8_t floppy::waitfdc(u8_t sensei)
   done = 0;
 
   if (!tmout) {
-    if (inportb(FDC_DIR) & 0x80)
+    if (hal->inportb(FDC_DIR) & 0x80)
       dchange = 1;
     printk("Wait floppy irq error!\r\n");
     return 0;
@@ -124,16 +124,16 @@ void floppy::block2hts(u16_t block, u16_t & head, u16_t & track, u16_t & sector)
 void floppy::reset()
 {
   /* остановим мотор и откючим IRQ/DMA */
-  outportb(FDC_DOR, 0);
+  hal->outportb(FDC_DOR, 0);
 
   mtick = 0;
   motor = 0;
 
   /* установим скорость обмена данными (500K/s) */
-  outportb(FDC_DRS, 0);
+  hal->outportb(FDC_DRS, 0);
 
   /* включим прерывания */
-  outportb(FDC_DOR, 0x0c);
+  hal->outportb(FDC_DOR, 0x0c);
 
   done = 1;
 
@@ -149,7 +149,7 @@ void floppy::reset()
 
   recalibrate();
 
-  inportb(FDC_DIR);
+  hal->inportb(FDC_DIR);
   dchange = 0;
 }
 
@@ -162,7 +162,7 @@ void floppy::motoron()
 {
   if (!motor) {
     mtick = 0xfff;
-    outportb(FDC_DOR, 0x1c);
+    hal->outportb(FDC_DOR, 0x1c);
 
     tmout = 2;
     while (tmout) ;
@@ -305,7 +305,7 @@ u8_t floppy::rw(u16_t block, void *buf, u8_t read)
 
   for (tries = 0; tries < 3; tries++) {
     /* проверим, не сменился ли диск */
-    if ((inportb(FDC_DIR) & 0x80)) {
+    if ((hal->inportb(FDC_DIR) & 0x80)) {
       printk("Floppy: detected disk change!\n");
       dchange = 1;
       seek_track(1);		/* очистим статус смены диска */
@@ -322,7 +322,7 @@ u8_t floppy::rw(u16_t block, void *buf, u8_t read)
     }
 
     /* зададим скорость считывания (500K/s) */
-    outportb(FDC_CCR, 0);
+    hal->outportb(FDC_CCR, 0);
 
     /* отправим команду */
     if (read) {
@@ -382,5 +382,5 @@ u8_t floppy::rw(u16_t block, void *buf, u8_t read)
 asmlinkage void floppy_handler()
 {
   done = 1;
-  outportb(0x20, 0x20);
+  hal->outportb(0x20, 0x20);
 }

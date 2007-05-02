@@ -18,7 +18,7 @@ class HAL {
   multiboot_info_t *mbi;
 
  public:
-  HAL(multiboot_info_t * mbi);
+  HAL(register multiboot_info_t * mbi);
   
   TProcMan *ProcMan;
   GDT *gdt;
@@ -56,7 +56,7 @@ class HAL {
   }
 
   
-  void panic(const char *fmt, ...);
+  void panic(register const char *fmt, ...);
   void halt();
 };
 

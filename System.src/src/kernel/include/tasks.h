@@ -43,7 +43,7 @@ typedef struct task_mem_block_t {
 class TProcess {
 private:
   off_t stack_pl0;
-  u32_t LoadELF(void *image);
+  u32_t LoadELF(register void *image);
   u32_t *PageDir;		/* каталог страниц */
 
   List *UsedMem;
@@ -52,7 +52,7 @@ private:
   void mem_init();
 
 public:
-   TProcess(void *image, u16_t flags, u32_t * PageDir, u32_t crutch);
+   TProcess(register void *image, register u16_t flags, register u32_t * PageDir, register u32_t crutch);
   void run();
 
   struct TSS *tss;
@@ -61,18 +61,18 @@ public:
   u32_t alarm;
 
   void set_stack_pl0();
-  void set_tss(off_t eip, u32_t cr3, u32_t crunch);
+  void set_tss(register off_t eip, register u32_t cr3, register u32_t crunch);
   List *msg;
   //  void AddMsg(struct message *msg);
   u32_t pid;
 
-  u32_t mount_page(u32_t phys_page, u32_t log_page);
-  u32_t umount_page(u32_t log_page);
+  u32_t mount_page(register u32_t phys_page, register u32_t log_page);
+  u32_t umount_page(register u32_t log_page);
 
-  void *mem_alloc(size_t size);
-  void *mem_alloc(offs_t ph_ptr, size_t size);
-  void *mem_alloc(void *ptr, size_t size, void *ph_ptr);
-  void mem_free(void *ptr);
+  void *mem_alloc(register size_t size);
+  void *mem_alloc(register offs_t ph_ptr, register size_t size);
+  void *mem_alloc(register void *ptr, register size_t size, register void *ph_ptr);
+  void mem_free(register void *ptr);
 };
 
 class TProcMan {
@@ -84,17 +84,17 @@ private:
 public:
   TProcMan();
 
-  void add(TProcess * Process);
-  void del(List * proc);
+  void add(register TProcess * Process);
+  void del(register List * proc);
 
-  u32_t exec(void *image);
+  u32_t exec(register void *image);
 
   void scheduler();
 
-  res_t stop(pid_t pid);
+  res_t stop(register pid_t pid);
 
-  TProcess *NewLightProc(off_t eip, u16_t flags);
-  TProcess *get_process_by_pid(u32_t pid);
+  TProcess *NewLightProc(register off_t eip, register u16_t flags);
+  TProcess *get_process_by_pid(register u32_t pid);
 
   u32_t curr_proc;
 

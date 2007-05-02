@@ -53,7 +53,7 @@ void setup_paging(void)
   enable_paging(mpagedir);
 }
 
-u32_t k_umount_page(u32_t log_page, u32_t * pagedir)
+u32_t k_umount_page(register u32_t log_page, register u32_t * pagedir)
 {
   u32_t *pagetable;
   u32_t page;
@@ -67,7 +67,7 @@ u32_t k_umount_page(u32_t log_page, u32_t * pagedir)
   return (page);
 }
 
-u32_t k_mount_page(u32_t phys_page, u32_t log_page, u32_t * pagedir, u8_t c3wp)
+u32_t k_mount_page(register u32_t phys_page, register u32_t log_page, register u32_t * pagedir, register u8_t c3wp)
 {
   u32_t *pagetable;
   u8_t flags = 3;

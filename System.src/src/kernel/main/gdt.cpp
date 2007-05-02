@@ -32,14 +32,14 @@ GDT::GDT()
   lgdt(gdtr);
 }
 
-void GDT::set_segment_descriptor(num_t n,
-			       u32_t base,
-			       u32_t limit,
-			       bool executable,
-			       bool writable,
-			       u8_t dpl,
-			       bool op32bit,
-			       bool conforming)
+void GDT::set_segment_descriptor(register num_t n,
+				 register u32_t base,
+				 register u32_t limit,
+				 register bool executable,
+				 register bool writable,
+				 register u8_t dpl,
+				 register bool op32bit,
+				 register bool conforming)
 {
   gdt_entry *d = &gdt[n];
  
@@ -66,7 +66,7 @@ void GDT::set_segment_descriptor(num_t n,
 }
 
 
-void GDT::clear_descriptor(num_t n)
+void GDT::clear_descriptor(register num_t n)
 {
   gdt_entry *d = &gdt[n];
 
@@ -76,13 +76,13 @@ void GDT::clear_descriptor(num_t n)
   }
 }
 
-void GDT::set_tss_descriptor(num_t n, off_t tss)
+void GDT::set_tss_descriptor(register num_t n, register off_t tss)
 {
   gdt_entry *descr = &gdt[n];
   set_tss_descriptor(tss, descr);
 }
 
-void GDT::set_tss_descriptor(off_t tss, gdt_entry *descr)
+void GDT::set_tss_descriptor(register off_t tss, register gdt_entry *descr)
 {
   descr->bytes[0] = 0x67;
   descr->bytes[1] = 0;
@@ -97,7 +97,7 @@ void GDT::set_tss_descriptor(off_t tss, gdt_entry *descr)
 }
 
 
-void GDT::load_tss(num_t n, gdt_entry * descr)
+void GDT::load_tss(register num_t n, register gdt_entry * descr)
 {
   gdt_entry *d = &gdt[n];
 

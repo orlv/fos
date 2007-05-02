@@ -6,7 +6,7 @@
 #include <types.h>
 #include "cmos.h"
 #include <tinterface.h>
-#include <io.h>
+#include <hal.h>
 #include <stdio.h>
 
 static u32_t DecodeBCD(u32_t bcd)
@@ -35,10 +35,10 @@ size_t CMOS::read(off_t offset, void *buf, size_t count)
   if (count < sizeof(struct time))
     return 0;
 
-  outportb(0x70, 0x0b);
-  u8_t i = inportb(0x71);
+  hal->outportb(0x70, 0x0b);
+  u8_t i = hal->inportb(0x71);
   i &= 0xffff - 4;
-  outportb(0x71, i);
+  hal->outportb(0x71, i);
 
   ((struct time *)buf)->year = DecodeBCD(read(0x32)) * 100;	/* Старшие цифры года */
   ((struct time *)buf)->year += DecodeBCD(read(9));	/* Младшие цифры года */
@@ -55,12 +55,12 @@ size_t CMOS::read(off_t offset, void *buf, size_t count)
 
 u8_t CMOS::read(u8_t data)
 {
-  outportb(0x70, data);
-  return inportb(0x71);
+  hal->outportb(0x70, data);
+  return hal->inportb(0x71);
 }
 
 void CMOS::write(u8_t data, u8_t reg)
 {
-  outportb(0x70, data);
-  outportb(0x71, reg);
+  hal->outportb(0x70, data);
+  hal->outportb(0x71, reg);
 }

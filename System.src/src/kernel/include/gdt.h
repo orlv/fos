@@ -27,18 +27,18 @@ class GDT {
  public:
   GDT();
 
-  void load_tss(num_t n, gdt_entry * descr);
-  void clear_descriptor(num_t n);
-  void set_tss_descriptor(num_t n, off_t tss);
-  void set_tss_descriptor(off_t tss, gdt_entry *descr);
-  void set_segment_descriptor(num_t n,
-			    u32_t base,
-			    u32_t limit,
-			    bool executable,
-			    bool writable,
-			    u8_t dpl,
-			    bool op32bit,
-			    bool conforming);
+  void load_tss(register num_t n, register gdt_entry * descr);
+  void clear_descriptor(register num_t n);
+  void set_tss_descriptor(register num_t n, register  off_t tss);
+  void set_tss_descriptor(register off_t tss, register gdt_entry *descr);
+  void set_segment_descriptor(register num_t n,
+			    register u32_t base,
+			    register u32_t limit,
+			    register bool executable,
+			    register bool writable,
+			    register u8_t dpl,
+			    register bool op32bit,
+			    register bool conforming);
 };
 
 #endif

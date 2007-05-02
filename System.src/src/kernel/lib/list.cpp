@@ -5,7 +5,7 @@
 
 #include <list.h>
 
-List::List(void *data)
+List::List(register void *data)
 {
   this->data = data;
   prev = this;
@@ -22,7 +22,7 @@ List::~List()
 }
 
 /* добавляет новый узел в начало списка (сразу после this) */
-void List::add(void *data)
+void List::add(register void *data)
 {
   List *list = new List(data);
 
@@ -34,7 +34,7 @@ void List::add(void *data)
 }
 
 /* добавляет новый узел в конец списка (перед this) */
-void List::add_tail(void *data)
+void List::add_tail(register void *data)
 {
   List *list = new List(data);
 
@@ -47,7 +47,7 @@ void List::add_tail(void *data)
 
 /* удаляет узел из текущего списка, и добавляет его в другой список после
    элемента head (начало списка) */
-void List::move(List * head)
+void List::move(register List * head)
 {
   /* удаляемся из текущего списка */
   prev->next = this->next;
@@ -62,7 +62,7 @@ void List::move(List * head)
 
 /* удаляет узел из текущего списка, и добавляет его в другой список перед
    элементом head (в конец списка) */
-void List::move_tail(List * head)
+void List::move_tail(register List * head)
 {
   /* удаляемся из текущего списка */
   prev->next = this->next;
@@ -84,7 +84,7 @@ int List::empty()
 
 /* служит для объединения двух не перекрывающихся списков
    вставляет данный список в другой список после узла head */
-void List::splice(List * head)
+void List::splice(register List * head)
 {
   prev->next = head->next;
   prev->next->prev = prev;
@@ -94,7 +94,7 @@ void List::splice(List * head)
 }
 
 /* заменяет узел this на узел head */
-void List::replace(List * n)
+void List::replace(register List * n)
 {
   n->next = this->next;
   n->prev = this->prev;

@@ -8,7 +8,7 @@
 
 #include <types.h>
 
-static inline char *strcpy(char *dest, const char *src)
+static inline char *strcpy(register char *dest, register const char *src)
 {
   int d0, d1, d2;
   __asm__ __volatile__("1:\tlodsb\n\t"
@@ -19,7 +19,7 @@ static inline char *strcpy(char *dest, const char *src)
   return dest;
 }
 
-static inline char *strncpy(char *dest, const char *src, size_t count)
+static inline char *strncpy(register char *dest, register const char *src, register size_t count)
 {
   int d0, d1, d2, d3;
   __asm__ __volatile__("1:\tdecl %2\n\t"
@@ -34,7 +34,7 @@ static inline char *strncpy(char *dest, const char *src, size_t count)
   return dest;
 }
 
-static inline char *strcat(char *dest, const char *src)
+static inline char *strcat(register char *dest, register const char *src)
 {
   int d0, d1, d2, d3;
   __asm__ __volatile__("repne\n\t"
@@ -48,7 +48,7 @@ static inline char *strcat(char *dest, const char *src)
   return dest;
 }
 
-static inline char *strncat(char *dest, const char *src, size_t count)
+static inline char *strncat(register char *dest, register const char *src, register size_t count)
 {
   int d0, d1, d2, d3;
   __asm__ __volatile__("repne\n\t"
@@ -69,7 +69,7 @@ static inline char *strncat(char *dest, const char *src, size_t count)
   return dest;
 }
 
-static inline int strcmp(const char *cs, const char *ct)
+static inline int strcmp(register const char *cs, register const char *ct)
 {
   int d0, d1;
   register int __res;
@@ -87,7 +87,7 @@ static inline int strcmp(const char *cs, const char *ct)
   return __res;
 }
 
-static inline int strncmp(const char *cs, const char *ct, size_t count)
+static inline int strncmp(register const char *cs, register const char *ct, register size_t count)
 {
   register int __res;
   int d0, d1, d2;
@@ -108,7 +108,7 @@ static inline int strncmp(const char *cs, const char *ct, size_t count)
   return __res;
 }
 
-static inline char *strchr(const char *s, int c)
+static inline char *strchr(register const char *s, register int c)
 {
   int d0;
   register char *__res;
@@ -125,7 +125,7 @@ static inline char *strchr(const char *s, int c)
   return __res;
 }
 
-static inline char *strrchr(const char *s, int c)
+static inline char *strrchr(register const char *s, register int c)
 {
   int d0, d1;
   register char *__res;
@@ -141,7 +141,7 @@ static inline char *strrchr(const char *s, int c)
   return __res;
 }
 
-static inline size_t strlen(const char *s)
+static inline size_t strlen(register const char *s)
 {
   int d0;
   register int __res;
@@ -154,7 +154,7 @@ static inline size_t strlen(const char *s)
 }
 
 #if 0
-static __always_inline void *__memcpy(void *to, const void *from, size_t n)
+static __always_inline void *__memcpy(register void *to, register const void *from, register size_t n)
 {
   int d0, d1, d2;
   __asm__ __volatile__("rep ; movsl\n\t" "movl %4,%%ecx\n\t" "andl $3,%%ecx\n\t"
@@ -172,7 +172,7 @@ static __always_inline void *__memcpy(void *to, const void *from, size_t n)
  * This looks ugly, but the compiler can optimize it totally,
  * as the count is constant.
  */
-static inline void *memcpy(void *to, const void *from, size_t n)
+static inline void *memcpy(register void *to, register const void *from, register size_t n)
 {
   long esi, edi;
   if (!n)

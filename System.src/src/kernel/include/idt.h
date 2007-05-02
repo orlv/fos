@@ -28,10 +28,10 @@ class IDT {
  public:
   IDT();
 
-  void set_trap_gate(u8_t n, off_t offs, u8_t dpl);
-  void set_intr_gate(u8_t n, off_t offs);
-  void set_call_gate(u8_t n, off_t offs, u8_t dpl, u8_t args);
-  void clear_descriptor(num_t n);  
+  void set_trap_gate(register u8_t n, register off_t offs, register u8_t dpl);
+  void set_intr_gate(register u8_t n, register off_t offs);
+  void set_call_gate(register u8_t n, register off_t offs, register u8_t dpl, register u8_t args);
+  void clear_descriptor(register num_t n);  
 };
 
 #endif

@@ -54,9 +54,7 @@ Objects =	main/boot/setup.o		\
 		main/memory/heap.o		\
 		main/gdt.o			\
 		main/idt.o			\
-		main/pure.o			\
 		main/main.o			\
-		main/version.o			\
 		main/tinterface.o		\
 		main/fs/layer.o			\
 		main/fs/fs.o			\
@@ -64,6 +62,8 @@ Objects =	main/boot/setup.o		\
 		lib/stdio.o			\
 		lib/list.o			\
 		lib/time.o			\
+		lib/pure.o			\
+		lib/version.o			\
 		main/syscall/syscall.o  	\
 		main/syscall/trapgate.o 	\
 		drivers/char/tty/tty.o		\

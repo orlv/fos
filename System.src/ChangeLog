@@ -1,3 +1,7 @@
+Wed May  2 17:39:35 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 11965 (Version 0.0.27.1)
+	-добавлен HAL
+
 Sat Apr 21 01:28:24 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
 Build 11903 (Version 0.0.26.6)
 	-в exception.cpp изменены обработчики исключений

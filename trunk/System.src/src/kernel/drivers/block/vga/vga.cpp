@@ -4,7 +4,7 @@
 */
 
 #include "vga.h"
-#include <io.h>
+#include <hal.h>
 
 VGA::VGA():Tinterface()
 {
@@ -85,25 +85,25 @@ void VGA::MoveCursorXY(u8_t x, u8_t y)
 
 void VGA::MoveCursor(off_t offset)
 {
-  outportb(VGA_CRT_IC, 0x0f);
-  outportb(VGA_CRT_DC, offset & 0xff);
+  hal->outportb(VGA_CRT_IC, 0x0f);
+  hal->outportb(VGA_CRT_DC, offset & 0xff);
   offset >>= 8;
-  outportb(VGA_CRT_IC, 0x0e);
-  outportb(VGA_CRT_DC, offset & 0xff);
+  hal->outportb(VGA_CRT_IC, 0x0e);
+  hal->outportb(VGA_CRT_DC, offset & 0xff);
 }
 
 void VGA::SetCursorType(unsigned char show)
 {
   if (show) {
-    outportb(VGA_CRT_IC, 0x0a);
-    outportb(VGA_CRT_DC, 12);
-    outportb(VGA_CRT_IC, 0x0b);
-    outportb(VGA_CRT_DC, 13);
+    hal->outportb(VGA_CRT_IC, 0x0a);
+    hal->outportb(VGA_CRT_DC, 12);
+    hal->outportb(VGA_CRT_IC, 0x0b);
+    hal->outportb(VGA_CRT_DC, 13);
   } else {
-    outportb(VGA_CRT_IC, 0x0a);
-    outportb(VGA_CRT_DC, 32);
-    outportb(VGA_CRT_IC, 0x0b);
-    outportb(VGA_CRT_DC, 32);
+    hal->outportb(VGA_CRT_IC, 0x0a);
+    hal->outportb(VGA_CRT_DC, 32);
+    hal->outportb(VGA_CRT_IC, 0x0b);
+    hal->outportb(VGA_CRT_DC, 32);
   }
 }
 
@@ -112,21 +112,21 @@ void VGA::SetFont(unsigned char *fnt)
   int i = 0, j = 0;
   unsigned char *charmap;
   charmap = ((unsigned char *)0xa0000);
-  outportb(VGA_CRT_IC, 0x00);	/* First, the sequencer */
-  outportb(VGA_CRT_DC, 0x01);	/* Synchronous reset */
-  outportb(VGA_CRT_IC, 0x02);
-  outportb(VGA_CRT_DC, 0x04);	/* CPU writes only to map 2 */
-  outportb(VGA_CRT_IC, 0x04);
-  outportb(VGA_CRT_DC, 0x07);	/* Sequential addressing */
-  outportb(VGA_CRT_IC, 0x00);
-  outportb(VGA_CRT_DC, 0x03);	/* Clear synchronous reset */
+  hal->outportb(VGA_CRT_IC, 0x00);	/* First, the sequencer */
+  hal->outportb(VGA_CRT_DC, 0x01);	/* Synchronous reset */
+  hal->outportb(VGA_CRT_IC, 0x02);
+  hal->outportb(VGA_CRT_DC, 0x04);	/* CPU writes only to map 2 */
+  hal->outportb(VGA_CRT_IC, 0x04);
+  hal->outportb(VGA_CRT_DC, 0x07);	/* Sequential addressing */
+  hal->outportb(VGA_CRT_IC, 0x00);
+  hal->outportb(VGA_CRT_DC, 0x03);	/* Clear synchronous reset */
 
-  outportb(VGA_GFX_I, 0x04);	/* Now, the graphics controller */
-  outportb(VGA_GFX_D, 0x02);	/* select map 2 */
-  outportb(VGA_GFX_I, 0x05);
-  outportb(VGA_GFX_D, 0x00);	/* disable odd-even addressing */
-  outportb(VGA_GFX_I, 0x06);
-  outportb(VGA_GFX_D, 0x00);	/* map start at A000:0000 */
+  hal->outportb(VGA_GFX_I, 0x04);	/* Now, the graphics controller */
+  hal->outportb(VGA_GFX_D, 0x02);	/* select map 2 */
+  hal->outportb(VGA_GFX_I, 0x05);
+  hal->outportb(VGA_GFX_D, 0x00);	/* disable odd-even addressing */
+  hal->outportb(VGA_GFX_I, 0x06);
+  hal->outportb(VGA_GFX_D, 0x00);	/* map start at A000:0000 */
 
   /* скопируем шрифт */
   while (i < 0x1000) {
@@ -138,21 +138,21 @@ void VGA::SetFont(unsigned char *fnt)
     }
   }
 
-  outportb(VGA_CRT_IC, 0x00);	/* Frist, the sequencer */
-  outportb(VGA_CRT_DC, 0x01);	/* Synchronous reset */
-  outportb(VGA_CRT_IC, 0x02);
-  outportb(VGA_CRT_DC, 0x03);	/* CPU writes to maps 0 and 1 */
-  outportb(VGA_CRT_IC, 0x04);
-  outportb(VGA_CRT_DC, 0x03);	/* odd-even addressing */
-  outportb(VGA_CRT_IC, 0x00);
-  outportb(VGA_CRT_DC, 0x03);	/* clear synchronous reset */
+  hal->outportb(VGA_CRT_IC, 0x00);	/* Frist, the sequencer */
+  hal->outportb(VGA_CRT_DC, 0x01);	/* Synchronous reset */
+  hal->outportb(VGA_CRT_IC, 0x02);
+  hal->outportb(VGA_CRT_DC, 0x03);	/* CPU writes to maps 0 and 1 */
+  hal->outportb(VGA_CRT_IC, 0x04);
+  hal->outportb(VGA_CRT_DC, 0x03);	/* odd-even addressing */
+  hal->outportb(VGA_CRT_IC, 0x00);
+  hal->outportb(VGA_CRT_DC, 0x03);	/* clear synchronous reset */
 
-  outportb(VGA_GFX_I, 0x04);	/* Now, the graphics controller */
-  outportb(VGA_GFX_D, 0x00);	/* select map 0 for CPU */
-  outportb(VGA_GFX_I, 0x05);
-  outportb(VGA_GFX_D, 0x10);	/* enable even-odd addressing */
-  outportb(VGA_GFX_I, 0x06);
-  outportb(VGA_GFX_D, 0x0e);	/* map starts at b800:0 or b000:0 */
+  hal->outportb(VGA_GFX_I, 0x04);	/* Now, the graphics controller */
+  hal->outportb(VGA_GFX_D, 0x00);	/* select map 0 for CPU */
+  hal->outportb(VGA_GFX_I, 0x05);
+  hal->outportb(VGA_GFX_D, 0x10);	/* enable even-odd addressing */
+  hal->outportb(VGA_GFX_I, 0x06);
+  hal->outportb(VGA_GFX_D, 0x0e);	/* map starts at b800:0 or b000:0 */
 
   //printf("Шрифт установлен.\n");
 }

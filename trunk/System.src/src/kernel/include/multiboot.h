@@ -109,13 +109,6 @@ typedef struct memory_map {
   unsigned long type;
 } memory_map_t;
 
-/*
-struct mem_boot_info {
-  //  unsigned long	mem_size;
-  unsigned long	kstart;
-  unsigned long	ksize;
-};
-*/
 #endif				/* ! ASM */
 
 #endif

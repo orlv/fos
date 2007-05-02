@@ -22,7 +22,7 @@ Heap::~Heap()
 
 }
 
-void *Heap::malloc(size_t size)
+void *Heap::malloc(register size_t size)
 {
   if (!size)
     return 0;
@@ -66,7 +66,7 @@ void *Heap::malloc(size_t size)
 #define NALLOC PAGE_SIZE	/* миним. число единиц памяти для запроса */
 
 /* morecore: запрашивает у системы дополнительную память */
-HeapMemBlock *Heap::morecore(unsigned int nu)
+HeapMemBlock *Heap::morecore(register unsigned int nu)
 {
   char *cp;
   HeapMemBlock *up;
@@ -84,7 +84,7 @@ HeapMemBlock *Heap::morecore(unsigned int nu)
 }
 
 /* free: включает блок в список свободной памяти */
-void Heap::free(void *ptr)
+void Heap::free(register void *ptr)
 {
   if (!ptr)
     return;
@@ -109,7 +109,7 @@ void Heap::free(void *ptr)
   free_ptr = p;
 }
 
-void *Heap::realloc(void *ptr, size_t size)
+void *Heap::realloc(register void *ptr, register size_t size)
 {
   unsigned long *dst;
   unsigned int i, oldsize;

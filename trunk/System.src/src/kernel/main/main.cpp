@@ -28,8 +28,6 @@
 
 //#include <elf32.h>
 
-#include <io.h>
-
 void halt();
 
 TTY *stdout;
@@ -449,7 +447,7 @@ void hide_bar(u32_t x, u32_t y, u32_t size)
 
 static inline void EnableTimer()
 {
-  outportb(0x21, inportb(0x21) & 0xfe);	/* Enable timer */
+  hal->outportb(0x21, hal->inportb(0x21) & 0xfe); /* Enable timer */
 }
 
 HAL *hal;
@@ -461,7 +459,6 @@ asmlinkage void init()
   extern const string compile_date, compile_time;
 
   extern multiboot_info_t *__mbi;
-
 
   init_memory();
   

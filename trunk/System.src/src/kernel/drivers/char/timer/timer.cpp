@@ -1,9 +1,9 @@
 /*
   drivers/char/timer/timer.cpp
-  Copyright (C) 2006 Oleg Fedorov
+  Copyright (C) 2006-2007 Oleg Fedorov
 */
 
-#include <io.h>
+#include <hal.h>
 #include <system.h>
 #include <stdio.h>
 #include "timer.h"
@@ -30,18 +30,18 @@
 
 static inline void EnableTimer()
 {
-  outportb(0x21, inportb(0x21) & 0xfe);	/* Enable timer */
+  hal->outportb(0x21, hal->inportb(0x21) & 0xfe);	/* Enable timer */
 }
 
 TTime::TTime()
 {
   u16_t msec_per_tick = 50;
   u16_t count = (1193182 * msec_per_tick + 500) / 1000;
-  outportb(I8253_MODE, I8253_MODE_SEL0 | I8253_MODE_RATEGEN | I8253_MODE_16BIT);
-  //outportb(I8253_MODE, I8253_MODE_SEL0 | I8253_MODE_SQWAVE | I8253_MODE_16BIT);
+  hal->outportb(I8253_MODE, I8253_MODE_SEL0 | I8253_MODE_RATEGEN | I8253_MODE_16BIT);
+  //hal->outportb(I8253_MODE, I8253_MODE_SEL0 | I8253_MODE_SQWAVE | I8253_MODE_16BIT);
 
-  outportb(I8253_CNTR0, count & 0xff);
-  outportb(I8253_CNTR0, count >> 8);
+  hal->outportb(I8253_CNTR0, count & 0xff);
+  hal->outportb(I8253_CNTR0, count >> 8);
 
   //  EnableTimer();
 }
@@ -62,6 +62,7 @@ void TTime::tick()
   _uptime++;
 }
 
+#if 0
 #warning TODO: timer_handler(): Изменить. Такой вариант не походит.
 #warning TODO: Попробовать с сообщениями.
 
@@ -74,9 +75,10 @@ asmlinkage void timer_handler(u16_t cs)
   if (pid == 1) {		/* Если мы в scheduler() */
     asm("incb 0xb8000+156\n" "movb $0x5e,0xb8000+157 ");
 
-    outportb(0x20, 0x20);
+    hal->outportb(0x20, 0x20);
     return;
   }
-  outportb(0x20, 0x20);
+  hal->outportb(0x20, 0x20);
   pause();			/* Передадим управление scheduler() */
 }
+#endif

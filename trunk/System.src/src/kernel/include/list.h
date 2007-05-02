@@ -19,7 +19,7 @@ public:
 
   void *data;
 
-   List(void *data);
+   List(register void *data);
 
   /* -данный узел удаляется
      -правятся ссылки в prev и next
@@ -27,18 +27,18 @@ public:
   ~List();
 
   /* добавляет новый узел в начало списка (сразу после this) */
-  void add(void *data);
+  void add(register void *data);
 
   /* добавляет новый узел в конец списка (перед this) */
-  void add_tail(void *data);
+  void add_tail(register void *data);
 
   /* удаляет узел из текущего списка, и добавляет его в другой список после
      элемента head (начало списка) */
-  void move(List * head);
+  void move(register List * head);
 
   /* удаляет узел из текущего списка, и добавляет его в другой список перед
      элементом head (в конец списка) */
-  void move_tail(List * head);
+  void move_tail(register List * head);
 
   /* возвращает ненулевое значение, если список пуст, и нулевое значение
      в противном случае */
@@ -46,10 +46,10 @@ public:
 
   /* служит для объединения двух не перекрывающихся списков
      вставляет данный список в другой список после узла head */
-  void splice(List * head);
+  void splice(register List * head);
 
   /* заменяет узел this на узел head */
-  void replace(List * head);
+  void replace(register List * head);
 };
 
 /**

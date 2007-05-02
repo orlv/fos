@@ -8,7 +8,7 @@
 
 #include <types.h>
 
-int printk(const char *fmt, ...);
+int printk(register const char *fmt, ...);
 
 /* Vga colors */
 #define	BLACK			0

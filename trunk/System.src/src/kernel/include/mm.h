@@ -34,25 +34,23 @@ typedef struct HeapMemBlock {
   unsigned int size;
 };
 
-void *kmalloc(size_t size);
-void kmfree(void *ptr, size_t size);
-
-void init_alloc();
+void * kmalloc(register size_t size);
+void  kmfree(register void *ptr, register size_t size);
 
 class Heap {
 private:
   HeapMemBlock * free_ptr;
   HeapMemBlock kmem_block;
 
-  HeapMemBlock *morecore(unsigned int nu);
+  HeapMemBlock *morecore(register unsigned int nu);
 
 public:
    Heap();
   ~Heap();
 
-  void *malloc(size_t size);
-  void free(void *ptr);
-  void *realloc(void *ptr, size_t size);
+  void *malloc(register size_t size);
+  void free(register void *ptr);
+  void *realloc(register void *ptr, register size_t size);
 };
 
 void init_memory();

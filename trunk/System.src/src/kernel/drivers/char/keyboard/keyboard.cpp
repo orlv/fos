@@ -4,13 +4,13 @@
 */
 
 #include "keyboard.h"
-#include <io.h>
+#include <hal.h>
 #include <system.h>
 #include <stdio.h>
 
 #define PORT_KBD_A      0x60
 
-#define ENABLE_KEYBOARD_IRQ()	outportb(0x21, inportb(0x21) & 0xfd  )
+#define ENABLE_KEYBOARD_IRQ()	hal->outportb(0x21, hal->inportb(0x21) & 0xfd  )
 
 Keyboard::Keyboard()
 {
@@ -30,20 +30,20 @@ Keyboard::~Keyboard()
 volatile void Keyboard::SetRepeatRate(u8_t rate)
 {
   wait();
-  outportb(0x60, 0xf3);
+  hal->outportb(0x60, 0xf3);
   wait();
-  outportb(0x60, rate);
+  hal->outportb(0x60, rate);
 }
 
 volatile void Keyboard::handler()
 {
   u8_t scancode;
   wait();
-  outportb(0x64, 0xad);		/* disable keyboard */
+  hal->outportb(0x64, 0xad);		/* disable keyboard */
   wait();
-  outportb(0x20, 0x20);
+  hal->outportb(0x20, 0x20);
 
-  scancode = inportb(PORT_KBD_A);
+  scancode = hal->inportb(PORT_KBD_A);
 
   if (buf_top < KB_KEYS_BUFF_SIZE) {
     buffer[buf_top] = scancode;
@@ -51,7 +51,7 @@ volatile void Keyboard::handler()
   }
 
   wait();
-  outportb(0x64, 0xae);		/* enable keyboard */
+  hal->outportb(0x64, 0xae);		/* enable keyboard */
   wait();
 }
 
@@ -67,14 +67,14 @@ volatile void Keyboard::led_update()
     cmd += 1;
 
   wait();
-  outportb(0x60, 0xed);
+  hal->outportb(0x60, 0xed);
   wait();
-  outportb(0x60, cmd);
+  hal->outportb(0x60, cmd);
 }
 
 volatile void Keyboard::wait()
 {
-  while ((inportb(0x64) & 2)) ;
+  while ((hal->inportb(0x64) & 2)) ;
 }
 
 size_t Keyboard::read(off_t offset, void *buf, size_t count)

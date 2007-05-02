@@ -9,40 +9,16 @@
 #include <mm.h>
 #include <hal.h>
 #include <tasks.h>
+#include <drivers/char/timer/timer.h>
 
 /*
   Из файла kernel/exceprion/traps.s:
 */
 
-asmlinkage void timer_handler_wrapper();
 asmlinkage void floppy_handler_wrapper();
 asmlinkage void keyboard_handler_wrapper();
 
 asmlinkage void trap_gate();
-
-#define EXCEPTION_HANDLER(func) extern "C" void func (unsigned int errcode); \
-  asm(".globl " #func"\n"						\
-      #func ": \n"							\
-      "pusha \n"							\
-      "push %ds \n"							\
-      "push %es \n"							\
-      "mov $0x10, %ax \n"     /* загрузим DS ядра */			\
-      "mov %ax, %ds \n"							\
-      "mov %ax, %es \n"							\
-      "mov 48(%esp), %eax \n" /* сохраним errorcode */			\
-      "push %eax \n"							\
-      "mov 48(%esp), %eax \n" /* сохраним eip */			\
-      "push %eax \n"							\
-      "xor %eax, %eax \n"						\
-      "mov 48(%esp), %ax \n"  /* сохраним cs */				\
-      "push %eax \n"							\
-      "call _" #func " \n"						\
-      "add $10, %esp \n"						\
-      "pop %es \n"							\
-      "pop %ds \n"							\
-      "popa \n"								\
-      "iret");								\
-  extern "C" void _ ## func(unsigned int cs, unsigned int address, unsigned int errorcode)
 
 void exception(string str, unsigned int cs,  unsigned int address, unsigned int errorcode)
 {
@@ -175,6 +151,22 @@ EXCEPTION_HANDLER(interrupt_hdl_not_present_exception)
   exception("interrupt_hdl_not_present", cs, address, errorcode);
 }
 
+IRQ_HANDLER(timer_handler)
+{
+  extern TTime *SysTimer;
+  SysTimer->tick();		/* Считаем время */
+
+  u16_t pid = curPID();
+  if (pid == 1) {		/* Если мы в scheduler() */
+    asm("incb 0xb8000+156\n" "movb $0x5e,0xb8000+157 ");
+
+    hal->outportb(0x20, 0x20);
+    return;
+  }
+  hal->outportb(0x20, 0x20);
+  pause();			/* Передадим управление scheduler() */
+}
+
 void setup_idt()
 {
   u16_t i;
@@ -203,7 +195,7 @@ void setup_idt()
   for (i = 0x20; i < 0x100; i++)
     hal->idt->set_trap_gate(i, (off_t) & interrupt_hdl_not_present_exception, 0);
 
-  hal->idt->set_intr_gate(0x20, (off_t) & timer_handler_wrapper);
+  hal->idt->set_intr_gate(0x20, (off_t) & timer_handler);
   hal->idt->set_intr_gate(0x21, (off_t) & keyboard_handler_wrapper);
   hal->idt->set_intr_gate(0x26, (off_t) & floppy_handler_wrapper);
 

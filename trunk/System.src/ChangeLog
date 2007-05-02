@@ -1,3 +1,7 @@
+Thu May  3 01:50:13 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 12009 (Version 0.0.27.2)
+	-оптимизация передачей параметров функциям в регистрах
+
 Wed May  2 17:39:35 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
 Build 11965 (Version 0.0.27.1)
 	-добавлен HAL

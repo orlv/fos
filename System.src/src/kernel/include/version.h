@@ -5,4 +5,4 @@
 */ 
 
 #define VERSION	"0.0.27.2"
-#define BUILD	12009
+#define BUILD	12010

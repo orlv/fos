@@ -9,38 +9,29 @@
 #include <stdio.h>
 #include <hal.h>
 
-//#define       DEBUG_KMEMORY 0
+//#define DEBUG_KMEMORY 0
 //#define DEBUG_UMEMORY 0
 //#define DEBUG_MOUNT_MEMORY 0
 
 void init_alloc(register void *ptr, register  size_t size);
 
-size_t memory_size;		/* Размер памяти (в Kb) */
+size_t memory_size; /* Размер памяти (в Kb) */
 size_t memory_used;
-
-//#define FREE_MEM_START 0x13000
 
 void init_memory()
 {
   extern multiboot_info_t *__mbi;
 
   memory_size = __mbi->mem_upper + 1024;
-  offs_t mods_end_ptr =
-    (((module_t *) __mbi->mods_addr)[__mbi->mods_count - 1].mod_end);
+  offs_t mods_end_ptr = ((module_t *) __mbi->mods_addr)[__mbi->mods_count - 1].mod_end;
   if (mods_end_ptr & 0xfff) {
     mods_end_ptr += 0x1000;
     mods_end_ptr &= 0xfffff000;
   }
 
   init_alloc((void *)mods_end_ptr, memory_size * 1024 - mods_end_ptr);
-  //  mem_free((void *)FREE_MEM_START, 0xA0000 - FREE_MEM_START);
 
   setup_paging();
-  //DTman = new DTMan;
-  /*  printk("Memory: %dK (%dK kernel, %dK ramdisk)\n",
-     memory_size,
-     bi.ksize*4,
-     (bi.rd_end-bi.rd_start)/1024); */
 }
 
 /* ------------------------------------------------------------------------------------- */

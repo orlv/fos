@@ -47,6 +47,7 @@ Objects =	main/boot/setup.o		\
 		main/hal.o			\
 		main/mtask/tasks.o		\
 		main/mtask/scheduler.o		\
+		main/mtask/process.o		\
 		main/exception/exception.o	\
 		main/exception/traps.o		\
 		main/memory/paging.o		\
@@ -65,7 +66,6 @@ Objects =	main/boot/setup.o		\
 		lib/pure.o			\
 		lib/version.o			\
 		main/syscall/syscall.o  	\
-		main/syscall/trapgate.o 	\
 		drivers/char/tty/tty.o		\
 		drivers/block/vga/vga.o		\
 		drivers/char/timer/timer.o	\

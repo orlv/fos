@@ -2,12 +2,12 @@
 timeout 0
 default 0
 hiddenmenu
-title FOS - FOS is Operating System (VERSION 0.0.27.2, BUILD 12010)
+title FOS - FOS is Operating System (VERSION 0.0.27.3, BUILD 12038)
 	root(cd0)
-	kernel /System.root/kernel
-	module /System.root/modules/koi8-8x16.fnt
-	module /System.root/modules/test.txt
-	module /System.root/modules/vesa
-	module /System.root/modules/app1
-	module /System.root/modules/fs
-	module /System.root/modules/tty
+	kernel /root/kernel
+	module /root/modules/koi8-8x16.fnt
+	module /root/modules/test.txt
+	module /root/modules/vesa
+	module /root/modules/app1
+	module /root/modules/fs
+	module /root/modules/tty

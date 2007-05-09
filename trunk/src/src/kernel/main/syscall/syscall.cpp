@@ -85,7 +85,34 @@ struct memmap {
   u32_t size;
 } __attribute__ ((packed));
 
-asmlinkage u32_t sys_call(u32_t arg1, u32_t arg2)
+
+#define SYSCALL_HANDLER(func) asmlinkage void func (u32_t arg1, u32_t arg2); \
+  asm(".globl " #func"\n"						\
+      #func ": \n"							\
+      "pusha \n"							\
+      "push %ds \n"							\
+      "push %es \n"							\
+      "mov $0x10, %ax \n"     /* загрузим DS ядра */			\
+      "mov %ax, %ds \n"							\
+      "mov %ax, %es \n"							\
+      "push %ecx \n"	      /* сохраним arg2 */			\
+      "push %ebx \n"	      /* сохраним arg1 */			\
+      "mov 48(%esp), %eax \n" /* сохраним eip */			\
+      "push %eax \n"							\
+      "xor %eax, %eax \n"						\
+      "mov 48(%esp), %ax \n"  /* сохраним cs */				\
+      "push %eax \n"							\
+      "call _" #func " \n"						\
+      "add $16, %esp \n"						\
+      "pop %es \n"							\
+      "pop %ds \n"							\
+      "popa \n"								\
+      "iret");								\
+  asmlinkage void _ ## func(unsigned int cs, unsigned int address, u32_t arg1, u32_t arg2)
+
+
+
+SYSCALL_HANDLER(sys_call)
 {
   struct message *message;
   struct message *msg;
@@ -93,7 +120,6 @@ asmlinkage u32_t sys_call(u32_t arg1, u32_t arg2)
   TProcess *p;
 
   //printk("\nSyscall #%d, Process %d ", arg1,  hal->ProcMan->CurrentProcess->pid);
-  
   switch (arg1) {
   case MEM_ALLOC:
     *(u32_t *) arg2 = (u32_t) hal->ProcMan->CurrentProcess->mem_alloc(*(u32_t *) arg2);
@@ -212,5 +238,5 @@ asmlinkage u32_t sys_call(u32_t arg1, u32_t arg2)
     break;
   }
 
-  return 0;
+  return;
 }

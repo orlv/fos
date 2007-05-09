@@ -1,3 +1,7 @@
+Wed May  9 15:47:21 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 12034 (Version 0.0.27.3)
+	-Усовершенствована инициализация многозадачности
+
 Thu May  3 01:50:13 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
 Build 12009 (Version 0.0.27.2)
 	-оптимизация передачей параметров функциям в регистрах

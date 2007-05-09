@@ -13,6 +13,6 @@ all:
 	@echo "title $(GRUB_TITLE) (VERSION `cat VERSION`, BUILD `cat BUILD`)" >> $(GRUB_MENU)
 	@echo "	root($(GRUB_ROOT))" >> $(GRUB_MENU)
 	@echo "	kernel $(GRUB_KERNEL)" >> $(GRUB_MENU)
-	@echo $(GRUB_MODULES) | sed 's/ /\n/g' | sed 's/\/System.root/\tmodule \/System.root/g'  >> $(GRUB_MENU)
+	@echo $(GRUB_MODULES) | sed 's/ /\n/g' | sed 's/\/root/\tmodule \/root/g'  >> $(GRUB_MENU)
 
 # -----------------------------------------------------------------------------

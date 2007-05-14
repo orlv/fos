@@ -8,7 +8,7 @@
 #include <vsprintf.h>
 #include <stdio.h>
 #include <system.h>
-#include <tasks.h>
+#include <procman.h>
 
 HAL::HAL(register multiboot_info_t * mbi)
 {

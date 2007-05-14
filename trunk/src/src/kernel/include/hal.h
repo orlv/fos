@@ -10,7 +10,7 @@
 #include <multiboot.h>
 #include <gdt.h>
 #include <idt.h>
-#include <tasks.h>
+#include <procman.h>
 #include <drivers/pic.h>
 
 class HAL {

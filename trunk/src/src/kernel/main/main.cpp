@@ -9,7 +9,6 @@
 #include <paging.h>
 #include <drivers/block/vga/vga.h>
 #include <string.h>
-#include <tasks.h>
 #include <system.h>
 #include <stdio.h>
 #include <drivers/char/timer/timer.h>

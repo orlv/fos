@@ -19,12 +19,6 @@ int sprintf(char *str, const char *fmt, ...)
   return i;
 }
 
-int printf(const char *fmt, ...)
-{
-  /* NONE */
-  return 1;
-};
-
 char printbuf[2000];
 
 int printk(const char *fmt, ...)

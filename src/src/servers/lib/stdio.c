@@ -32,7 +32,7 @@ int printf(const char *fmt, ...)
   msg.send_buf = msg.recv_buf = printbuf;
   msg.send_size = i + 1;
   msg.recv_size = 10;
-  msg.pid = 4;
+  msg.pid = 2;
   send((struct msg *)&msg);
 
   return i;

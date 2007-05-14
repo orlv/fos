@@ -83,3 +83,40 @@ TProcess *TProcMan::get_process_by_pid(register u32_t pid)
 
   return 0;
 }
+
+/*
+  Создаёт процесс в адресном пространстве ядра.
+  Полезен для создания серверов, удобно разделяющих структуры данных с другими процессами режима ядра
+*/
+TProcess *TProcMan::kprocess(register off_t eip, register u16_t flags)
+{
+  TProcess *proc = new TProcess(0, kPageDir);
+
+  proc->set_stack_pl0();
+  proc->kprocess_set_tss(eip, load_cr3());
+
+  proc->flags = flags | FLAG_TSK_LIGHT;
+
+  /* Зарегистрируем процесс */
+  if(proclist)
+    proclist->add_tail(proc);
+  else
+    proclist = new List(proc);
+
+  return proc;
+}
+
+u32_t *TProcMan::CreatePageDir()
+{
+  u32_t i;
+  u32_t *PageDir;
+
+  /* выделим память под каталог страниц */
+  PageDir = (u32_t *) kmalloc(PAGE_SIZE);
+
+  for (i = 0; i < 0x3; i++) {
+    PageDir[i] = kPageDir[i];
+  }
+
+  return PageDir;
+};

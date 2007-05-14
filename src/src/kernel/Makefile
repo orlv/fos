@@ -45,9 +45,9 @@ LDFLAGS =-nostdlib -static
 
 Objects =	main/boot/setup.o		\
 		main/hal.o			\
-		main/mtask/tasks.o		\
-		main/mtask/scheduler.o		\
-		main/mtask/process.o		\
+		main/procman/procman.o		\
+		main/procman/scheduler.o	\
+		main/procman/process.o		\
 		main/exception/exception.o	\
 		main/exception/traps.o		\
 		main/memory/paging.o		\

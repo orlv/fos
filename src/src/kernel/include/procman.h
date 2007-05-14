@@ -1,6 +1,6 @@
 /*
-        kernel/include/tasks.h
-        Copyright (C) 2005-2007 Oleg Fedorov
+  kernel/include/procman.h
+  Copyright (C) 2005-2007 Oleg Fedorov
 */
 
 #ifndef _TASKS_H

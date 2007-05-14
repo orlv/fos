@@ -8,7 +8,7 @@
 #include <system.h>
 #include <mm.h>
 #include <hal.h>
-#include <tasks.h>
+#include <procman.h>
 #include <drivers/char/timer/timer.h>
 
 /*

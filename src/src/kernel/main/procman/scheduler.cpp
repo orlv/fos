@@ -1,10 +1,10 @@
 /*
-  kernel/main/mtask/tasks.cpp
+  kernel/main/procman/scheduler.cpp
   Copyright (C) 2005-2007 Oleg Fedorov
 */
 
 #include <mm.h>
-#include <tasks.h>
+#include <procman.h>
 #include <stdio.h>
 #include <system.h>
 #include <drivers/char/timer/timer.h>

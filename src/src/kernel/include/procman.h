@@ -3,8 +3,8 @@
   Copyright (C) 2005-2007 Oleg Fedorov
 */
 
-#ifndef _TASKS_H
-#define _TASKS_H
+#ifndef _PROCMAN_H
+#define _PROCMAN_H
 
 #include <types.h>
 #include <process.h>

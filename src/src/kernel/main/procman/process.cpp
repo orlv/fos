@@ -1,11 +1,11 @@
 /*
-  kernel/main/mtask/process.cpp
+  kernel/main/procman/process.cpp
   Copyright (C) 2005-2007 Oleg Fedorov
 */
 
 #include <mm.h>
 #include <paging.h>
-#include <tasks.h>
+#include <procman.h>
 #include <process.h>
 #include <stdio.h>
 #include <system.h>

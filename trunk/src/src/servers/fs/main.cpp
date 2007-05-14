@@ -45,5 +45,17 @@ asmlinkage void _start()
 
   printf("FS: ready.");
 
-  while (1) ;
+  char *buf = new char[256];
+  struct msg *msg = new struct msg;
+  strcpy(buf, "app1");
+  int i = strlen(buf);
+  buf[i] = 0;
+  msg->send_buf = msg->recv_buf = buf;
+  msg->send_size = i + 1;
+  msg->recv_size = 10;
+  msg->pid = 0;
+  send(msg);
+  
+  printf("\nmsg send.");
+  while (1);
 }

@@ -14,6 +14,8 @@
 #include <drivers/char/timer/timer.h>
 #include <hal.h>
 #include <traps.h>
+#include <vsprintf.h>
+#include <stdarg.h>
 
 //#include <drivers/fs/objectfs/objectfs.h>
 //#include <fslayer.h>
@@ -45,6 +47,27 @@ static inline void EnableTimer()
 }
 
 HAL *hal;
+
+int printf(const char *fmt, ...)
+{
+  extern char printbuf[2000];
+  int i = 0;
+  va_list args;
+  va_start(args, fmt);
+  i = vsprintf(printbuf, fmt, args);
+  va_end(args);
+
+  printbuf[i] = 0;
+  volatile struct message msg;
+  msg.send_buf = msg.recv_buf = printbuf;
+  msg.send_size = i + 1;
+  msg.recv_size = 10;
+  msg.pid = 2;
+  syscall_send((struct message *)&msg);
+
+  return i;
+}
+
 
 asmlinkage void init()
 {
@@ -83,7 +106,6 @@ asmlinkage void init()
   *stdout << "FOS OS. Revision " << version << ". Build #" << build << " " << compile_date << " " << compile_time << "\n";
 
   printk("--------------------------------------------------------------------------------");
-
 #if 1
   
 #if 1
@@ -118,10 +140,10 @@ asmlinkage void init()
   }
   */
   Tinterface *obj;
+
   obj = modules->access("tty");
   string elf_buf = new char[obj->info.size];
   obj->read(0, elf_buf, obj->info.size);
-
   hal->ProcMan->exec(elf_buf);
 
   obj = modules->access("fs");
@@ -295,17 +317,44 @@ asmlinkage void init()
 
 #endif
   
-  printk("\n--------------------------------------------------------------------------------");
-  printk("All OK. System Halted.\n");
-  printk("You can get new version at http://fos.osdev.ru/");
-  printk("\n--------------------------------------------------------------------------------");
+  printf("\n--------------------------------------------------------------------------------" \
+	 "All OK. Init done.\n" \
+	 "You can get new version at http://fos.osdev.ru/" \
+	 "\n--------------------------------------------------------------------------------");
 
+
+  char *filename = new char[256];
+  struct message *msg = new message;;
+
+  //  printf("init pid=%d", hal->ProcMan->CurrentProcess->pid);
+  
   while (1) {
     asm("incb 0xb8000+154\n" "movb $0x5e,0xb8000+155 ");
 
-    pause();
+    msg->pid = 0;
+    msg->recv_size = 256;
+    msg->recv_buf = filename;
+    syscall_receive(msg);
+
+    printf("\nProcMan: exec %s\n", filename);
+
+    
+    msg->recv_size = 0;
+    msg->send_size = 3;
+    strcpy(filename, "OK");
+    filename[2] = 0;
+    msg->send_buf = filename;
+    syscall_reply(msg);
+
+#if 0
+    obj = modules->access(filename);
+    elf_buf = new char[obj->info.size];
+    obj->read(0, elf_buf, obj->info.size);
+    hal->ProcMan->exec(elf_buf);
+#endif
     //keyb->object->read(0, kbuf, 1);
     //printk("[%d]",kbuf[0]);
+    
   }
 
 #if 0

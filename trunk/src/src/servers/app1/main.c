@@ -5,7 +5,6 @@
 void _start()
 {
   printf("\n{Hello app1}\n");
-  printf("{Hello app2 twice}\n");
 
   while (1) ;
 }

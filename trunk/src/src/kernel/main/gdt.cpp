@@ -106,3 +106,15 @@ void GDT::load_tss(register num_t n, register gdt_entry * descr)
     d->bytes[i] = descr->bytes[i];
   }
 }
+
+void GDT::set_call_gate(register u8_t n, register off_t offs, register u8_t dpl, register u8_t args)
+{
+  struct g{
+    u32_t a, b;
+  }__attribute__ ((packed));
+
+  volatile struct g *g = (struct g *)&gdt[n];
+  
+  g->a = 0x00080000 | (offs & 0xffff);
+  g->b = (offs & 0xffff0000) | 0x8c00 | (dpl << 13) | (args & 0x1f);
+}

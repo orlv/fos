@@ -6,7 +6,8 @@
 //.globl timer_handler_wrapper
 .globl floppy_handler_wrapper
 .globl keyboard_handler_wrapper
-	
+.globl call_gate
+
 .text
 .align 4
 floppy_handler_wrapper:

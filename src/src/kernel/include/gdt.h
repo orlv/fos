@@ -31,6 +31,7 @@ class GDT {
   void clear_descriptor(register num_t n);
   void set_tss_descriptor(register num_t n, register  off_t tss);
   void set_tss_descriptor(register off_t tss, register gdt_entry *descr);
+  void set_call_gate(register u8_t n, register off_t offs, register u8_t dpl, register u8_t args);
   void set_segment_descriptor(register num_t n,
 			    register u32_t base,
 			    register u32_t limit,

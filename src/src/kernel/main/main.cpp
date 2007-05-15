@@ -68,7 +68,6 @@ int printf(const char *fmt, ...)
   return i;
 }
 
-
 asmlinkage void init()
 {
   extern const string version;
@@ -107,7 +106,6 @@ asmlinkage void init()
 
   printk("--------------------------------------------------------------------------------");
 #if 1
-  
 #if 1
   hal->ProcMan = new TProcMan;
   SysTimer = new TTime;
@@ -145,11 +143,13 @@ asmlinkage void init()
   string elf_buf = new char[obj->info.size];
   obj->read(0, elf_buf, obj->info.size);
   hal->ProcMan->exec(elf_buf);
-
+  delete elf_buf;
+    
   obj = modules->access("fs");
   elf_buf = new char[obj->info.size];
   obj->read(0, elf_buf, obj->info.size);
   hal->ProcMan->exec(elf_buf);
+  delete elf_buf;
 #endif
 
 #if 0
@@ -338,23 +338,25 @@ asmlinkage void init()
 
     printf("\nProcMan: exec %s\n", filename);
 
-    
+    if(obj = modules->access(filename)){
+      elf_buf = new char[obj->info.size];
+      obj->read(0, elf_buf, obj->info.size);
+      hal->ProcMan->exec(elf_buf);
+      delete elf_buf;
+      strcpy(filename, "OK");
+    } else {
+      strcpy(filename, "ER");
+    }
+
     msg->recv_size = 0;
     msg->send_size = 3;
-    strcpy(filename, "OK");
+
     filename[2] = 0;
     msg->send_buf = filename;
     syscall_reply(msg);
 
-#if 0
-    obj = modules->access(filename);
-    elf_buf = new char[obj->info.size];
-    obj->read(0, elf_buf, obj->info.size);
-    hal->ProcMan->exec(elf_buf);
-#endif
     //keyb->object->read(0, kbuf, 1);
     //printk("[%d]",kbuf[0]);
-    
   }
 
 #if 0

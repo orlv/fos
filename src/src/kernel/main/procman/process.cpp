@@ -110,7 +110,7 @@ u32_t TProcess::LoadELF(register void *image)
     }
   }
 
-  delete(u32_t *) image;
+  //  delete(u32_t *) image;
   return h->e_entry;
 }
 

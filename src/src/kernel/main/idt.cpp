@@ -29,12 +29,6 @@ void IDT::set_intr_gate(register u8_t n, register off_t offs)
   idt[n].data[1] = (offs & 0xffff0000) | 0x8e00;
 }
 
-void IDT::set_call_gate(register u8_t n, register off_t offs, register u8_t dpl, register u8_t args)
-{
-  idt[n].data[0] = 0x00080000 | (offs & 0xffff);
-  idt[n].data[1] = (offs & 0xffff0000) | 0x8c00 | (dpl << 13) | (args & 0x1f);
-}
-
 void IDT::clear_descriptor(register num_t n)
 {
   idt[n].data[0] = 0;

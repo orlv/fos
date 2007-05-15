@@ -1,3 +1,8 @@
+Tue May 15 23:20:00 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 12112 (Version 0.0.27.4)
+	-fixed set_call_gate() bug
+	-upd multitasking 
+
 Tue May 15 00:53:25 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
 Build 12084 (Version 0.0.27.4)
 	-Выделен сервер ProcMan

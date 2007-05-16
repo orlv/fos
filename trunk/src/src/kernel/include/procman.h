@@ -20,6 +20,16 @@
 
 typedef u32_t pid_t;
 
+struct procman_message {
+  u32_t cmd;
+  u8_t buf[252];
+} __attribute__ ((packed));
+
+#define PROCMAN_CMD_EXEC   0
+#define PROCMAN_CMD_TERM   1
+#define PROCMAN_CMD_PAUSE  3
+#define PROCMAN_CMD_RESUME 4
+
 class TProcMan {
 private:
   List * proclist;

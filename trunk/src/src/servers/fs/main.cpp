@@ -27,13 +27,18 @@ static inline void ls(Tdirectory * dir)
   }
 }
 
+struct procman_message {
+  u32_t cmd;
+  u8_t buf[252];
+} __attribute__ ((packed));
+
 asmlinkage void _start()
 {
   printf("[FS]\n");
 
   Tdirectory *dir;
   Tdirectory *fs;
-  Tobject *obj;
+  //  Tobject *obj;
 
   printf("Setting up ObjectFS && FSLayer..");
   dir = fs = new Tdirectory(new ObjectFS(0), 0);
@@ -47,11 +52,15 @@ asmlinkage void _start()
 
   char *buf = new char[256];
   struct msg *msg = new struct msg;
-  strcpy(buf, "app1");
-  int i = strlen(buf);
+  struct procman_message *pm = new procman_message;
+  
+  pm->cmd = 666;
+  strcpy((char *)pm->buf, "app1");
+  int i = strlen((char *)pm->buf);
   buf[i] = 0;
-  msg->send_buf = msg->recv_buf = buf;
-  msg->send_size = i + 1;
+  msg->send_buf = pm;
+  msg->recv_buf = buf;
+  msg->send_size = i + 5;
   msg->recv_size = 10;
   msg->pid = 0;
   send(msg);

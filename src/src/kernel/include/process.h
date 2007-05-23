@@ -23,8 +23,6 @@
 #define PROCESS_MEM_BASE 0x3200000
 #define PROCESS_MEM_LIMIT (0xffffffff - 0x3200000)
 
-//typedef u32_t pid_t;
-
 //asmlinkage u32_t terminate(pid_t pid);
 
 struct message {
@@ -36,24 +34,27 @@ struct message {
 } __attribute__ ((packed));
 
 typedef struct task_mem_block_t {
-  offs_t ptr;
-  size_t size;
+  offs_t vptr; /* на какой адрес в памяти процесса смонтировано */
+  offs_t pptr; /* физический адрес начала блока */
+  size_t size; /* размер блока */
 };
 
 class TProcess {
 private:
   off_t stack_pl0;
   u32_t LoadELF(register void *image);
-  u32_t *PageDir;		/* каталог страниц */
+  u32_t *PageDir; /* каталог страниц */
 
   List *UsedMem;
   List *FreeMem;
 
   void mem_init();
 
+  u32_t *CreatePageDir();
+  
  public:
-  TProcess(register void *image, register u16_t flags, register u32_t * PageDir);
-  TProcess(register u16_t flags, register u32_t * PageDir);
+  TProcess(register u16_t flags, register void *image, register u32_t *PageDir);
+  ~TProcess();
   void run();
 
   struct TSS *tss;
@@ -62,8 +63,8 @@ private:
   u32_t alarm;
 
   void set_stack_pl0();
-  void set_tss(register off_t eip, register u32_t cr3);
-  void kprocess_set_tss(register off_t eip, register u32_t cr3);
+  void set_tss(register off_t eip, register u32_t *PageDir);
+  void kprocess_set_tss(register off_t eip, register u32_t *PageDir);
   List *msg;
   //  void AddMsg(struct message *msg);
   u32_t pid;
@@ -75,6 +76,15 @@ private:
   void *mem_alloc(register offs_t ph_ptr, register size_t size);
   void *mem_alloc(register void *ptr, register size_t size, register void *ph_ptr);
   void mem_free(register void *ptr);
+};
+
+struct kmessage {
+  void *send_buf;
+  size_t send_size;
+  void *recv_buf;
+  size_t recv_size;
+  pid_t pid;
+  TProcess *process;
 };
 
 #endif

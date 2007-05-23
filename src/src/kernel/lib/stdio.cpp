@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <drivers/char/tty/tty.h>
 #include <vsprintf.h>
+#include <system.h>
 
 extern TTY *stdout;
 
@@ -35,5 +36,27 @@ int printk(const char *fmt, ...)
     *stdout << printbuf;
   //stdout->write(0, str,i);
   //delete str;
+  return i;
+}
+
+#include <hal.h>
+
+int printf(const char *fmt, ...)
+{
+  //  extern char printbuf[2000];
+  int i = 0;
+  va_list args;
+  va_start(args, fmt);
+  i = vsprintf(printbuf, fmt, args);
+  va_end(args);
+
+  printbuf[i] = 0;
+  volatile struct message msg;
+  msg.send_buf = msg.recv_buf = printbuf;
+  msg.send_size = i + 1;
+  msg.recv_size = 10;
+  msg.pid = 2;
+  syscall_send((struct message *)&msg);
+
   return i;
 }

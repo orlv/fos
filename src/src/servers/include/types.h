@@ -32,7 +32,11 @@ typedef signed long s32_t;
 
 #define NULL 0
 
+#ifdef __cplusplus
 #define asmlinkage extern "C" __attribute__((regparm(0)))
+#else
+#define asmlinkage
+#endif
 
 typedef u32_t mode_t;
 typedef u32_t uid_t;
@@ -43,5 +47,7 @@ typedef signed long res_t;
 #define RES_SUCCESS 1
 #define RES_FAULT   -1
 #define RES_FAULT2  -2
+
+typedef u32_t pid_t;
 
 #endif

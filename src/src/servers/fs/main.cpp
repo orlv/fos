@@ -1,8 +1,9 @@
 /*
-  Copyright (C) 2007 Oleg Fedorov
+  Copyright (C) 2006-2007 Oleg Fedorov
 */
 
 #include <fos.h>
+#include <fs.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -27,18 +28,12 @@ static inline void ls(Tdirectory * dir)
   }
 }
 
-struct procman_message {
-  u32_t cmd;
-  u8_t buf[252];
-} __attribute__ ((packed));
-
 asmlinkage void _start()
 {
   printf("[FS]\n");
 
   Tdirectory *dir;
   Tdirectory *fs;
-  //  Tobject *obj;
 
   printf("Setting up ObjectFS && FSLayer..");
   dir = fs = new Tdirectory(new ObjectFS(0), 0);
@@ -49,22 +44,33 @@ asmlinkage void _start()
   ls(dir);
 
   printf("FS: ready.");
+  exec("app1");
 
-  char *buf = new char[256];
+  //Tinterface *object;
   struct msg *msg = new struct msg;
-  struct procman_message *pm = new procman_message;
   
-  pm->cmd = 666;
-  strcpy((char *)pm->buf, "app1");
-  int i = strlen((char *)pm->buf);
-  buf[i] = 0;
-  msg->send_buf = pm;
-  msg->recv_buf = buf;
-  msg->send_size = i + 5;
-  msg->recv_size = 10;
-  msg->pid = 0;
-  send(msg);
+  u32_t res;
+  struct fs_message *m = new fs_message;
   
-  printf("\nmsg send.");
-  while (1);
+  while(1){
+    msg->recv_size = sizeof(fs_message);
+    msg->recv_buf = m;
+    receive(msg);
+    printf("\nFS: cmd=%d, string=%s\n", m->cmd, m->name);
+
+    switch(m->cmd){
+    case FS_CMD_ACCESS:
+      res = RES_FAULT;
+      break;
+      
+    default:
+      res = RES_FAULT;
+    }
+	
+    msg->recv_size = 0;
+    msg->send_size = sizeof(res);
+
+    msg->send_buf = &res;
+    reply(msg);
+  }
 }

@@ -1,3 +1,7 @@
+/*
+  Copyright (C) 2005 Oleg Fedorov
+*/
+
 #include <stdio.h>
 #include <fcntl.h>
 

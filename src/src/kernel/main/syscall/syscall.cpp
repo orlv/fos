@@ -10,11 +10,9 @@
 
 //void putpixel(u32_t offs, u16_t code);
 
-#define SEND    1
-#define RECEIVE 2
-#define REPLY   3
-#define MEM_ALLOC 4
-#define MEM_MAP 5
+#define SEND      1
+#define RECEIVE   2
+#define REPLY     3
 
 /*
   
@@ -109,22 +107,11 @@ struct memmap {
       "iret");								\
   asmlinkage void _ ## func(unsigned int cs, unsigned int address, u32_t cmd, u32_t arg)
 
-
-void * syscall_mem_map(register offs_t ph_ptr, register size_t size)
-{
-  return hal->ProcMan->CurrentProcess->mem_alloc(ph_ptr, size);
-}
-
-void * syscall_mem_alloc(register size_t size)
-{
-  return hal->ProcMan->CurrentProcess->mem_alloc(size);
-}
-
 void syscall_receive(struct message *message)
 {
   struct message *msg;
   size_t size;
-  
+
   /* если нет ни одного входящего сообщения, отключаемся в ожидании */
   if (hal->ProcMan->CurrentProcess->msg->empty()) {
     hal->ProcMan->CurrentProcess->flags |= FLAG_TSK_RECV;
@@ -146,6 +133,8 @@ void syscall_receive(struct message *message)
     memcpy((u32_t *) message->recv_buf, (u32_t *) msg->send_buf, size);
   }
 
+  message->pid = msg->pid;
+  
   /* отметим, сколько байт было передано */
   msg->send_size = message->recv_size = size;
 
@@ -155,16 +144,15 @@ void syscall_receive(struct message *message)
 
 res_t syscall_send(struct message *message)
 {
-  struct message *msg;
-  TProcess *p;
+  struct kmessage *msg;
+  TProcess *p; /* процесс-получатель */
   if (!(p = hal->ProcMan->get_process_by_pid(message->pid)))
     {
-      //hal->panic("BBB");
       return RES_FAULT;
     }
 
   /* скопируем сообщение в память ядра */
-  msg = new(struct message);
+  msg = new(struct kmessage);
   msg->send_buf = new char[message->send_size];
   msg->send_size = message->send_size;
   memcpy((u32_t *) msg->send_buf, (u32_t *) message->send_buf,
@@ -172,14 +160,15 @@ res_t syscall_send(struct message *message)
 
   msg->recv_buf = 0;
   msg->recv_size = message->recv_size;
-  msg->pid = (u32_t) hal->ProcMan->CurrentProcess;
+  msg->pid = hal->ProcMan->CurrentProcess->pid;
+  msg->process = hal->ProcMan->CurrentProcess;
 
 #warning ЗАМЕНИТЬ cli() на мьютекс!
   hal->cli();
   p->msg->add_tail(msg);
 
   p->flags &= ~FLAG_TSK_RECV;	/* сбросим флаг ожидания получения сообщения (если он там есть) */
-  hal->ProcMan->CurrentProcess->flags |= FLAG_TSK_SEND;	/* ожидаем ответа */
+  msg->process->flags |= FLAG_TSK_SEND;	/* ожидаем ответа */
   hal->sti();
   pause();
 
@@ -197,8 +186,8 @@ res_t syscall_send(struct message *message)
 void syscall_reply(struct message *message)
 {
   size_t size;
-  struct message *msg;
-  msg = (struct message *)hal->ProcMan->CurrentProcess->msg->next->data;
+  struct kmessage *msg;
+  msg = (struct kmessage *)hal->ProcMan->CurrentProcess->msg->next->data;
 
   if (msg->recv_size < message->send_size)
     size = msg->recv_size;
@@ -213,36 +202,26 @@ void syscall_reply(struct message *message)
 
 #warning ЗАМЕНИТЬ cli() на мьютекс!
   hal->cli();
-  ((TProcess *) msg->pid)->flags &= ~FLAG_TSK_SEND;	/* сбросим флаг SEND */
+  msg->process->flags &= ~FLAG_TSK_SEND;	/* сбросим флаг SEND */
   delete hal->ProcMan->CurrentProcess->msg->next;
   hal->sti();
-  
   //pause();
 }
   
 SYSCALL_HANDLER(sys_call)
 {
-  struct memmap *mmp;
   //printk("\nSyscall #%d, Process %d ", cmd,  hal->ProcMan->CurrentProcess->pid);
   switch (cmd) {
-  case MEM_ALLOC:
-    *(size_t *) arg = (size_t) syscall_mem_alloc(*(size_t *) arg);
-    break;
-
-  case MEM_MAP:
-    mmp = (struct memmap *)arg;
-    mmp->ptr = (u32_t) syscall_mem_map(mmp->ptr, mmp->size);
-    break;
 
   case RECEIVE:
     syscall_receive((struct message *)arg);
     break;
 
   /*
-  -----------------------------------------------------------------------------
-  SEND: сообщение копируется в буфер, управление передаётся планировщику
-  когда адресат, получив сообщение, делает вызов REPLY -- управление возвращается
-  -----------------------------------------------------------------------------
+    -----------------------------------------------------------------------------
+    SEND: сообщение копируется в буфер, управление передаётся планировщику
+    когда адресат, получив сообщение, делает вызов REPLY -- управление возвращается
+    -----------------------------------------------------------------------------
   */
   case SEND:
     syscall_send((struct message *)arg);

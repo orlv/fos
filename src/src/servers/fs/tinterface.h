@@ -7,6 +7,7 @@
 #define _TINTERFACE_H
 
 #include <types.h>
+#include <fs.h>
 #include "fs.h"
 
 struct obj_info_t {

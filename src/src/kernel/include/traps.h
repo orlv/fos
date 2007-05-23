@@ -32,8 +32,7 @@ void setup_idt();
       "pop %ds \n"							\
       "popa \n"								\
       "iret");								\
-  extern "C" void _ ## func(unsigned int cs, unsigned int address, unsigned int errorcode)
-
+  asmlinkage void _ ## func(unsigned int cs, unsigned int address, unsigned int errorcode)
 
 #define IRQ_HANDLER(func) extern "C" void func (unsigned int errcode); \
   asm(".globl " #func"\n"						\
@@ -55,7 +54,6 @@ void setup_idt();
       "pop %ds \n"							\
       "popa \n"								\
       "iret");								\
-  extern "C" void _ ## func(unsigned int cs, unsigned int address)
-
+  asmlinkage void _ ## func(unsigned int cs, unsigned int address)
 
 #endif

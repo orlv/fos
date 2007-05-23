@@ -9,6 +9,7 @@ Objects  = main.o \
 	parse.o \
 	layer.o \
 	fs/objectfs/objectfs.o \
+	../lib/fos.o \
 	../lib/heap.o \
 	../lib/libcpp.o \
 	../lib/stdio.o \

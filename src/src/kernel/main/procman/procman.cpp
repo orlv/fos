@@ -18,7 +18,8 @@ TProcMan::TProcMan()
   kPageDir = mpagedir;
 
   TProcess *rootproc = kprocess(0, FLAG_TSK_READY);
-
+  CurrentProcess = rootproc;
+    
   hal->gdt->load_tss(BASE_TSK_SEL_N, &rootproc->descr);
   ltr(BASE_TSK_SEL);
   lldt(0);
@@ -30,8 +31,7 @@ TProcMan::TProcMan()
 
 u32_t TProcMan::exec(register void *image)
 {
-  u32_t *PageDir = CreatePageDir();
-  TProcess *Process = new TProcess(image, FLAG_TSK_READY, PageDir);
+  TProcess *Process = new TProcess(FLAG_TSK_READY, image, 0);
   add(Process);
   return 0;
 }
@@ -44,29 +44,29 @@ void TProcMan::add(register TProcess * process)
 
 void TProcMan::del(register List * proc)
 {
-  delete(TProcess *) proc->data;
+  delete (TProcess *)proc->data;
   delete proc;
 }
 
-res_t TProcMan::stop(register pid_t pid)
+res_t TProcMan::kill(register pid_t pid)
 {
-#warning TODO: FIX!!!!!!!!!!!!!!!
-#if 0
-  TListEntry *first = proclist->FirstEntry;
-  TListEntry *iter = first;
-  TProcess *proc;
-  while (1) {
-    proc = (TProcess *) iter->data;
-    if (proc->pid == pid) {
-      proc->flags = (proc->flags) | FLAG_TSK_TERM;
-      break;
+  TProcess *p;
+  List *current = proclist;
+  /* то же, что get_process_by_pid() */
+  do {
+    p = (TProcess *) current->data;
+    if (p->pid == pid){
+      if(p->flags | FLAG_TSK_KERN)
+	return RES_FAULT;
+
+      p->flags &= ~FLAG_TSK_READY; /* снимем отметку выполнения с процесса */
+      delete current;   /* удалим процесс из списка пройессов */
+      delete p;         /* уничтожим процесс */
+      return RES_SUCCESS;
     }
-    if (iter->next = first)
-      return RES_FAULT;
-    iter = iter->next;
-  };
-  return RES_SUCCESS;
-#endif
+    current = current->next;
+  } while (current != proclist);
+
   return RES_FAULT;
 }
 
@@ -90,12 +90,10 @@ TProcess *TProcMan::get_process_by_pid(register u32_t pid)
 */
 TProcess *TProcMan::kprocess(register off_t eip, register u16_t flags)
 {
-  TProcess *proc = new TProcess(0, kPageDir);
+  TProcess *proc = new TProcess(flags | FLAG_TSK_KERN, 0, kPageDir);
 
   proc->set_stack_pl0();
-  proc->kprocess_set_tss(eip, load_cr3());
-
-  proc->flags = flags | FLAG_TSK_LIGHT;
+  proc->kprocess_set_tss(eip, (u32_t *)load_cr3());
 
   /* Зарегистрируем процесс */
   if(proclist)
@@ -106,17 +104,19 @@ TProcess *TProcMan::kprocess(register off_t eip, register u16_t flags)
   return proc;
 }
 
-u32_t *TProcMan::CreatePageDir()
+void kill(pid_t pid)
 {
-  u32_t i;
-  u32_t *PageDir;
+  struct message *msg = new struct message;
+  struct procman_message *pm = new procman_message;
+  pm->cmd = PROCMAN_CMD_KILL;
+  pm->arg.pid = pid;
 
-  /* выделим память под каталог страниц */
-  PageDir = (u32_t *) kmalloc(PAGE_SIZE);
-
-  for (i = 0; i < 0x3; i++) {
-    PageDir[i] = kPageDir[i];
-  }
-
-  return PageDir;
-};
+  msg->send_buf = pm;
+  msg->recv_buf = 0;
+  msg->send_size = sizeof(struct procman_message);
+  msg->recv_size = 0;
+  msg->pid = 0;
+  syscall_send(msg);
+  delete msg;
+  delete pm;
+}

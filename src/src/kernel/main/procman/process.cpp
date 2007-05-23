@@ -17,9 +17,7 @@ extern volatile u32_t top_pid;
 
 #define HELLOW_STRING "[FOS]"
 
-u32_t create_pagedir();
-
-TProcess::TProcess(register void *image, register u16_t flags, register u32_t * PageDir)
+TProcess::TProcess(register u16_t flags, register void *image, register u32_t *PageDir)
 {
   pid = hal->ProcMan->get_pid();
   /* ------------- */
@@ -30,42 +28,88 @@ TProcess::TProcess(register void *image, register u16_t flags, register u32_t * 
   strcpy((char *)_msg->send_buf, HELLOW_STRING);
 
   msg = new List(_msg);
-  /* ------------- */
-  this->PageDir = PageDir;
-  this->mem_init();
-  /* ------------- */
 
-  off_t eip = LoadELF(image);
+  if(PageDir){ /* kernel process */
+    this->PageDir = PageDir;
+  } else {     /* user process */
+    this->PageDir = CreatePageDir();
+    this->mem_init();
 
-  mem_alloc((u32_t *) 0xf0000000, 640 * 480 * 2 / 4096, (u32_t *) 0xf0000000);
-  //u32_t i;
-  //for(i=0; i<(640*480*2/4096); i++)
-  //mount_page(0xf0000+i, 0xf0000+i);
+    off_t eip = LoadELF(image);
 
-  set_stack_pl0();
-  set_tss(eip, (u32_t) PageDir);
+    //  mem_alloc((u32_t *) 0xf0000000, 640 * 480 * 2 / 4096, (u32_t *) 0xf0000000);
 
-  //  P->pid = sel-BASE_TSK_SEL_N;
+    set_stack_pl0();
+    set_tss(eip, this->PageDir);
+  }
+
   this->flags = flags;
 }
 
-TProcess::TProcess(register u16_t flags, register u32_t * PageDir)
+TProcess::~TProcess()
 {
-  pid = hal->ProcMan->get_pid();
+  List *curr, *n;
+  /* удалим все сообщения */
+#warning вернуть ошибку отправителям
+  list_for_each_safe(curr, n, msg){
+    delete (message *)curr->data;
+    delete curr;
+  }
 
-  struct message *_msg = new(struct message);
+  delete (message *)msg->data;
+  delete msg;
 
-  _msg->send_size = strlen(HELLOW_STRING);
-  _msg->send_buf = new char[_msg->send_size];
-  strcpy((char *)_msg->send_buf, HELLOW_STRING);
+  /* освободим выделенную память */
+  task_mem_block_t *c;
+  list_for_each_safe(curr, n, UsedMem){
+    c = (task_mem_block_t *) curr->data;
+    //    printk("0x%X 0x%X 0x%X \n", c->vptr, c->pptr, c->size);
+    kmfree((void *)c->pptr, c->size);
+    delete(task_mem_block_t *) curr->data;
+    delete curr;
+  }
 
-  msg = new List(_msg);
+  c = (task_mem_block_t *) UsedMem->data;
+  //printk("0x%X 0x%X 0x%X \n", c->vptr, c->pptr, c->size);
+  kmfree((void *)c->pptr, c->size);
+  delete(task_mem_block_t *) curr->data;
+  delete curr;
 
-  this->PageDir = PageDir;
-  this->flags = flags;
+  /* удалим таблицы свободных блоков */
+  list_for_each_safe(curr, n, FreeMem){
+    delete (task_mem_block_t *)curr->data;
+    delete curr;
+  }
+  delete (task_mem_block_t *)curr->data;
+  delete curr;
+
+  kmfree((void *)stack_pl0, STACK_SIZE);
+  delete tss;
+
+  u32_t i;
+  for(i = USER_MEM_START/1024; i < 1024; i++){
+    if(PageDir[i])
+      kmfree((void *)(((u32_t)PageDir[i]) & 0xfffff000), PAGE_SIZE);
+  }
+  kmfree((void *)(((u32_t)PageDir) & 0xfffff000), PAGE_SIZE);
 }
 
+u32_t *TProcess::CreatePageDir()
+{
+  u32_t i;
+  u32_t *PageDir;
 
+  /* выделим память под каталог страниц */
+  PageDir = (u32_t *) kmalloc(PAGE_SIZE);
+
+  for (i = 0; i < USER_MEM_START/1024; i++) {
+    PageDir[i] = hal->ProcMan->kPageDir[i];
+  }
+
+  return PageDir;
+}
+
+  
 u32_t TProcess::LoadELF(register void *image)
 {
   u32_t i;
@@ -88,7 +132,7 @@ u32_t TProcess::LoadELF(register void *image)
       }
 
       object = (u32_t *) kmalloc(p->p_memsz);
-      printk("[0x%X]", object);
+      //      printk("[0x%X]", object);
       /* Копируем данные */
       filedata = (u32_t *) ((u32_t) image + p->p_offset);
       //printk("sz=0x%X \n",p->p_filesz/sizeof(u32_t));
@@ -126,29 +170,26 @@ u32_t TProcess::umount_page(register u32_t log_page)
 
 void TProcess::set_stack_pl0()
 {
-  if (!(stack_pl0 = (off_t) kmalloc(STACK_SIZE)))	/* Не удалось выделить память */
+  if (!(stack_pl0 = (off_t) kmalloc(STACK_SIZE))) /* Удалось выделить память? */
     hal->panic("No memory left.");
 
-  stack_pl0 += STACK_SIZE - 1;	/* Пусть указатель указывает на конец стека */
+  stack_pl0 += STACK_SIZE - 1;	/* Указатель указывает на конец стека */
 }
 
-void TProcess::set_tss(register off_t eip, register u32_t cr3)
+void TProcess::set_tss(register off_t eip, register u32_t * PageDir)
 {
   if (!(tss = (struct TSS *)kmalloc(sizeof(struct TSS))))
     hal->panic("No memory left.");
 
   /* Заполним TSS */
-  tss->cr3 = cr3;
+  tss->cr3 = (u32_t) PageDir;
   tss->eip = eip;
 
   tss->eflags = 0x00000202;
 
-  u32_t stack_pl3 = (u32_t) kmalloc(PAGE_SIZE);
-  mount_page(((u32_t) stack_pl3) / PAGE_SIZE, 0xE0000);
-  stack_pl3 = 0xE0000000 + PAGE_SIZE - 1;
-  tss->esp = stack_pl3;
-  tss->ebp = stack_pl3;
-
+  mem_alloc((void *)0xe0000000, STACK_SIZE, 0); /* выделим место под стек */
+   
+  tss->esp = tss->ebp = 0xe0000000 + STACK_SIZE - 1;
   tss->esp0 = stack_pl0;
 
   tss->cs = USER_CODE;
@@ -163,13 +204,13 @@ void TProcess::set_tss(register off_t eip, register u32_t cr3)
   hal->gdt->set_tss_descriptor((off_t) tss, &descr);
 }
 
-void TProcess::kprocess_set_tss(register off_t eip, register u32_t cr3)
+void TProcess::kprocess_set_tss(register off_t eip, register u32_t *PageDir)
 {
   if (!(tss = (struct TSS *)kmalloc(sizeof(struct TSS))))
     hal->panic("No memory left to create tss for kernel-mode process.");
 
   /* Заполним TSS */
-  tss->cr3 = cr3;
+  tss->cr3 = (u32_t) PageDir;
   tss->eip = eip;
 
   tss->eflags = 0x00000202;
@@ -236,17 +277,18 @@ void *TProcess::mem_alloc(register offs_t ph_ptr, register size_t size)
 
   if (!p) {
     printk("TaskMem: can't allocate %d bytes of memory!\n", asize);
+    kmfree((void *)ph_ptr, size);
     return NULL;
   }
   //printk("p=0x%X, p->size=0x%X, p->next=0x%X }\n", p, p->size, p->next);
 
   if (p->size > asize) {	/* используем только часть блока */
-    block = p->ptr;
-    p->ptr += asize;		/* скорректируем указатель на начало блока */
+    block = p->vptr;
+    p->vptr += asize;		/* скорректируем указатель на начало блока */
     p->size -= asize;		/* вычтем выделяемый размер */
   } else {			/* (p->size == asize) */
     /* при выделении используем весь блок */
-    block = p->ptr;
+    block = p->vptr;
     delete(u32_t *) curr->data;
     delete curr;
   }
@@ -256,7 +298,7 @@ void *TProcess::mem_alloc(register offs_t ph_ptr, register size_t size)
   u32_t i;
   u32_t l = (u32_t) block / PAGE_SIZE;
   u32_t page = ph_ptr / PAGE_SIZE;
-  printk("{ph_ptr=0x%X, asize=0x%X, l=0x%X}", ph_ptr, asize, l);
+  // printk("{ph_ptr=0x%X, asize=0x%X, l=0x%X}", ph_ptr, asize, l);
 
   for (i = 0; i < asize / PAGE_SIZE; i++) {
     mount_page(page, l);
@@ -265,7 +307,8 @@ void *TProcess::mem_alloc(register offs_t ph_ptr, register size_t size)
   }
 
   task_mem_block_t *ublock = new task_mem_block_t;
-  ublock->ptr = block;
+  ublock->pptr = ph_ptr;
+  ublock->vptr = block;
   ublock->size = asize;
 
   if (UsedMem)
@@ -278,7 +321,7 @@ void *TProcess::mem_alloc(register offs_t ph_ptr, register size_t size)
 
 void *TProcess::mem_alloc(register void *ptr, register size_t size, register void *ph_ptr)
 {
-  //  printk("\nptr=0x%X, size=0x%X, ph_ptr=0x%X \n", ptr, size, ph_ptr);
+  //printk("\nptr=0x%X, size=0x%X, ph_ptr=0x%X \n", ptr, size, ph_ptr);
 
   if (!size)
     return 0;
@@ -302,10 +345,10 @@ void *TProcess::mem_alloc(register void *ptr, register size_t size, register voi
 
     p = (task_mem_block_t *) (curr->data);
     //printk("p->ptr=0x%X p->size=0x%X\n", p->ptr, p->size);
-    if ((p->ptr <= (u32_t) ptr) && (p->ptr + p->size >= (u32_t) ptr + asize)) {
+    if ((p->vptr <= (u32_t) ptr) && (p->vptr + p->size >= (u32_t) ptr + asize)) {
       break;
     }
-    if (p->ptr > (u32_t) ptr) {
+    if (p->vptr > (u32_t) ptr) {
       printk("TaskMem: #2 can't allocate %d bytes of memory!\n", asize);
       return 0;
     }
@@ -313,20 +356,20 @@ void *TProcess::mem_alloc(register void *ptr, register size_t size, register voi
     curr = curr->next;
   }
 
-  if (p->ptr == (u32_t) ptr) {
+  if (p->vptr == (u32_t) ptr) {
     if (p->size == asize) {
       delete(u32_t *) curr->data;
       delete curr;
     } else {
-      p->ptr += asize;
+      p->vptr += asize;
       p->size -= asize;
     }
   } else {
     size = p->size;
-    p->size = (u32_t) ptr - (u32_t) p->ptr;
-    if (size + p->ptr > (u32_t) ptr + asize) {
+    p->size = (u32_t) ptr - (u32_t) p->vptr;
+    if (size + p->vptr > (u32_t) ptr + asize) {
       task_mem_block_t *b = new task_mem_block_t;
-      b->ptr = (u32_t) ptr + asize;
+      b->vptr = (u32_t) ptr + asize;
       b->size = size - asize - p->size;
       curr->add(b);
     }
@@ -337,12 +380,17 @@ void *TProcess::mem_alloc(register void *ptr, register size_t size, register voi
   /* ------------------------------------------------------- */
   if (!ph_ptr) {
     /* выделим страницы памяти */
-    void *ptr = kmalloc(asize);
+    ptr = kmalloc(asize);
     if (!ptr)
       hal->panic("TaskMem: Can't allocate memory!");
   } else {
     ptr = ph_ptr;
   }
+
+  task_mem_block_t *ublock = new task_mem_block_t;
+  ublock->pptr =(offs_t) ptr;
+  ublock->vptr = (u32_t) block;
+  ublock->size = asize;
 
   /* смонтируем страницы */
   u32_t i;
@@ -353,10 +401,6 @@ void *TProcess::mem_alloc(register void *ptr, register size_t size, register voi
     page++;
     l++;
   }
-
-  task_mem_block_t *ublock = new task_mem_block_t;
-  ublock->ptr = (u32_t) block;
-  ublock->size = asize;
 
   if (UsedMem)
     UsedMem->add_tail(ublock);
@@ -374,11 +418,13 @@ void TProcess::mem_free(register void *ptr)
   List *curr = UsedMem;
   task_mem_block_t *c, *n;
   offs_t size = 0;
+  offs_t pptr = 0;
 
   do {
     c = (task_mem_block_t *) curr->data;
-    if (((task_mem_block_t *) curr->data)->ptr == (u32_t) ptr) {
+    if (((task_mem_block_t *) curr->data)->vptr == (u32_t) ptr) {
       size = ((task_mem_block_t *) curr->data)->size;
+      pptr = ((task_mem_block_t *) curr->data)->pptr;
       delete(task_mem_block_t *) curr->data;
       delete curr;
       break;
@@ -397,11 +443,11 @@ void TProcess::mem_free(register void *ptr)
   for (l = (u32_t) ptr / PAGE_SIZE; l < size / PAGE_SIZE; l++)
     umount_page(l);
 
-  kmfree(ptr, size);
+  kmfree((void *)pptr, size);
 
   task_mem_block_t *block = new task_mem_block_t;
 
-  block->ptr = (u32_t) ptr;
+  block->vptr = (u32_t) ptr;
   block->size = size;
 
   curr = FreeMem;
@@ -411,21 +457,21 @@ void TProcess::mem_free(register void *ptr)
     c = (task_mem_block_t *) (curr->data);
 
     /* слить с верхним соседом */
-    if (c->ptr == block->ptr + block->size) {
-      c->ptr = block->ptr;
+    if (c->vptr == block->vptr + block->size) {
+      c->vptr = block->vptr;
       c->size += block->size;
       delete block;
       return;
     }
 
     /* слить с нижним соседом */
-    if ((c->ptr + c->size == block->ptr)) {
+    if ((c->vptr + c->size == block->vptr)) {
       c->size += block->size;
       delete block;
 
       n = (task_mem_block_t *) (curr->next->data);
       /* и нижнего с верхним соседом */
-      if (c->ptr + c->size == n->ptr) {
+      if (c->vptr + c->size == n->vptr) {
 	c->size += n->size;
 	delete n;
 	delete curr->next;
@@ -435,7 +481,7 @@ void TProcess::mem_free(register void *ptr)
 
     n = (task_mem_block_t *) (curr->next->data);
     /* резместить между нижним и верхним соседями */
-    if ((c->ptr + c->size < block->ptr) && (n->ptr > block->ptr + block->size)) {
+    if ((c->vptr + c->size < block->vptr) && (n->vptr > block->vptr + block->size)) {
       curr->add(block);
       return;
     }
@@ -452,9 +498,7 @@ void TProcess::mem_init()
 {
   task_mem_block_t *block = new task_mem_block_t;
 
-  block->ptr = PROCESS_MEM_BASE;
+  block->vptr = PROCESS_MEM_BASE;
   block->size = PROCESS_MEM_LIMIT;
   FreeMem = new List(block);
-
-  //  UsedMem = new List(0);
 }

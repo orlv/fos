@@ -44,4 +44,6 @@ typedef u32_t mode_t;
 typedef u32_t uid_t;
 typedef u32_t gid_t;
 
+
+typedef u32_t pid_t;
 #endif

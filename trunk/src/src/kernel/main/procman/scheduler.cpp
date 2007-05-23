@@ -55,8 +55,7 @@ void TProcMan::scheduler()
 #if 0
       if (process->flags & FLAG_TSK_TERM) {
 	curr = curr->next;
-	delete process;
-	delete curr;
+	kill(process->pid);
 	continue;
       }
 #endif

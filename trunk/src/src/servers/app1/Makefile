@@ -5,6 +5,9 @@
 include ../Makefile.inc
 
 Objects  = main.o \
+	../lib/fos.o \
+	../lib/heap.o \
+	../lib/libcpp.o \
 	../lib/stdio.o \
 	../lib/vsprintf.o
 

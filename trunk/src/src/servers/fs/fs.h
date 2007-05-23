@@ -9,7 +9,7 @@
 #include <types.h>
 
 struct file_info_t {
-  u32_t type;			/* тип объекта (regular file/directory/other object) */
+  u32_t type;                   /* тип объекта (regular file/directory/other object) */
   u32_t nlink;			/* количество ссылок */
 
   uid_t uid;			/* id владельца */
@@ -23,15 +23,7 @@ struct file_info_t {
 
 #define FTypeObject    1
 #define FTypeDirectory 2
-//#define FTypeObject    3
-
-#define MAX_PATH_LEN 1024
-#define MAX_NAME_LEN 128
 
 void init_fs();
-
-//#define SEEK_SET 0
-//#define SEEK_CUR 1
-//#define SEEK_END 2
 
 #endif

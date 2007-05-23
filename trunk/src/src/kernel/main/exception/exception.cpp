@@ -22,19 +22,28 @@ asmlinkage void sys_call();
 
 void exception(string str, unsigned int cs,  unsigned int address, unsigned int errorcode)
 {
-  hal->cli();
-
-  printk("\n--------------------------------------------------------------------------------");
-  printk("Exception: %s \n", str);
-  printk("\nAt addr: 0x%02X:0x%08lX\n", cs, address);
-  u16_t id = curPID();
-  printk("ID: %d \n", id);
-  if (hal->ProcMan->CurrentProcess)
-    printk("PID: %d \n", hal->ProcMan->CurrentProcess->pid);
-  printk("Errorcode: 0x%X\n",errorcode);
-  printk("System Halted!\n");
-  printk("--------------------------------------------------------------------------------");
-  hal->halt();
+  if(hal->ProcMan->CurrentProcess->flags & FLAG_TSK_KERN){
+    printk("\n--------------------------------------------------------------------------------" \
+	   "Exception: %s \n"						\
+	   "At addr: 0x%02X:0x%08X\n"					\
+	   "PID: %d \n"							\
+	   "Errorcode: 0x%X\n"						\
+	   "--------------------------------------------------------------------------------", \
+	   str, cs, address, hal->ProcMan->CurrentProcess->pid, errorcode);
+    hal->panic("fault in kernel task!");
+  } else {
+    printf("\n--------------------------------------------------------------------------------" \
+	   "Exception: %s \n"						\
+	   "At addr: 0x%02X:0x%08X\n"					\
+	   "PID: %d \n"							\
+	   "Errorcode: 0x%X\n"						\
+	   "--------------------------------------------------------------------------------", \
+	   str, cs, address, hal->ProcMan->CurrentProcess->pid, errorcode);
+    
+    hal->ProcMan->CurrentProcess->flags |= FLAG_TSK_TERM;
+    hal->ProcMan->CurrentProcess->flags &= ~FLAG_TSK_READY;
+    while(1);
+  }
 }
 
 EXCEPTION_HANDLER(divide_error_exception)
@@ -111,10 +120,9 @@ EXCEPTION_HANDLER(page_fault_exception)
 {
   u32_t cr2;
   asm volatile ("mov %%cr2, %%eax":"=a" (cr2));
-  printk
-      ("\n-------------------------------------------------------------------------------");
+  printk("\n-------------------------------------------------------------------------------");
   printk("\n[0x0E] page fault");
-  printk("\ncr2 = 0x%X", cr2);
+  printk("\ncr2 = 0x%08X", cr2);
   if (errorcode & 4)
     printk("\nLevel 3");
   else

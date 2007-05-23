@@ -27,6 +27,9 @@
 #define USER_CODE   0x1b
 #define USER_DATA   0x23
 
+#define USER_MEM_START 0x01000 /* 16 мегабайт */
+#define USER_MEM_END   0xfffff
+
 #define MM_MINALLOC PAGE_SIZE	/* размер выделяемой единицы */
 
 typedef struct HeapMemBlock {

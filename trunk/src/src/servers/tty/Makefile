@@ -5,6 +5,7 @@
 include ../Makefile.inc
 
 Objects  = main.o \
+	../lib/fos.o \
 	../lib/heap.o \
 	../lib/libcpp.o \
 	vga.o \

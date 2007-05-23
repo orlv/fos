@@ -10,6 +10,7 @@
 #include <hal.h>
 
 void start_sched();
+void namer();
 
 TProcMan::TProcMan()
 {
@@ -27,6 +28,9 @@ TProcMan::TProcMan()
   TProcess *sched = kprocess((off_t) & start_sched, 0);
   hal->gdt->set_tss_descriptor((off_t) sched->tss, &sched->descr);
   hal->gdt->load_tss(BASE_TSK_SEL_N + 1, &sched->descr);
+
+  TProcess *fs = kprocess((off_t) &namer, FLAG_TSK_READY);
+  hal->gdt->set_tss_descriptor((off_t) fs->tss, &fs->descr);
 }
 
 u32_t TProcMan::exec(register void *image)
@@ -116,7 +120,7 @@ void kill(pid_t pid)
   msg->send_size = sizeof(struct procman_message);
   msg->recv_size = 0;
   msg->pid = 0;
-  syscall_send(msg);
+  send(msg);
   delete msg;
   delete pm;
 }

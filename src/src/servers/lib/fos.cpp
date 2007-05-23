@@ -28,7 +28,7 @@ struct procman_message {
 
 asmlinkage void exit()
 {
-  struct msg *msg = new struct msg;
+  struct message *msg = new struct message;
   struct procman_message *pm = new procman_message;
   pm->cmd = PROCMAN_CMD_EXIT;
 
@@ -44,7 +44,7 @@ asmlinkage void exit()
 
 asmlinkage void kill(pid_t pid)
 {
-  struct msg *msg = new struct msg;
+  struct message *msg = new struct message;
   struct procman_message *pm = new procman_message;
   pm->cmd = PROCMAN_CMD_KILL;
   pm->arg.pid = pid;
@@ -67,7 +67,7 @@ asmlinkage res_t exec(string filename)
 
   char res[3];
   res[2] = 0;
-  struct msg *msg = new struct msg;
+  struct message *msg = new struct message;
   struct procman_message *pm = new struct procman_message;
   
   pm->cmd = PROCMAN_CMD_EXEC;
@@ -89,13 +89,13 @@ asmlinkage res_t exec(string filename)
     return RES_FAULT;
 }
 
-struct msg __msg;
+struct message __msg;
 struct procman_message __pm;
 u32_t __res;
 
 asmlinkage void *kmemmap(offs_t ptr, size_t size)
 {
-  struct msg *msg = &__msg;
+  struct message *msg = &__msg;
   struct procman_message *pm = &__pm;
 
   pm->cmd = PROCMAN_CMD_MEM_MAP;
@@ -114,7 +114,7 @@ asmlinkage void *kmemmap(offs_t ptr, size_t size)
 
 asmlinkage void *kmalloc(size_t size)
 {
-  struct msg *msg = &__msg;
+  struct message *msg = &__msg;
   struct procman_message *pm = &__pm;
 
   pm->cmd = PROCMAN_CMD_MEM_ALLOC;

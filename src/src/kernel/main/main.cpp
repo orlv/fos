@@ -46,7 +46,7 @@ void procman(ModuleFS *bindir)
   TProcess *p;
   struct message *msg = new message;
 
-  u32_t reply;
+  u32_t res;
   struct procman_message *pm = new procman_message;
   char *elf_buf;
   msg->pid = 0;
@@ -56,7 +56,7 @@ void procman(ModuleFS *bindir)
 
     msg->recv_size = 256;
     msg->recv_buf = pm;
-    syscall_receive(msg);
+    receive(msg);
     //printk("\nProcMan: cmd=%d, pid=%d\n", pm->cmd, msg->pid);
 
     switch(pm->cmd){
@@ -66,52 +66,52 @@ void procman(ModuleFS *bindir)
 	object->read(0, elf_buf, object->info.size);
 	hal->ProcMan->exec(elf_buf);
 	delete elf_buf;
-	reply = RES_SUCCESS;
+	res = RES_SUCCESS;
       } else {
-	reply = RES_FAULT;
+	res = RES_FAULT;
       }
       break;
 
     case PROCMAN_CMD_KILL:
       if(hal->ProcMan->kill(pm->arg.pid)){
-	reply = RES_FAULT;
+	res = RES_FAULT;
       } else {
-	reply = RES_SUCCESS;
+	res = RES_SUCCESS;
       }
 
       break;
 
     case PROCMAN_CMD_EXIT:
       if(hal->ProcMan->kill(msg->pid)){
-	reply = RES_FAULT;
+	res = RES_FAULT;
       } else {
-	reply = RES_SUCCESS;
+	res = RES_SUCCESS;
       }
 
       break;
 
     case PROCMAN_CMD_MEM_ALLOC:
       p = hal->ProcMan->get_process_by_pid(msg->pid);
-      reply = (u32_t) p->mem_alloc(pm->arg.value);
+      res = (u32_t) p->mem_alloc(pm->arg.value);
       //printk("\nProcMan: ptr=0x%X\n", reply);
       break;
 
     case PROCMAN_CMD_MEM_MAP:
       p = hal->ProcMan->get_process_by_pid(msg->pid);
       //printk("\nProcMan: a1=0x%X, a2=0x%X\n", pm->arg.val.a1, pm->arg.val.a2);
-      reply = (u32_t) p->mem_alloc(pm->arg.val.a1, pm->arg.val.a2);
+      res = (u32_t) p->mem_alloc(pm->arg.val.a1, pm->arg.val.a2);
       //printk("\nProcMan: ptr=0x%X\n", reply);
       break;
       
     default:
-      reply = RES_FAULT;
+      res = RES_FAULT;
     }
 	
     msg->recv_size = 0;
-    msg->send_size = sizeof(reply);
+    msg->send_size = sizeof(res);
 
-    msg->send_buf = &reply;
-    syscall_reply(msg);
+    msg->send_buf = &res;
+    reply(msg);
   }
 }
 
@@ -166,12 +166,12 @@ asmlinkage void init()
   obj->read(0, elf_buf, obj->info.size);
   hal->ProcMan->exec(elf_buf);
   delete elf_buf;
-  
-  obj = modules->access("fs");
+
+  /*obj = modules->access("fs");
   elf_buf = new char[obj->info.size];
   obj->read(0, elf_buf, obj->info.size);
   hal->ProcMan->exec(elf_buf);
-  delete elf_buf;
+  delete elf_buf;*/
 
   printk("\n--------------------------------------------------------------------------------" \
 	 "All OK. Init done.\n" \

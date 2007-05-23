@@ -18,7 +18,7 @@ static inline void sys_call(u32_t arg1, u32_t arg2)
   asm volatile ("int $0x30"::"b" (arg1), "c"(arg2));
 }
 
-struct msg {
+struct message {
   volatile void *send_buf;
   volatile unsigned long send_size;
   volatile void *recv_buf;
@@ -26,17 +26,17 @@ struct msg {
   volatile unsigned long pid;
 } __attribute__ ((packed));
 
-static inline void receive(struct msg *msg)
+static inline void receive(struct message *msg)
 {
   sys_call(_FOS_RECEIVE, (u32_t) msg);
 }
 
-static inline void send(struct msg *msg)
+static inline void send(struct message *msg)
 {
   sys_call(_FOS_SEND, (u32_t) msg);
 }
 
-static inline void reply(struct msg *msg)
+static inline void reply(struct message *msg)
 {
   sys_call(_FOS_REPLY, (u32_t) msg);
 };

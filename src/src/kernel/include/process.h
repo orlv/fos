@@ -60,6 +60,7 @@ private:
   struct TSS *tss;
   gdt_entry descr;
   u8_t flags;
+  pid_t send_to;
   u32_t alarm;
 
   void set_stack_pl0();
@@ -67,7 +68,7 @@ private:
   void kprocess_set_tss(register off_t eip, register u32_t *PageDir);
   List *msg;
   //  void AddMsg(struct message *msg);
-  u32_t pid;
+  pid_t pid;
 
   u32_t mount_page(register u32_t phys_page, register u32_t log_page);
   u32_t umount_page(register u32_t log_page);

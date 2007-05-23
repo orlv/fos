@@ -23,15 +23,20 @@ struct info_t {
 
 #define FTypeObject    1
 #define FTypeDirectory 2
-//#define FTypeObject    3
 
-#define MAX_PATH_LEN 1024
-#define MAX_NAME_LEN 128
+#define MAX_PATH_LEN 4096
+#define MAX_NAME_LEN 256
 
-void init_fs();
+#define FS_CMD_ACCESS    0
 
-//#define SEEK_SET 0
-//#define SEEK_CUR 1
-//#define SEEK_END 2
+#define NAMER_CMD_ACCESS 0
+#define NAMER_CMD_ADD    1
+#define NAMER_CMD_REM    2
+#define NAMER_CMD_LIST   3
+
+struct fs_message {
+  u32_t cmd;
+  char name[MAX_PATH_LEN];
+} __attribute__ ((packed));
 
 #endif

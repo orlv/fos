@@ -30,8 +30,8 @@ static inline void ls(Tdirectory * dir)
 
 asmlinkage void _start()
 {
-  printf("[FS]\n");
-
+  printf("[TestFS]\n");
+#if 0
   Tdirectory *dir;
   Tdirectory *fs;
 
@@ -43,11 +43,11 @@ asmlinkage void _start()
 
   ls(dir);
 
-  printf("FS: ready.");
+  printf("TestFS: ready.");
   exec("app1");
-
+#endif
   //Tinterface *object;
-  struct msg *msg = new struct msg;
+  struct message *msg = new struct message;
   
   u32_t res;
   struct fs_message *m = new fs_message;
@@ -56,11 +56,11 @@ asmlinkage void _start()
     msg->recv_size = sizeof(fs_message);
     msg->recv_buf = m;
     receive(msg);
-    printf("\nFS: cmd=%d, string=%s\n", m->cmd, m->name);
+    printf("TestFS: cmd=%d, string=\"%s\"\n", m->cmd, m->name);
 
     switch(m->cmd){
     case FS_CMD_ACCESS:
-      res = RES_FAULT;
+      res = 666; //RES_FAULT;
       break;
       
     default:

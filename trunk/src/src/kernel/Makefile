@@ -58,6 +58,7 @@ Objects =	main/boot/setup.o		\
 		main/tinterface.o		\
 		main/fs/layer.o			\
 		main/fs/fs.o			\
+		main/fs/parse.o			\
 		lib/vsprintf.o			\
 		lib/stdio.o			\
 		lib/list.o			\

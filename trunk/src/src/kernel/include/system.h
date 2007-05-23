@@ -45,8 +45,9 @@ inline void lldt(u16_t ldt)
   asm volatile ("lldt %0"::"a" (ldt));
 }
 
-res_t syscall_send(struct message *message);
-void syscall_receive(struct message *message);
-void syscall_reply(struct message *message);
+res_t send(struct message *message);
+void receive(struct message *message);
+void reply(struct message *message);
+res_t forward(struct message *message, pid_t pid);
 
 #endif

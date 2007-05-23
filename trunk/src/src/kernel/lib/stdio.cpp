@@ -41,6 +41,8 @@ int printk(const char *fmt, ...)
 
 #include <hal.h>
 
+#define PID_TTY 3
+
 int printf(const char *fmt, ...)
 {
   //  extern char printbuf[2000];
@@ -55,8 +57,8 @@ int printf(const char *fmt, ...)
   msg.send_buf = msg.recv_buf = printbuf;
   msg.send_size = i + 1;
   msg.recv_size = 10;
-  msg.pid = 2;
-  syscall_send((struct message *)&msg);
+  msg.pid = PID_TTY;
+  send((struct message *)&msg);
 
   return i;
 }

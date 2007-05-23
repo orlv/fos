@@ -107,7 +107,7 @@ struct memmap {
       "iret");								\
   asmlinkage void _ ## func(unsigned int cs, unsigned int address, u32_t cmd, u32_t arg)
 
-void syscall_receive(struct message *message)
+void receive(struct message *message)
 {
   struct message *msg;
   size_t size;
@@ -142,15 +142,20 @@ void syscall_receive(struct message *message)
   hal->sti();
 }
 
-res_t syscall_send(struct message *message)
+res_t send(struct message *message)
 {
   struct kmessage *msg;
   TProcess *p; /* процесс-получатель */
-  if (!(p = hal->ProcMan->get_process_by_pid(message->pid)))
-    {
-      return RES_FAULT;
-    }
+  if (!(p = hal->ProcMan->get_process_by_pid(message->pid))){
+    return RES_FAULT;
+  }
 
+  /* простое предупреждение взаимоблокировки */
+  hal->ProcMan->CurrentProcess->send_to = message->pid;
+  if(p->send_to == hal->ProcMan->CurrentProcess->pid){
+    return RES_FAULT;
+  }
+  
   /* скопируем сообщение в память ядра */
   msg = new(struct kmessage);
   msg->send_buf = new char[message->send_size];
@@ -183,7 +188,7 @@ res_t syscall_send(struct message *message)
   return RES_SUCCESS;
 }
 
-void syscall_reply(struct message *message)
+void reply(struct message *message)
 {
   size_t size;
   struct kmessage *msg;
@@ -207,14 +212,35 @@ void syscall_reply(struct message *message)
   hal->sti();
   //pause();
 }
-  
+
+res_t forward(struct message *message, pid_t pid)
+{
+  TProcess *p; /* процесс-получатель */
+  if (!(p = hal->ProcMan->get_process_by_pid(pid))){
+    return RES_FAULT;
+  }
+
+  struct kmessage *msg;
+  msg = (struct kmessage *)hal->ProcMan->CurrentProcess->msg->next->data;
+
+#warning ЗАМЕНИТЬ cli() на мьютекс!
+  hal->cli();
+  p->msg->add_tail(msg);
+  p->flags &= ~FLAG_TSK_RECV;	/* сбросим флаг ожидания получения сообщения (если он там есть) */
+  hal->sti();
+
+  delete hal->ProcMan->CurrentProcess->msg->next; /* удалим ссылку на сообщение из своей очереди */
+
+  return RES_SUCCESS;
+}
+
 SYSCALL_HANDLER(sys_call)
 {
   //printk("\nSyscall #%d, Process %d ", cmd,  hal->ProcMan->CurrentProcess->pid);
   switch (cmd) {
 
   case RECEIVE:
-    syscall_receive((struct message *)arg);
+    receive((struct message *)arg);
     break;
 
   /*
@@ -224,11 +250,11 @@ SYSCALL_HANDLER(sys_call)
     -----------------------------------------------------------------------------
   */
   case SEND:
-    syscall_send((struct message *)arg);
+    send((struct message *)arg);
     break;
 
   case REPLY:
-    syscall_reply((struct message *)arg);
+    reply((struct message *)arg);
     break;
 
   default:

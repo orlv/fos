@@ -1,3 +1,14 @@
+Thu May 24 00:48:42 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 12561 (Version 0.0.27.10)
+	-добавлена простая проверка на взаимоблокировку при обмене
+	сообщениями
+
+Wed May 23 23:58:14 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 12532 (Version 0.0.27.9)
+	-добавлена возможность переадресации сообщений (forward)
+	-решено использовать каталог имен серверов namer (нечто, похожее
+	на VFS)
+
 Wed May 23 20:43:14 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
 Build 12500 (Version 0.0.27.8)
 	-начало работы над сервером fs

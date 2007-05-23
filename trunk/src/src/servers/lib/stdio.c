@@ -8,6 +8,8 @@
 #include <vsprintf.h>
 #include <fos.h>
 
+#define PID_TTY 3
+
 int sprintf(char *str, const char *fmt, ...)
 {
   va_list args;
@@ -28,12 +30,12 @@ int printf(const char *fmt, ...)
   va_end(args);
 
   printbuf[i] = 0;
-  volatile struct msg msg;
+  volatile struct message msg;
   msg.send_buf = msg.recv_buf = printbuf;
   msg.send_size = i + 1;
   msg.recv_size = 10;
-  msg.pid = 2;
-  send((struct msg *)&msg);
+  msg.pid = PID_TTY;
+  send((struct message *)&msg);
 
   return i;
 }

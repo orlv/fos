@@ -49,8 +49,15 @@ void *Heap::malloc(register size_t size)
 
       p = (HeapMemBlock *) ((unsigned long)p + sizeof(HeapMemBlock));
       /* очистим выделяемую область памяти */
-      for (i = 0; i < size / sizeof(unsigned long); i++)
-	*(unsigned long *)((unsigned long)p + i * sizeof(unsigned long)) = 0;
+      size_t asize;
+      unsigned long *ptr;
+      asize = size - (size % sizeof(unsigned long));
+      if (size % sizeof(unsigned long))
+	asize += sizeof(unsigned long);
+
+      asize /= sizeof(unsigned long);
+      for (ptr = (unsigned long *)p, i = 0; i < asize; i++)
+	ptr[i] = 0;
 
       return (void *)p;
     }

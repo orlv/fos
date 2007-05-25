@@ -12,6 +12,13 @@ List::List(register void *data)
   next = this;
 }
 
+/*
+List::List(List *parent)
+{
+  parent->add_tail(this);
+}
+*/
+
 /* -данный узел удаляется
    -правятся ссылки в prev и next
    ВНИМАНИЕ! данные в data - не удаляются! */

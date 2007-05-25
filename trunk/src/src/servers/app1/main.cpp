@@ -18,7 +18,7 @@ asmlinkage void _start()
   msg->recv_buf = &res;
   msg->send_size = sizeof(struct fs_message);
   msg->send_buf = m;
-  strcpy(m->name, "/tmp/test.txt");
+  strcpy(m->name, "/dev/tty");
   m->cmd = NAMER_CMD_ACCESS;
   msg->pid = PID_NAMER;
   send(msg);

@@ -2,7 +2,7 @@
 timeout 0
 default 0
 hiddenmenu
-title FOS - FOS is Operating System (VERSION 0.0.27.10, BUILD 12564)
+title FOS - FOS is Operating System (VERSION 0.0.27.10, BUILD 12565)
 	root(cd0)
 	kernel /root/kernel
 	module /root/modules/koi8-8x16.fnt

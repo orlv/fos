@@ -56,8 +56,7 @@ Objects =	main/boot/setup.o		\
 		main/idt.o			\
 		main/main.o			\
 		main/tinterface.o		\
-		main/fs/layer.o			\
-		main/fs/fs.o			\
+		main/fs/namer.o			\
 		main/fs/parse.o			\
 		lib/vsprintf.o			\
 		lib/stdio.o			\

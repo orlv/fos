@@ -1,39 +1,40 @@
 /*
   fs/parse.cpp
-  Copyright (C) 2006 Oleg Fedorov
+  Copyright (C) 2007 Oleg Fedorov
 */
 
 #include <string.h>
+#include <list.h>
 
-string getl(u32_t & start, const string path)
+size_t p_len(string p)
 {
-  u32_t i = start;
-  u32_t len;
-  while (path[i] == '/')
+  size_t i = 0;
+  while (p[i] && (p[i] != '/'))
     i++;
-  start = i;
-  while (path[i] && (path[i] != '/'))
-    i++;
-  if (!(len = i - start))
-    return 0;
-
-  string name = new char[len + 1];
-  string ptr = path;
-  ptr += start;
-  start += len;
-
-  strncpy(name, ptr, len);
-  name[len] = '\0';
-  return name;
+  return i;
 }
 
-string *createmas(u32_t & n, const string path)
+List * path_strip(const string path)
 {
-  string *mas = new string[1024];
-  u32_t start = 0;
-  for (n = 0; n < 1024; n++) {
-    if (!(mas[n] = getl(start, path)))
-      break;
+  string name;
+  size_t len;
+  string p = path;
+  List *lpath = 0;
+
+  while(1){
+    while (*p == '/') p++;
+    
+    if((len = p_len(p))){
+      name = new char[len + 1];
+      strncpy(name, p, len);
+      if(lpath)
+	lpath->add_tail(name);
+      else
+	lpath = new List(name);
+      p += len;
+    }
+    else break;
   }
-  return mas;
+
+  return lpath;
 }

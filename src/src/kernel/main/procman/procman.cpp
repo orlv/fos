@@ -10,7 +10,7 @@
 #include <hal.h>
 
 void start_sched();
-void namer();
+void namer_srv();
 
 TProcMan::TProcMan()
 {
@@ -29,7 +29,7 @@ TProcMan::TProcMan()
   hal->gdt->set_tss_descriptor((off_t) sched->tss, &sched->descr);
   hal->gdt->load_tss(BASE_TSK_SEL_N + 1, &sched->descr);
 
-  TProcess *fs = kprocess((off_t) &namer, FLAG_TSK_READY);
+  TProcess *fs = kprocess((off_t) &namer_srv, FLAG_TSK_READY);
   hal->gdt->set_tss_descriptor((off_t) fs->tss, &fs->descr);
 }
 

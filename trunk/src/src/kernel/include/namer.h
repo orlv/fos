@@ -35,7 +35,7 @@ class namer {
   Tobject *rootdir;
   namer();
 
-  Tobject * access(const string name);
+  Tobject * access(const string name, string t_name);
   Tobject * add(const string name, sid_t sid);
   
   //res_t remove(const string name);

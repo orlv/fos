@@ -183,8 +183,11 @@ res_t send(struct message *message)
   message->send_size = msg->send_size;	/* сколько байт дошло до получателя */
   message->recv_size = msg->recv_size;	/* сколько байт ответа пришло */
 
+  message->pid = msg->pid;
+  
   delete(u32_t *) msg->recv_buf;
   delete msg;
+  hal->ProcMan->CurrentProcess->send_to = 0;
   return RES_SUCCESS;
 }
 
@@ -194,6 +197,8 @@ void reply(struct message *message)
   struct kmessage *msg;
   msg = (struct kmessage *)hal->ProcMan->CurrentProcess->msg->next->data;
 
+  msg->pid = hal->ProcMan->CurrentProcess->pid;
+  
   if (msg->recv_size < message->send_size)
     size = msg->recv_size;
   else

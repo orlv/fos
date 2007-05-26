@@ -27,16 +27,18 @@ struct info_t {
 #define MAX_PATH_LEN 4096
 #define MAX_NAME_LEN 256
 
-#define FS_CMD_ACCESS    0
+#define FS_CMD_ACCESS 0
+#define FS_CMD_READ   1
+#define FS_CMD_WRITE  2
+#define FS_CMD_LIST   3
 
 #define NAMER_CMD_ACCESS 0
-#define NAMER_CMD_ADD    1
-#define NAMER_CMD_REM    2
-#define NAMER_CMD_LIST   3
+#define NAMER_CMD_ADD    4
+#define NAMER_CMD_REM    5
 
 struct fs_message {
   u32_t cmd;
-  char name[MAX_PATH_LEN];
+  char buf[MAX_PATH_LEN];
 } __attribute__ ((packed));
 
 #endif

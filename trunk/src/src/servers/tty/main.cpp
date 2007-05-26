@@ -19,12 +19,11 @@ asmlinkage void _start()
   msg->recv_buf = &res;
   msg->send_size = sizeof(struct fs_message);
   msg->send_buf = m;
-  strcpy(m->name, "/dev/tty");
+  strcpy(m->buf, "/dev/tty");
   m->cmd = NAMER_CMD_ADD;
   msg->pid = PID_NAMER;
   send(msg);
 
-  char *buf = new char[256];
   VGA *vga = new VGA;
 
   vga->init();
@@ -33,21 +32,30 @@ asmlinkage void _start()
 
   tty->outs("Console Activated \n");
 
-  //tty->outs("tty: msg to namer send \n");
-
-  
-  exec("fs");
   exec("app1");
-  
+
   while (1) {
     msg->pid = 0;
-    msg->recv_size = 256;
-    msg->recv_buf = buf;
+    msg->recv_size = sizeof(struct fs_message);
+    msg->recv_buf = m;
     receive(msg);
-    tty->outs(buf);
-    msg->send_buf = buf;
-    msg->send_size = 2;
-    strcpy(buf, "OK");
+
+    switch(m->cmd){
+    case FS_CMD_ACCESS:
+      res = RES_SUCCESS;
+      break;
+
+    case FS_CMD_WRITE:
+      tty->outs(m->buf);
+      res = RES_SUCCESS;
+      break;
+
+    default:
+      res = RES_FAULT;
+    }
+    
+    msg->send_buf = &res;
+    msg->send_size = sizeof(res);
     reply(msg);
   }
 }

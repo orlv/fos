@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <vsprintf.h>
 #include <fos.h>
+#include <fs.h>
 
 #define PID_TTY 3
 
@@ -26,14 +27,16 @@ int printf(const char *fmt, ...)
   int i = 0;
   va_list args;
   va_start(args, fmt);
-  i = vsprintf(printbuf, fmt, args);
+  struct fs_message *m = (struct fs_message *) printbuf;
+  m->cmd = FS_CMD_WRITE;
+  i = vsprintf(m->buf, fmt, args);
   va_end(args);
 
-  printbuf[i] = 0;
+  m->buf[i] = 0;
   volatile struct message msg;
-  msg.send_buf = msg.recv_buf = printbuf;
-  msg.send_size = i + 1;
-  msg.recv_size = 10;
+  msg.send_buf = msg.recv_buf = m;
+  msg.send_size = 4 + i + 1;
+  msg.recv_size = sizeof(unsigned long);
   msg.pid = PID_TTY;
   send((struct message *)&msg);
 

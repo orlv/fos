@@ -56,16 +56,15 @@ void namer_srv()
   struct fs_message *m = new fs_message;
   u32_t res;
 
-
   while(1){
     msg->recv_size = sizeof(fs_message);
     msg->recv_buf = m;
     receive(msg);
-    printk("Namer: cmd=%d, string=\"%s\"\n", m->cmd, m->name);
+    printk("Namer: cmd=%d, string=\"%s\"\n", m->cmd, m->buf);
     
     switch(m->cmd){
     case NAMER_CMD_ADD:
-      obj = Namer->add(m->name, msg->pid);
+      obj = Namer->add(m->buf, msg->pid);
 
       if(obj)
 	res = RES_SUCCESS;
@@ -79,19 +78,16 @@ void namer_srv()
       break;
 
     case NAMER_CMD_ACCESS:
-      obj = Namer->access(m->name);
-
-      if(obj)
-	  res = obj->sid;
+      obj = Namer->access(m->buf, m->buf);
+      
+      if(obj){
+	printk("[%s]", m->buf);
+      }
       else
 	res = 0;
-
-      msg->recv_size = 0;
-      msg->send_size = sizeof(res);
-      msg->send_buf = &res;
-      reply(msg);
+      
+      forward(msg, obj->sid);
       break;
-
       
     case NAMER_CMD_REM:
     default:
@@ -187,35 +183,55 @@ namer::namer()
 /* режет строку пути на список из элементов пути */
 List * path_strip(const string path);
 
-/* возвращает указатель на конечный объект пути */
-Tobject *namer::access(const string name)
+Tobject * namer::access(const string name, string t_name)
 {
   List *path = path_strip(name);
   List *entry = path;
   string n;
   Tobject * object = rootdir;
   Tobject * o = object;
+  List *e;
+  
+  //size_t len = strlen(name);
+  //  string t_name = new char[len+1];
+  //printk("Namer: %d:%s\n",len, name);
+  int i=0, i1=0;
 
+  /* отыщем сервер */
   do {
     n = (string)entry->data;
     if(!(object = object->access(n))){
       break;
     }
 
-    if(object->sid)
+    if(object->sid){
       o = object;
-    
-    delete n;
-    
+      i = i1;
+    }
+
+    i1++;
     entry = entry->next;
   } while (entry != path);
 
-  List *e;
+  /* создадим переменную с окончанием пути (необходимо передать
+     её конечному серверу) */
+  t_name[0] = 0;
+  list_for_each(entry, path){
+    if(i)
+      i--;
+    else {
+      n = (string)entry->data;
+      strcat(t_name, "/");
+      strcat(t_name, n);
+    }
+  }
+
   list_for_each_safe(entry, e, path){
+    delete (string)entry->data;
     delete entry;
   }
   delete path;
-  
+
   return o;
 }
 

@@ -18,12 +18,12 @@ asmlinkage void _start()
   msg->recv_buf = &res;
   msg->send_size = sizeof(struct fs_message);
   msg->send_buf = m;
-  strcpy(m->name, "/dev/tty");
+  strcpy(m->buf, "/dev/tty");
   m->cmd = NAMER_CMD_ACCESS;
   msg->pid = PID_NAMER;
   send(msg);
 
-  printf("app1: msg send & reply=%d.\n", res);
+  printf("app1: msg send & reply=%d from %d.\n", res, msg->pid);
   
   while(1);
 }

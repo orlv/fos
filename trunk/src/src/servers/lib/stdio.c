@@ -9,7 +9,7 @@
 #include <fos.h>
 #include <fs.h>
 
-#define PID_TTY 3
+#define PID_TTY 4
 
 int sprintf(char *str, const char *fmt, ...)
 {

@@ -41,7 +41,7 @@ int printk(const char *fmt, ...)
 
 #include <hal.h>
 
-#define PID_TTY 3
+#define PID_TTY 4
 
 int printf(const char *fmt, ...)
 {

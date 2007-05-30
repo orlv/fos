@@ -32,8 +32,6 @@ asmlinkage void _start()
 
   tty->outs("Console Activated \n");
 
-  exec("app1");
-
   while (1) {
     msg->pid = 0;
     msg->recv_size = sizeof(struct fs_message);

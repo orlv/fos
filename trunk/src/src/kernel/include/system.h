@@ -46,6 +46,7 @@ inline void lldt(u16_t ldt)
 }
 
 res_t send(struct message *message);
+res_t send_async(struct message *message);
 void receive(struct message *message);
 void reply(struct message *message);
 res_t forward(struct message *message, pid_t pid);

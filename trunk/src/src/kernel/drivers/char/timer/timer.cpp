@@ -35,7 +35,7 @@ static inline void EnableTimer()
 
 TTime::TTime()
 {
-  u16_t msec_per_tick = 50;
+  u16_t msec_per_tick = 1;
   u16_t count = (1193182 * msec_per_tick + 500) / 1000;
   hal->outportb(I8253_MODE, I8253_MODE_SEL0 | I8253_MODE_RATEGEN | I8253_MODE_16BIT);
   //hal->outportb(I8253_MODE, I8253_MODE_SEL0 | I8253_MODE_SQWAVE | I8253_MODE_16BIT);

@@ -27,11 +27,6 @@ TTY *stdout;
 Keyboard *keyb;
 TTime *SysTimer;
 
-asmlinkage void keyboard_handler()
-{
-  keyb->handler();
-};
-
 static inline void EnableTimer()
 {
   hal->outportb(0x21, hal->inportb(0x21) & 0xfe); /* Enable timer */
@@ -157,21 +152,17 @@ asmlinkage void init()
   SysTimer = new TTime;
   EnableTimer();
 
+  keyb = new Keyboard;
+  
   extern multiboot_info_t *__mbi;
   ModuleFS *modules = new ModuleFS(__mbi);
   Tinterface *obj;
 
-  obj = modules->access("tty");
+  obj = modules->access("init");
   string elf_buf = new char[obj->info.size];
   obj->read(0, elf_buf, obj->info.size);
   hal->ProcMan->exec(elf_buf);
   delete elf_buf;
-
-  /*obj = modules->access("fs");
-  elf_buf = new char[obj->info.size];
-  obj->read(0, elf_buf, obj->info.size);
-  hal->ProcMan->exec(elf_buf);
-  delete elf_buf;*/
 
   printk("\n--------------------------------------------------------------------------------" \
 	 "All OK. Init done.\n" \

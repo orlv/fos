@@ -66,7 +66,8 @@ private:
   void set_stack_pl0();
   void set_tss(register off_t eip, register u32_t *PageDir);
   void kprocess_set_tss(register off_t eip, register u32_t *PageDir);
-  List *msg;
+  List *new_msg;
+  List *recvd_msg;
   //  void AddMsg(struct message *msg);
   pid_t pid;
 
@@ -79,6 +80,8 @@ private:
   void mem_free(register void *ptr);
 };
 
+#define MESSAGE_ASYNC 1
+
 struct kmessage {
   void *send_buf;
   size_t send_size;
@@ -86,6 +89,7 @@ struct kmessage {
   size_t recv_size;
   pid_t pid;
   TProcess *process;
+  u32_t flags;
 };
 
 #endif

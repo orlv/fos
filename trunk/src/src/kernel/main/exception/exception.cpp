@@ -11,13 +11,7 @@
 #include <procman.h>
 #include <drivers/char/timer/timer.h>
 
-/*
-  Из файла kernel/exceprion/traps.s:
-*/
-
-asmlinkage void floppy_handler_wrapper();
-asmlinkage void keyboard_handler_wrapper();
-
+asmlinkage void keyboard_handler();
 asmlinkage void sys_call();
 
 void exception(string str, unsigned int cs,  unsigned int address, unsigned int errorcode)
@@ -204,8 +198,8 @@ void setup_idt()
     hal->idt->set_trap_gate(i, (off_t) & interrupt_hdl_not_present_exception, 0);
 
   hal->idt->set_intr_gate(0x20, (off_t) & timer_handler);
-  hal->idt->set_intr_gate(0x21, (off_t) & keyboard_handler_wrapper);
-  hal->idt->set_intr_gate(0x26, (off_t) & floppy_handler_wrapper);
+  hal->idt->set_intr_gate(0x21, (off_t) & keyboard_handler);
+  //hal->idt->set_intr_gate(0x26, (off_t) & floppy_handler_wrapper);
 
   hal->idt->set_trap_gate(0x30, (off_t) & sys_call, 3);
   //  hal->idt->set_call_gate(BASE_TSK_SEL_N-1, (off_t)&call_gate, 3, 4);

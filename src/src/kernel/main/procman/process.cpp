@@ -15,19 +15,21 @@
 
 extern volatile u32_t top_pid;
 
-#define HELLOW_STRING "[FOS]"
+//#define HELLOW_STRING "[FOS]"
 
 TProcess::TProcess(register u16_t flags, register void *image, register u32_t *PageDir)
 {
   pid = hal->ProcMan->get_pid();
-  /* ------------- */
+
   struct message *_msg = new(struct message);
+  
+  //_msg->send_size = 0;//strlen(HELLOW_STRING);
+  //_msg->send_buf = 0;// new char[_msg->send_size];
+  //strcpy((char *)_msg->send_buf, HELLOW_STRING);
 
-  _msg->send_size = strlen(HELLOW_STRING);
-  _msg->send_buf = new char[_msg->send_size];
-  strcpy((char *)_msg->send_buf, HELLOW_STRING);
+  new_msg = new List(_msg); /* пустое сообщение */
 
-  msg = new List(_msg);
+  recvd_msg = new List(_msg);
 
   if(PageDir){ /* kernel process */
     this->PageDir = PageDir;
@@ -51,13 +53,13 @@ TProcess::~TProcess()
   List *curr, *n;
   /* удалим все сообщения */
 #warning вернуть ошибку отправителям
-  list_for_each_safe(curr, n, msg){
+  list_for_each_safe(curr, n, new_msg){
     delete (message *)curr->data;
     delete curr;
   }
 
-  delete (message *)msg->data;
-  delete msg;
+  delete (message *)new_msg->data;
+  delete new_msg;
 
   /* освободим выделенную память */
   task_mem_block_t *c;

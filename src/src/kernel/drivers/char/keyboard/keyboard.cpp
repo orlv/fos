@@ -1,91 +1,83 @@
 /*
   drivers/char/keyboard/keyboard.cpp
-  Copyright (C) 2004-2006 Oleg Fedorov
+  Copyright (C) 2004-2007 Oleg Fedorov
 */
 
 #include "keyboard.h"
 #include <hal.h>
 #include <system.h>
 #include <stdio.h>
+#include <traps.h>
+#include <string.h>
+#include <fs.h>
 
 #define PORT_KBD_A      0x60
 
-#define ENABLE_KEYBOARD_IRQ()	hal->outportb(0x21, hal->inportb(0x21) & 0xfd  )
+IRQ_HANDLER(keyboard_handler)
+{
+  extern Keyboard *keyb;
+  keyb->handler();
+}
+
+inline void irq_enable_keyboard()
+{
+  hal->outportb(0x21, hal->inportb(0x21) & 0xfd);
+}
 
 Keyboard::Keyboard()
 {
-  buffer = new u8_t[KB_KEYS_BUFF_SIZE];
-
-  ENABLE_KEYBOARD_IRQ();
-  SetRepeatRate(0);
-  led_update();
-  printk("\nKeyboard enabled");
+  keys = new char[KB_KEYS_BUFF_SIZE];
+  data = new fs_message;
+  msg = new message;
+  printk("Keyboard handler installed\n");
+  irq_enable_keyboard();
+  keyboard_srv = 5;
 }
 
 Keyboard::~Keyboard()
 {
-  delete buffer;
-}
-
-volatile void Keyboard::SetRepeatRate(u8_t rate)
-{
-  wait();
-  hal->outportb(0x60, 0xf3);
-  wait();
-  hal->outportb(0x60, rate);
+  delete keys;
 }
 
 volatile void Keyboard::handler()
 {
-  u8_t scancode;
+  char scancode;
   wait();
-  hal->outportb(0x64, 0xad);		/* disable keyboard */
+  hal->outportb(0x64, 0xad); /* отключим клавиатуру */
   wait();
-  hal->outportb(0x20, 0x20);
+  hal->outportb(0x20, 0x20); /* включим прерывания */
 
   scancode = hal->inportb(PORT_KBD_A);
 
-  if (buf_top < KB_KEYS_BUFF_SIZE) {
-    buffer[buf_top] = scancode;
-    buf_top++;
+  /* если буфер переполен, новые данные просто игнорируются */
+  if (keys_i < KB_KEYS_BUFF_SIZE) {
+    keys[keys_i] = scancode;
+    keys_i++;
   }
 
+  query();
+  
   wait();
-  hal->outportb(0x64, 0xae);		/* enable keyboard */
+  hal->outportb(0x64, 0xae); /* включим клавиатуру */
   wait();
 }
 
-volatile void Keyboard::led_update()
+void Keyboard::query()
 {
-  u8_t cmd = 0;
+  size_t i;
+  if (keys_i) {
+    i = keys_i;
+    keys_i = KB_KEYS_BUFF_SIZE; /* остановим добавление в
+				 буфер новых данных */
+    msg->send_size = sizeof(u32_t) + i;
+    data->cmd = FS_CMD_WRITE;
+    memcpy(data->buf, keys, i);
+    msg->send_buf = data;
+    msg->pid = keyboard_srv;
+    send_async(msg);
 
-  if (leds.caps)
-    cmd += 4;
-  if (leds.num)
-    cmd += 2;
-  if (leds.scroll)
-    cmd += 1;
-
-  wait();
-  hal->outportb(0x60, 0xed);
-  wait();
-  hal->outportb(0x60, cmd);
-}
-
-volatile void Keyboard::wait()
-{
-  while ((hal->inportb(0x64) & 2)) ;
-}
-
-size_t Keyboard::read(off_t offset, void *buf, size_t count)
-{
-  off_t i = 0;
-  while (count) {
-    while (!buf_top) ;
-    buf_top--;
-    ((u8_t *) buf)[i] = buffer[buf_top];
-    count--;
-    i++;
+    keys_i = 0;
   }
-  return (i);
+  
+  return;
 }

@@ -13,36 +13,39 @@
 
 #define PAGE_SIZE 0x1000
 
-static inline void sys_call(u32_t arg1, u32_t arg2)
+static inline void sys_call(u32_t arg1, volatile u32_t arg2)
 {
   asm volatile ("int $0x30"::"b" (arg1), "c"(arg2));
 }
 
 struct message {
-  volatile void *send_buf;
-  volatile unsigned long send_size;
-  volatile void *recv_buf;
-  volatile unsigned long recv_size;
-  volatile unsigned long pid;
+  void *send_buf;
+  size_t send_size;
+  void *recv_buf;
+  size_t recv_size;
+  tid_t tid;
 } __attribute__ ((packed));
 
-static inline void receive(struct message *msg)
+static inline void receive(volatile struct message *msg)
 {
   sys_call(_FOS_RECEIVE, (u32_t) msg);
 }
 
-static inline void send(struct message *msg)
+static inline void send(volatile struct message *msg)
 {
   sys_call(_FOS_SEND, (u32_t) msg);
 }
 
-static inline void reply(struct message *msg)
+static inline void reply(volatile struct message *msg)
 {
   sys_call(_FOS_REPLY, (u32_t) msg);
 };
 
+
+asmlinkage tid_t resolve(char *name);
+
 asmlinkage void exit();
-asmlinkage void kill(pid_t pid);
+asmlinkage void kill(tid_t tid);
 asmlinkage res_t exec(string filename);
 
 asmlinkage void *kmemmap(offs_t ptr, size_t size);

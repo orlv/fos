@@ -27,10 +27,11 @@
 
 struct message {
   void *send_buf;
-  unsigned long send_size;
+  size_t send_size;
   void *recv_buf;
-  unsigned long recv_size;
-  unsigned long pid;
+  size_t recv_size;
+  //pid_t pid;
+  tid_t tid;
 } __attribute__ ((packed));
 
 typedef struct task_mem_block_t {
@@ -39,17 +40,33 @@ typedef struct task_mem_block_t {
   size_t size; /* размер блока */
 };
 
+class Thread{
+ private:
+  off_t stack_pl0;
+  
+ public:
+  Thread(class TProcess *process, off_t eip, u16_t flags);
+  ~Thread();
+  void run();
+
+  class TProcess *process;
+  struct TSS *tss;
+  gdt_entry descr;
+  u16_t flags;
+  tid_t send_to;
+  void set_stack_pl0();
+  void set_tss(register off_t eip);
+  void kprocess_set_tss(register off_t eip);
+  List *new_msg;
+  List *recvd_msg;
+};
+
 class TProcess {
 private:
-  off_t stack_pl0;
   u32_t LoadELF(register void *image);
-  u32_t *PageDir; /* каталог страниц */
-
   List *UsedMem;
   List *FreeMem;
-
   void mem_init();
-
   u32_t *CreatePageDir();
   
  public:
@@ -57,19 +74,10 @@ private:
   ~TProcess();
   void run();
 
-  struct TSS *tss;
-  gdt_entry descr;
-  u8_t flags;
-  pid_t send_to;
-  u32_t alarm;
+  u32_t *PageDir; /* каталог страниц */
+  List *threads;
 
-  void set_stack_pl0();
-  void set_tss(register off_t eip, register u32_t *PageDir);
-  void kprocess_set_tss(register off_t eip, register u32_t *PageDir);
-  List *new_msg;
-  List *recvd_msg;
-  //  void AddMsg(struct message *msg);
-  pid_t pid;
+  Thread *thread_create(off_t eip, u16_t flags);
 
   u32_t mount_page(register u32_t phys_page, register u32_t log_page);
   u32_t umount_page(register u32_t log_page);
@@ -83,12 +91,12 @@ private:
 #define MESSAGE_ASYNC 1
 
 struct kmessage {
-  void *send_buf;
+  void * send_buf;
   size_t send_size;
-  void *recv_buf;
+  void * recv_buf;
   size_t recv_size;
-  pid_t pid;
-  TProcess *process;
+  //  TProcess * process;
+  Thread * thread;
   u32_t flags;
 };
 

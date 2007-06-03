@@ -14,11 +14,11 @@ LD = ld
 
 include ../../../Makefile.conf
 
-GENFLAGS=-Wall -nostdlib -nostdinc -I../include -I. -L../lib -fno-stack-protector -O3
+FLAGS=-Wall -nostdlib -nostdinc -I../include -I. -L../lib -fno-stack-protector -O3
 
-ASFLAGS =$(GENFLAGS)
-CFLAGS  =$(GENFLAGS) -ffreestanding -fno-leading-underscore
-CXXFLAGS=$(GENFLAGS) -nostdinc++ -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin
+ASFLAGS =$(FLAGS)
+CFLAGS  =$(FLAGS) -ffreestanding -fno-leading-underscore
+CXXFLAGS=$(FLAGS) -nostdinc++ -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin
 LDFLAGS =-nostdlib -L=$(BINDIR)
 
 .s.o:

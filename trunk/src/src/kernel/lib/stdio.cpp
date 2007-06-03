@@ -45,6 +45,7 @@ int printk(const char *fmt, ...)
 
 int printf(const char *fmt, ...)
 {
+#if 0
   //  extern char printbuf[2000];
   int i = 0;
   va_list args;
@@ -61,4 +62,6 @@ int printf(const char *fmt, ...)
   send((struct message *)&msg);
 
   return i;
+#endif
+  return 0;
 }

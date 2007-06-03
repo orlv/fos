@@ -20,6 +20,8 @@
 #include <drivers/fs/modulefs/modulefs.h>
 #include <drivers/char/keyboard/keyboard.h>
 
+#include <fs.h>
+
 void halt();
 
 TTY *stdout;
@@ -34,20 +36,36 @@ static inline void EnableTimer()
 
 HAL *hal;
 
+void namer_add(string name)
+{
+  struct message *msg = new struct message;
+  u32_t res;
+  struct fs_message *m = new fs_message;
+  msg->recv_size = sizeof(res);
+  msg->recv_buf = &res;
+  msg->send_size = sizeof(struct fs_message);
+  msg->send_buf = m;
+  strcpy(m->buf,  name);
+  m->cmd = NAMER_CMD_ADD;
+  msg->tid = (tid_t)hal->namer;
+  send(msg);
+}
+
 void procman(ModuleFS *bindir)
 {
-
+#if 1
   Tinterface *object;
-  TProcess *p;
+  Thread *thread;
   struct message *msg = new message;
 
   u32_t res;
   struct procman_message *pm = new procman_message;
   char *elf_buf;
-  msg->pid = 0;
+  msg->tid = 0;
 
   while (1) {
-    asm("incb 0xb8000+154\n" "movb $0x5e,0xb8000+155 ");
+    asm("incb 0xb8000+154\n" "movb $0x2f,0xb8000+155 ");
+    //asm("incb 0xb8000+154\n" "movb $0x5e,0xb8000+155 ");
 
     msg->recv_size = 256;
     msg->recv_buf = pm;
@@ -77,7 +95,7 @@ void procman(ModuleFS *bindir)
       break;
 
     case PROCMAN_CMD_EXIT:
-      if(hal->ProcMan->kill(msg->pid)){
+      if(hal->ProcMan->kill(msg->tid)){
 	res = RES_FAULT;
       } else {
 	res = RES_SUCCESS;
@@ -86,15 +104,15 @@ void procman(ModuleFS *bindir)
       break;
 
     case PROCMAN_CMD_MEM_ALLOC:
-      p = hal->ProcMan->get_process_by_pid(msg->pid);
-      res = (u32_t) p->mem_alloc(pm->arg.value);
+      thread = hal->ProcMan->get_thread_by_tid(msg->tid);
+      res = (u32_t) thread->process->mem_alloc(pm->arg.value);
       //printk("\nProcMan: ptr=0x%X\n", reply);
       break;
 
     case PROCMAN_CMD_MEM_MAP:
-      p = hal->ProcMan->get_process_by_pid(msg->pid);
+      thread = hal->ProcMan->get_thread_by_tid(msg->tid);
       //printk("\nProcMan: a1=0x%X, a2=0x%X\n", pm->arg.val.a1, pm->arg.val.a2);
-      res = (u32_t) p->mem_alloc(pm->arg.val.a1, pm->arg.val.a2);
+      res = (u32_t) thread->process->mem_alloc(pm->arg.val.a1, pm->arg.val.a2);
       //printk("\nProcMan: ptr=0x%X\n", reply);
       break;
       
@@ -108,7 +126,9 @@ void procman(ModuleFS *bindir)
     msg->send_buf = &res;
     reply(msg);
   }
+#endif
 }
+
 
 asmlinkage void init()
 {
@@ -151,23 +171,40 @@ asmlinkage void init()
   hal->ProcMan = new TProcMan;
   SysTimer = new TTime;
   EnableTimer();
+#if 0
+  struct message *msg = new struct message;
+  u32_t res;
+  struct fs_message *m = new fs_message;
+  msg->recv_size = sizeof(res);
+  msg->recv_buf = &res;
+  msg->send_size = sizeof(struct fs_message);
+  msg->send_buf = m;
+  strcpy(m->buf, "/sys/namer");
+  m->cmd = NAMER_CMD_RESOLVE;
+  msg->tid = 0;
+  send(msg);
 
+  printk("res=0x%X\n", res);
+#endif
+
+  namer_add("/sys/procman");
+  
   keyb = new Keyboard;
   
   extern multiboot_info_t *__mbi;
   ModuleFS *modules = new ModuleFS(__mbi);
   Tinterface *obj;
-
+  
   obj = modules->access("init");
   string elf_buf = new char[obj->info.size];
   obj->read(0, elf_buf, obj->info.size);
   hal->ProcMan->exec(elf_buf);
   delete elf_buf;
-
+  
   printk("\n--------------------------------------------------------------------------------" \
 	 "All OK. Init done.\n" \
 	 "You can get new version at http://fos.osdev.ru/" \
 	 "\n--------------------------------------------------------------------------------");
-
+  
   procman(modules);
 }

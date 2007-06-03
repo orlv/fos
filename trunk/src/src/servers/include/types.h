@@ -49,5 +49,6 @@ typedef signed long res_t;
 #define RES_FAULT2  -2
 
 typedef u32_t pid_t;
+typedef u32_t tid_t;
 
 #endif

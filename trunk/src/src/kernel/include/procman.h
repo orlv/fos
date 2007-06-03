@@ -40,12 +40,12 @@ struct procman_message {
 class TProcMan {
 private:
   List * proclist;
-  volatile u32_t top_pid;
+  //volatile u32_t top_pid;
 
 public:
   TProcMan();
 
-  void add(register TProcess * Process);
+  void add(register Thread * thread);
   void del(register List * proc);
 
   u32_t exec(register void *image);
@@ -56,17 +56,18 @@ public:
   res_t kill(register pid_t pid);
 
   TProcess *kprocess(register off_t eip, register u16_t flags);
-  TProcess *get_process_by_pid(register u32_t pid);
+  Thread *get_thread_by_tid(register tid_t tid);
 
   u32_t curr_proc;
 
-  TProcess *CurrentProcess;
+  Thread *CurrentThread;
 
+  /* 
   inline u32_t get_pid()
   {
     top_pid++;
     return top_pid-1;;
-  }
+    }*/
 
   u32_t *kPageDir;
 };

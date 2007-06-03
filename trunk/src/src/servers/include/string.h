@@ -1,5 +1,5 @@
 /*
-  apps/include/string.h
+  servers/include/string.h
   Взято из linux-2.6.17
 */
 

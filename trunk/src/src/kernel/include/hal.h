@@ -12,6 +12,7 @@
 #include <idt.h>
 #include <procman.h>
 #include <drivers/pic.h>
+#include <namer.h>
 
 class HAL {
  private:
@@ -21,19 +22,19 @@ class HAL {
   HAL(register multiboot_info_t * mbi);
   
   TProcMan *ProcMan;
+  Namer *namer;
+  tid_t tid_namer;
   GDT *gdt;
   IDT *idt;
   PIC *pic;
 
   //  TerminalDriver *terminal;
   //  MemoryManager *mm;
-
-  
+ 
   inline void cli() { asm("cli"); };
   inline void sti() { asm("sti"); };
 
   inline void hlt() { asm("hlt"); };
-
   
   inline void outportb(u16_t port, u8_t value){
     asm volatile ("outb %0,%1"::"a" (value), "d"(port));
@@ -54,7 +55,6 @@ class HAL {
     asm volatile ("inw %1, %0":"=a" (value):"d"(port));
     return value;
   }
-
   
   void panic(register const char *fmt, ...);
   void halt();

@@ -4,39 +4,29 @@
 
 #include <fos.h>
 #include <string.h>
-#include <vsprintf.h>
-#include "vga.h"
-#include "tty.h"
+#include <stdio.h>
+#include "keyboard.h"
 #include <fs.h>
 
-extern tid_t procman;
-extern tid_t namer;
+#define KB_BUF_SIZE 64
 
 asmlinkage void _start()
 {
-  while(!(namer = resolve("/sys/namer")));
-  while(!(procman = resolve("/sys/procman")));
-
   u32_t res;
   struct fs_message *m = new fs_message;
-  struct message *msg = new(struct message);
+  struct message *msg = new message;
   
   msg->recv_size = sizeof(res);
   msg->recv_buf = &res;
   msg->send_size = sizeof(struct fs_message);
   msg->send_buf = m;
-  strcpy(m->buf, "/dev/tty");
+  strcpy(m->buf, "/dev/keyboard");
   m->cmd = NAMER_CMD_ADD;
-  msg->tid = namer;
+  msg->tid = PID_NAMER;
   send(msg);
 
-  VGA *vga = new VGA;
-
-  vga->init();
-  TTY *tty = new TTY(80, 25);
-  tty->stdout = vga;
-
-  tty->outs("Console Activated \n");
+  printf("[Keyboard]\n");
+  Keyboard *kb = new Keyboard;
 
   while (1) {
     msg->tid = 0;
@@ -44,15 +34,22 @@ asmlinkage void _start()
     msg->recv_buf = m;
     receive(msg);
 
+
+    //printf("keyboard: rcvd msg!\n");
     switch(m->cmd){
     case FS_CMD_ACCESS:
       res = RES_SUCCESS;
       break;
 
     case FS_CMD_WRITE:
-      tty->outs(m->buf);
+      kb->put(m->buf[0]);
+      printf("[%X]",m->buf[0]);
       res = RES_SUCCESS;
       break;
+
+      /*    case FS_CMD_READ:
+      res = kb->get();
+      break;*/
 
     default:
       res = RES_FAULT;
@@ -62,4 +59,5 @@ asmlinkage void _start()
     msg->send_size = sizeof(res);
     reply(msg);
   }
+
 }

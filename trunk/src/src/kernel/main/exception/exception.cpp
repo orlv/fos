@@ -16,14 +16,14 @@ asmlinkage void sys_call();
 
 void exception(string str, unsigned int cs,  unsigned int address, unsigned int errorcode)
 {
-  if(hal->ProcMan->CurrentProcess->flags & FLAG_TSK_KERN){
+  if(hal->ProcMan->CurrentThread->flags & FLAG_TSK_KERN){
     printk("\n--------------------------------------------------------------------------------" \
 	   "Exception: %s \n"						\
 	   "At addr: 0x%02X:0x%08X\n"					\
 	   "PID: %d \n"							\
 	   "Errorcode: 0x%X\n"						\
 	   "--------------------------------------------------------------------------------", \
-	   str, cs, address, hal->ProcMan->CurrentProcess->pid, errorcode);
+	   str, cs, address, hal->ProcMan->CurrentThread->process, errorcode);
     hal->panic("fault in kernel task!");
   } else {
     printf("\n--------------------------------------------------------------------------------" \
@@ -32,10 +32,10 @@ void exception(string str, unsigned int cs,  unsigned int address, unsigned int 
 	   "PID: %d \n"							\
 	   "Errorcode: 0x%X\n"						\
 	   "--------------------------------------------------------------------------------", \
-	   str, cs, address, hal->ProcMan->CurrentProcess->pid, errorcode);
+	   str, cs, address, hal->ProcMan->CurrentThread->process, errorcode);
     
-    hal->ProcMan->CurrentProcess->flags |= FLAG_TSK_TERM;
-    hal->ProcMan->CurrentProcess->flags &= ~FLAG_TSK_READY;
+    hal->ProcMan->CurrentThread->flags |= FLAG_TSK_TERM;
+    hal->ProcMan->CurrentThread->flags &= ~FLAG_TSK_READY;
     while(1);
   }
 }
@@ -156,17 +156,17 @@ EXCEPTION_HANDLER(interrupt_hdl_not_present_exception)
 IRQ_HANDLER(timer_handler)
 {
   extern TTime *SysTimer;
-  SysTimer->tick();		/* Считаем время */
+  SysTimer->tick(); /* Считаем время */
 
   u16_t pid = curPID();
-  if (pid == 1) {		/* Если мы в scheduler() */
+  if (pid == 1) { /* Если мы в scheduler() */
     asm("incb 0xb8000+156\n" "movb $0x5e,0xb8000+157 ");
 
     hal->outportb(0x20, 0x20);
     return;
   }
   hal->outportb(0x20, 0x20);
-  pause();			/* Передадим управление scheduler() */
+  sched_yield();  /* Передадим управление scheduler() */
 }
 
 void setup_idt()

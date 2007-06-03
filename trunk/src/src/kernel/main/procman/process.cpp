@@ -13,53 +13,26 @@
 #include <elf32.h>
 #include <string.h>
 
-extern volatile u32_t top_pid;
-
-//#define HELLOW_STRING "[FOS]"
+//extern volatile u32_t top_pid;
 
 TProcess::TProcess(register u16_t flags, register void *image, register u32_t *PageDir)
 {
-  pid = hal->ProcMan->get_pid();
-
-  struct message *_msg = new(struct message);
-  
-  //_msg->send_size = 0;//strlen(HELLOW_STRING);
-  //_msg->send_buf = 0;// new char[_msg->send_size];
-  //strcpy((char *)_msg->send_buf, HELLOW_STRING);
-
-  new_msg = new List(_msg); /* пустое сообщение */
-
-  recvd_msg = new List(_msg);
-
-  if(PageDir){ /* kernel process */
+  u32_t eip;
+  if(flags & FLAG_TSK_KERN){ /* kernel process */
     this->PageDir = PageDir;
-  } else {     /* user process */
+    eip = (off_t) image;
+  } else {                   /* user process   */
     this->PageDir = CreatePageDir();
     this->mem_init();
-
-    off_t eip = LoadELF(image);
-
-    //  mem_alloc((u32_t *) 0xf0000000, 640 * 480 * 2 / 4096, (u32_t *) 0xf0000000);
-
-    set_stack_pl0();
-    set_tss(eip, this->PageDir);
+    eip = LoadELF(image);
   }
 
-  this->flags = flags;
+  thread_create(eip, flags);
 }
 
 TProcess::~TProcess()
 {
   List *curr, *n;
-  /* удалим все сообщения */
-#warning вернуть ошибку отправителям
-  list_for_each_safe(curr, n, new_msg){
-    delete (message *)curr->data;
-    delete curr;
-  }
-
-  delete (message *)new_msg->data;
-  delete new_msg;
 
   /* освободим выделенную память */
   task_mem_block_t *c;
@@ -85,9 +58,15 @@ TProcess::~TProcess()
   delete (task_mem_block_t *)curr->data;
   delete curr;
 
-  kmfree((void *)stack_pl0, STACK_SIZE);
-  delete tss;
+  /* удаляем все потоки */
+  list_for_each_safe(curr, n, threads){
+    delete (Thread *)curr->data;
+    delete curr;
+  }
+  delete (Thread *)curr->data;
+  delete curr;
 
+  
   u32_t i;
   for(i = USER_MEM_START/1024; i < 1024; i++){
     if(PageDir[i])
@@ -168,73 +147,6 @@ u32_t TProcess::mount_page(register u32_t phys_page, register u32_t log_page)
 u32_t TProcess::umount_page(register u32_t log_page)
 {
   return k_umount_page(log_page, PageDir);
-}
-
-void TProcess::set_stack_pl0()
-{
-  if (!(stack_pl0 = (off_t) kmalloc(STACK_SIZE))) /* Удалось выделить память? */
-    hal->panic("No memory left.");
-
-  stack_pl0 += STACK_SIZE - 1;	/* Указатель указывает на конец стека */
-}
-
-void TProcess::set_tss(register off_t eip, register u32_t * PageDir)
-{
-  if (!(tss = (struct TSS *)kmalloc(sizeof(struct TSS))))
-    hal->panic("No memory left.");
-
-  /* Заполним TSS */
-  tss->cr3 = (u32_t) PageDir;
-  tss->eip = eip;
-
-  tss->eflags = 0x00000202;
-
-  mem_alloc((void *)0xe0000000, STACK_SIZE, 0); /* выделим место под стек */
-   
-  tss->esp = tss->ebp = 0xe0000000 + STACK_SIZE - 1;
-  tss->esp0 = stack_pl0;
-
-  tss->cs = USER_CODE;
-  tss->es = USER_DATA;
-  tss->ss = USER_DATA;
-  tss->ds = USER_DATA;
-  tss->ss0 = KERNEL_DATA;
-   
-  tss->IOPB = 0xffffffff;
-
-  /* Установим TSS */
-  hal->gdt->set_tss_descriptor((off_t) tss, &descr);
-}
-
-void TProcess::kprocess_set_tss(register off_t eip, register u32_t *PageDir)
-{
-  if (!(tss = (struct TSS *)kmalloc(sizeof(struct TSS))))
-    hal->panic("No memory left to create tss for kernel-mode process.");
-
-  /* Заполним TSS */
-  tss->cr3 = (u32_t) PageDir;
-  tss->eip = eip;
-
-  tss->eflags = 0x00000202;
-
-  tss->esp = stack_pl0;
-  tss->ebp = stack_pl0;
-
-  tss->cs = KERNEL_CODE;
-  tss->es = KERNEL_DATA;
-  tss->ss = KERNEL_DATA;
-  tss->ds = KERNEL_DATA;
-
-  tss->IOPB = 0xffffffff;
-
-  /* Установим TSS */
-  hal->gdt->set_tss_descriptor((off_t) tss, &descr);
-}
-
-void TProcess::run()
-{
-  hal->gdt->load_tss(BASE_TSK_SEL_N, &descr);
-  asm("ljmp $0x38, $0");
 }
 
 void *TProcess::mem_alloc(register size_t size)
@@ -503,4 +415,106 @@ void TProcess::mem_init()
   block->vptr = PROCESS_MEM_BASE;
   block->size = PROCESS_MEM_LIMIT;
   FreeMem = new List(block);
+}
+
+Thread *TProcess::thread_create(off_t eip, u16_t flags)
+{
+  Thread *thread = new Thread(this, eip, flags);
+  
+  if(!threads){
+    threads = new List(thread);
+  } else {
+    threads->add_tail(thread);
+  }
+  return thread;
+}
+
+Thread::Thread(TProcess *process, off_t eip, u16_t flags)
+{
+  struct message *_msg = new(struct message);
+  new_msg = new List(_msg);   /* пустое сообщение */
+  recvd_msg = new List(_msg); /* пустое сообщение */
+
+  this->process = process;
+  
+  if(flags & FLAG_TSK_KERN){ /* kernel process */
+    kprocess_set_tss(eip);
+  } else {                            /* user process */
+    set_tss(eip);
+  }
+  this->flags = flags;
+}
+
+Thread::~Thread()
+{
+  List *curr, *n;
+  /* удалим все сообщения */
+#warning вернуть ошибку отправителям
+  list_for_each_safe(curr, n, new_msg){
+    delete (message *)curr->data;
+    delete curr;
+  }
+
+  delete (message *)new_msg->data;
+  delete new_msg;
+
+  kmfree((void *)stack_pl0, STACK_SIZE);
+  delete tss;
+}
+
+void Thread::set_tss(register off_t eip)
+{
+  if (!(tss = (struct TSS *)kmalloc(sizeof(struct TSS))))
+    hal->panic("No memory left.");
+
+  tss->cr3 = (u32_t)process->PageDir;
+  tss->eip = eip;
+
+  tss->eflags = 0x00000202;
+
+  tss->esp = tss->ebp = (u32_t)process->mem_alloc(STACK_SIZE) + STACK_SIZE - 1;
+  stack_pl0 = (u32_t)kmalloc(STACK_SIZE);
+  tss->esp0 = stack_pl0 + STACK_SIZE - 1;
+
+  tss->cs = USER_CODE;
+  tss->es = USER_DATA;
+  tss->ss = USER_DATA;
+  tss->ds = USER_DATA;
+  tss->ss0 = KERNEL_DATA;
+   
+  tss->IOPB = 0xffffffff;
+
+  /* Установим TSS */
+  hal->gdt->set_tss_descriptor((off_t) tss, &descr);
+}
+
+void Thread::kprocess_set_tss(register off_t eip)
+{
+  if (!(tss = (struct TSS *)kmalloc(sizeof(struct TSS))))
+    hal->panic("No memory left to create tss for kernel-mode process.");
+
+  /* Заполним TSS */
+  tss->cr3 = (u32_t)process->PageDir;
+  tss->eip = eip;
+
+  tss->eflags = 0x00000202;
+
+  stack_pl0 = (u32_t)kmalloc(STACK_SIZE);
+  tss->ebp = tss->esp = stack_pl0 + STACK_SIZE - 1;
+
+  tss->cs = KERNEL_CODE;
+  tss->es = KERNEL_DATA;
+  tss->ss = KERNEL_DATA;
+  tss->ds = KERNEL_DATA;
+
+  tss->IOPB = 0xffffffff;
+
+  /* Установим TSS */
+  hal->gdt->set_tss_descriptor((off_t) tss, &descr);
+}
+
+void Thread::run()
+{
+  hal->gdt->load_tss(BASE_TSK_SEL_N, &descr);
+  asm("ljmp $0x38, $0");
 }

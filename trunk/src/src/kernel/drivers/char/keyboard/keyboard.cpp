@@ -73,7 +73,7 @@ void Keyboard::query()
     data->cmd = FS_CMD_WRITE;
     memcpy(data->buf, keys, i);
     msg->send_buf = data;
-    msg->pid = keyboard_srv;
+    msg->tid = keyboard_srv;
     send_async(msg);
 
     keys_i = 0;

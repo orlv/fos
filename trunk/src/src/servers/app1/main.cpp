@@ -20,10 +20,10 @@ asmlinkage void _start()
   msg->send_buf = m;
   strcpy(m->buf, "/dev/keyboard");
   m->cmd = FS_CMD_ACCESS;
-  msg->pid = PID_NAMER;
+  msg->tid = PID_NAMER;
   send(msg);
 
-  printf("app1: msg send & reply=%d from %d.\n", res, msg->pid);
+  printf("app1: msg send & reply=%d from %d.\n", res, msg->tid);
   while(1);// printf(".");
   
   while(1){

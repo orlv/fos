@@ -49,22 +49,26 @@ void namer_srv()
 {
   printk("[Namer]\n");
 
-  namer *Namer = new namer;
+  hal->namer = new Namer;
 
   Tobject *obj;
   struct message *msg = new struct message;
   struct fs_message *m = new fs_message;
   u32_t res;
 
+  hal->namer->add("/sys/namer", (sid_t)hal->ProcMan->CurrentThread);
+  
   while(1){
+    asm("incb 0xb8000+152\n" "movb $0x1f,0xb8000+153 ");
     msg->recv_size = sizeof(fs_message);
     msg->recv_buf = m;
+
     receive(msg);
     printk("Namer: cmd=%d, string=\"%s\"\n", m->cmd, m->buf);
     
     switch(m->cmd){
     case NAMER_CMD_ADD:
-      obj = Namer->add(m->buf, msg->pid);
+      obj = hal->namer->add(m->buf, msg->tid);
 
       if(obj)
 	res = RES_SUCCESS;
@@ -78,7 +82,7 @@ void namer_srv()
       break;
 
     case NAMER_CMD_ACCESS:
-      obj = Namer->access(m->buf, m->buf);
+      obj = hal->namer->access(m->buf, m->buf);
       
       if(obj){
 	printk("[%s]", m->buf);
@@ -89,6 +93,15 @@ void namer_srv()
       forward(msg, obj->sid);
       break;
       
+    case NAMER_CMD_RESOLVE:
+      obj = hal->namer->access(m->buf, 0);
+      res = obj->sid;
+      msg->recv_size = 0;
+      msg->send_size = sizeof(res);
+      msg->send_buf = &res;
+      reply(msg);
+      break;
+
     case NAMER_CMD_REM:
     default:
       res = RES_FAULT;
@@ -97,8 +110,6 @@ void namer_srv()
       msg->send_buf = &res;
       reply(msg);
     }
-    
-    //forward(msg, 4);  
   }
 }
 
@@ -175,7 +186,7 @@ Tobject * Tobject::access(const string name)
   return 0;
 }
 
-namer::namer()
+Namer::Namer()
 {
   rootdir = new Tobject("/");
 }
@@ -183,7 +194,7 @@ namer::namer()
 /* режет строку пути на список из элементов пути */
 List * path_strip(const string path);
 
-Tobject * namer::access(const string name, string t_name)
+Tobject * Namer::access(const string name, string t_name)
 {
   List *path = path_strip(name);
   List *entry = path;
@@ -215,17 +226,19 @@ Tobject * namer::access(const string name, string t_name)
 
   /* создадим переменную с окончанием пути (необходимо передать
      её конечному серверу) */
-  t_name[0] = 0;
-  list_for_each(entry, path){
-    if(i)
-      i--;
-    else {
-      n = (string)entry->data;
-      strcat(t_name, "/");
-      strcat(t_name, n);
+  if(t_name){
+    t_name[0] = 0;
+    list_for_each(entry, path){
+      if(i)
+	i--;
+      else {
+	n = (string)entry->data;
+	strcat(t_name, "/");
+	strcat(t_name, n);
+      }
     }
   }
-
+  
   list_for_each_safe(entry, e, path){
     delete (string)entry->data;
     delete entry;
@@ -239,7 +252,7 @@ Tobject * namer::access(const string name, string t_name)
   добавляет запись об последнем объекте пути
   если промежуточных элементов не существует - они создаются
  */
-Tobject *namer::add(const string name, sid_t sid)
+Tobject *Namer::add(const string name, sid_t sid)
 {
   List *path = path_strip(name);
   List *entry = path;

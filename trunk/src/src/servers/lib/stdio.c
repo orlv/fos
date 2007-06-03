@@ -22,6 +22,8 @@ int sprintf(char *str, const char *fmt, ...)
 
 char printbuf[256];
 
+extern tid_t tty;
+
 int printf(const char *fmt, ...)
 {
   int i = 0;
@@ -37,7 +39,7 @@ int printf(const char *fmt, ...)
   msg.send_buf = msg.recv_buf = m;
   msg.send_size = 4 + i + 1;
   msg.recv_size = sizeof(unsigned long);
-  msg.pid = PID_TTY;
+  msg.tid = tty;
   send((struct message *)&msg);
 
   return i;

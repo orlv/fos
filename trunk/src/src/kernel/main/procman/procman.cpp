@@ -18,54 +18,55 @@ TProcMan::TProcMan()
   extern u32_t *mpagedir;
   kPageDir = mpagedir;
 
-  TProcess *rootproc = kprocess(0, FLAG_TSK_READY);
-  CurrentProcess = rootproc;
-    
-  hal->gdt->load_tss(BASE_TSK_SEL_N, &rootproc->descr);
+  Thread *thread;
+  TProcess *process;
+  process = kprocess(0, FLAG_TSK_READY);
+  thread = (Thread *) process->threads->data;
+  CurrentThread = thread;
+  hal->gdt->load_tss(BASE_TSK_SEL_N, &thread->descr);
   ltr(BASE_TSK_SEL);
   lldt(0);
 
-  TProcess *sched = kprocess((off_t) & start_sched, 0);
-  hal->gdt->set_tss_descriptor((off_t) sched->tss, &sched->descr);
-  hal->gdt->load_tss(BASE_TSK_SEL_N + 1, &sched->descr);
+  process = kprocess((off_t) & start_sched, 0);
+  hal->gdt->load_tss(BASE_TSK_SEL_N + 1, &((Thread *) process->threads->data)->descr);
 
-  TProcess *fs = kprocess((off_t) &namer_srv, FLAG_TSK_READY);
-  hal->gdt->set_tss_descriptor((off_t) fs->tss, &fs->descr);
+  process = kprocess((off_t) &namer_srv, FLAG_TSK_READY);
+  hal->tid_namer = (tid_t) process->threads->data;
 }
 
 u32_t TProcMan::exec(register void *image)
 {
-  TProcess *Process = new TProcess(FLAG_TSK_READY, image, 0);
-  add(Process);
+  TProcess *process = new TProcess(FLAG_TSK_READY, image, 0);
+  add((Thread *)process->threads->data);
   return 0;
 }
 
-/* Добавляет процесс в список процессов */
-void TProcMan::add(register TProcess * process)
+/* Добавляет поток в список */
+void TProcMan::add(register Thread * thread)
 {
-  proclist->add_tail(process);
+  proclist->add_tail(thread);
 }
 
 void TProcMan::del(register List * proc)
 {
-  delete (TProcess *)proc->data;
+  delete (Thread *)proc->data;
   delete proc;
 }
 
 res_t TProcMan::kill(register pid_t pid)
 {
-  TProcess *p;
+  Thread *thread;
   List *current = proclist;
   /* то же, что get_process_by_pid() */
   do {
-    p = (TProcess *) current->data;
-    if (p->pid == pid){
-      if(p->flags | FLAG_TSK_KERN)
+    thread = (Thread *) current->data;
+    if ((pid_t)thread->process == pid){
+      if(thread->flags | FLAG_TSK_KERN)
 	return RES_FAULT;
 
-      p->flags &= ~FLAG_TSK_READY; /* снимем отметку выполнения с процесса */
+      thread->flags &= ~FLAG_TSK_READY; /* снимем отметку выполнения с процесса */
       delete current;   /* удалим процесс из списка пройессов */
-      delete p;         /* уничтожим процесс */
+      delete thread->process;         /* уничтожим процесс */
       return RES_SUCCESS;
     }
     current = current->next;
@@ -74,13 +75,17 @@ res_t TProcMan::kill(register pid_t pid)
   return RES_FAULT;
 }
 
-TProcess *TProcMan::get_process_by_pid(register u32_t pid)
+/* возвращает указатель только в том случае, если поток существует */
+Thread *TProcMan::get_thread_by_tid(register tid_t tid)
 {
   List *current = proclist;
+  Thread *thread;
 
   do {
-    if (((TProcess *) current->data)->pid == pid)
-      return (TProcess *) current->data;
+    thread = (Thread *) current->data;
+    if ((tid_t)thread == tid){
+      return thread;
+    }
 
     current = current->next;
   } while (current != proclist);
@@ -94,18 +99,15 @@ TProcess *TProcMan::get_process_by_pid(register u32_t pid)
 */
 TProcess *TProcMan::kprocess(register off_t eip, register u16_t flags)
 {
-  TProcess *proc = new TProcess(flags | FLAG_TSK_KERN, 0, kPageDir);
-
-  proc->set_stack_pl0();
-  proc->kprocess_set_tss(eip, (u32_t *)load_cr3());
+  TProcess *process = new TProcess(flags | FLAG_TSK_KERN, (void *) eip, kPageDir);
 
   /* Зарегистрируем процесс */
   if(proclist)
-    proclist->add_tail(proc);
+    proclist->add_tail(process->threads->data);
   else
-    proclist = new List(proc);
+    proclist = new List(process->threads->data);
 
-  return proc;
+  return process;
 }
 
 void kill(pid_t pid)
@@ -119,7 +121,7 @@ void kill(pid_t pid)
   msg->recv_buf = 0;
   msg->send_size = sizeof(struct procman_message);
   msg->recv_size = 0;
-  msg->pid = 0;
+  msg->tid = 0;
   send(msg);
   delete msg;
   delete pm;

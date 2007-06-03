@@ -31,11 +31,11 @@ void start_sched()
 void TProcMan::scheduler()
 {
   volatile List *curr = proclist;
-  TProcess *process;
+  Thread *thread;
   while (1) {
 #warning *** TODO: scheduler(): сделать таймеры
 
-    asm("incb 0xb8000+158\n" "movb $0x5e,0xb8000+159");
+    asm("incb 0xb8000+158\n" "movb $0x5f,0xb8000+159");
 
 #if 0
     /* Вместо этого кода сделать таймеры */
@@ -48,26 +48,26 @@ void TProcMan::scheduler()
       motor = 0;
     }
 #endif
-    /* Выбираем следующий подходящий для запуска процесс */
+    /* Выбираем следующий подходящий для запуска поток */
     do {
       curr = curr->next;
-      process = (TProcess *) curr->data;
+      thread = (Thread *) curr->data;
 #if 0
-      if (process->flags & FLAG_TSK_TERM) {
+      if (thread->flags & FLAG_TSK_TERM) {
 	curr = curr->next;
-	kill(process->pid);
+	kill(thread->pid);
 	continue;
       }
 #endif
       /* Процесс готов к запуску? */
-      if ((process->flags & FLAG_TSK_READY) &&
-	  !(process->flags & (FLAG_TSK_SEND | FLAG_TSK_RECV)))
+      if ((thread->flags & FLAG_TSK_READY) &&
+	  !(thread->flags & (FLAG_TSK_SEND | FLAG_TSK_RECV)))
 	break;
     } while (1);
 
-    CurrentProcess = process;
+    CurrentThread = thread;
     /* Переключимся на выбранный процесс */
-    process->run();
+    thread->run();
     /*
      * Ring
      */

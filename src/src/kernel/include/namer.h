@@ -30,10 +30,10 @@ class Tobject{
   Tobject * access(const string name);
 };
 
-class namer {
+class Namer {
  public:
   Tobject *rootdir;
-  namer();
+  Namer();
 
   Tobject * access(const string name, string t_name);
   Tobject * add(const string name, sid_t sid);
@@ -41,5 +41,7 @@ class namer {
   //res_t remove(const string name);
   //obj_info_t *list(off_t offset);  
 };
+
+tid_t namer_resolve(string name);
 
 #endif

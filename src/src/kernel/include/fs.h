@@ -24,7 +24,7 @@ struct info_t {
 #define FTypeObject    1
 #define FTypeDirectory 2
 
-#define MAX_PATH_LEN 4096
+#define MAX_PATH_LEN 1024
 #define MAX_NAME_LEN 256
 
 #define FS_CMD_ACCESS 0
@@ -32,9 +32,10 @@ struct info_t {
 #define FS_CMD_WRITE  2
 #define FS_CMD_LIST   3
 
-#define NAMER_CMD_ACCESS 0
-#define NAMER_CMD_ADD    4
-#define NAMER_CMD_REM    5
+#define NAMER_CMD_ACCESS  0
+#define NAMER_CMD_ADD     4
+#define NAMER_CMD_REM     5
+#define NAMER_CMD_RESOLVE 6
 
 struct fs_message {
   u32_t cmd;

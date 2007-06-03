@@ -11,7 +11,7 @@
 #define BASE_TSK_SEL 0x38
 #define BASE_TSK_SEL_N 7
 
-inline void pause()
+inline void sched_yield()
 {
   asm volatile ("ljmp $0x40, $0");
 }

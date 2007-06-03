@@ -25,8 +25,10 @@ inline void enable_paging(u32_t * pagedir)
    * Включим страничную адресацию.
    */
 
-  asm("movl %%eax, %%cr3\n" "movl %%cr0, %%eax\n" "orl $0x80000000, %%eax\n" "movl %%eax, %%cr0": :"a"(pagedir));
-
+  asm("movl %%eax, %%cr3\n" \
+      "movl %%cr0, %%eax\n" \
+      "orl $0x80000000, %%eax\n" \
+      "movl %%eax, %%cr0": :"a"(pagedir));
 }
 
 void setup_paging(void)

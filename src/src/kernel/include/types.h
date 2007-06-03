@@ -46,5 +46,6 @@ typedef u32_t gid_t;
 
 typedef u32_t pid_t; /* process id */
 typedef pid_t sid_t; /* server id */
+typedef u32_t tid_t; /* thread id */
 
 #endif

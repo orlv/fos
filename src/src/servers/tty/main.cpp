@@ -12,7 +12,7 @@
 extern tid_t procman;
 extern tid_t namer;
 
-asmlinkage void _start()
+asmlinkage int main()
 {
   while(!(namer = resolve("/sys/namer")));
   while(!(procman = resolve("/sys/procman")));
@@ -62,4 +62,5 @@ asmlinkage void _start()
     msg->send_size = sizeof(res);
     reply(msg);
   }
+  return 0;
 }

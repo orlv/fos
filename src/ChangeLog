@@ -1,3 +1,11 @@
+Tue Jun  5 00:29:10 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 12927 (Version 0.0.29.3)
+	- В менеджер процессов добавлена поддержка cоздания потоков
+
+Mon Jun  4 23:44:40 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 12898 (Version 0.0.29.2)
+	- Доработан startup-код для программ
+
 Mon Jun  4 01:19:05 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
 Build 12886 (Version 0.0.29.1)
 	- Многопоточность

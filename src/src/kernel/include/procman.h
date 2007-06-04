@@ -31,11 +31,12 @@ struct procman_message {
   }arg;
 } __attribute__ ((packed));
 
-#define PROCMAN_CMD_EXEC      0
-#define PROCMAN_CMD_KILL      1
-#define PROCMAN_CMD_EXIT      2
-#define PROCMAN_CMD_MEM_ALLOC 3
-#define PROCMAN_CMD_MEM_MAP   4
+#define PROCMAN_CMD_EXEC            0
+#define PROCMAN_CMD_KILL            1
+#define PROCMAN_CMD_EXIT            2
+#define PROCMAN_CMD_MEM_ALLOC       3
+#define PROCMAN_CMD_MEM_MAP         4
+#define PROCMAN_CMD_CREATE_THREAD   5
 
 class TProcMan {
 private:

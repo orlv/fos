@@ -7,10 +7,20 @@
 #include <stdio.h>
 #include <fs.h>
 
-asmlinkage void _start()
+asmlinkage void thread1()
+{
+  printf("Hello thread1\n");
+  while(1){
+    printf(".");
+  }
+}
+
+asmlinkage int main()
 {
   printf("{Hello app1}\n");
-
+  thread_create((off_t) &thread1);
+  while(1) printf("*");
+#if 0
   struct message *msg = new struct message;
   u32_t res;
   struct fs_message *m = new fs_message;
@@ -35,4 +45,6 @@ asmlinkage void _start()
     send(msg);
     printf("[%X]", res);
   }
+#endif
+  return 0;
 }

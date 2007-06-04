@@ -10,7 +10,7 @@
 
 #define KB_BUF_SIZE 64
 
-asmlinkage void _start()
+asmlinkage int main()
 {
   u32_t res;
   struct fs_message *m = new fs_message;
@@ -60,4 +60,5 @@ asmlinkage void _start()
     reply(msg);
   }
 
+  return 0;
 }

@@ -149,7 +149,7 @@ void receive(struct message *message)
 
 res_t send(struct message *message)
 {
-  printk("msg: 0x%X->0x%X\n", message, message->tid);
+  //printk("msg: 0x%X->0x%X\n", message, message->tid);
   struct kmessage *msg;
   Thread *thread; /* процесс-получатель */
   if(!message->tid){

@@ -51,4 +51,6 @@ asmlinkage res_t exec(string filename);
 asmlinkage void *kmemmap(offs_t ptr, size_t size);
 asmlinkage void *kmalloc(size_t size);
 
+asmlinkage tid_t thread_create(off_t eip);
+
 #endif

@@ -41,27 +41,29 @@ int printk(const char *fmt, ...)
 
 #include <hal.h>
 
-#define PID_TTY 4
+tid_t tty = 0;
+tid_t resolve(char *name);
 
 int printf(const char *fmt, ...)
 {
-#if 0
-  //  extern char printbuf[2000];
+  if(!tty && !(tty = resolve("/dev/tty")))
+    return 0;
+
   int i = 0;
   va_list args;
   va_start(args, fmt);
-  i = vsprintf(printbuf, fmt, args);
+  struct fs_message *m = (struct fs_message *) printbuf;
+  m->cmd = FS_CMD_WRITE;
+  i = vsprintf(m->buf, fmt, args);
   va_end(args);
 
-  printbuf[i] = 0;
+  m->buf[i] = 0;
   volatile struct message msg;
-  msg.send_buf = msg.recv_buf = printbuf;
-  msg.send_size = i + 1;
-  msg.recv_size = 10;
-  msg.pid = PID_TTY;
+  msg.send_buf = msg.recv_buf = m;
+  msg.send_size = 4 + i + 1;
+  msg.recv_size = sizeof(unsigned long);
+  msg.tid = tty;
   send((struct message *)&msg);
 
   return i;
-#endif
-  return 0;
 }

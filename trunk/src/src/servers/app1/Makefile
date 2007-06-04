@@ -4,7 +4,8 @@
 
 include ../Makefile.inc
 
-Objects  = main.o \
+Objects  = ../lib/startup.o \
+	main.o \
 	../lib/fos.o \
 	../lib/heap.o \
 	../lib/libcpp.o \

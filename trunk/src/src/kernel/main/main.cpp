@@ -34,6 +34,23 @@ static inline void EnableTimer()
   hal->outportb(0x21, hal->inportb(0x21) & 0xfe); /* Enable timer */
 }
 
+tid_t resolve(char *name)
+{
+  volatile struct message msg;
+  u32_t res;
+  struct fs_message m;
+  msg.recv_size = sizeof(res);
+  msg.recv_buf = &res;
+  msg.send_size = sizeof(struct fs_message);
+  m.cmd = NAMER_CMD_RESOLVE;
+  strcpy((char *)m.buf, name);
+  msg.send_buf = (char *)&m;
+  msg.tid = 0;
+  send((message *)&msg);
+  return res;
+}
+
+
 HAL *hal;
 
 void namer_add(string name)
@@ -70,8 +87,8 @@ void procman(ModuleFS *bindir)
     msg->recv_size = 256;
     msg->recv_buf = pm;
     receive(msg);
-    //printk("\nProcMan: cmd=%d, pid=%d\n", pm->cmd, msg->pid);
-
+    printf("ProcMan: cmd=%d, tid=%d\n", pm->cmd, msg->tid);
+    
     switch(pm->cmd){
     case PROCMAN_CMD_EXEC:
       if((object = bindir->access(pm->arg.buf))){
@@ -114,6 +131,18 @@ void procman(ModuleFS *bindir)
       //printk("\nProcMan: a1=0x%X, a2=0x%X\n", pm->arg.val.a1, pm->arg.val.a2);
       res = (u32_t) thread->process->mem_alloc(pm->arg.val.a1, pm->arg.val.a2);
       //printk("\nProcMan: ptr=0x%X\n", reply);
+      break;
+
+    case PROCMAN_CMD_CREATE_THREAD:
+      //printf("foooooooooo!\n");
+      //while(1);
+      thread = hal->ProcMan->get_thread_by_tid(msg->tid);
+      thread = thread->process->thread_create(pm->arg.value, FLAG_TSK_READY);
+      
+      res = (u32_t) thread;
+      hal->ProcMan->add(thread);
+      //printf("tid=0x%X ", res);
+      //while(1);
       break;
       
     default:

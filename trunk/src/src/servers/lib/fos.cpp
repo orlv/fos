@@ -6,11 +6,12 @@
 #include <string.h>
 #include <fs.h>
 
-#define PROCMAN_CMD_EXEC      0
-#define PROCMAN_CMD_KILL      1
-#define PROCMAN_CMD_EXIT      2
-#define PROCMAN_CMD_MEM_ALLOC 3
-#define PROCMAN_CMD_MEM_MAP   4
+#define PROCMAN_CMD_EXEC            0
+#define PROCMAN_CMD_KILL            1
+#define PROCMAN_CMD_EXIT            2
+#define PROCMAN_CMD_MEM_ALLOC       3
+#define PROCMAN_CMD_MEM_MAP         4
+#define PROCMAN_CMD_CREATE_THREAD   5
 
 struct procman_message {
   u32_t cmd;
@@ -41,9 +42,8 @@ asmlinkage tid_t resolve(char *name)
   return res;
 }
 
-tid_t namer;
-tid_t tty;
-tid_t procman;
+extern tid_t procman;
+extern tid_t namer;
 
 asmlinkage void exit()
 {
@@ -139,4 +139,22 @@ asmlinkage void *kmalloc(size_t size)
   send(&msg);
 
   return (void *)res;
+}
+
+asmlinkage tid_t thread_create(volatile off_t eip)
+{
+  volatile struct message msg;
+  volatile struct procman_message pm;
+  volatile u32_t res;
+  
+  pm.cmd = PROCMAN_CMD_CREATE_THREAD;
+  pm.arg.value = eip;
+  msg.send_buf = (char *)&pm;
+  msg.recv_buf = (char *)&res;
+  msg.send_size = sizeof(struct procman_message);
+  msg.recv_size = sizeof(res);
+  msg.tid = procman;
+  send(&msg);
+
+  return (tid_t)res;
 }

@@ -26,6 +26,11 @@ extern tid_t tty;
 
 int printf(const char *fmt, ...)
 {
+  //if(!tty && !(tty = resolve("/dev/tty")))
+  //return 0;
+  if(!tty)
+    while(!(tty = resolve("/dev/tty")));
+  
   int i = 0;
   va_list args;
   va_start(args, fmt);

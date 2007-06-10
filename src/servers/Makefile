@@ -2,8 +2,6 @@
 # Copyright (C) 2006 Oleg Fedorov
 # -----------------------------------------------------------------------------
 
-include ../../Makefile.conf
-
 all:
 	@echo ---------------------------------\> Building app1
 	@make -s -C app1

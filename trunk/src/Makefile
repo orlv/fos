@@ -5,7 +5,7 @@
 
 include Makefile.conf
 
-all:	version kernel servers
+all:	version build_kernel build_servers
 	@rm -f `find . -name \*~`
 	@expr `cat .build.next` + 1 | xargs echo -n > .build.next.tmp
 	@mv .build.next.tmp .build.next
@@ -21,7 +21,7 @@ help:
 	@echo " "
 
 version:
-	@rm -f src/kernel/main/version.o
+	@rm -f kernel/main/version.o
 	@cat .build.next > BUILD
 	@echo " "
 	@echo "FOS Version `cat VERSION`. Build `cat BUILD`."
@@ -34,28 +34,28 @@ version:
 */ \n\
 \n\
 #define VERSION	\"`cat VERSION`\"\n\
-#define BUILD	`cat BUILD`" > src/kernel/include/version.h
+#define BUILD	`cat BUILD`" > kernel/include/version.h
 
 
-kernel:
+build_kernel:
 	@echo \#--------------------------------- Building kernel ----------------------------
-	@make -s -C src/kernel
+	@make -s -C kernel
 	@echo \#------------------------------------------------------------------------------
 	@echo 
 
-servers:
+build_servers:
 	@echo \#--------------------------------- Building servers ---------------------------
-	@make -s -C src/servers
+	@make -s -C servers
 	@echo \#------------------------------------------------------------------------------
 
 
 #--------------------------------- Clean -------------------------------------
 
 clean_kernel:
-	@make -C src/kernel clean
+	@make -C kernel clean
 
 clean_servers:
-	@make -C src/servers clean
+	@make -C servers clean
 
 clean: clean_kernel clean_servers
 	@rm -f $(BINDIR)/ramdisk.gz

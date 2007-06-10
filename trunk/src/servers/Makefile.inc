@@ -12,7 +12,7 @@ AS = gcc
 LD = ld
 #----------------------------------------------------------------------------#
 
-include ../../../Makefile.conf
+include ../../Makefile.conf
 
 FLAGS=-Wall -nostdlib -nostdinc -I../include -I. -L../lib -fno-stack-protector -O3
 

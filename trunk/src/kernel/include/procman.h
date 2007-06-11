@@ -31,12 +31,14 @@ struct procman_message {
   }arg;
 } __attribute__ ((packed));
 
-#define PROCMAN_CMD_EXEC            0
-#define PROCMAN_CMD_KILL            1
-#define PROCMAN_CMD_EXIT            2
-#define PROCMAN_CMD_MEM_ALLOC       3
-#define PROCMAN_CMD_MEM_MAP         4
-#define PROCMAN_CMD_CREATE_THREAD   5
+#define PROCMAN_CMD_EXEC             0
+#define PROCMAN_CMD_KILL             1
+#define PROCMAN_CMD_EXIT             2
+#define PROCMAN_CMD_MEM_ALLOC        3
+#define PROCMAN_CMD_MEM_MAP          4
+#define PROCMAN_CMD_CREATE_THREAD    5
+#define PROCMAN_CMD_INTERRUPT_ATTACH 6
+#define PROCMAN_CMD_INTERRUPT_DETACH 7
 
 class TProcMan {
 private:
@@ -54,7 +56,7 @@ public:
   void scheduler();
 
   /* уничтожить процесс */
-  res_t kill(register pid_t pid);
+  res_t kill(register tid_t tid);
 
   TProcess *kprocess(register off_t eip, register u16_t flags);
   Thread *get_thread_by_tid(register tid_t tid);
@@ -73,6 +75,6 @@ public:
   u32_t *kPageDir;
 };
 
-void kill(pid_t pid);
+void kill(tid_t tid);
 
 #endif

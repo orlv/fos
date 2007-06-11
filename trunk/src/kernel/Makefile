@@ -5,11 +5,8 @@
 
 #----------------------------------------------------------------------------#
 CC = gcc
-#CC = tcc
 C++ = gcc
-#AS = tcc
 AS = gcc
-#LD = tcc
 LD = ld
 #----------------------------------------------------------------------------#
 
@@ -74,9 +71,7 @@ Objects =	main/boot/setup.o		\
 		drivers/pic.o			\
 		drivers/block/hd/hd.o		\
 		drivers/fs/modulefs/modulefs.o 	\
-		drivers/fs/objectfs/objectfs.o	\
-		drivers/char/keyboard/keyboard.o
-
+		drivers/fs/objectfs/objectfs.o
 
 #-----------------------------------------------------------------------------#
 

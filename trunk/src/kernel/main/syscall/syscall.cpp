@@ -10,10 +10,11 @@
 
 //void putpixel(u32_t offs, u16_t code);
 
-#define SEND      1
-#define RECEIVE   2
-#define REPLY     3
-#define RESOLVE   4
+#define SEND              1
+#define RECEIVE           2
+#define REPLY             3
+#define MASK_INTERRUPT    4
+#define UNMASK_INTERRUPT  5
 
 /*
   
@@ -335,6 +336,14 @@ SYSCALL_HANDLER(sys_call)
     reply((struct message *)arg);
     break;
 
+  case MASK_INTERRUPT:
+    hal->pic->mask(arg);
+    break;
+
+  case UNMASK_INTERRUPT:
+    hal->pic->unmask(arg);
+    break;
+    
   default:
     break;
   }

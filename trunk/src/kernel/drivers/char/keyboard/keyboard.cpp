@@ -3,6 +3,8 @@
   Copyright (C) 2004-2007 Oleg Fedorov
 */
 
+#error DEPRECATED
+
 #include "keyboard.h"
 #include <hal.h>
 #include <system.h>
@@ -10,19 +12,6 @@
 #include <traps.h>
 #include <string.h>
 #include <fs.h>
-
-#define PORT_KBD_A      0x60
-
-IRQ_HANDLER(keyboard_handler)
-{
-  extern Keyboard *keyb;
-  keyb->handler();
-}
-
-inline void irq_enable_keyboard()
-{
-  hal->outportb(0x21, hal->inportb(0x21) & 0xfd);
-}
 
 Keyboard::Keyboard()
 {
@@ -42,10 +31,10 @@ Keyboard::~Keyboard()
 volatile void Keyboard::handler()
 {
   char scancode;
-  wait();
-  hal->outportb(0x64, 0xad); /* отключим клавиатуру */
-  wait();
-  hal->outportb(0x20, 0x20); /* включим прерывания */
+  //wait();
+  //  hal->outportb(0x64, 0xad); /* отключим клавиатуру */
+  //wait();
+  //hal->outportb(0x20, 0x20); /* включим прерывания */
 
   scancode = hal->inportb(PORT_KBD_A);
 
@@ -57,9 +46,9 @@ volatile void Keyboard::handler()
 
   query();
   
-  wait();
-  hal->outportb(0x64, 0xae); /* включим клавиатуру */
-  wait();
+  //wait();
+  //hal->outportb(0x64, 0xae); /* включим клавиатуру */
+  //wait();
 }
 
 void Keyboard::query()

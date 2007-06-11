@@ -6,12 +6,14 @@
 #include <string.h>
 #include <fs.h>
 
-#define PROCMAN_CMD_EXEC            0
-#define PROCMAN_CMD_KILL            1
-#define PROCMAN_CMD_EXIT            2
-#define PROCMAN_CMD_MEM_ALLOC       3
-#define PROCMAN_CMD_MEM_MAP         4
-#define PROCMAN_CMD_CREATE_THREAD   5
+#define PROCMAN_CMD_EXEC             0
+#define PROCMAN_CMD_KILL             1
+#define PROCMAN_CMD_EXIT             2
+#define PROCMAN_CMD_MEM_ALLOC        3
+#define PROCMAN_CMD_MEM_MAP          4
+#define PROCMAN_CMD_CREATE_THREAD    5
+#define PROCMAN_CMD_INTERRUPT_ATTACH 6
+#define PROCMAN_CMD_INTERRUPT_DETACH 7
 
 struct procman_message {
   u32_t cmd;
@@ -157,4 +159,44 @@ asmlinkage tid_t thread_create(volatile off_t eip)
   send(&msg);
 
   return (tid_t)res;
+}
+
+/*
+  при возникновении указанного прерывания данному потоку
+  будет приходить сообщение
+*/
+asmlinkage res_t interrupt_attach(u8_t n)
+{
+  volatile struct message msg;
+  volatile struct procman_message pm;
+  volatile u32_t res;
+  
+  pm.cmd = PROCMAN_CMD_INTERRUPT_ATTACH;
+  pm.arg.value = n;
+  msg.send_buf = (char *)&pm;
+  msg.recv_buf = (char *)&res;
+  msg.send_size = sizeof(struct procman_message);
+  msg.recv_size = sizeof(res);
+  msg.tid = procman;
+  send(&msg);
+
+  return res;
+}
+
+asmlinkage res_t interrupt_detach(u8_t n)
+{
+  volatile struct message msg;
+  volatile struct procman_message pm;
+  volatile u32_t res;
+  
+  pm.cmd = PROCMAN_CMD_INTERRUPT_DETACH;
+  pm.arg.value = n;
+  msg.send_buf = (char *)&pm;
+  msg.recv_buf = (char *)&res;
+  msg.send_size = sizeof(struct procman_message);
+  msg.recv_size = sizeof(res);
+  msg.tid = procman;
+  send(&msg);
+
+  return res;
 }

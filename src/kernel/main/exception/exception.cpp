@@ -10,6 +10,7 @@
 #include <hal.h>
 #include <procman.h>
 #include <drivers/char/timer/timer.h>
+#include <drivers/char/keyboard/keyboard.h>
 
 asmlinkage void keyboard_handler();
 asmlinkage void sys_call();
@@ -145,7 +146,7 @@ EXCEPTION_HANDLER(align_error_exception)
 
 EXCEPTION_HANDLER(machine_depend_error_exception)
 {
-  exception("[0x12] machine depend error", cs, address, errorcode);
+hal->outportb(0x20, 0x20);  exception("[0x12] machine depend error", cs, address, errorcode);
 }
 
 EXCEPTION_HANDLER(interrupt_hdl_not_present_exception)
@@ -167,6 +168,34 @@ IRQ_HANDLER(timer_handler)
   }
   hal->outportb(0x20, 0x20);
   sched_yield();  /* Передадим управление scheduler() */
+}
+
+void common_interrupt(u8_t n)
+{
+  hal->pic->mask(n); /* Демаскировку должен производить обработчик */
+  hal->outportb(0x20, 0x20);
+  //printk("Interrupt %d received\n", n);
+  if(hal->user_int_handler[n]){
+    struct message msg;
+    u8_t data;
+    msg.send_size = sizeof(u8_t);
+    data = n;
+    msg.send_buf = &data;
+    msg.tid = hal->user_int_handler[n];
+    send_async(&msg);
+  } else {
+    hal->panic("Unhandled interrupt received!\n");
+  }
+}
+
+IRQ_HANDLER(irq_1)
+{
+  common_interrupt(1);
+}
+
+IRQ_HANDLER(irq_26)
+{
+  common_interrupt(26);
 }
 
 void setup_idt()
@@ -198,8 +227,8 @@ void setup_idt()
     hal->idt->set_trap_gate(i, (off_t) & interrupt_hdl_not_present_exception, 0);
 
   hal->idt->set_intr_gate(0x20, (off_t) & timer_handler);
-  hal->idt->set_intr_gate(0x21, (off_t) & keyboard_handler);
-  //hal->idt->set_intr_gate(0x26, (off_t) & floppy_handler_wrapper);
+  hal->idt->set_intr_gate(0x21, (off_t) & irq_1);  /* keyboard */
+  hal->idt->set_intr_gate(0x26, (off_t) & irq_26); /* floppy */
 
   hal->idt->set_trap_gate(0x30, (off_t) & sys_call, 3);
   //  hal->idt->set_call_gate(BASE_TSK_SEL_N-1, (off_t)&call_gate, 3, 4);

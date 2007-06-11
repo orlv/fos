@@ -13,6 +13,7 @@
 HAL::HAL(register multiboot_info_t * mbi)
 {
   this->mbi = mbi;
+  user_int_handler = new u32_t[256];
 }
 
 void HAL::panic(register const char *fmt, ...)
@@ -38,7 +39,31 @@ void HAL::panic(register const char *fmt, ...)
 
 void HAL::halt()
 {
-  hal->cli();
-  while(1)
+  while(1){
+    hal->cli();
     hal->hlt();
+  }
 }
+
+res_t HAL::interrupt_attach(Thread *thread, u8_t n)
+{
+  if(!user_int_handler[n]){
+    user_int_handler[n] = (u32_t)thread;
+    return RES_SUCCESS;
+  } else {
+    return RES_FAULT;
+  }
+}
+
+res_t HAL::interrupt_detach(Thread *thread, u8_t n)
+{
+  Thread *t = (Thread *)user_int_handler[n];
+
+  if(t == thread){
+    user_int_handler[n] = 0;
+    return RES_SUCCESS;
+  } else {
+    return RES_FAULT;
+  }
+}
+

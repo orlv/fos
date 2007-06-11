@@ -22,16 +22,14 @@
 
 #include <fs.h>
 
-void halt();
-
 TTY *stdout;
-
-Keyboard *keyb;
+//Keyboard *keyb;
 TTime *SysTimer;
+HAL *hal;
 
 static inline void EnableTimer()
 {
-  hal->outportb(0x21, hal->inportb(0x21) & 0xfe); /* Enable timer */
+  hal->pic->unmask(0);
 }
 
 tid_t resolve(char *name)
@@ -50,9 +48,6 @@ tid_t resolve(char *name)
   return res;
 }
 
-
-HAL *hal;
-
 void namer_add(string name)
 {
   struct message *msg = new struct message;
@@ -70,7 +65,6 @@ void namer_add(string name)
 
 void procman(ModuleFS *bindir)
 {
-#if 1
   Tinterface *object;
   Thread *thread;
   struct message *msg = new message;
@@ -81,13 +75,12 @@ void procman(ModuleFS *bindir)
   msg->tid = 0;
 
   while (1) {
-    asm("incb 0xb8000+154\n" "movb $0x2f,0xb8000+155 ");
-    //asm("incb 0xb8000+154\n" "movb $0x5e,0xb8000+155 ");
+    //asm("incb 0xb8000+154\n" "movb $0x2f,0xb8000+155 ");
 
     msg->recv_size = 256;
     msg->recv_buf = pm;
     receive(msg);
-    printf("ProcMan: cmd=%d, tid=%d\n", pm->cmd, msg->tid);
+    //printf("ProcMan: cmd=%d, tid=%d\n", pm->cmd, msg->tid);
     
     switch(pm->cmd){
     case PROCMAN_CMD_EXEC:
@@ -112,7 +105,8 @@ void procman(ModuleFS *bindir)
       break;
 
     case PROCMAN_CMD_EXIT:
-      if(hal->ProcMan->kill(msg->tid)){
+      thread = hal->ProcMan->get_thread_by_tid(msg->tid);
+      if(hal->ProcMan->kill((tid_t)thread)){
 	res = RES_FAULT;
       } else {
 	res = RES_SUCCESS;
@@ -123,26 +117,28 @@ void procman(ModuleFS *bindir)
     case PROCMAN_CMD_MEM_ALLOC:
       thread = hal->ProcMan->get_thread_by_tid(msg->tid);
       res = (u32_t) thread->process->mem_alloc(pm->arg.value);
-      //printk("\nProcMan: ptr=0x%X\n", reply);
       break;
 
     case PROCMAN_CMD_MEM_MAP:
       thread = hal->ProcMan->get_thread_by_tid(msg->tid);
-      //printk("\nProcMan: a1=0x%X, a2=0x%X\n", pm->arg.val.a1, pm->arg.val.a2);
       res = (u32_t) thread->process->mem_alloc(pm->arg.val.a1, pm->arg.val.a2);
-      //printk("\nProcMan: ptr=0x%X\n", reply);
       break;
 
     case PROCMAN_CMD_CREATE_THREAD:
-      //printf("foooooooooo!\n");
-      //while(1);
       thread = hal->ProcMan->get_thread_by_tid(msg->tid);
       thread = thread->process->thread_create(pm->arg.value, FLAG_TSK_READY);
-      
       res = (u32_t) thread;
       hal->ProcMan->add(thread);
-      //printf("tid=0x%X ", res);
-      //while(1);
+      break;
+
+    case PROCMAN_CMD_INTERRUPT_ATTACH:
+      thread = hal->ProcMan->get_thread_by_tid(msg->tid);
+      res = hal->interrupt_attach(thread, pm->arg.value);
+      break;
+
+    case PROCMAN_CMD_INTERRUPT_DETACH:
+      thread = hal->ProcMan->get_thread_by_tid(msg->tid);
+      res = hal->interrupt_detach(thread, pm->arg.value);
       break;
       
     default:
@@ -155,7 +151,6 @@ void procman(ModuleFS *bindir)
     msg->send_buf = &res;
     reply(msg);
   }
-#endif
 }
 
 
@@ -193,9 +188,9 @@ asmlinkage void init()
 
   stdout = tty1;
 
-  *stdout << "FOS OS. Revision " << version << ". Build #" << build << " " << compile_date << " " << compile_time << "\n";
-
-  printk("--------------------------------------------------------------------------------");
+  printk("FOS OS. Revision %s. Build #%s %s %s \n" \
+	 "--------------------------------------------------------------------------------",
+	 version, build, compile_date, compile_time);
 
   hal->ProcMan = new TProcMan;
   SysTimer = new TTime;
@@ -218,8 +213,8 @@ asmlinkage void init()
 
   namer_add("/sys/procman");
   
-  keyb = new Keyboard;
-  
+  //keyb = new Keyboard;
+
   extern multiboot_info_t *__mbi;
   ModuleFS *modules = new ModuleFS(__mbi);
   Tinterface *obj;
@@ -231,9 +226,9 @@ asmlinkage void init()
   delete elf_buf;
   
   printk("\n--------------------------------------------------------------------------------" \
-	 "All OK. Init done.\n" \
-	 "You can get new version at http://fos.osdev.ru/" \
+	 "All OK. Kernel init done.\n"					\
+	 "You can get new version at http://fos.osdev.ru/"		\
 	 "\n--------------------------------------------------------------------------------");
-  
+ 
   procman(modules);
 }

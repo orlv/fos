@@ -27,6 +27,7 @@ class HAL {
   GDT *gdt;
   IDT *idt;
   PIC *pic;
+  u32_t *user_int_handler;
 
   //  TerminalDriver *terminal;
   //  MemoryManager *mm;
@@ -58,6 +59,9 @@ class HAL {
   
   void panic(register const char *fmt, ...);
   void halt();
+
+  res_t interrupt_attach(Thread *thread, u8_t n);
+  res_t interrupt_detach(Thread *thread, u8_t n);
 };
 
 extern HAL *hal;

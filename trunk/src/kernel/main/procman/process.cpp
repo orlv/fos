@@ -93,49 +93,53 @@ u32_t *TProcess::CreatePageDir()
   
 u32_t TProcess::LoadELF(register void *image)
 {
-  u32_t i;
-  u32_t *object, *filedata;
+  u32_t *object;
+  Elf32_Phdr *p;
+  Elf32_Ehdr *h = (Elf32_Ehdr *) image; /* образ ELF */
+  Elf32_Phdr *ph = (Elf32_Phdr *) ((u32_t) h + (u32_t) h->e_phoff);
+  
+#if 0
+  /* на всякий случай оставлю этот код (вывод информации об Section Headers) */
+  Elf32_Shdr *sh = (Elf32_Shdr *) ((u32_t)h + (u32_t)h->e_shoff);
+  for(i=0; i < h->e_shnum-1; i++)
+    {
+      if(sh[i].sh_flags && SHF_ALLOC)
+        {
+	  printk("load addr=0x%X, file offset=0x%X, size=0x%X flags=0x%X\n",
+	  	 sh[i].sh_addr, sh[i].sh_offset, sh[i].sh_size, sh[i].sh_flags);
+        }
+    }
+#endif
 
-  Elf32_Phdr *p, *ph;
-  Elf32_Ehdr *h;
-
-  h = (Elf32_Ehdr *) image;
-  ph = (Elf32_Phdr *) ((u32_t) h + (u32_t) h->e_phoff);
-
-  for (p = ph; p < ph + h->e_phnum; p++) {
-    /* Если секция загружаемая */
+  /*
+    Если секция обозначена как загружаемая - выделим для неё память,
+    скопируем из файла данные и смонтируем в адресное пространство процесса
+   */
+  for (p = ph; p < ph + h->e_phnum; p++){
     if (p->p_type == ELF32_TYPE_LOAD && p->p_memsz) {
-      //      printk("flags=%d, addr=0x%X, type=%d, fileoffs=0x%X, filesz=0x%X, memsz=0x%X \n", p->p_flags, p->p_vaddr, p->p_type, p->p_offset, p->p_filesz, p->p_memsz);
+      //printk("flags=%d, addr=0x%X, type=%d, fileoffs=0x%X, filesz=0x%X, memsz=0x%X \n",
+      //p->p_flags, p->p_vaddr, p->p_type, p->p_offset, p->p_filesz, p->p_memsz);
+      
+      if (p->p_filesz > p->p_memsz)
+	hal->panic("Invalid section!");
 
-      if (p->p_filesz > p->p_memsz) {
-	printk("Invalid section!");
-	hal->panic("666");
-      }
-
-      object = (u32_t *) kmalloc(p->p_memsz);
-      //      printk("[0x%X]", object);
-      /* Копируем данные */
-      filedata = (u32_t *) ((u32_t) image + p->p_offset);
+      /*
+	Выделим память под секцию
+	Учтём, что начало секции может быть не выровнено по началу страницы
+      */
+      object = (u32_t *) kmalloc(p->p_memsz + (p->p_vaddr % PAGE_SIZE)); 
       //printk("sz=0x%X \n",p->p_filesz/sizeof(u32_t));
 
       if (p->p_filesz > 0) {
-	for (i = 0; i < p->p_filesz / sizeof(u32_t) + 1; i++) {
-	  object[i] = filedata[i];
-	}
+	memcpy((u32_t *) ((u32_t)object + (p->p_vaddr % PAGE_SIZE)), (u32_t *) ((u32_t) image + p->p_offset), p->p_filesz);
       }
 
-      mem_alloc((u32_t *) (p->p_vaddr & 0xfffff000), p->p_memsz, object);
-
-      /*
-         for(i=0; i<p->p_memsz; i+=0x1000)
-         {
-         mount_page(((u32_t)&object[i])/PAGE_SIZE , ((u32_t)&((u32_t *)p->p_vaddr)[i])/PAGE_SIZE);
-         }
-       */
+      /* Монтируем секцию в адресное пространство процесса */
+      mem_alloc((u32_t *) (p->p_vaddr & 0xfffff000), p->p_memsz + (p->p_vaddr % PAGE_SIZE), object);
     }
   }
 
-  //  delete(u32_t *) image;
+  /* Возвращаем указатель на точку входа */
   return h->e_entry;
 }
 

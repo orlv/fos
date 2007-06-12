@@ -8,34 +8,44 @@
 #include "keyboard.h"
 #include <fs.h>
 
-#define KB_BUF_SIZE 64
-#define PORT_KBD_A      0x60
+volatile bool ready = 0;
+Keyboard *kb;
 
-#define KEYBOARD_IRQ_NUM 1
-
-asmlinkage int main()
+void thread_handler()
 {
-  printf("Usermode keyboard driver\n");
-  res_t res = interrupt_attach(KEYBOARD_IRQ_NUM);
-  printf("keyboard: res=%d\n", res);
+  if(interrupt_attach(KEYBOARD_IRQ_NUM) == RES_SUCCESS){
+    printf("keyboard: interrupt attached\n");
+  } else {
+    printf("keyboard: can't attache interrupt!\n");
+    exit();
+  }
 
-  unmask_interrupt(KEYBOARD_IRQ_NUM);
-  
   struct message msg;
   u8_t num;
-  char scancode;
+  kb = new Keyboard;
+  ready = 1;  
+
   while(1){
     msg.recv_size = sizeof(num);
     msg.recv_buf = &num;
     receive(&msg);
-    //printf("keyboard: %d\n", num);
-    scancode = inportb(PORT_KBD_A);
-    unmask_interrupt(num);
-    printf("scancode=0x%X\n", scancode);
+    if(num == KEYBOARD_IRQ_NUM){
+      kb->handler();
+    } else {
+      printf("Keyboard handler: unknown message received!\n");
+    }
   }
+}
 
-#if 0
+asmlinkage int main()
+{
+  printf("Usermode keyboard driver\n");
+  thread_create((off_t) &thread_handler);
+
+  while(!ready);
+
   u32_t res;
+
   struct fs_message *m = new fs_message;
   struct message *msg = new message;
   
@@ -48,17 +58,12 @@ asmlinkage int main()
   msg->tid = PID_NAMER;
   send(msg);
 
-  printf("[Keyboard]\n");
-  Keyboard *kb = new Keyboard;
-
   while (1) {
     msg->tid = 0;
     msg->recv_size = sizeof(struct fs_message);
     msg->recv_buf = m;
     receive(msg);
     
-
-    //printf("keyboard: rcvd msg!\n");
     switch(m->cmd){
     case FS_CMD_ACCESS:
       res = RES_SUCCESS;
@@ -66,13 +71,12 @@ asmlinkage int main()
 
     case FS_CMD_WRITE:
       kb->put(m->buf[0]);
-      printf("[%X]",m->buf[0]);
       res = RES_SUCCESS;
       break;
 
-      /*    case FS_CMD_READ:
+    case FS_CMD_READ:
       res = kb->get();
-      break;*/
+      break;
 
     default:
       res = RES_FAULT;
@@ -82,6 +86,6 @@ asmlinkage int main()
     msg->send_size = sizeof(res);
     reply(msg);
   }
-#endif
+
   return 0;
 }

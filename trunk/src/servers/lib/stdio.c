@@ -26,8 +26,6 @@ extern tid_t tty;
 
 int printf(const char *fmt, ...)
 {
-  //if(!tty && !(tty = resolve("/dev/tty")))
-  //return 0;
   if(!tty)
     while(!(tty = resolve("/dev/tty")));
   

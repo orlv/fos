@@ -137,4 +137,11 @@ typedef struct {
 #define ELF32_TYPE_SHLIB   5
 #define ELF32_TYPE_PHDR    6
 
+/* Flags for sh_flags. */
+#define SHF_WRITE       0x1             /* Section contains writable data. */
+#define SHF_ALLOC       0x2             /* Section occupies memory. */
+#define SHF_EXECINSTR   0x4             /* Section contains instructions. */
+#define SHF_TLS         0x400           /* Section contains TLS data. */
+#define SHF_MASKPROC    0xf0000000      /* Reserved for processor-specific. */
+
 #endif				/* !_SYS_ELF32_H_ */

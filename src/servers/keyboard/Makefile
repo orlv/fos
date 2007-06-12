@@ -11,7 +11,8 @@ Objects  = ../lib/startup.o \
 	../lib/heap.o \
 	../lib/libcpp.o \
 	../lib/stdio.o \
-	../lib/vsprintf.o
+	../lib/vsprintf.o \
+	../lib/tmutex.o
 
 PROGNAME = keyboard
 

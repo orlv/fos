@@ -8,8 +8,6 @@
 #include <string.h>
 #include <hal.h>
 
-//void putpixel(u32_t offs, u16_t code);
-
 #define SEND              1
 #define RECEIVE           2
 #define REPLY             3

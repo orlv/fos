@@ -213,8 +213,6 @@ asmlinkage void init()
 
   namer_add("/sys/procman");
   
-  //keyb = new Keyboard;
-
   extern multiboot_info_t *__mbi;
   ModuleFS *modules = new ModuleFS(__mbi);
   Tinterface *obj;

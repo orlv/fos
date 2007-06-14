@@ -24,26 +24,7 @@
 #include <stdio.h>
 #include <fs.h>
 #include <namer.h>
-//#include <drivers/fs/objectfs/objectfs.h>
 #include <system.h>
-
-#if 0
-static inline void ls(Tdirectory * dir)
-{
-  obj_info_t *dirent;
-  off_t i;
-  for (i = 0; (dirent = dir->list(i)); i++) {
-    if (dirent->info.type == FTypeDirectory)
-      printf("drwxrwxrwx 1 root:root %6d %s\n", dirent->info.size,
-	     dirent->name);
-    else
-      printf("-rwxrwxrwx 1 root:root %6d %s\n", dirent->info.size,
-	     dirent->name);
-
-    delete dirent;
-  }
-}
-#endif
 
 void namer_srv()
 {
@@ -52,8 +33,8 @@ void namer_srv()
   hal->namer = new Namer;
 
   Tobject *obj;
-  struct message *msg = new struct message;
-  struct fs_message *m = new fs_message;
+  message *msg = new message;
+  fs_message *m = new fs_message;
   u32_t res;
 
   hal->namer->add("/sys/namer", (sid_t)hal->ProcMan->CurrentThread);
@@ -64,11 +45,10 @@ void namer_srv()
     msg->recv_buf = m;
 
     receive(msg);
-    printk("Namer: cmd=%d, string=\"%s\"\n", m->cmd, m->buf);
-    
-    switch(m->cmd){
+  
+    switch(m->data.cmd){
     case NAMER_CMD_ADD:
-      obj = hal->namer->add(m->buf, msg->tid);
+      obj = hal->namer->add(m->data3.buf, msg->tid);
 
       if(obj)
 	res = RES_SUCCESS;
@@ -82,10 +62,10 @@ void namer_srv()
       break;
 
     case NAMER_CMD_ACCESS:
-      obj = hal->namer->access(m->buf, m->buf);
+      obj = hal->namer->access(m->data3.buf, m->data3.buf);
       
       if(obj){
-	printk("[%s]", m->buf);
+	printk("[%s]", m->data3.buf);
       }
       else
 	res = 0;
@@ -94,7 +74,7 @@ void namer_srv()
       break;
       
     case NAMER_CMD_RESOLVE:
-      obj = hal->namer->access(m->buf, 0);
+      obj = hal->namer->access(m->data3.buf, 0);
       res = obj->sid;
       msg->recv_size = 0;
       msg->send_size = sizeof(res);

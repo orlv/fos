@@ -46,31 +46,24 @@ asmlinkage int main()
 
   u32_t res;
 
-  struct fs_message *m = new fs_message;
+  union fs_message *m = new fs_message;
   struct message *msg = new message;
-  
-  msg->recv_size = sizeof(res);
-  msg->recv_buf = &res;
-  msg->send_size = sizeof(struct fs_message);
-  msg->send_buf = m;
-  strcpy(m->buf, "/dev/keyboard");
-  m->cmd = NAMER_CMD_ADD;
-  msg->tid = PID_NAMER;
-  send(msg);
+
+  resmgr_attach("/dev/keyboard");
 
   while (1) {
     msg->tid = 0;
-    msg->recv_size = sizeof(struct fs_message);
+    msg->recv_size = sizeof(fs_message);
     msg->recv_buf = m;
     receive(msg);
     
-    switch(m->cmd){
+    switch(m->data.cmd){
     case FS_CMD_ACCESS:
       res = RES_SUCCESS;
       break;
 
     case FS_CMD_WRITE:
-      kb->put(m->buf[0]);
+      kb->put(m->data3.buf[0]);
       res = RES_SUCCESS;
       break;
 

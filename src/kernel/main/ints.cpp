@@ -10,9 +10,7 @@
 #include <hal.h>
 #include <procman.h>
 #include <drivers/char/timer/timer.h>
-#include <drivers/char/keyboard/keyboard.h>
 
-asmlinkage void keyboard_handler();
 asmlinkage void sys_call();
 
 void exception(string str, unsigned int cs,  unsigned int address, unsigned int errorcode)
@@ -231,5 +229,4 @@ void setup_idt()
   hal->idt->set_intr_gate(0x26, (off_t) & irq_26); /* floppy */
 
   hal->idt->set_trap_gate(0x30, (off_t) & sys_call, 3);
-  //  hal->idt->set_call_gate(BASE_TSK_SEL_N-1, (off_t)&call_gate, 3, 4);
 }

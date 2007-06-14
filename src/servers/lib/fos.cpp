@@ -30,14 +30,14 @@ struct procman_message {
 
 asmlinkage tid_t resolve(char *name)
 {
-  volatile struct message msg;
+  message msg;
   u32_t res;
-  struct fs_message m;
+  fs_message m;
   msg.recv_size = sizeof(res);
   msg.recv_buf = &res;
-  msg.send_size = sizeof(struct fs_message);
-  m.cmd = NAMER_CMD_RESOLVE;
-  strcpy((char *)m.buf, name);
+  msg.send_size = sizeof(fs_message);
+  m.data3.cmd = NAMER_CMD_RESOLVE;
+  strcpy((char *)m.data3.buf, name);
   msg.send_buf = (char *)&m;
   msg.tid = 0;
   send(&msg);
@@ -49,13 +49,13 @@ extern tid_t namer;
 
 asmlinkage void exit()
 {
-  volatile struct message msg;
-  volatile struct procman_message pm;
+  message msg;
+  procman_message pm;
   pm.cmd = PROCMAN_CMD_EXIT;
 
   msg.send_buf = (char *)&pm;
   msg.recv_buf = 0;
-  msg.send_size = sizeof(struct procman_message);
+  msg.send_size = sizeof(procman_message);
   msg.recv_size = 0;
   msg.tid = procman;
   send(&msg);
@@ -65,14 +65,14 @@ asmlinkage void exit()
 
 asmlinkage void kill(tid_t tid)
 {
-  volatile struct message msg;
-  volatile struct procman_message pm;
+  message msg;
+  procman_message pm;
   pm.cmd = PROCMAN_CMD_KILL;
   pm.arg.tid = tid;
 
   msg.send_buf = (char *)&pm;
   msg.recv_buf = 0;
-  msg.send_size = sizeof(struct procman_message);
+  msg.send_size = sizeof(procman_message);
   msg.recv_size = 0;
   msg.tid = procman;
   send(&msg);
@@ -86,15 +86,15 @@ asmlinkage res_t exec(const string filename)
 
   char res[3];
   res[2] = 0;
-  volatile struct message msg;
-  struct procman_message pm;
+  message msg;
+  procman_message pm;
   
   pm.cmd = PROCMAN_CMD_EXEC;
   strcpy(pm.arg.buf, filename);
 
   msg.send_buf = (char *)&pm;
   msg.recv_buf = (char *)&res;
-  msg.send_size = sizeof(struct procman_message);
+  msg.send_size = sizeof(procman_message);
   msg.recv_size = 2;
   msg.tid = procman;
   send(&msg);
@@ -107,8 +107,8 @@ asmlinkage res_t exec(const string filename)
 
 asmlinkage void *kmemmap(offs_t ptr, size_t size)
 {
-  volatile struct message msg;
-  volatile struct procman_message pm;
+  message msg;
+  procman_message pm;
   volatile u32_t res;
 
   pm.cmd = PROCMAN_CMD_MEM_MAP;
@@ -117,7 +117,7 @@ asmlinkage void *kmemmap(offs_t ptr, size_t size)
     
   msg.send_buf = (char *)&pm;
   msg.recv_buf = (char *)&res;
-  msg.send_size = sizeof(struct procman_message);
+  msg.send_size = sizeof(procman_message);
   msg.recv_size = sizeof(res);
   msg.tid = procman;
   send(&msg);
@@ -127,15 +127,15 @@ asmlinkage void *kmemmap(offs_t ptr, size_t size)
 
 asmlinkage void *kmalloc(size_t size)
 {
-  volatile struct message msg;
-  volatile struct procman_message pm;
+  message msg;
+  procman_message pm;
   volatile u32_t res;
   
   pm.cmd = PROCMAN_CMD_MEM_ALLOC;
   pm.arg.value = size;
   msg.send_buf = (char *)&pm;
   msg.recv_buf = (char *)&res;
-  msg.send_size = sizeof(struct procman_message);
+  msg.send_size = sizeof(procman_message);
   msg.recv_size = sizeof(res);
   msg.tid = procman;
   send(&msg);
@@ -143,17 +143,17 @@ asmlinkage void *kmalloc(size_t size)
   return (void *)res;
 }
 
-asmlinkage tid_t thread_create(volatile off_t eip)
+asmlinkage tid_t thread_create(off_t eip)
 {
-  volatile struct message msg;
-  volatile struct procman_message pm;
+  message msg;
+  procman_message pm;
   volatile u32_t res;
   
   pm.cmd = PROCMAN_CMD_CREATE_THREAD;
   pm.arg.value = eip;
   msg.send_buf = (char *)&pm;
   msg.recv_buf = (char *)&res;
-  msg.send_size = sizeof(struct procman_message);
+  msg.send_size = sizeof(procman_message);
   msg.recv_size = sizeof(res);
   msg.tid = procman;
   send(&msg);
@@ -167,15 +167,15 @@ asmlinkage tid_t thread_create(volatile off_t eip)
 */
 asmlinkage res_t interrupt_attach(u8_t n)
 {
-  volatile struct message msg;
-  volatile struct procman_message pm;
+  message msg;
+  procman_message pm;
   volatile u32_t res;
   
   pm.cmd = PROCMAN_CMD_INTERRUPT_ATTACH;
   pm.arg.value = n;
   msg.send_buf = (char *)&pm;
   msg.recv_buf = (char *)&res;
-  msg.send_size = sizeof(struct procman_message);
+  msg.send_size = sizeof(procman_message);
   msg.recv_size = sizeof(res);
   msg.tid = procman;
   send(&msg);
@@ -185,18 +185,99 @@ asmlinkage res_t interrupt_attach(u8_t n)
 
 asmlinkage res_t interrupt_detach(u8_t n)
 {
-  volatile struct message msg;
-  volatile struct procman_message pm;
+  message msg;
+  procman_message pm;
   volatile u32_t res;
   
   pm.cmd = PROCMAN_CMD_INTERRUPT_DETACH;
   pm.arg.value = n;
   msg.send_buf = (char *)&pm;
   msg.recv_buf = (char *)&res;
-  msg.send_size = sizeof(struct procman_message);
+  msg.send_size = sizeof(procman_message);
   msg.recv_size = sizeof(res);
   msg.tid = procman;
   send(&msg);
 
   return res;
+}
+
+asmlinkage int resmgr_attach(const char *pathname)
+{
+  if(!pathname)
+    return 0;
+
+  message msg;
+  fs_message m;
+  int res;
+  msg.recv_size = sizeof(res);
+  msg.recv_buf = &res;
+  size_t len = strlen(pathname);
+  msg.send_size = 8 + len + 4;
+  m.data3.cmd = NAMER_CMD_ADD;
+  strncpy((char *)m.data3.buf, pathname, len);
+  m.data3.buf[len] = 0;
+  msg.send_buf = &m;
+  msg.tid = PID_NAMER;
+  send(&msg);
+  return res;
+}
+
+asmlinkage size_t read(fd_t fd, void *buf, size_t count)
+{
+  if(!fd || !fd->thread)
+    return 0;
+
+  message msg;
+  fs_message m;
+  msg.recv_size = count;
+  msg.recv_buf = buf;
+  msg.send_size = 4;
+  m.data.cmd = FS_CMD_READ;
+  msg.send_buf = (char *)&m;
+  msg.tid = fd->thread;
+  send(&msg);
+  return msg.recv_size;
+}
+
+asmlinkage size_t write(fd_t fd, void *buf, size_t count)
+{
+  if(!fd || !fd->thread)
+    return 0;
+
+  message msg;
+  fs_message m;
+  msg.recv_size = count;
+  msg.recv_buf = buf;
+
+  if(count > FS_CMD_LEN)
+    msg.send_size = sizeof(fs_message);
+  else
+    msg.send_size = 8 + count;
+  
+  m.data.cmd = FS_CMD_WRITE;
+  msg.send_buf = (char *)&m;
+  msg.tid = fd->thread;
+  send(&msg);
+  return msg.send_size - 8;
+}
+
+
+asmlinkage fd_t open(const char *pathname, int flags)
+{
+  tid_t thread = resolve("/dev/keyboard");
+  if(!thread)
+    return 0;
+
+  struct fd *fd = new struct fd;
+  fd->thread = thread;
+  return fd;
+}
+
+asmlinkage int close(fd_t fd)
+{
+  if(!fd)
+    return -1;
+
+  delete fd;
+  return 0;
 }

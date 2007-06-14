@@ -1,3 +1,7 @@
+Thu Jun 14 15:43:52 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 13140 (Version 0.0.30.5)
+	- Добавлены POSIX-like функции open/close, read/write
+
 Tue Jun 12 18:28:25 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
 Build 13124 (Version 0.0.30.4)
 	- Импортирован класс TMutex

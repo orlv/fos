@@ -14,24 +14,15 @@ extern tid_t namer;
 
 asmlinkage int main()
 {
-  while(!(namer = resolve("/sys/namer")));
   while(!(procman = resolve("/sys/procman")));
 
   u32_t res;
-  struct fs_message *m = new fs_message;
-  struct message *msg = new(struct message);
+  fs_message *m = new fs_message;
+  message *msg = new message;
+
+  resmgr_attach("/dev/tty");
   
-  msg->recv_size = sizeof(res);
-  msg->recv_buf = &res;
-  msg->send_size = sizeof(struct fs_message);
-  msg->send_buf = m;
-  strcpy(m->buf, "/dev/tty");
-  m->cmd = NAMER_CMD_ADD;
-  msg->tid = namer;
-  send(msg);
-
   VGA *vga = new VGA;
-
   vga->init();
   TTY *tty = new TTY(80, 25);
   tty->stdout = vga;
@@ -40,17 +31,17 @@ asmlinkage int main()
 
   while (1) {
     msg->tid = 0;
-    msg->recv_size = sizeof(struct fs_message);
+    msg->recv_size = sizeof(fs_message);
     msg->recv_buf = m;
     receive(msg);
 
-    switch(m->cmd){
+    switch(m->data3.cmd){
     case FS_CMD_ACCESS:
       res = RES_SUCCESS;
       break;
 
     case FS_CMD_WRITE:
-      tty->outs(m->buf);
+      tty->outs(m->data3.buf);
       res = RES_SUCCESS;
       break;
 

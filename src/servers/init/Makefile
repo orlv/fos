@@ -10,7 +10,8 @@ Objects  = ../lib/startup.o \
 	../lib/heap.o \
 	../lib/libcpp.o \
 	../lib/vsprintf.o \
-	../lib/stdio.o
+	../lib/stdio.o \
+	../lib/msg.o
 
 
 PROGNAME = init

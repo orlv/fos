@@ -15,9 +15,9 @@
 
 #define PAGE_SIZE 0x1000
 
-static inline void sys_call(u32_t arg1, volatile u32_t arg2)
+static inline void sys_call(volatile u32_t arg1, volatile u32_t arg2)
 {
-  __asm__ volatile ("int $0x30"::"b" (arg1), "c"(arg2));
+  __asm__ __volatile__ ("int $0x30"::"b" (arg1), "c"(arg2));
 }
 
 struct message {
@@ -28,20 +28,9 @@ struct message {
   tid_t tid;
 } __attribute__ ((packed));
 
-static inline void receive(volatile struct message *msg)
-{
-  sys_call(_FOS_RECEIVE, (u32_t) msg);
-}
-
-static inline void send(volatile struct message *msg)
-{
-  sys_call(_FOS_SEND, (u32_t) msg);
-}
-
-static inline void reply(volatile struct message *msg)
-{
-  sys_call(_FOS_REPLY, (u32_t) msg);
-}
+asmlinkage void reply(struct message *msg);
+asmlinkage void send(struct message *msg);
+asmlinkage void receive(struct message *msg);
 
 static inline void mask_interrupt(u32_t int_num)
 {
@@ -67,6 +56,7 @@ asmlinkage tid_t thread_create(off_t eip);
 asmlinkage res_t interrupt_attach(u8_t n);
 asmlinkage res_t interrupt_detach(u8_t n);
 
+asmlinkage int resmgr_attach(const char *pathname);
 
 /* xchg взят из linux-2.6.17 */
 

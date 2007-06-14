@@ -10,7 +10,8 @@ Objects  = ../lib/startup.o \
 	../lib/heap.o \
 	../lib/libcpp.o \
 	vga.o \
-	tty.o
+	tty.o \
+	../lib/msg.o
 
 
 PROGNAME = tty

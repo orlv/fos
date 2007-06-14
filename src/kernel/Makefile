@@ -44,9 +44,8 @@ Objects =	main/boot/setup.o		\
 		main/procman/procman.o		\
 		main/procman/scheduler.o	\
 		main/procman/process.o		\
-		main/exception/exception.o	\
-		main/exception/traps.o		\
-		main/memory/paging.o		\
+		main/ints.o			\
+		main/memory/mmu.o		\
 		main/memory/kmalloc.o		\
 		main/memory/heap.o		\
 		main/gdt.o			\
@@ -61,15 +60,13 @@ Objects =	main/boot/setup.o		\
 		lib/time.o			\
 		lib/pure.o			\
 		lib/version.o			\
-		main/syscall/syscall.o  	\
+		main/syscall.o  		\
 		drivers/char/tty/tty.o		\
 		drivers/block/vga/vga.o		\
 		drivers/char/timer/timer.o	\
 		drivers/char/cmos/cmos.o	\
-		drivers/block/floppy/floppy.o	\
 		drivers/dma.o			\
 		drivers/pic.o			\
-		drivers/block/hd/hd.o		\
 		drivers/fs/modulefs/modulefs.o 	\
 		drivers/fs/objectfs/objectfs.o
 

@@ -41,12 +41,6 @@ void VGA::OutRaw(u16_t ch)
   offs++;
 }
 
-size_t VGA::read(off_t offset, void *buf, size_t count)
-{
-#warning TODO: VGA::read() тоже можно бы реализовать.. 2006-11-12. Oleg.
-  return 0;
-}
-
 size_t VGA::write(off_t offset, const void *buf, size_t count)
 {
   if (offset != offs) {

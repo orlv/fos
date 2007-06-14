@@ -1,5 +1,5 @@
 /*
- * kernel/memory/paging.cpp
+ * kernel/memory/mmu.cpp
  * Copyright (C) 2005-2006 Oleg Fedorov
  */
 

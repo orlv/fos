@@ -18,7 +18,6 @@
 #include <stdarg.h>
 
 #include <drivers/fs/modulefs/modulefs.h>
-#include <drivers/char/keyboard/keyboard.h>
 
 #include <fs.h>
 
@@ -36,12 +35,12 @@ tid_t resolve(char *name)
 {
   volatile struct message msg;
   u32_t res;
-  struct fs_message m;
+  union fs_message m;
   msg.recv_size = sizeof(res);
   msg.recv_buf = &res;
-  msg.send_size = sizeof(struct fs_message);
-  m.cmd = NAMER_CMD_RESOLVE;
-  strcpy((char *)m.buf, name);
+  msg.send_size = sizeof(fs_message);
+  m.data3.cmd = NAMER_CMD_RESOLVE;
+  strcpy((char *)m.data3.buf, name);
   msg.send_buf = (char *)&m;
   msg.tid = 0;
   send((message *)&msg);
@@ -52,13 +51,13 @@ void namer_add(string name)
 {
   struct message *msg = new struct message;
   u32_t res;
-  struct fs_message *m = new fs_message;
+  union fs_message *m = new fs_message;
   msg->recv_size = sizeof(res);
   msg->recv_buf = &res;
-  msg->send_size = sizeof(struct fs_message);
+  msg->send_size = sizeof(union fs_message);
   msg->send_buf = m;
-  strcpy(m->buf,  name);
-  m->cmd = NAMER_CMD_ADD;
+  strcpy(m->data3.buf,  name);
+  m->data3.cmd = NAMER_CMD_ADD;
   msg->tid = (tid_t)hal->namer;
   send(msg);
 }

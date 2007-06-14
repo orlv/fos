@@ -32,15 +32,15 @@ int printf(const char *fmt, ...)
   int i = 0;
   va_list args;
   va_start(args, fmt);
-  struct fs_message *m = (struct fs_message *) printbuf;
-  m->cmd = FS_CMD_WRITE;
-  i = vsprintf(m->buf, fmt, args);
+  union fs_message *m = (union fs_message *) printbuf;
+  m->data3.cmd = FS_CMD_WRITE;
+  i = vsprintf(m->data3.buf, fmt, args);
   va_end(args);
 
-  m->buf[i] = 0;
+  m->data3.buf[i] = 0;
   volatile struct message msg;
   msg.send_buf = msg.recv_buf = m;
-  msg.send_size = 4 + i + 1;
+  msg.send_size = 8 + i + 1;
   msg.recv_size = sizeof(unsigned long);
   msg.tid = tty;
   send((struct message *)&msg);

@@ -52,12 +52,12 @@ int printf(const char *fmt, ...)
   int i = 0;
   va_list args;
   va_start(args, fmt);
-  struct fs_message *m = (struct fs_message *) printbuf;
-  m->cmd = FS_CMD_WRITE;
-  i = vsprintf(m->buf, fmt, args);
+  fs_message *m = (fs_message *) printbuf;
+  m->data3.cmd = FS_CMD_WRITE;
+  i = vsprintf(m->data3.buf, fmt, args);
   va_end(args);
 
-  m->buf[i] = 0;
+  m->data3.buf[i] = 0;
   volatile struct message msg;
   msg.send_buf = msg.recv_buf = m;
   msg.send_size = 4 + i + 1;

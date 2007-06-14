@@ -11,25 +11,14 @@ asmlinkage int main()
 {
   printf("{Hello app1}\n");
 
-#if 1
-  struct message *msg = new struct message;
-  u32_t res;
-  struct fs_message *m = new fs_message;
-  tid_t keyboard;
-  while(!(keyboard = resolve("/dev/keyboard")));
+  fd_t fd;
+  while(!(fd = open("/dev/keyboard", 0)));
 
-  printf("app1: keyboard tid=0x%X\n", keyboard);
-  
+  char ch;
   while(1){
-    msg->recv_size = sizeof(res);
-    msg->recv_buf = &res;
-    msg->send_size = sizeof(struct fs_message);
-    m->cmd = FS_CMD_READ;
-    msg->send_buf = m;
-    msg->tid = keyboard;
-    send(msg);
-    printf("%c", res);
+    read(fd, &ch, 1);
+    printf("%c", ch);
   }
-#endif
+    
   return 0;
 }

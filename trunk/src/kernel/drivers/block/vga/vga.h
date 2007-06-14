@@ -76,9 +76,8 @@ private:
   void OutRaw(u16_t ch);
 
 public:
-   VGA();
+  VGA();
 
-  size_t read(off_t offset, void *buf, size_t count);
   size_t write(off_t offset, const void *buf, size_t count);
 
   void reset();

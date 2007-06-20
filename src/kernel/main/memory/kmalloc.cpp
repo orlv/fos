@@ -11,9 +11,25 @@
 
 //size_t memory_used;
 
+#include <drivers/char/tty/tty.h>
+#include <mm.h>
+#include <paging.h>
+#include <drivers/block/vga/vga.h>
+#include <string.h>
+#include <system.h>
+#include <stdio.h>
+#include <drivers/char/timer/timer.h>
+#include <hal.h>
+#include <traps.h>
+#include <vsprintf.h>
+#include <stdarg.h>
+#include <drivers/fs/modulefs/modulefs.h>
+#include <fs.h>
+
+
 void put_page(u32_t page)
 {
-  if(!free_page(page)){ /* если эта страница больше никем не используется */
+  if(!page_status(page) || !free_page(page)){ /* если эта страница больше никем не используется */
     memstack *m = new memstack;
     m->next = hal->free_page;
     m->n = page;
@@ -38,7 +54,7 @@ u32_t get_page()
 
 void put_lowpage(u32_t page)
 {
-  if(!free_page(page)){ /* если эта страница больше никем не используется */
+  if(!page_status(page) || !free_page(page)){ /* если эта страница больше никем не используется */
     memstack *m = new memstack;
     m->next = hal->free_lowpage;
     m->n = page;
@@ -64,7 +80,7 @@ u32_t get_lowpage()
 
 void free(register void *ptr);
 
-u32_t *kpagedir;
+Memory *kmem;
 
 void init_memory()
 {
@@ -122,9 +138,34 @@ void init_memory()
   hal->free_page = new memstack;
   hal->free_page->n = PAGE(freemem_start);
 
-  for(u32_t i=0; i<hal->pages_cnt; i++)
-    alloc_page(i);
+  /* ----------------- */
+#if 0
+  hal->cli();
+  hal->pic = new PIC;
+  hal->pic->remap(0x20, 0x28);
+
+  int i;
+  for(i = 0; i < 16; i++)
+    hal->pic->mask(i);
   
+  hal->gdt = new GDT;
+  hal->idt = new IDT;
+
+  setup_idt();
+  hal->sti();
+  
+  VGA *con = new VGA;
+  TTY *tty1 = new TTY(80, 25);
+
+  tty1->stdout = con;
+  tty1->SetTextColor(WHITE);
+
+  extern TTY *stdout;
+  stdout = tty1;
+#endif
+  /* ----------------- */
+  //printk("test");
+  //while(1);
   /* заполним пул свободных страниц страницами, лежащими ниже USER_PAGETABLE_DATA */
   for(u32_t i = PAGE(freemem_start); (i < (hal->pages_cnt - PAGE(freemem_start))) && (i < PAGE(USER_PAGETABLE_DATA)); i++){
     put_page(i);
@@ -139,144 +180,48 @@ void init_memory()
     }
   }
 
-  kpagedir = (u32_t *) (get_page()*PAGE_SIZE);
-
+  kmem = new Memory(0, KERNEL_MEM_LIMIT, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS);
+  kmem->pagedir = (u32_t *) (get_page()*PAGE_SIZE);
+  
   /* создадим таблицы страниц для всей памяти, входящей в KERNEL_MEM_LIMIT (32 каталога для 128 мегабайт) */
   for(u32_t i=0; i < KERNEL_MEM_LIMIT/(PAGE_SIZE*1024); i++){
-    kpagedir[i] = (get_page()*PAGE_SIZE) | 3;
+    kmem->pagedir[i] = (get_page()*PAGE_SIZE) | 3;
   }
 
   for(u32_t i=0; i < KERNEL_MEM_LIMIT/(PAGE_SIZE*1024); i++){
-    map_page(PAGE(kpagedir[i]), PAGE(kpagedir[i]), kpagedir, 3); /* мапим на физический адрес */
+    kmem->mmap((void *)(kmem->pagedir[i] & 0xfffff000), (void *)(kmem->pagedir[i] & 0xfffff000), PAGE_SIZE);
   }
-  
+
+  //kmem->mount_page(PAGE((u32_t)kmem->pagedir), PAGE((u32_t)kmem->pagedir));
+  kmem->mmap((void *)kmem->pagedir, (void *)kmem->pagedir, PAGE_SIZE);
   /* смонтируем память от нуля до начала свободной памяти как есть */
-  for(u32_t i=0; i < PAGE(low_freemem_start) ; i++){
-    map_page(i, i, kpagedir, 3); /* мапим на физический адрес */
-  }
+  kmem->mmap(0, 0, low_freemem_start);
 
   /* смонтируем heap */
-  for(u32_t i=PAGE(heap_start); i < PAGE(heap_start + heap_size) ; i++){
-    map_page(i, i, kpagedir, 3);
-  }
+  kmem->mmap((void *)heap_start, (void *)heap_start, heap_size);
 
   /* дополним пул свободных страниц оставшимися свободными страницами */
-  for(u32_t i = PAGE(USER_PAGETABLE_DATA); i < SYSTEM_PAGES_MAX; i++){
+  for(u32_t i = PAGE(USER_PAGETABLE_DATA); i < hal->pages_cnt; i++){
+    alloc_page(i);
     put_page(i);
   }
+
+  //printk("foooooo");
+  //while(1);
   
-  enable_paging(kpagedir);
+  enable_paging(kmem->pagedir);
 }
 
-#if 1
-void * kmalloc(register size_t size)
+
+void *kmalloc(register size_t size)
 {
-#if 0
-  if (!size)
-    return 0;
-  mem_block_t *p, *prevp, *block;
-  size_t asize;
-
-  /* округлим объём */
-  asize = size - (size % MM_MINALLOC);
-  if (size % MM_MINALLOC)
-    asize += MM_MINALLOC;
-
-  prevp = 0;
-  p = start_block;
-
-  /* ищем блок подходящего размера */
-  while (p->size < asize) {
-    p = p->next;
-    if (!p) {
-      hal->panic("KMem: can't allocate %d bytes of memory!\n", asize);
-    }
-    prevp = p;
-  }
-
-  //printk("p=0x%X, p->size=0x%X, p->next=0x%X \n", p, p->size, p->next);
-
-  if (p->size > asize) {	/* используем только часть блока */
-    block = p;
-    p = (mem_block_t *) ((u32_t) p + asize);	/* скорректируем указатель */
-    p->size = block->size - asize;	/* вычтем выделяемый размер */
-    p->next = block->next;
-    if (prevp)
-      prevp->next = p;
-    else
-      start_block = p;		/* если p - первый блок */
-  } else {			/* при выделении используем весь блок */
-    if (prevp)
-      prevp->next = p->next;
-    else
-      start_block = p->next;
-    block = p;
-  }
-
-  return block;
-#endif
-  return 0;
+  extern Memory *kmem;
+  return kmem->mem_alloc(size);
 }
 
-/*
-  mem_free(): включает блок в список свободной памяти
-  ptr - указатель на начало блока
-  size - размер блока в байтах
-*/
-void kmfree(register void *ptr, register size_t size)
+void kfree(register void *ptr)
 {
-#if 0
-  u32_t *pt = (u32_t *) ptr;
-  u32_t end_pt = (u32_t) ptr + size; 
-  for(; (u32_t)pt < end_pt; pt += sizeof(u32_t))
-  *pt = 0;
-
-
-  //printk("Freing 0x%X(0x%X)\n", (u32_t)ptr, (u32_t)size);
-  mem_block_t *block = (mem_block_t *) ptr;
-  mem_block_t *p = start_block;
-
-  block->size = size;
-  block->next = 0;
-
-  /* Ищем место для вставки блока */
-  //  while((block < p) && (p->next) && (p->next > block))
-  //    printk("free: p=0x%X, p->size=%d, p->next=0x%X ", p, p->size, p->next);
-
-  //  printk("free: p->next=0x%X ", p->next);
-
-  while ((p < block) && (p->next) && (p->next > block)) {
-    p = p->next;
-  }
-
-  if (block < start_block) {	/* Если блок оказался в самом начале списка: */
-    block->next = p;
-    start_block = block;
-  } else {
-    /* Слить block с p->next? */
-    if ((p->next) && ((u32_t) p->next == ((u32_t) block + block->size))) {
-      block->size += p->next->size;
-      block->next = p->next->next;
-      //      if(p->next == end_block) end_block = block;
-      p->next = block;
-    }
-
-    /* Слить p и block? */
-    if (((u32_t) p + p->size) == (u32_t) block) {
-      p->size += block->size;
-      /* Если block был слит с p->next */
-      if (p->next == block)
-	p->next = block->next;
-      block = p;
-    }
-
-    /* Если ничего не было слито, просто вставляем блок */
-    if ((block != p) && (p->next != block)) {
-      block->next = p->next;
-      p->next = block;
-    }
-  }
-#endif
+  extern Memory *kmem;
+  return kmem->mem_free(ptr);
 }
-#endif
 

@@ -71,6 +71,14 @@ class HAL {
 
 extern HAL *hal;
 
+static inline int page_status(u32_t n)
+{
+  if(n < hal->pages_cnt)
+    return atomic_read(&hal->phys_page[n].mapcount);
+  else
+    return -1;
+}
+
 static inline u32_t alloc_page(u32_t n)
 {
   if(n < hal->pages_cnt)

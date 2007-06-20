@@ -22,7 +22,6 @@
 #include <fs.h>
 
 TTY *stdout;
-//Keyboard *keyb;
 TTime *SysTimer;
 HAL *hal;
 
@@ -115,12 +114,12 @@ void procman(ModuleFS *bindir)
 
     case PROCMAN_CMD_MEM_ALLOC:
       thread = hal->ProcMan->get_thread_by_tid(msg->tid);
-      res = (u32_t) thread->process->mem_alloc(pm->arg.value);
+      res = (u32_t) thread->process->memory->mem_alloc(pm->arg.value);
       break;
 
     case PROCMAN_CMD_MEM_MAP:
       thread = hal->ProcMan->get_thread_by_tid(msg->tid);
-      res = (u32_t) thread->process->mem_alloc_phys(pm->arg.val.a1, pm->arg.val.a2);
+      res = (u32_t) thread->process->memory->mem_alloc_phys(pm->arg.val.a1, pm->arg.val.a2);
       break;
 
     case PROCMAN_CMD_CREATE_THREAD:
@@ -159,10 +158,10 @@ asmlinkage void init()
   extern u32_t build;
   extern const string compile_date, compile_time;
 
-  extern multiboot_info_t *__mbi;
+  //extern multiboot_info_t *__mbi;
 
   init_memory();
-  
+#if 1
   hal->cli();
   hal->pic = new PIC;
   hal->pic->remap(0x20, 0x28);
@@ -184,11 +183,10 @@ asmlinkage void init()
   tty1->SetTextColor(WHITE);
 
   stdout = tty1;
-
+#endif
   printk("FOS OS. Revision %s. Build #%s %s %s \n" \
 	 "--------------------------------------------------------------------------------",
 	 version, build, compile_date, compile_time);
-
 
   hal->ProcMan = new TProcMan;
   SysTimer = new TTime;
@@ -197,6 +195,7 @@ asmlinkage void init()
 
   printk("OK");
   while(1);
+
 #if 0
   namer_add("/sys/procman");
   

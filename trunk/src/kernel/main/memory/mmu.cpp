@@ -64,8 +64,8 @@ u32_t map_page(register u32_t phys_page, register u32_t log_page, register u32_t
     printk(" making pagetable ");
 #endif
     while(1) asm("incb 0xb8000+156\n" "movb $0x2f,0xb8000+157 ");
-    //pagetable = (u32_t *) get_page(); //kmalloc(PAGE_SIZE);
-    //pagedir[log_page / 0x400] = (u32_t) pagetable | flags;
+    pagetable = (u32_t *) (get_page()*PAGE_SIZE); //kmalloc(PAGE_SIZE);
+    pagedir[log_page / 0x400] = (u32_t) pagetable | flags;
   }
 #if DEBUG_MOUNT_MEMORY
   printk(" pt=0x%X\n", pagetable);

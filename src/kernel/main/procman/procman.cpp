@@ -16,15 +16,15 @@ TProcMan::TProcMan()
 {
   hal->ProcMan = this;
 
-  extern Memory *kmem;
-
   Thread *thread;
   TProcess *process = new TProcess();
   process->memory = new Memory(USER_MEM_BASE, USER_MEM_SIZE, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS);
-  //process->mem_init(KERNEL_MEM_BASE, KERNEL_MEM_SIZE);
-  //process->PageDir = kpagedir;
-  //u32_t *p = (u32_t *)process->memory->mem_alloc(1024);
+  process->memory->pagedir = hal->kmem->pagedir;
+  
+  u32_t *p = (u32_t *)process->memory->mem_alloc(1024);
 
+  printk("[0x%X]\n", p);
+  while(1);
 #if 0
 
   thread = process->thread_create(0, FLAG_TSK_KERN | FLAG_TSK_READY);

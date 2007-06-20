@@ -30,6 +30,8 @@ class HAL {
   PIC *pic;
   u32_t *user_int_handler;
 
+  Memory *kmem;
+
   page *phys_page;      /* массив информации о страницах */
   size_t pages_cnt;     /* общее количество страниц в системе */
   memstack *free_page;  /* пул свободных страниц */

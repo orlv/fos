@@ -80,8 +80,6 @@ u32_t get_lowpage()
 
 void free(register void *ptr);
 
-Memory *kmem;
-
 void init_memory()
 {
   extern multiboot_info_t *__mbi;
@@ -164,8 +162,6 @@ void init_memory()
   stdout = tty1;
 #endif
   /* ----------------- */
-  //printk("test");
-  //while(1);
   /* заполним пул свободных страниц страницами, лежащими ниже USER_PAGETABLE_DATA */
   for(u32_t i = PAGE(freemem_start); (i < (hal->pages_cnt - PAGE(freemem_start))) && (i < PAGE(USER_PAGETABLE_DATA)); i++){
     put_page(i);
@@ -180,48 +176,42 @@ void init_memory()
     }
   }
 
-  kmem = new Memory(0, KERNEL_MEM_LIMIT, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS);
-  kmem->pagedir = (u32_t *) (get_page()*PAGE_SIZE);
+  hal->kmem = new Memory(0, KERNEL_MEM_LIMIT, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS);
+  hal->kmem->pagedir = (u32_t *) (get_page()*PAGE_SIZE);
   
   /* создадим таблицы страниц для всей памяти, входящей в KERNEL_MEM_LIMIT (32 каталога для 128 мегабайт) */
   for(u32_t i=0; i < KERNEL_MEM_LIMIT/(PAGE_SIZE*1024); i++){
-    kmem->pagedir[i] = (get_page()*PAGE_SIZE) | 3;
+    hal->kmem->pagedir[i] = (get_page()*PAGE_SIZE) | 3;
   }
 
   for(u32_t i=0; i < KERNEL_MEM_LIMIT/(PAGE_SIZE*1024); i++){
-    kmem->mmap((void *)(kmem->pagedir[i] & 0xfffff000), (void *)(kmem->pagedir[i] & 0xfffff000), PAGE_SIZE);
+    hal->kmem->mmap((void *)(hal->kmem->pagedir[i] & 0xfffff000), (void *)(hal->kmem->pagedir[i] & 0xfffff000), PAGE_SIZE);
   }
 
-  //kmem->mount_page(PAGE((u32_t)kmem->pagedir), PAGE((u32_t)kmem->pagedir));
-  kmem->mmap((void *)kmem->pagedir, (void *)kmem->pagedir, PAGE_SIZE);
+  hal->kmem->mmap((void *)hal->kmem->pagedir, (void *)hal->kmem->pagedir, PAGE_SIZE);
   /* смонтируем память от нуля до начала свободной памяти как есть */
-  kmem->mmap(0, 0, low_freemem_start);
+  hal->kmem->mmap(0, 0, low_freemem_start);
 
   /* смонтируем heap */
-  kmem->mmap((void *)heap_start, (void *)heap_start, heap_size);
+  hal->kmem->mmap((void *)heap_start, (void *)heap_start, heap_size);
 
   /* дополним пул свободных страниц оставшимися свободными страницами */
   for(u32_t i = PAGE(USER_PAGETABLE_DATA); i < hal->pages_cnt; i++){
     alloc_page(i);
     put_page(i);
   }
-
-  //printk("foooooo");
-  //while(1);
   
-  enable_paging(kmem->pagedir);
+  enable_paging(hal->kmem->pagedir);
 }
 
 
 void *kmalloc(register size_t size)
 {
-  extern Memory *kmem;
-  return kmem->mem_alloc(size);
+  return hal->kmem->mem_alloc(size);
 }
 
 void kfree(register void *ptr)
 {
-  extern Memory *kmem;
-  return kmem->mem_free(ptr);
+  return hal->kmem->mem_free(ptr);
 }
 

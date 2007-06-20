@@ -120,7 +120,7 @@ void procman(ModuleFS *bindir)
 
     case PROCMAN_CMD_MEM_MAP:
       thread = hal->ProcMan->get_thread_by_tid(msg->tid);
-      res = (u32_t) thread->process->mem_alloc(pm->arg.val.a1, pm->arg.val.a2);
+      res = (u32_t) thread->process->mem_alloc_phys(pm->arg.val.a1, pm->arg.val.a2);
       break;
 
     case PROCMAN_CMD_CREATE_THREAD:
@@ -163,8 +163,6 @@ asmlinkage void init()
 
   init_memory();
   
-  hal = new HAL(__mbi);
-  
   hal->cli();
   hal->pic = new PIC;
   hal->pic->remap(0x20, 0x28);
@@ -191,41 +189,33 @@ asmlinkage void init()
 	 "--------------------------------------------------------------------------------",
 	 version, build, compile_date, compile_time);
 
+
   hal->ProcMan = new TProcMan;
   SysTimer = new TTime;
+
   EnableTimer();
+
+  printk("OK");
+  while(1);
 #if 0
-  struct message *msg = new struct message;
-  u32_t res;
-  struct fs_message *m = new fs_message;
-  msg->recv_size = sizeof(res);
-  msg->recv_buf = &res;
-  msg->send_size = sizeof(struct fs_message);
-  msg->send_buf = m;
-  strcpy(m->buf, "/sys/namer");
-  m->cmd = NAMER_CMD_RESOLVE;
-  msg->tid = 0;
-  send(msg);
-
-  printk("res=0x%X\n", res);
-#endif
-
   namer_add("/sys/procman");
   
   extern multiboot_info_t *__mbi;
   ModuleFS *modules = new ModuleFS(__mbi);
   Tinterface *obj;
-  
+
   obj = modules->access("init");
   string elf_buf = new char[obj->info.size];
   obj->read(0, elf_buf, obj->info.size);
   hal->ProcMan->exec(elf_buf);
   delete elf_buf;
-  
+
   printk("\n--------------------------------------------------------------------------------" \
 	 "All OK. Kernel init done.\n"					\
 	 "You can get new version at http://fos.osdev.ru/"		\
 	 "\n--------------------------------------------------------------------------------");
  
   procman(modules);
+#endif
+  while(1);
 }

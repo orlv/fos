@@ -1,3 +1,7 @@
+Wed Jun 20 00:47:33 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 13295 (Version 0.0.40.1)
+	- Переписана инициализация системы (выделение памяти, страничная адресация)
+
 Thu Jun 14 15:43:52 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
 Build 13140 (Version 0.0.30.5)
 	- Добавлены POSIX-like функции open/close, read/write

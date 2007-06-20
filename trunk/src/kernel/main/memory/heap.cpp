@@ -10,19 +10,12 @@
 #include <stdio.h>
 #include <hal.h>
 
-Heap SystemHeap;
+HeapMemBlock *heap_free_ptr = NULL;
+HeapMemBlock kmem_block;
+HeapMemBlock *morecore(register unsigned int nu);
+void free(register void *ptr);
 
-Heap::Heap()
-{
-  free_ptr = NULL;
-}
-
-Heap::~Heap()
-{
-
-}
-
-void *Heap::malloc(register size_t size)
+void *malloc(register size_t size)
 {
   if (!size)
     return 0;
@@ -32,8 +25,8 @@ void *Heap::malloc(register size_t size)
   unsigned int i;
 
   nunits = (size + sizeof(HeapMemBlock) - 1) / sizeof(HeapMemBlock) + 1;
-  if ((prevp = free_ptr) == NULL) {	/* списка своб. памяти ещё нет */
-    kmem_block.ptr = free_ptr = prevp = &kmem_block;
+  if ((prevp = heap_free_ptr) == NULL) {	/* списка своб. памяти ещё нет */
+    kmem_block.ptr = heap_free_ptr = prevp = &kmem_block;
     kmem_block.size = 0;
   }
   for (p = prevp->ptr;; prevp = p, p = p->ptr) {
@@ -45,7 +38,7 @@ void *Heap::malloc(register size_t size)
 	p += p->size;
 	p->size = nunits;
       }
-      free_ptr = prevp;
+      heap_free_ptr = prevp;
 
       p = (HeapMemBlock *) ((unsigned long)p + sizeof(HeapMemBlock));
       /* очистим выделяемую область памяти */
@@ -62,7 +55,7 @@ void *Heap::malloc(register size_t size)
       return (void *)p;
     }
 
-    if (p == free_ptr)		/* прошли первый цикл по списку */
+    if (p == heap_free_ptr)		/* прошли первый цикл по списку */
       if ((p = morecore(nunits * sizeof(HeapMemBlock))) == NULL) {
 	hal->halt();
 	return NULL;		/* больше памяти нет */
@@ -73,7 +66,7 @@ void *Heap::malloc(register size_t size)
 #define NALLOC PAGE_SIZE	/* миним. число единиц памяти для запроса */
 
 /* morecore: запрашивает у системы дополнительную память */
-HeapMemBlock *Heap::morecore(register unsigned int nu)
+HeapMemBlock *morecore(register unsigned int nu)
 {
   char *cp;
   HeapMemBlock *up;
@@ -81,17 +74,19 @@ HeapMemBlock *Heap::morecore(register unsigned int nu)
     nu = 1;
   else if (nu % NALLOC)
     nu = nu / NALLOC + 1;
+  if(nu > PAGE_SIZE)
+    return NULL;
   cp = (char *)kmalloc(nu * PAGE_SIZE);
   if (!cp)			/* больше памяти нет */
     return NULL;
   up = (HeapMemBlock *) cp;
   up->size = (nu * PAGE_SIZE) / sizeof(HeapMemBlock);
   free((void *)((unsigned int)up + sizeof(HeapMemBlock)));
-  return free_ptr;
+  return heap_free_ptr;
 }
 
 /* free: включает блок в список свободной памяти */
-void Heap::free(register void *ptr)
+void free(register void *ptr)
 {
   if (!ptr)
     return;
@@ -99,7 +94,7 @@ void Heap::free(register void *ptr)
   HeapMemBlock *bp, *p;
   /* указатель на начало блока */
   bp = (HeapMemBlock *) ((unsigned int)ptr - sizeof(HeapMemBlock));
-  for (p = free_ptr; !(bp > p && bp < p->ptr); p = p->ptr)
+  for (p = heap_free_ptr; !(bp > p && bp < p->ptr); p = p->ptr)
     if (p >= p->ptr && (bp > p || bp < p->ptr))
       break;			/* освобождаем блок в начале или в конце */
 
@@ -113,10 +108,10 @@ void Heap::free(register void *ptr)
     p->ptr = bp->ptr;
   } else
     p->ptr = bp;
-  free_ptr = p;
+  heap_free_ptr = p;
 }
 
-void *Heap::realloc(register void *ptr, register size_t size)
+void *realloc(register void *ptr, register size_t size)
 {
   unsigned long *dst;
   unsigned int i, oldsize;
@@ -135,12 +130,12 @@ void *Heap::realloc(register void *ptr, register size_t size)
 
 void *operator  new(unsigned int size)
 {
-  //  printk("{%d}",size);
-  return SystemHeap.malloc(size);
+  return malloc(size);
 };
 
-void *operator  new[] (unsigned int size) {
-  return SystemHeap.malloc(size);
+void *operator  new[] (unsigned int size)
+{
+  return malloc(size);
 };
 
 void *operator  new(unsigned int size, void *ptr)
@@ -149,16 +144,18 @@ void *operator  new(unsigned int size, void *ptr)
   return ptr;
 }
 
-void *operator  new[] (unsigned int size, void *ptr) {
+void *operator  new[] (unsigned int size, void *ptr)
+{
   size = size;
   return ptr;
 }
 
 void operator  delete(void *ptr)
 {
-  SystemHeap.free(ptr);
+  free(ptr);
 }
 
-void operator  delete[] (void *ptr) {
-  SystemHeap.free(ptr);
+void operator  delete[] (void *ptr)
+{
+  free(ptr);
 }

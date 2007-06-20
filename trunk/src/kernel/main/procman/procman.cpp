@@ -15,24 +15,18 @@ void namer_srv();
 TProcMan::TProcMan()
 {
   hal->ProcMan = this;
-  extern u32_t *kpagedir;
 
-  u32_t i=10;
-  printk("[0x%X]", free_page(1));
-  printk("[0x%X]", free_page(1));
-  put_page(1);
-  put_page(2);
-  put_page(3);
-  while(i){ printk("{0x%X}", get_page()); i--;}
-  while(1);
+  extern Memory *kmem;
+
   Thread *thread;
   TProcess *process = new TProcess();
-  process->mem_init(KERNEL_MEM_BASE, KERNEL_MEM_SIZE);
-  process->PageDir = kpagedir;
+  process->memory = new Memory(USER_MEM_BASE, USER_MEM_SIZE, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS);
+  //process->mem_init(KERNEL_MEM_BASE, KERNEL_MEM_SIZE);
+  //process->PageDir = kpagedir;
+  //u32_t *p = (u32_t *)process->memory->mem_alloc(1024);
 
-  u32_t *p = (u32_t *)process->mem_alloc(1024);
-  printk("[0x%X]", p);
-  while(1);
+#if 0
+
   thread = process->thread_create(0, FLAG_TSK_KERN | FLAG_TSK_READY);
 
   hal->gdt->load_tss(BASE_TSK_SEL_N, &thread->descr);
@@ -43,6 +37,7 @@ TProcMan::TProcMan()
   hal->gdt->load_tss(BASE_TSK_SEL_N + 1, &thread->descr);
 
   hal->tid_namer = (tid_t)process->thread_create((off_t) & namer_srv, FLAG_TSK_KERN | FLAG_TSK_READY);
+#endif
 }
 
 //void foo()

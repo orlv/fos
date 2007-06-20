@@ -9,15 +9,12 @@
 #include <mm.h>
 #include <hal.h>
 
-#define pagetable_addr(number, pagedir) \
-    ((u32_t *)((pagedir)[(number)/0x400] & 0xfffff000))
+static inline u32_t * pagetable_addr(u32_t number, u32_t *pagedir)
+{
+  return (u32_t *)((pagedir)[number/1024] & 0xfffff000);
+}
 
-#define DEBUG_MOUNT_MEMORY 0
-
-//u32_t *mpagedir;
-
-//extern size_t memory_size;	/* Размер памяти (в Kb) */
-//extern size_t memory_used;
+//#define DEBUG_MOUNT_MEMORY 1
 
 void enable_paging(u32_t * pagedir)
 {
@@ -49,13 +46,9 @@ u32_t umap_page(register u32_t log_page, register u32_t * pagedir)
   return (page);
 }
 
-u32_t map_page(register u32_t phys_page, register u32_t log_page, register u32_t * pagedir, register u8_t c3wp)
+u32_t map_page(register u32_t phys_page, register u32_t log_page, register u32_t * pagedir, register u16_t flags)
 {
   alloc_page(phys_page);
- 
-  u8_t flags = 3;
-  if (c3wp)
-    flags = 7;
 
 #if DEBUG_MOUNT_MEMORY
   printk("m(0x%X->0x%X) ", phys_page, log_page);

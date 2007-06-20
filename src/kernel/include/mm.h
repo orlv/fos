@@ -7,18 +7,12 @@
 #define _MEMORY_H
 
 #include <types.h>
+#include <atomic.h>
 
-//#define KRNL_STACK_BASE 0xA0000
-//#define KRNL_STACK_SIZE 0x
-
-//#define GDT_BASE (KRNL_STACK_BASE + KRNL_STACK_SIZE)
 /* размер gdt - 64 килобайта */
 #define GDT_DESCR 8192
-//#define GDT_SIZE (8 * GDT_DESCR)
 
-//#define IDT_BASE (GDT_BASE + GDT_SIZE)
 #define IDT_DESCR 256
-//#define IDT_SIZE (8 * IDT_DESCR)
 
 #define PAGE_SIZE 0x1000
 
@@ -27,35 +21,36 @@
 #define USER_CODE   0x1b
 #define USER_DATA   0x23
 
-#define USER_MEM_START 0x01000 /* 16 мегабайт */
-#define USER_MEM_END   0xfffff
-
 #define MM_MINALLOC PAGE_SIZE	/* размер выделяемой единицы */
 
-typedef struct HeapMemBlock {
+struct page {
+  atomic_t mapcount;
+};
+
+struct HeapMemBlock {
   HeapMemBlock *ptr;
   unsigned int size;
 };
 
+struct memstack {
+  memstack *next;
+  u32_t n;
+};
+
+static inline u32_t PAGE(u32_t address)
+{
+  return address/PAGE_SIZE;
+}
+
+void put_page(u32_t page);
+u32_t get_page();
 void * kmalloc(register size_t size);
 void  kmfree(register void *ptr, register size_t size);
 
-class Heap {
-private:
-  HeapMemBlock * free_ptr;
-  HeapMemBlock kmem_block;
-
-  HeapMemBlock *morecore(register unsigned int nu);
-
-public:
-   Heap();
-  ~Heap();
-
-  void *malloc(register size_t size);
-  void free(register void *ptr);
-  void *realloc(register void *ptr, register size_t size);
-};
+u32_t map_page(register u32_t phys_page, register u32_t log_page, register u32_t * pagedir, register u8_t c3wp);
+u32_t umap_page(register u32_t log_page, register u32_t * pagedir);
 
 void init_memory();
+void enable_paging(u32_t * pagedir);
 
 #endif

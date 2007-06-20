@@ -13,6 +13,7 @@
 #include <procman.h>
 #include <drivers/pic.h>
 #include <namer.h>
+#include <mm.h>
 
 class HAL {
  private:
@@ -29,9 +30,13 @@ class HAL {
   PIC *pic;
   u32_t *user_int_handler;
 
-  //  TerminalDriver *terminal;
-  //  MemoryManager *mm;
- 
+  page *phys_page;      /* массив информации о страницах */
+  size_t pages_cnt;     /* общее количество страниц в системе */
+  memstack *free_page;  /* пул свободных страниц */
+  atomic_t free_pages;  /* количество свободных страниц */
+  memstack *free_lowpage;
+  atomic_t free_lowpages;
+
   inline void cli() { asm("cli"); };
   inline void sti() { asm("sti"); };
 
@@ -65,5 +70,22 @@ class HAL {
 };
 
 extern HAL *hal;
+
+static inline u32_t alloc_page(u32_t n)
+{
+  if(n < hal->pages_cnt)
+    return atomic_inc_return(&hal->phys_page[n].mapcount);
+  else
+    return 0;
+}
+
+static inline u32_t free_page(u32_t n)
+{
+  if(n < hal->pages_cnt)
+    return atomic_dec_return(&hal->phys_page[n].mapcount);
+  else
+    return 0;
+}
+
 
 #endif

@@ -21,7 +21,7 @@ help:
 	@echo " "
 
 version:
-	@rm -f kernel/main/version.o
+	@rm -f kernel/lib/version.o
 	@cat .build.next > BUILD
 	@echo " "
 	@echo "FOS Version `cat VERSION`. Build `cat BUILD`."

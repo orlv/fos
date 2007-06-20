@@ -15,29 +15,50 @@ void namer_srv();
 TProcMan::TProcMan()
 {
   hal->ProcMan = this;
-  extern u32_t *mpagedir;
-  kPageDir = mpagedir;
+  extern u32_t *kpagedir;
 
+  u32_t i=10;
+  printk("[0x%X]", free_page(1));
+  printk("[0x%X]", free_page(1));
+  put_page(1);
+  put_page(2);
+  put_page(3);
+  while(i){ printk("{0x%X}", get_page()); i--;}
+  while(1);
   Thread *thread;
-  TProcess *process;
-  process = kprocess(0, FLAG_TSK_READY);
-  thread = (Thread *) process->threads->data;
-  CurrentThread = thread;
+  TProcess *process = new TProcess();
+  process->mem_init(KERNEL_MEM_BASE, KERNEL_MEM_SIZE);
+  process->PageDir = kpagedir;
+
+  u32_t *p = (u32_t *)process->mem_alloc(1024);
+  printk("[0x%X]", p);
+  while(1);
+  thread = process->thread_create(0, FLAG_TSK_KERN | FLAG_TSK_READY);
+
   hal->gdt->load_tss(BASE_TSK_SEL_N, &thread->descr);
   ltr(BASE_TSK_SEL);
   lldt(0);
 
-  process = kprocess((off_t) & start_sched, 0);
-  hal->gdt->load_tss(BASE_TSK_SEL_N + 1, &((Thread *) process->threads->data)->descr);
+  thread = process->thread_create((off_t) & start_sched, FLAG_TSK_KERN | FLAG_TSK_READY);
+  hal->gdt->load_tss(BASE_TSK_SEL_N + 1, &thread->descr);
 
-  process = kprocess((off_t) &namer_srv, FLAG_TSK_READY);
-  hal->tid_namer = (tid_t) process->threads->data;
+  hal->tid_namer = (tid_t)process->thread_create((off_t) & namer_srv, FLAG_TSK_KERN | FLAG_TSK_READY);
 }
+
+//void foo()
+//{
+  //TProcess *process = new TProcess(PROCESS_MEM_BASE, PROCESS_MEM_SIZE);
+ //u32_t eip = process->LoadELF(image);
+  //  process->thread_create(eip, FLAG_TSK_KERN);
+  //  proclist->add_tail(process->threads->data);
+  //}  
 
 u32_t TProcMan::exec(register void *image)
 {
-  TProcess *process = new TProcess(FLAG_TSK_READY, image, 0);
-  add((Thread *)process->threads->data);
+  /*  TProcess *process = new TProcess(PROCESS_MEM_BASE, PROCESS_MEM_SIZE);
+  u32_t eip = process->LoadELF(image);
+  process->thread_create(eip, FLAG_TSK_READY);
+  add((Thread *)process->threads->data);*/
   return 0;
 }
 
@@ -99,7 +120,8 @@ Thread *TProcMan::get_thread_by_tid(register tid_t tid)
 */
 TProcess *TProcMan::kprocess(register off_t eip, register u16_t flags)
 {
-  TProcess *process = new TProcess(flags | FLAG_TSK_KERN, (void *) eip, kPageDir);
+#if 0
+  TProcess *process = new TProcess(flags | FLAG_TSK_KERN, (void *) eip);
 
   /* Зарегистрируем процесс */
   if(proclist)
@@ -108,6 +130,8 @@ TProcess *TProcMan::kprocess(register off_t eip, register u16_t flags)
     proclist = new List(process->threads->data);
 
   return process;
+#endif
+  return 0;
 }
 
 void kill(pid_t pid)

@@ -43,7 +43,6 @@ struct procman_message {
 class TProcMan {
 private:
   List * proclist;
-  //volatile u32_t top_pid;
 
 public:
   TProcMan();
@@ -55,7 +54,6 @@ public:
 
   void scheduler();
 
-  /* уничтожить процесс */
   res_t kill(register tid_t tid);
 
   TProcess *kprocess(register off_t eip, register u16_t flags);
@@ -64,13 +62,6 @@ public:
   u32_t curr_proc;
 
   Thread *CurrentThread;
-
-  /* 
-  inline u32_t get_pid()
-  {
-    top_pid++;
-    return top_pid-1;;
-    }*/
 
   u32_t *kPageDir;
 };

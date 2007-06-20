@@ -1,6 +1,6 @@
 /*
-        kernel/include/string.h
-	Взято из linux-2.6.17
+  kernel/include/string.h
+  Взято из linux-2.6.17
 */
 
 #ifndef __STRING_H

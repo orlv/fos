@@ -2,7 +2,7 @@
   include/namer.h
   Copyright (C) 2006-2007 Oleg Fedorov
 
-  2006-11-12. Всё хорошенько переделано. Oleg.
+  2006-11-12. (fslayer.h) Всё хорошенько переделано. Oleg.
   (Fri May 25 22:11:24 2007) использовано при создании namer
 */
 
@@ -20,7 +20,7 @@ class Tobject{
 
   sid_t sid;
   string name;
-  List *sub_objects; /* объект может содержать в себе другие объекты */
+  List<Tobject *> *sub_objects; /* объект может содержать в себе другие объекты */
 
   void set_name(const string name); /* меняет имя объекта */
 

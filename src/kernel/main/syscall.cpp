@@ -110,9 +110,9 @@ struct memmap {
       "iret");								\
   asmlinkage void _ ## func(unsigned int cs, unsigned int address, u32_t cmd, u32_t arg)
 
-void receive(struct message *message)
+void receive(message *message)
 {
-  struct kmessage *msg;
+  kmessage *msg;
   size_t size;
 
   /* если нет ни одного входящего сообщения, отключаемся в ожидании */
@@ -124,7 +124,7 @@ void receive(struct message *message)
   /* SEND --> */
 #warning ЗАМЕНИТЬ cli() на мьютекс!
   hal->cli();
-  msg = (struct kmessage *)hal->ProcMan->CurrentThread->new_msg->next->data;
+  msg = hal->ProcMan->CurrentThread->new_msg->next->item;
   delete hal->ProcMan->CurrentThread->new_msg->next; /* убираем сообщение из очереди новых сообщений */
   hal->ProcMan->CurrentThread->recvd_msg->add_tail(msg); /* помещаем сообщение в очередь обрабатываемых сообщений */
 
@@ -138,36 +138,36 @@ void receive(struct message *message)
     memcpy((u32_t *) message->recv_buf, (u32_t *) msg->send_buf, size);
   }
 
-  message->tid = (tid_t)msg->thread; /* не забываем указать отправителя сообщения */
+  message->tid = TID(msg->thread); /* не забываем указать отправителя сообщения */
   
   msg->send_size = message->recv_size = size; /* отметим, сколько байт было передано */
 
-  delete(u32_t *) msg->send_buf; /* полученные данные больше не нужны в ядре, освобождаем память */
+  delete (u32_t *)msg->send_buf; /* полученные данные больше не нужны в ядре, освобождаем память */
   hal->sti();
 }
 
-res_t send(struct message *message)
+res_t send(message *message)
 {
   //printk("msg: 0x%X->0x%X\n", message, message->tid);
-  struct kmessage *msg;
+  kmessage *msg;
   Thread *thread; /* процесс-получатель */
   if(!message->tid){
-    thread = (Thread *)hal->tid_namer;
+    thread = THREAD(hal->tid_namer);
   } else {
-    thread = (Thread *)message->tid;
+    thread = THREAD(message->tid);
   }
-  if (!hal->ProcMan->get_thread_by_tid((tid_t)thread))
+  if (!hal->ProcMan->get_thread_by_tid(TID(thread)))
     return RES_FAULT;
 
   /* простое предупреждение взаимоблокировки */
-  hal->ProcMan->CurrentThread->send_to = (tid_t)thread;
-  if(thread->send_to == (tid_t)hal->ProcMan->CurrentThread){
+  hal->ProcMan->CurrentThread->send_to = TID(thread);
+  if(thread->send_to == TID(hal->ProcMan->CurrentThread)){
     hal->ProcMan->CurrentThread->send_to = 0;
     return RES_FAULT;
   }
 
   /* скопируем сообщение в память ядра */
-  msg = new(struct kmessage);
+  msg = new kmessage;
   msg->send_buf = new char[message->send_size];
   msg->send_size = message->send_size;
   memcpy((u32_t *) msg->send_buf, (u32_t *) message->send_buf,
@@ -176,7 +176,6 @@ res_t send(struct message *message)
   msg->recv_buf = 0;
   msg->recv_size = message->recv_size;
   msg->thread = hal->ProcMan->CurrentThread;
-  //msg->process = hal->ProcMan->CurrentThread;
 
 #warning ЗАМЕНИТЬ cli() на мьютекс!
   hal->cli();
@@ -194,7 +193,7 @@ res_t send(struct message *message)
   message->send_size = msg->send_size;	/* сколько байт дошло до получателя */
   message->recv_size = msg->recv_size;	/* сколько байт ответа пришло */
 
-  message->tid = (tid_t)msg->thread; /* ответ на сообщение мог придти не от изначального получателя,
+  message->tid = TID(msg->thread); /* ответ на сообщение мог придти не от изначального получателя,
 			      а от другого процесса (при использовании получателем forward()) */
   
   delete(u32_t *) msg->recv_buf; /* ответ на сообщение */
@@ -203,16 +202,16 @@ res_t send(struct message *message)
   return RES_SUCCESS;
 }
 
-res_t send_async(struct message *message)
+res_t send_async(message *message)
 {
-  struct kmessage *msg;
+  kmessage *msg;
   Thread *thread; /* поток-получатель */
   if (!(thread = hal->ProcMan->get_thread_by_tid(message->tid))){
     return RES_FAULT;
   }
 
   /* скопируем сообщение в память ядра */
-  msg = new(struct kmessage);
+  msg = new kmessage;
   msg->send_buf = new char[message->send_size];
   msg->send_size = message->send_size;
   memcpy((u32_t *) msg->send_buf, (u32_t *) message->send_buf,
@@ -232,16 +231,16 @@ res_t send_async(struct message *message)
 }
 
 
-void reply(struct message *message)
+void reply(message *message)
 {
   size_t size;
-  struct kmessage *msg = 0;
-  List *entry;
+  kmessage *msg = 0;
+  List<kmessage *> *entry;
   Thread *thread;
   /* Ищем сообщение в списке полученных (чтобы ответ дошел, пользовательское приложение не должно менять поле tid) */
   list_for_each (entry, hal->ProcMan->CurrentThread->recvd_msg) {
-    msg = (struct kmessage *) entry->data;
-    if(msg->thread == (Thread *)message->tid)
+    msg = entry->item;
+    if(msg->thread == THREAD(message->tid))
       break;
   }
 
@@ -277,19 +276,19 @@ void reply(struct message *message)
   }
 }
 
-res_t forward(struct message *message, tid_t tid)
+res_t forward(message *message, tid_t tid)
 {
   Thread *thread; /* процесс-получатель */
   if (!(thread = hal->ProcMan->get_thread_by_tid(tid))){
     return RES_FAULT;
   }
 
-  struct kmessage *msg = 0;
-  List *entry;
+  kmessage *msg = 0;
+  List<kmessage *> *entry;
   /* Ищем сообщение в списке полученных (чтобы ответ дошел, пользовательское приложение не должно менять поле pid) */
   list_for_each (entry, hal->ProcMan->CurrentThread->recvd_msg) {
-    msg = (struct kmessage *) entry->data;
-    if(msg->thread == (Thread *)message->tid)
+    msg = entry->item;
+    if(msg->thread == THREAD(message->tid))
       break;
   }
 
@@ -307,7 +306,6 @@ res_t forward(struct message *message, tid_t tid)
   hal->sti();
 
   delete entry; /* удалим ссылку на сообщение из своей очереди */
-
   return RES_SUCCESS;
 }
 
@@ -317,7 +315,7 @@ SYSCALL_HANDLER(sys_call)
   switch (cmd) {
 
   case RECEIVE:
-    receive((struct message *)arg);
+    receive((message *)arg);
     break;
 
   /*
@@ -327,11 +325,11 @@ SYSCALL_HANDLER(sys_call)
     -----------------------------------------------------------------------------
   */
   case SEND:
-    send((struct message *)arg);
+    send((message *)arg);
     break;
 
   case REPLY:
-    reply((struct message *)arg);
+    reply((message *)arg);
     break;
 
   case MASK_INTERRUPT:

@@ -1,6 +1,8 @@
 /*
-	kernel/include/system.h
-	Copyright (C) 2005-2006 Oleg Fedorov
+  kernel/include/system.h
+  Copyright (C) 2005-2007 Oleg Fedorov
+
+  xchg() взят из linux-2.6.17
 */
 
 #ifndef _SYSTEM_H
@@ -9,17 +11,18 @@
 #include <types.h>
 
 #define BASE_TSK_SEL 0x38
-#define BASE_TSK_SEL_N 7
+#define SEL_N(SEL) ((SEL)/8)
+//#define BASE_TSK_SEL_N 7
 
 static inline void sched_yield()
 {
-  asm volatile ("ljmp $0x40, $0");
+  __asm__ __volatile__ ("ljmp $0x40, $0");
 }
 
 static inline u16_t str()
 {
   u16_t tr;
-  asm volatile ("str %0":"=a" (tr));
+  __asm__ __volatile__ ("str %0":"=a" (tr));
   return tr;
 }
 
@@ -31,18 +34,18 @@ static inline u16_t curPID()
 static inline u32_t load_cr3()
 {
   u32_t cr3;
-  asm volatile ("movl %%cr3, %%eax":"=a" (cr3));
+  __asm__ __volatile__ ("movl %%cr3, %%eax":"=a" (cr3));
   return cr3;
 }
 
 static inline void ltr(u16_t tss_selector)
 {
-  asm volatile ("ltr %%ax \n"::"a" (tss_selector));
+  __asm__ __volatile__ ("ltr %%ax \n"::"a" (tss_selector));
 }
 
 static inline void lldt(u16_t ldt)
 {
-  asm volatile ("lldt %0"::"a" (ldt));
+  __asm__ __volatile__ ("lldt %0"::"a" (ldt));
 }
 
 struct __xchg_dummy { unsigned long a[100]; };

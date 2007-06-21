@@ -12,12 +12,12 @@ Memory::Memory(offs_t base, size_t size, u16_t flags)
 {
   this->flags = flags;
 
-  task_mem_block_t *block = new task_mem_block_t;
+  memblock *block = new memblock;
 
   block->vptr = base;
   block->size = size;
 
-  FreeMem = new List(block);
+  FreeMem = new List<memblock *>(block);
 }
 
 #if 0
@@ -95,13 +95,13 @@ void *Memory::mem_alloc_phys(register u32_t phys_address, register size_t size)
 /* смонтировать набор физических страниц в любое свободное место */
 void *Memory::mem_alloc(register u32_t *phys_pages, register size_t pages_cnt)
 {
-  task_mem_block_t *p;
+  memblock *p;
   size_t size = pages_cnt * PAGE_SIZE;
-  List *curr  = FreeMem;
+  List<memblock *> *curr  = FreeMem;
   
   /* ищем свободный блок подходящего размера */
   while(1){
-    p = (task_mem_block_t *) curr->data;
+    p = curr->item;
     if (p->size >= size) {
       break;
     }
@@ -121,13 +121,13 @@ void *Memory::mem_alloc(register u32_t *phys_pages, register size_t pages_cnt)
   } else {			/* (p->size == size) */
     /* при выделении используем весь блок (запись о нём удаляется из списка свободных блоков) */
     block = p->vptr;
-    delete(u32_t *) curr->data;
+    delete curr->item;
     delete curr;
   }
 
   map_pages(phys_pages, PAGE(block), pages_cnt);
 
-  task_mem_block_t *ublock = new task_mem_block_t;
+  memblock *ublock = new memblock;
   ublock->phys_pages = phys_pages;
   ublock->vptr = block;
   ublock->size = size;
@@ -135,7 +135,7 @@ void *Memory::mem_alloc(register u32_t *phys_pages, register size_t pages_cnt)
   if (UsedMem)
     UsedMem->add_tail(ublock);
   else
-    UsedMem = new List(ublock);
+    UsedMem = new List<memblock *>(ublock);
   
   return (void *)block;
 }
@@ -192,12 +192,12 @@ void *Memory::mmap(register void *phys_address, register void *log_address, regi
 /* смонтировать набор физических страниц в конкретную область памяти */
 void *Memory::do_mmap(register u32_t *phys_pages, register void *log_address, register size_t pages_cnt)
 {
-  task_mem_block_t *p;
+  memblock *p;
   size_t size = pages_cnt * PAGE_SIZE;
-  List *curr = FreeMem;
+  List<memblock *> *curr = FreeMem;
   
   while(1) {
-    p = (task_mem_block_t *) curr->data;
+    p = curr->item;
     if ((p->vptr <= (u32_t) log_address) && (p->vptr + p->size >= (u32_t) log_address + size)) {
       break;
     }
@@ -210,7 +210,7 @@ void *Memory::do_mmap(register u32_t *phys_pages, register void *log_address, re
 
   if (p->vptr == (u32_t) log_address) {
     if (p->size == size) {
-      delete(u32_t *) curr->data;
+      delete curr->item;
       delete curr;
     } else {
       p->vptr += size;
@@ -220,7 +220,7 @@ void *Memory::do_mmap(register u32_t *phys_pages, register void *log_address, re
     size_t asize = p->size;
     p->size = (u32_t) log_address - (u32_t) p->vptr;
     if (asize + p->vptr > (u32_t) log_address + size) {
-      task_mem_block_t *b = new task_mem_block_t;
+      memblock *b = new memblock;
       b->vptr = (u32_t) log_address + size;
       b->size = asize - size - p->size;
       curr->add(b);
@@ -229,7 +229,7 @@ void *Memory::do_mmap(register u32_t *phys_pages, register void *log_address, re
 
   map_pages(phys_pages, PAGE((u32_t)log_address), pages_cnt);
   
-  task_mem_block_t *ublock = new task_mem_block_t;
+  memblock *ublock = new memblock;
   ublock->phys_pages = phys_pages;
   ublock->vptr = (u32_t) log_address;
   ublock->size = size;
@@ -237,7 +237,7 @@ void *Memory::do_mmap(register u32_t *phys_pages, register void *log_address, re
   if (UsedMem)
     UsedMem->add_tail(ublock);
   else
-    UsedMem = new List(ublock);
+    UsedMem = new List<memblock *>(ublock);
 
   return log_address;
 }
@@ -264,12 +264,12 @@ void Memory::umap_pages(register u32_t *log_pages, register size_t n)
 
 void Memory::mem_free(register void *ptr)
 {
-  List *curr = UsedMem;
-  task_mem_block_t *p;
+  List<memblock *> *curr = UsedMem;
+  memblock *p;
 
   /* выяснить size */
   while(1) {
-    p = (task_mem_block_t *) curr->data;
+    p = curr->item;
     if (p->vptr == (u32_t) ptr) {
       delete curr;
       break;
@@ -289,11 +289,11 @@ void Memory::mem_free(register void *ptr)
 
   curr = FreeMem;
 
-  task_mem_block_t *c;
-  task_mem_block_t *next;
+  memblock *c;
+  memblock *next;
   /* ищем, куда добавить блок */
   do {
-    c = (task_mem_block_t *) (curr->data);
+    c = curr->item;
 
     /* слить с верхним соседом */
     if (c->vptr == p->vptr + p->size) {
@@ -308,7 +308,7 @@ void Memory::mem_free(register void *ptr)
       c->size += p->size;
       delete p;
 
-      next = (task_mem_block_t *) (curr->next->data);
+      next = curr->next->item;
       /* и нижнего с верхним соседом */
       if (c->vptr + c->size == next->vptr) {
 	c->size += next->size;
@@ -318,7 +318,7 @@ void Memory::mem_free(register void *ptr)
       return;
     }
 
-    next = (task_mem_block_t *) (curr->next->data);
+    next = curr->next->item;
     /* разместить между нижним и верхним соседями */
     if ((c->vptr + c->size < p->vptr) && (next->vptr > p->vptr + p->size)) {
       curr->add(p);

@@ -15,26 +15,24 @@
 
                / ------------------------------ 0
                |     BIOS, etc
-               |  ----------------------------- KERNEL_MEM_BASE (1Mb)
+               | ------------------------------ KERNEL_MEM_BASE (1Mb)
                |     Kernel
                |     Modules
-               |  ----------------------------- low_freemem_start
+               | ------------------------------ low_freemem_start
                |
 Разделяемая    |     Free Memory  
 память,        /  
-присутствует  <    ---------------------------- 16Mb
+присутствует  <  ------------------------------ 16Mb
 в каждом       \ 
 адресном       |    Kernel Heap
 пространстве   |
-               |  ----------------------------- freemem_start
+               | ------------------------------ freemem_start
                |
                |    Free Memory
                | 
-               |  -----------------------------
+               | ------------------------------
                |     Kernel Pagetables (32)
-               \  ----------------------------- USER_PAGEDIR_DATA
-                     User Pagetables (33-1024)
-                  ----------------------------- KERNEL_MEM_LIMIT | USER_MEM_BASE
+               \ ------------------------------ KERNEL_MEM_LIMIT | USER_MEM_BASE
 
 
 		  
@@ -54,10 +52,10 @@
 
 #define PAGE_SIZE 0x1000
 
-#define KERNEL_CODE 0x08
-#define KERNEL_DATA 0x10
-#define USER_CODE   0x1b
-#define USER_DATA   0x23
+#define KERNEL_CODE_SEGMENT 0x08
+#define KERNEL_DATA_SEGMENT 0x10
+#define USER_CODE_SEGMENT   0x1b
+#define USER_DATA_SEGMENT   0x23
 
 #define MM_MINALLOC PAGE_SIZE	/* размер выделяемой единицы */
 
@@ -73,8 +71,8 @@
 #define KERNEL_MEM_SIZE (USER_MEM_BASE - KERNEL_MEM_BASE)
 #define KERNEL_MEM_LIMIT (KERNEL_MEM_BASE + KERNEL_MEM_SIZE)
 
-#define USER_PAGETABLE_DATA_SIZE (((SYSTEM_PAGES_MAX-(KERNEL_MEM_LIMIT/PAGE_SIZE))/1024)*4096) /* 3,875 Mb */
-#define USER_PAGETABLE_DATA (KERNEL_MEM_LIMIT-USER_PAGETABLE_DATA_SIZE)
+//#define USER_PAGETABLE_DATA_SIZE (((SYSTEM_PAGES_MAX-(KERNEL_MEM_LIMIT/PAGE_SIZE))/1024)*4096) /* 3,875 Mb */
+//#define USER_PAGETABLE_DATA (KERNEL_MEM_LIMIT-USER_PAGETABLE_DATA_SIZE)
 
 
 struct page {
@@ -100,24 +98,17 @@ static inline u32_t PAGE(u32_t address)
 #define MMU_PAGE_WRITE_ACCESS   2
 #define MMU_FLAG_USER_ACCESSABLE 4
 
-void put_page(u32_t page);
-u32_t get_page();
-void * kmalloc(register size_t size);
-void  kfree(register void *ptr);
-
-u32_t map_page(register u32_t phys_page, register u32_t log_page, register u32_t * pagedir, register u16_t flags);
-u32_t umap_page(register u32_t log_page, register u32_t * pagedir);
-
-void init_memory();
-void enable_paging(u32_t * pagedir);
-
+struct memblock {
+  offs_t vptr; /* на какой адрес в памяти процесса смонтировано */
+  u32_t *phys_pages; /* массив номеров физических страниц, использованных в блоке */
+  size_t size; /* размер блока */
+};
 
 class Memory {
  private:
-  List *UsedMem;
-  List *FreeMem;
+  List<memblock *> *UsedMem;
+  List<memblock *> *FreeMem;
   u16_t flags;
-  //u32_t *CreatePageDir();
 
   void map_pages(register u32_t *phys_pages, register u32_t log_page, register size_t n);
   void umap_pages(register u32_t *log_pages, register size_t n);
@@ -130,9 +121,6 @@ class Memory {
 
   u32_t *pagedir; /* каталог страниц */
 
-  //void mem_init(offs_t base, size_t size);
-  
-
   u32_t mount_page(register u32_t phys_page, register u32_t log_page);
   u32_t umount_page(register u32_t log_page);
 
@@ -143,5 +131,15 @@ class Memory {
   void mem_free(register void *ptr);
 };
 
+void put_page(u32_t page);
+u32_t get_page();
+void * kmalloc(register size_t size);
+void  kfree(register void *ptr);
+
+u32_t map_page(register u32_t phys_page, register u32_t log_page, register u32_t * pagedir, register u16_t flags);
+u32_t umap_page(register u32_t log_page, register u32_t * pagedir);
+
+void init_memory();
+void enable_paging(u32_t * pagedir);
 
 #endif

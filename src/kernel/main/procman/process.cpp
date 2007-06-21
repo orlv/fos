@@ -13,8 +13,6 @@
 #include <elf32.h>
 #include <string.h>
 
-//extern volatile u32_t top_pid;
-
 TProcess::TProcess()
 {
   //u32_t eip;
@@ -136,86 +134,20 @@ u32_t TProcess::LoadELF(register void *image)
 }
 
 
-Thread *TProcess::thread_create(off_t eip, u16_t flags)
+Thread *TProcess::thread_create(off_t eip,
+				u16_t flags,
+				void * kernel_stack,
+				void * user_stack,
+				u16_t code_segment,
+				u16_t data_segment)
+
 {
-  Thread *thread = new Thread(this, eip, flags);
+  Thread *thread = new Thread(this, eip, flags, kernel_stack, user_stack , code_segment, data_segment);
   
   if(!threads){
-    threads = new List(thread);
+    threads = new List<Thread *>(thread);
   } else {
     threads->add_tail(thread);
   }
   return thread;
-}
-
-Thread::Thread(TProcess *process, off_t eip, u16_t flags)
-{
-  struct message *_msg = new(struct message);
-  new_msg = new List(_msg);   /* пустое сообщение */
-  recvd_msg = new List(_msg); /* пустое сообщение */
-
-  this->process = process;
-  
-  set_tss(eip);
-
-  this->flags = flags;
-}
-
-Thread::~Thread()
-{
-  List *curr, *n;
-  /* удалим все сообщения */
-#warning вернуть ошибку отправителям
-  list_for_each_safe(curr, n, new_msg){
-    delete (message *)curr->data;
-    delete curr;
-  }
-
-  delete (message *)new_msg->data;
-  delete new_msg;
-
-  kfree((void *)stack_pl0);
-  delete tss;
-}
-
-void Thread::set_tss(register off_t eip)
-{
-  if (!(tss = (struct TSS *)kmalloc(sizeof(struct TSS))))
-    hal->panic("No memory left to create tss.");
-
-  tss->cr3 = (u32_t)process->memory->pagedir;
-  tss->eip = eip;
-
-  tss->eflags = 0x00000202;
-
-  stack_pl0 = (u32_t)kmalloc(STACK_SIZE);
-  tss->esp0 = stack_pl0 + STACK_SIZE - 1;
-
-  if(!(flags & FLAG_TSK_KERN)){ /* user process */
-    tss->esp = tss->ebp = (u32_t)process->memory->mem_alloc(STACK_SIZE) + STACK_SIZE - 1;
-  
-    tss->cs = USER_CODE;
-    tss->es = USER_DATA;
-    tss->ss = USER_DATA;
-    tss->ds = USER_DATA;
-    tss->ss0 = KERNEL_DATA;
-  } else {
-    tss->esp = tss->ebp = stack_pl0 + STACK_SIZE - 1;
-
-    tss->cs = KERNEL_CODE;
-    tss->es = KERNEL_DATA;
-    tss->ss = KERNEL_DATA;
-    tss->ds = KERNEL_DATA;
-  }
-  
-  tss->IOPB = 0xffffffff;
-
-  /* Установим TSS */
-  hal->gdt->set_tss_descriptor((off_t) tss, &descr);
-}
-
-void Thread::run()
-{
-  hal->gdt->load_tss(BASE_TSK_SEL_N, &descr);
-  asm("ljmp $0x38, $0");
 }

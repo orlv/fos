@@ -14,12 +14,12 @@ size_t p_len(string p)
   return i;
 }
 
-List * path_strip(const string path)
+List<string> * path_strip(const string path)
 {
   string name;
   size_t len;
   string p = path;
-  List *lpath = 0;
+  List<string> *lpath = 0;
 
   while(1){
     while (*p == '/') p++;
@@ -30,7 +30,7 @@ List * path_strip(const string path)
       if(lpath)
 	lpath->add_tail(name);
       else
-	lpath = new List(name);
+	lpath = new List<string>(name);
       p += len;
     }
     else break;

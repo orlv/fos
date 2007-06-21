@@ -113,11 +113,11 @@ void Tobject::set_name(const string name)
 
 Tobject::~Tobject()
 {
-  List *entry, *n;
+  List<Tobject *> *entry, *n;
   delete name;
   
   list_for_each_safe(entry, n, sub_objects){
-    delete (Tobject *) entry->data;
+    delete entry->item;
     delete entry;
   }
   
@@ -130,7 +130,7 @@ Tobject * Tobject::add_sub(const string name, sid_t sid)
   if(sub_objects){
     sub_objects->add_tail(object);
   } else {
-    sub_objects = new List(object);
+    sub_objects = new List<Tobject *>(object);
   }
   return object;
 }
@@ -141,7 +141,7 @@ Tobject * Tobject::add_sub(const string name)
   if(sub_objects){
     sub_objects->add_tail(object);
   } else {
-    sub_objects = new List(object);
+    sub_objects = new List<Tobject *>(object);
   }
   return object;
 }
@@ -151,12 +151,12 @@ Tobject * Tobject::access(const string name)
   if(!sub_objects)
     return 0;
 
-  List *entry = sub_objects;
+  List<Tobject *> *entry = sub_objects;
   Tobject * object;
 
   /* Пытаемся найти объект */
   do {
-    object = (Tobject *) entry->data;
+    object = entry->item;
     if(!strcmp(object->name, name)) {
       return object;
     }
@@ -172,16 +172,16 @@ Namer::Namer()
 }
 
 /* режет строку пути на список из элементов пути */
-List * path_strip(const string path);
+List<string> * path_strip(const string path);
 
 Tobject * Namer::access(const string name, string t_name)
 {
-  List *path = path_strip(name);
-  List *entry = path;
+  List<string> *path = path_strip(name);
+  List<string> *entry = path;
   string n;
   Tobject * object = rootdir;
-  Tobject * o = object;
-  List *e;
+  Tobject * obj = object;
+  List<string> *e;
   
   //size_t len = strlen(name);
   //  string t_name = new char[len+1];
@@ -190,13 +190,13 @@ Tobject * Namer::access(const string name, string t_name)
 
   /* отыщем сервер */
   do {
-    n = (string)entry->data;
+    n = entry->item;
     if(!(object = object->access(n))){
       break;
     }
 
     if(object->sid){
-      o = object;
+      obj = object;
       i = i1;
     }
 
@@ -212,7 +212,7 @@ Tobject * Namer::access(const string name, string t_name)
       if(i)
 	i--;
       else {
-	n = (string)entry->data;
+	n = entry->item;
 	strcat(t_name, "/");
 	strcat(t_name, n);
       }
@@ -220,12 +220,12 @@ Tobject * Namer::access(const string name, string t_name)
   }
   
   list_for_each_safe(entry, e, path){
-    delete (string)entry->data;
+    delete entry->item;
     delete entry;
   }
   delete path;
 
-  return o;
+  return obj;
 }
 
 /*
@@ -234,26 +234,26 @@ Tobject * Namer::access(const string name, string t_name)
  */
 Tobject *Namer::add(const string name, sid_t sid)
 {
-  List *path = path_strip(name);
-  List *entry = path;
+  List<string> *path = path_strip(name);
+  List<string> *entry = path;
   string n;
 
   Tobject * object = rootdir;
-  Tobject * o;
+  Tobject * obj;
 
   do {
-    n = (string)entry->data;
-    if(!(o = object->access(n))){
-      o = object->add_sub(n);
+    n = entry->item;
+    if(!(obj = object->access(n))){
+      obj = object->add_sub(n);
     }
-    object = o;
+    object = obj;
 
     delete n;
     
     entry = entry->next;
   } while (entry != path);
 
-  List *e;
+  List<string> *e;
   list_for_each_safe(entry, e, path){
     delete entry;
   }

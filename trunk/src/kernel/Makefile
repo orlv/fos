@@ -44,6 +44,7 @@ Objects =	main/boot/setup.o		\
 		main/procman/procman.o		\
 		main/procman/scheduler.o	\
 		main/procman/process.o		\
+		main/procman/thread.o		\
 		main/ints.o			\
 		main/memory/mmu.o		\
 		main/memory/kmalloc.o		\
@@ -57,7 +58,6 @@ Objects =	main/boot/setup.o		\
 		main/fs/parse.o			\
 		lib/vsprintf.o			\
 		lib/stdio.o			\
-		lib/list.o			\
 		lib/time.o			\
 		lib/pure.o			\
 		lib/version.o			\
@@ -68,8 +68,7 @@ Objects =	main/boot/setup.o		\
 		drivers/char/cmos/cmos.o	\
 		drivers/dma.o			\
 		drivers/pic.o			\
-		drivers/fs/modulefs/modulefs.o 	\
-		drivers/fs/objectfs/objectfs.o
+		drivers/fs/modulefs/modulefs.o
 
 #-----------------------------------------------------------------------------#
 

@@ -20,10 +20,13 @@ struct message {
   tid_t tid;
 } __attribute__ ((packed));
 
-struct task_mem_block_t {
-  offs_t vptr; /* на какой адрес в памяти процесса смонтировано */
-  u32_t *phys_pages; /* массив номеров физических страниц, использованных в блоке */
-  size_t size; /* размер блока */
+struct kmessage {
+  void * send_buf;
+  size_t send_size;
+  void * recv_buf;
+  size_t recv_size;
+  class Thread * thread;
+  u32_t flags;
 };
 
 class Thread{
@@ -31,7 +34,14 @@ class Thread{
   off_t stack_pl0;
   
  public:
-  Thread(class TProcess *process, off_t eip, u16_t flags);
+  Thread(class TProcess *process,
+	 off_t eip,
+	 u16_t flags,
+	 void * kernel_stack,
+	 void * user_stack,
+	 u16_t code_segment=USER_CODE_SEGMENT,
+	 u16_t data_segment=USER_DATA_SEGMENT);
+
   ~Thread();
   void run();
 
@@ -41,57 +51,37 @@ class Thread{
   u16_t flags;
   tid_t send_to;
   void set_stack_pl0();
-  void set_tss(register off_t eip);
+  void set_tss(register off_t eip,
+	       register void *kernel_stack,
+	       register void *user_stack,
+	       u16_t code_segment=USER_CODE_SEGMENT,
+	       u16_t data_segment=USER_DATA_SEGMENT);
   void kprocess_set_tss(register off_t eip);
-  List *new_msg;
-  List *recvd_msg;
+  List<kmessage *> *new_msg;
+  List<kmessage *> *recvd_msg;
 };
 
 class TProcess {
  private:
   u32_t LoadELF(register void *image);
-  //List *UsedMem;
-  //  List *FreeMem;
-  //  u32_t *CreatePageDir();
-
-  //  void map_pages(register u32_t *phys_pages, register u32_t log_page, register size_t n);
-  //  void umap_pages(register u32_t *log_pages, register size_t n);
-
-  //  void *mem_alloc(register u32_t *phys_pages, register size_t pages_cnt);
-  //  void *do_mmap(register u32_t *phys_pages, register void *log_address, register size_t pages_cnt);
 
  public:
   TProcess();
   ~TProcess();
   void run();
 
-  //  u32_t *PageDir; /* каталог страниц */
-  List *threads;
+  List<Thread *> *threads;
   Memory *memory;
 
-  //void mem_init(offs_t base, size_t size);
-  
-  Thread *thread_create(off_t eip, u16_t flags);
-
-  //  u32_t mount_page(register u32_t phys_page, register u32_t log_page);
-  //  u32_t umount_page(register u32_t log_page);
-
-  //void *mem_alloc(register size_t size);
-  //void *mem_alloc_phys(register u32_t phys_address, register size_t size);
-  //void *mmap(register size_t size, register void *log_address);
-  //  void *mmap(register void *phys_address, register void *log_address, register size_t size);
-  //  void mem_free(register void *ptr);
+  Thread *thread_create(off_t eip,
+			u16_t flags,
+			void * kernel_stack,
+			void * user_stack,
+			u16_t code_segment=USER_CODE_SEGMENT,
+			u16_t data_segment=USER_DATA_SEGMENT);
 };
 
 #define MESSAGE_ASYNC 1
 
-struct kmessage {
-  void * send_buf;
-  size_t send_size;
-  void * recv_buf;
-  size_t recv_size;
-  Thread * thread;
-  u32_t flags;
-};
 
 #endif

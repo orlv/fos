@@ -19,19 +19,18 @@ void exception(string str, unsigned int cs,  unsigned int address, unsigned int 
     printk("\n--------------------------------------------------------------------------------" \
 	   "Exception: %s \n"						\
 	   "At addr: 0x%02X:0x%08X\n"					\
-	   "PID: %d \n"							\
-	   "Errorcode: 0x%X\n"						\
-	   "--------------------------------------------------------------------------------", \
-	   str, cs, address, hal->ProcMan->CurrentThread->process, errorcode);
+	   "Thread: 0x%X, Process: 0x%X \n"				\
+	   "Errorcode: 0x%X",
+	   str, cs, address, hal->ProcMan->CurrentThread, hal->ProcMan->CurrentThread->process, errorcode);
     hal->panic("fault in kernel task!");
   } else {
     printf("\n--------------------------------------------------------------------------------" \
 	   "Exception: %s \n"						\
 	   "At addr: 0x%02X:0x%08X\n"					\
-	   "PID: %d \n"							\
+	   "Thread: 0x%X, Process: 0x%X \n"						\
 	   "Errorcode: 0x%X\n"						\
 	   "--------------------------------------------------------------------------------", \
-	   str, cs, address, hal->ProcMan->CurrentThread->process, errorcode);
+	   str, cs, address, hal->ProcMan->CurrentThread, hal->ProcMan->CurrentThread->process, errorcode);
     
     hal->ProcMan->CurrentThread->flags |= FLAG_TSK_TERM;
     hal->ProcMan->CurrentThread->flags &= ~FLAG_TSK_READY;

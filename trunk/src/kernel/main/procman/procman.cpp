@@ -17,36 +17,27 @@ TProcMan::TProcMan()
   hal->ProcMan = this;
 
   Thread *thread;
+  void *stack;
   TProcess *process = new TProcess();
   process->memory = new Memory(USER_MEM_BASE, USER_MEM_SIZE, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS);
   process->memory->pagedir = hal->kmem->pagedir;
-  
-  u32_t *p = (u32_t *)process->memory->mem_alloc(1024);
 
-  printk("[0x%X]\n", p);
-  while(1);
-#if 0
-
-  thread = process->thread_create(0, FLAG_TSK_KERN | FLAG_TSK_READY);
-
-  hal->gdt->load_tss(BASE_TSK_SEL_N, &thread->descr);
+  stack = kmalloc(STACK_SIZE);
+  thread = process->thread_create(0, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
+  proclist = new List<Thread *>(thread);
+  hal->gdt->load_tss(SEL_N(BASE_TSK_SEL), &thread->descr);
   ltr(BASE_TSK_SEL);
   lldt(0);
 
-  thread = process->thread_create((off_t) & start_sched, FLAG_TSK_KERN | FLAG_TSK_READY);
-  hal->gdt->load_tss(BASE_TSK_SEL_N + 1, &thread->descr);
+  stack = kmalloc(STACK_SIZE);
+  thread = process->thread_create((off_t) & start_sched, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
+  proclist->add_tail(thread);
+  hal->gdt->load_tss(SEL_N(BASE_TSK_SEL) + 1, &thread->descr);
 
-  hal->tid_namer = (tid_t)process->thread_create((off_t) & namer_srv, FLAG_TSK_KERN | FLAG_TSK_READY);
-#endif
+  stack = kmalloc(STACK_SIZE);
+  hal->tid_namer = (tid_t)process->thread_create((off_t) & namer_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
+  proclist->add_tail((Thread *)hal->tid_namer);
 }
-
-//void foo()
-//{
-  //TProcess *process = new TProcess(PROCESS_MEM_BASE, PROCESS_MEM_SIZE);
- //u32_t eip = process->LoadELF(image);
-  //  process->thread_create(eip, FLAG_TSK_KERN);
-  //  proclist->add_tail(process->threads->data);
-  //}  
 
 u32_t TProcMan::exec(register void *image)
 {
@@ -63,26 +54,24 @@ void TProcMan::add(register Thread * thread)
   proclist->add_tail(thread);
 }
 
-void TProcMan::del(register List * proc)
+void TProcMan::del(register List<Thread *> * proc)
 {
-  delete (Thread *)proc->data;
+  delete proc->item;
   delete proc;
 }
 
 res_t TProcMan::kill(register pid_t pid)
 {
-  Thread *thread;
-  List *current = proclist;
+  List<Thread *> *current = proclist;
   /* то же, что get_process_by_pid() */
   do {
-    thread = (Thread *) current->data;
-    if ((pid_t)thread->process == pid){
-      if(thread->flags | FLAG_TSK_KERN)
+    if ((pid_t)current->item->process == pid){
+      if(current->item->flags | FLAG_TSK_KERN)
 	return RES_FAULT;
 
-      thread->flags &= ~FLAG_TSK_READY; /* снимем отметку выполнения с процесса */
+      current->item->flags &= ~FLAG_TSK_READY; /* снимем отметку выполнения с процесса */
+      delete current->item->process;         /* уничтожим процесс */
       delete current;   /* удалим процесс из списка пройессов */
-      delete thread->process;         /* уничтожим процесс */
       return RES_SUCCESS;
     }
     current = current->next;
@@ -94,13 +83,11 @@ res_t TProcMan::kill(register pid_t pid)
 /* возвращает указатель только в том случае, если поток существует */
 Thread *TProcMan::get_thread_by_tid(register tid_t tid)
 {
-  List *current = proclist;
-  Thread *thread;
+  List<Thread *> *current = proclist;
 
   do {
-    thread = (Thread *) current->data;
-    if ((tid_t)thread == tid){
-      return thread;
+    if ((tid_t)current->item == tid){
+      return current->item;
     }
 
     current = current->next;

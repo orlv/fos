@@ -10,8 +10,6 @@
 #include <process.h>
 #include <list.h>
 
-#define MAX_PROCS 250
-
 #define FLAG_TSK_READY 1
 #define FLAG_TSK_KERN  2
 #define FLAG_TSK_TERM  4
@@ -42,13 +40,13 @@ struct procman_message {
 
 class TProcMan {
 private:
-  List * proclist;
+  List<Thread *> *proclist;
 
 public:
   TProcMan();
 
-  void add(register Thread * thread);
-  void del(register List * proc);
+  void add(register Thread *thread);
+  void del(register List<Thread *> *proc);
 
   u32_t exec(register void *image);
 
@@ -67,5 +65,16 @@ public:
 };
 
 void kill(tid_t tid);
+
+static inline tid_t TID(Thread *thread)
+{
+  return (tid_t) thread;
+}
+
+static inline Thread * THREAD(tid_t tid)
+{
+  return (Thread *) tid;
+}
+
 
 #endif

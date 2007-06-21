@@ -162,8 +162,8 @@ void init_memory()
   stdout = tty1;
 #endif
   /* ----------------- */
-  /* заполним пул свободных страниц страницами, лежащими ниже USER_PAGETABLE_DATA */
-  for(u32_t i = PAGE(freemem_start); (i < (hal->pages_cnt - PAGE(freemem_start))) && (i < PAGE(USER_PAGETABLE_DATA)); i++){
+  /* заполним пул свободных страниц страницами, лежащими ниже KERNEL_MEM_LIMIT */
+  for(u32_t i = PAGE(freemem_start); (i < (hal->pages_cnt - PAGE(freemem_start))) && (i < PAGE(KERNEL_MEM_LIMIT)); i++){
     put_page(i);
   }
 
@@ -196,7 +196,7 @@ void init_memory()
   hal->kmem->mmap((void *)heap_start, (void *)heap_start, heap_size);
 
   /* дополним пул свободных страниц оставшимися свободными страницами */
-  for(u32_t i = PAGE(USER_PAGETABLE_DATA); i < hal->pages_cnt; i++){
+  for(u32_t i = PAGE(KERNEL_MEM_LIMIT); i < hal->pages_cnt; i++){
     alloc_page(i);
     put_page(i);
   }
@@ -207,11 +207,15 @@ void init_memory()
 
 void *kmalloc(register size_t size)
 {
-  return hal->kmem->mem_alloc(size);
+  void *ptr;
+  if(!(ptr = hal->kmem->mem_alloc(size)))
+    hal->panic("Can't allocate 0x%X bytes of kernel memory!", size);
+  
+  return ptr;
 }
 
 void kfree(register void *ptr)
 {
-  return hal->kmem->mem_free(ptr);
+  hal->kmem->mem_free(ptr);
 }
 

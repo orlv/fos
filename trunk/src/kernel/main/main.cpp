@@ -124,7 +124,7 @@ void procman(ModuleFS *bindir)
 
     case PROCMAN_CMD_CREATE_THREAD:
       thread = hal->ProcMan->get_thread_by_tid(msg->tid);
-      thread = thread->process->thread_create(pm->arg.value, FLAG_TSK_READY);
+      thread = thread->process->thread_create(pm->arg.value, FLAG_TSK_READY, kmalloc(PAGE_SIZE), thread->process->memory->mem_alloc(PAGE_SIZE));
       res = (u32_t) thread;
       hal->ProcMan->add(thread);
       break;
@@ -151,15 +151,19 @@ void procman(ModuleFS *bindir)
   }
 }
 
-
-asmlinkage void init()
+void out_banner()
 {
   extern const string version;
   extern u32_t build;
   extern const string compile_date, compile_time;
 
-  //extern multiboot_info_t *__mbi;
+  printk("FOS OS. Revision %s. Build #%s %s %s \n"			\
+	 "--------------------------------------------------------------------------------",
+	 version, build, compile_date, compile_time);
+}
 
+asmlinkage void init()
+{
   init_memory();
 #if 1
   hal->cli();
@@ -184,17 +188,17 @@ asmlinkage void init()
 
   stdout = tty1;
 #endif
-  printk("FOS OS. Revision %s. Build #%s %s %s \n" \
-	 "--------------------------------------------------------------------------------",
-	 version, build, compile_date, compile_time);
 
+  out_banner();
+  
   hal->ProcMan = new TProcMan;
-  SysTimer = new TTime;
 
+  SysTimer = new TTime;
   EnableTimer();
 
   printk("OK");
   while(1);
+  
 
 #if 0
   namer_add("/sys/procman");

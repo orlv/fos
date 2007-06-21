@@ -30,8 +30,8 @@ void start_sched()
 
 void TProcMan::scheduler()
 {
-  volatile List *curr = proclist;
-  Thread *thread;
+  volatile List<Thread *> *curr = proclist;
+
   while (1) {
 #warning *** TODO: scheduler(): сделать таймеры
 
@@ -51,25 +51,20 @@ void TProcMan::scheduler()
     /* Выбираем следующий подходящий для запуска поток */
     do {
       curr = curr->next;
-      thread = (Thread *) curr->data;
-#if 0
-      if (thread->flags & FLAG_TSK_TERM) {
-	curr = curr->next;
-	kill(thread->pid);
-	continue;
-      }
-#endif
       /* Процесс готов к запуску? */
-      if ((thread->flags & FLAG_TSK_READY) &&
-	  !(thread->flags & (FLAG_TSK_SEND | FLAG_TSK_RECV)))
+      if ((curr->item->flags & FLAG_TSK_READY) &&
+	  !(curr->item->flags & (FLAG_TSK_SEND | FLAG_TSK_RECV)))
 	break;
     } while (1);
 
-    CurrentThread = thread;
-    /* Переключимся на выбранный процесс */
-    thread->run();
+    CurrentThread = curr->item;
+    
     /*
-     * Ring
+     * Переключимся на выбранный процесс
+     */
+    curr->item->run();
+    /*
+     * Если мы здесь - значит произошло вытеснение процесса и переключение на планировщик
      */
   }
 }

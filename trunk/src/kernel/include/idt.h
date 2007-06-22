@@ -8,7 +8,7 @@
 
 #include <types.h>
 
-#define IDT_LIMIT 256*8-1
+#define IDT_SIZE 256*8-1
 
 struct idt_entry{
   u32_t data[2];

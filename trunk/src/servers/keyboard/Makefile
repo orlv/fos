@@ -21,7 +21,7 @@ PROGNAME = keyboard
 
 all:    $(Objects)
 	@echo \ Linking $(BINDIR)/$(PROGNAME)
-	@$(LD) $(LDFLAGS) -o $(BINDIR)/$(PROGNAME) --oformat=elf32-i386 --entry=_start $(Objects) --Ttext=0x3200000
+	@$(LD) $(LDFLAGS) -o $(BINDIR)/$(PROGNAME) --oformat=elf32-i386 --entry=_start $(Objects) --Ttext=$(USER_MEM_BASE)
 
 #--------------------------------- Clean -------------------------------------#
 

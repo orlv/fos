@@ -20,17 +20,19 @@ void exception(string str, unsigned int cs,  unsigned int address, unsigned int 
 	   "Exception: %s \n"						\
 	   "At addr: 0x%02X:0x%08X\n"					\
 	   "Thread: 0x%X, Process: 0x%X \n"				\
+	   "Name: [%s]\n"						\
 	   "Errorcode: 0x%X",
-	   str, cs, address, hal->ProcMan->CurrentThread, hal->ProcMan->CurrentThread->process, errorcode);
+	   str, cs, address, hal->ProcMan->CurrentThread, hal->ProcMan->CurrentThread->process, hal->ProcMan->CurrentThread->process->name, errorcode);
     hal->panic("fault in kernel task!");
   } else {
     printf("\n--------------------------------------------------------------------------------" \
 	   "Exception: %s \n"						\
 	   "At addr: 0x%02X:0x%08X\n"					\
-	   "Thread: 0x%X, Process: 0x%X \n"						\
+	   "Thread: 0x%X, Process: 0x%X \n"				\
+	   "Name: [%s]\n"						\
 	   "Errorcode: 0x%X\n"						\
 	   "--------------------------------------------------------------------------------", \
-	   str, cs, address, hal->ProcMan->CurrentThread, hal->ProcMan->CurrentThread->process, errorcode);
+	   str, cs, address, hal->ProcMan->CurrentThread, hal->ProcMan->CurrentThread->process, hal->ProcMan->CurrentThread->process->name, errorcode);
     
     hal->ProcMan->CurrentThread->flags |= FLAG_TSK_TERM;
     hal->ProcMan->CurrentThread->flags &= ~FLAG_TSK_READY;
@@ -158,7 +160,7 @@ IRQ_HANDLER(timer_handler)
 
   u16_t pid = curPID();
   if (pid == 1) { /* Если мы в scheduler() */
-    asm("incb 0xb8000+156\n" "movb $0x5e,0xb8000+157 ");
+    //asm("incb 0xb8000+156\n" "movb $0x5e,0xb8000+157 ");
 
     hal->outportb(0x20, 0x20);
     return;

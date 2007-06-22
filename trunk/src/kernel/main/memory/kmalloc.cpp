@@ -136,7 +136,6 @@ void init_memory()
   hal->free_page = new memstack;
   hal->free_page->n = PAGE(freemem_start);
 
-  /* ----------------- */
 #if 0
   hal->cli();
   hal->pic = new PIC;
@@ -145,13 +144,13 @@ void init_memory()
   int i;
   for(i = 0; i < 16; i++)
     hal->pic->mask(i);
-  
+
   hal->gdt = new GDT;
   hal->idt = new IDT;
 
   setup_idt();
   hal->sti();
-  
+
   VGA *con = new VGA;
   TTY *tty1 = new TTY(80, 25);
 
@@ -161,7 +160,7 @@ void init_memory()
   extern TTY *stdout;
   stdout = tty1;
 #endif
-  /* ----------------- */
+
   /* заполним пул свободных страниц страницами, лежащими ниже KERNEL_MEM_LIMIT */
   for(u32_t i = PAGE(freemem_start); (i < (hal->pages_cnt - PAGE(freemem_start))) && (i < PAGE(KERNEL_MEM_LIMIT)); i++){
     put_page(i);
@@ -177,11 +176,13 @@ void init_memory()
   }
 
   hal->kmem = new Memory(0, KERNEL_MEM_LIMIT, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS);
-  hal->kmem->pagedir = (u32_t *) (get_page()*PAGE_SIZE);
+  hal->kmem->pagedir = (u32_t *) (get_page() * PAGE_SIZE);
+  kmem_set_log_addr(PAGE((u32_t)hal->kmem->pagedir), PAGE((u32_t)hal->kmem->pagedir));
   
   /* создадим таблицы страниц для всей памяти, входящей в KERNEL_MEM_LIMIT (32 каталога для 128 мегабайт) */
   for(u32_t i=0; i < KERNEL_MEM_LIMIT/(PAGE_SIZE*1024); i++){
     hal->kmem->pagedir[i] = (get_page()*PAGE_SIZE) | 3;
+    kmem_set_log_addr(PAGE(hal->kmem->pagedir[i]), PAGE(hal->kmem->pagedir[i]));
   }
 
   for(u32_t i=0; i < KERNEL_MEM_LIMIT/(PAGE_SIZE*1024); i++){
@@ -200,7 +201,7 @@ void init_memory()
     alloc_page(i);
     put_page(i);
   }
-  
+
   enable_paging(hal->kmem->pagedir);
 }
 

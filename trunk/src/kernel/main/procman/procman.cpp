@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <system.h>
 #include <hal.h>
+#include <string.h>
 
 void start_sched();
 void namer_srv();
@@ -19,6 +20,9 @@ TProcMan::TProcMan()
   Thread *thread;
   void *stack;
   TProcess *process = new TProcess();
+
+  process->name = "kernel";
+  
   process->memory = new Memory(USER_MEM_BASE, USER_MEM_SIZE, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS);
   process->memory->pagedir = hal->kmem->pagedir;
 
@@ -29,8 +33,10 @@ TProcMan::TProcMan()
   ltr(BASE_TSK_SEL);
   lldt(0);
 
+  CurrentThread = thread;
+  
   stack = kmalloc(STACK_SIZE);
-  thread = process->thread_create((off_t) & start_sched, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
+  thread = process->thread_create((off_t) &start_sched, FLAG_TSK_KERN, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
   proclist->add_tail(thread);
   hal->gdt->load_tss(SEL_N(BASE_TSK_SEL) + 1, &thread->descr);
 
@@ -39,12 +45,26 @@ TProcMan::TProcMan()
   proclist->add_tail((Thread *)hal->tid_namer);
 }
 
-u32_t TProcMan::exec(register void *image)
+u32_t TProcMan::exec(register void *image, const string name)
 {
-  /*  TProcess *process = new TProcess(PROCESS_MEM_BASE, PROCESS_MEM_SIZE);
-  u32_t eip = process->LoadELF(image);
-  process->thread_create(eip, FLAG_TSK_READY);
-  add((Thread *)process->threads->data);*/
+  TProcess *process = new TProcess();
+  process->memory = new Memory(USER_MEM_BASE, USER_MEM_SIZE, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS|MMU_PAGE_USER_ACCESSABLE);
+
+  process->name = new char[strlen(name) + 1];
+  strcpy(process->name, name);
+
+  /* создаём каталог страниц процесса */
+  process->memory->pagedir = (u32_t *) kmalloc(PAGE_SIZE);
+  /* скопируем указатели на таблицы страниц ядра (страницы, расположенные ниже KERNEL_MEM_LIMIT) */
+  for(u32_t i=0; i < KERNEL_MEM_LIMIT/(PAGE_SIZE*1024); i++){
+    process->memory->pagedir[i] = hal->kmem->pagedir[i];
+  }
+  
+  off_t eip = process->LoadELF(image);
+
+  Thread *thread = process->thread_create(eip, FLAG_TSK_KERN | FLAG_TSK_READY, kmalloc(STACK_SIZE), process->memory->mem_alloc(STACK_SIZE));
+  proclist->add_tail(thread);
+ 
   return 0;
 }
 
@@ -102,17 +122,6 @@ Thread *TProcMan::get_thread_by_tid(register tid_t tid)
 */
 TProcess *TProcMan::kprocess(register off_t eip, register u16_t flags)
 {
-#if 0
-  TProcess *process = new TProcess(flags | FLAG_TSK_KERN, (void *) eip);
-
-  /* Зарегистрируем процесс */
-  if(proclist)
-    proclist->add_tail(process->threads->data);
-  else
-    proclist = new List(process->threads->data);
-
-  return process;
-#endif
   return 0;
 }
 

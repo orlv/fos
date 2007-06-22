@@ -11,6 +11,7 @@
 #include <system.h>
 #include <hal.h>
 #include <string.h>
+#include <paging.h>
 
 Thread::Thread(class TProcess *process,
 	       off_t eip,
@@ -56,7 +57,7 @@ void Thread::set_tss(register off_t eip,
 {
   tss = (struct TSS *)kmalloc(sizeof(struct TSS));
 
-  tss->cr3 = (u32_t)process->memory->pagedir;
+  tss->cr3 = (u32_t)kmem_phys_addr(PAGE((u32_t)process->memory->pagedir));
   tss->eip = eip;
 
   tss->eflags = 0x00000202;

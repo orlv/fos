@@ -81,6 +81,20 @@ static inline int page_status(u32_t n)
     return -1;
 }
 
+static inline u32_t kmem_log_addr(u32_t n)
+{
+  if(n < hal->pages_cnt)
+    return hal->phys_page[n].kernel_map;
+  else
+    return 0;
+}
+
+static inline void kmem_set_log_addr(u32_t n, u32_t kmap_address)
+{
+  if(n < hal->pages_cnt)
+    hal->phys_page[n].kernel_map = kmap_address;
+}
+
 static inline u32_t alloc_page(u32_t n)
 {
   if(n < hal->pages_cnt)

@@ -76,7 +76,8 @@
 
 
 struct page {
-  atomic_t mapcount;
+  atomic_t mapcount; /* общее количество использований страницы */
+  volatile u32_t kernel_map;  /* на какой логический адрес в области ядра смонтировано (если смонтировано) */
 };
 
 struct HeapMemBlock {
@@ -96,7 +97,7 @@ static inline u32_t PAGE(u32_t address)
 
 #define MMU_PAGE_PRESENT         1
 #define MMU_PAGE_WRITE_ACCESS   2
-#define MMU_FLAG_USER_ACCESSABLE 4
+#define MMU_PAGE_USER_ACCESSABLE 4
 
 struct memblock {
   offs_t vptr; /* на какой адрес в памяти процесса смонтировано */
@@ -128,6 +129,7 @@ class Memory {
   void *mem_alloc_phys(register u32_t phys_address, register size_t size);
   void *mmap(register size_t size, register void *log_address);
   void *mmap(register void *phys_address, register void *log_address, register size_t size);
+  void *kmmap(register void *kmem_address, register void *log_address, register size_t size);
   void mem_free(register void *ptr);
 };
 

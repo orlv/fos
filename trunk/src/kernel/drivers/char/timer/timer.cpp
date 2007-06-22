@@ -68,6 +68,8 @@ void TTime::tick()
 
 asmlinkage void timer_handler(u16_t cs)
 {
+  asm("incb 0xb8000+156\n" "movb $0x5e,0xb8000+157 ");
+  while(1);
   extern TTime *SysTimer;
   SysTimer->tick();		/* Считаем время */
 

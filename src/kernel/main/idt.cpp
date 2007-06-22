@@ -5,15 +5,14 @@
 
 #include <idt.h>
 #include <mm.h>
-
+#include <paging.h>
 
 IDT::IDT()
 {
   struct idtr idtr;
 
-  idtr.limit = IDT_LIMIT;
-  idt = idtr.base = (idt_entry *) kmalloc(IDT_LIMIT);
-  
+  idtr.limit = IDT_SIZE;
+  idt = idtr.base = (idt_entry *) kmalloc(IDT_SIZE);
   lidt(idtr);
 }
 

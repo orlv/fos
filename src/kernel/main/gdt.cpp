@@ -5,13 +5,14 @@
 
 #include <gdt.h>
 #include <mm.h>
+#include <paging.h>
 
 GDT::GDT()
 {
   gdtr gdtr;
 
-  gdtr.limit = GDT_LIMIT;
-  gdt = gdtr.base = (gdt_entry *) kmalloc(GDT_LIMIT);
+  gdtr.limit = GDT_SIZE;
+  gdt = gdtr.base = (gdt_entry *) kmalloc(GDT_SIZE);
 
   /* null descriptor */
   clear_descriptor(0);
@@ -28,7 +29,7 @@ GDT::GDT()
   set_segment_descriptor(5, 0, 0xffff, 1, 1, 0, 0, 1); 
   /* 0x30 */
   set_segment_descriptor(6, 0, 0xffff, 0, 1, 0, 0, 0);
-  
+
   lgdt(gdtr);
 }
 

@@ -48,7 +48,7 @@ public:
   void add(register Thread *thread);
   void del(register List<Thread *> *proc);
 
-  u32_t exec(register void *image);
+  u32_t exec(register void *image, const string name);
 
   void scheduler();
 

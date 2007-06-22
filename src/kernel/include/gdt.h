@@ -8,7 +8,7 @@
 
 #include <types.h>
 
-#define GDT_LIMIT 8192*8-1
+#define GDT_SIZE 8192*8-1
 
 struct gdt_entry{
   u8_t bytes[8];

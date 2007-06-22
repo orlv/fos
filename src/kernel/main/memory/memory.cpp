@@ -7,6 +7,7 @@
 #include <mm.h>
 #include <process.h>
 #include <hal.h>
+#include <paging.h>
 
 Memory::Memory(offs_t base, size_t size, u16_t flags)
 {
@@ -168,6 +169,29 @@ void *Memory::mmap(register size_t size, register void *log_address)
   return ptr;
 }
 
+/* смонтировать набор физических страниц, выданных kmalloc() в конкретную область памяти */
+void *Memory::kmmap(register void *kmem_address, register void *log_address, register size_t size)
+{
+  size_t pages_cnt = size - (size % MM_MINALLOC);
+  if (size % MM_MINALLOC)
+    pages_cnt += MM_MINALLOC;
+  pages_cnt /= PAGE_SIZE;
+
+  u32_t *phys_pages = new u32_t[pages_cnt];
+  size_t i;
+
+  for(i = 0; i < pages_cnt; i++){
+    phys_pages[i] = PAGE((u32_t)kmem_phys_addr(PAGE((u32_t)kmem_address)));
+    kmem_address = (void *) ((u32_t)kmem_address + PAGE_SIZE);
+  }
+
+  void *res = do_mmap(phys_pages, log_address, pages_cnt);
+  delete phys_pages;
+  return res;
+}
+
+
+
 /* смонтировать набор физических страниц в конкретную область памяти */
 void *Memory::mmap(register void *phys_address, register void *log_address, register size_t size)
 {
@@ -244,9 +268,8 @@ void *Memory::do_mmap(register u32_t *phys_pages, register void *log_address, re
 
 void Memory::map_pages(register u32_t *phys_pages, register u32_t log_page, register size_t n)
 {
-  u32_t i;
-  
-  for (i = 0; i < n; i++) {
+  for (u32_t i = 0; i < n; i++) {
+    //printk("[0x%X]->[0x%X]\n", phys_pages[i], log_page);
     mount_page(phys_pages[i], log_page);
     log_page++;
   }
@@ -254,9 +277,7 @@ void Memory::map_pages(register u32_t *phys_pages, register u32_t log_page, regi
 
 void Memory::umap_pages(register u32_t *log_pages, register size_t n)
 {
-  u32_t i;
-
-  for (i = 0; i < n ; i++) {
+  for (u32_t i = 0; i < n ; i++) {
     umount_page(log_pages[i]);
   }
 }
@@ -283,9 +304,9 @@ void Memory::mem_free(register void *ptr)
   }
 
   umap_pages(p->phys_pages, p->size / PAGE_SIZE);
-  for(u32_t i = 0; i < p->size / PAGE_SIZE; i++){
+  /*for(u32_t i = 0; i < p->size / PAGE_SIZE; i++){
     kfree((void *)(p->phys_pages[i] * PAGE_SIZE));
-  }
+    }*/
 
   curr = FreeMem;
 

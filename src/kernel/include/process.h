@@ -62,9 +62,6 @@ class Thread{
 };
 
 class TProcess {
- private:
-  u32_t LoadELF(register void *image);
-
  public:
   TProcess();
   ~TProcess();
@@ -72,6 +69,8 @@ class TProcess {
 
   List<Thread *> *threads;
   Memory *memory;
+  u32_t LoadELF(register void *image);
+  string name;
 
   Thread *thread_create(off_t eip,
 			u16_t flags,

@@ -85,7 +85,7 @@ void procman(ModuleFS *bindir)
       if((object = bindir->access(pm->arg.buf))){
 	elf_buf = new char[object->info.size];
 	object->read(0, elf_buf, object->info.size);
-	hal->ProcMan->exec(elf_buf);
+	hal->ProcMan->exec(elf_buf, pm->arg.buf);
 	delete elf_buf;
 	res = RES_SUCCESS;
       } else {
@@ -190,17 +190,13 @@ asmlinkage void init()
 #endif
 
   out_banner();
-  
+
   hal->ProcMan = new TProcMan;
 
   SysTimer = new TTime;
+
   EnableTimer();
 
-  printk("OK");
-  while(1);
-  
-
-#if 0
   namer_add("/sys/procman");
   
   extern multiboot_info_t *__mbi;
@@ -210,15 +206,13 @@ asmlinkage void init()
   obj = modules->access("init");
   string elf_buf = new char[obj->info.size];
   obj->read(0, elf_buf, obj->info.size);
-  hal->ProcMan->exec(elf_buf);
+  hal->ProcMan->exec(elf_buf, "init");
   delete elf_buf;
 
   printk("\n--------------------------------------------------------------------------------" \
 	 "All OK. Kernel init done.\n"					\
 	 "You can get new version at http://fos.osdev.ru/"		\
 	 "\n--------------------------------------------------------------------------------");
- 
+
   procman(modules);
-#endif
-  while(1);
 }

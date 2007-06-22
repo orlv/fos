@@ -117,7 +117,15 @@ u32_t TProcess::LoadELF(register void *image)
 	Выделим память под секцию
 	Учтём, что начало секции может быть не выровнено по началу страницы
       */
-      object = (u32_t *) kmalloc(p->p_memsz + (p->p_vaddr % PAGE_SIZE)); 
+      /*
+	NOTE: выделяются свободные страницы, мапятся в область ядра
+	 После, эти же страницы мапятся в область конкретного процесса.
+	 __ВАЖНО__: Затем необходимо освободить область ядра от этих страниц (kfree())
+	 kfree() вызовет umap_page() для каждой страницы, но umap не будет
+	 добавлять их в пул свободных страниц - он проверяет количество использований
+	 каждой страницы. Страницы освободятся только при отсоединении их от области процесса.
+       */
+      object = (u32_t *) kmalloc(p->p_memsz + (p->p_vaddr % PAGE_SIZE));
       //printk("sz=0x%X \n",p->p_filesz/sizeof(u32_t));
 
       if (p->p_filesz > 0) {
@@ -125,7 +133,8 @@ u32_t TProcess::LoadELF(register void *image)
       }
 
       /* Монтируем секцию в адресное пространство процесса */
-      memory->mmap(object, (u32_t *) (p->p_vaddr & 0xfffff000), p->p_memsz + (p->p_vaddr % PAGE_SIZE));
+      memory->kmmap(object, (u32_t *) (p->p_vaddr & 0xfffff000), p->p_memsz + (p->p_vaddr % PAGE_SIZE));
+      kfree(object); /* освобождаем память ядра от ненужных тут страниц */
     }
   }
 

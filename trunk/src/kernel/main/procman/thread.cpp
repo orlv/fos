@@ -3,15 +3,14 @@
   Copyright (C) 2005-2007 Oleg Fedorov
 */
 
-#include <mm.h>
-#include <paging.h>
-#include <procman.h>
 #include <process.h>
-#include <stdio.h>
+#include <procman.h>
+#include <mm.h>
+#include <mmu.h>
 #include <system.h>
 #include <hal.h>
 #include <string.h>
-#include <paging.h>
+#include <stdio.h>
 
 Thread::Thread(class TProcess *process,
 	       off_t eip,
@@ -71,7 +70,7 @@ void Thread::set_tss(register off_t eip,
   tss->ds = (u16_t) data_segment;
   tss->ss0 = KERNEL_DATA_SEGMENT;
   
-  tss->io_bitmap_base = 0xffffffff;
+  tss->io_bitmap_base = 0xffff;
 
   /* создадим селектор TSS */
   hal->gdt->set_tss_descriptor((off_t) tss, &descr);

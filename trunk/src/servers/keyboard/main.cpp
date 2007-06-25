@@ -13,7 +13,7 @@ Keyboard *kb;
 
 void thread_handler()
 {
-  if(interrupt_attach(KEYBOARD_IRQ_NUM) == RES_SUCCESS){
+  if(interrupt_attach(KBD_IRQ_NUM) == RES_SUCCESS){
     printf("keyboard: interrupt attached\n");
   } else {
     printf("keyboard: can't attache interrupt!\n");
@@ -29,7 +29,7 @@ void thread_handler()
     msg.recv_size = sizeof(num);
     msg.recv_buf = &num;
     receive(&msg);
-    if(num == KEYBOARD_IRQ_NUM){
+    if(num == KBD_IRQ_NUM){
       kb->handler();
     } else {
       printf("Keyboard handler: unknown message received!\n");

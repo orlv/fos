@@ -1,10 +1,10 @@
 /*
- * kernel/include/paging.h
+ * kernel/include/mmu.h
  * Copyright (C) 2005-2007 Oleg Fedorov
  */
 
-#ifndef __PAGING_H
-#define __PAGING_H
+#ifndef __MMU_H
+#define __MMU_H
 
 #include <types.h>
 #include <hal.h>

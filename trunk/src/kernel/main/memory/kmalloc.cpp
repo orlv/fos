@@ -5,7 +5,7 @@
 
 #include <mm.h>
 #include <multiboot.h>
-#include <paging.h>
+#include <mmu.h>
 #include <stdio.h>
 #include <hal.h>
 #include <stack.h>

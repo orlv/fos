@@ -9,7 +9,6 @@
 #include <system.h>
 #include <hal.h>
 #include <string.h>
-#include <paging.h>
 
 void start_sched();
 void namer_srv();

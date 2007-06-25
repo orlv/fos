@@ -10,7 +10,6 @@
 #include <stdio.h>
 #include <hal.h>
 #include <string.h>
-#include <paging.h>
 
 HeapMemBlock *heap_free_ptr = NULL;
 HeapMemBlock kmem_block;

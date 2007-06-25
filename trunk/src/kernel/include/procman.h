@@ -40,28 +40,22 @@ struct procman_message {
 
 class TProcMan {
 private:
-  List<Thread *> *proclist;
+  List<Thread *> *threadlist;
 
 public:
   TProcMan();
 
-  void add(register Thread *thread);
-  void del(register List<Thread *> *proc);
+  void reg_thread(register Thread *thread);
+  void unreg_thread(register List<Thread *> *thread);
 
   u32_t exec(register void *image, const string name);
-
   void scheduler();
-
   res_t kill(register tid_t tid);
-
-  TProcess *kprocess(register off_t eip, register u16_t flags);
   Thread *get_thread_by_tid(register tid_t tid);
-
   u32_t curr_proc;
-
   Thread *CurrentThread;
 
-  u32_t *kPageDir;
+  //u32_t *kPageDir;
 };
 
 void kill(tid_t tid);

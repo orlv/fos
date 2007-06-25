@@ -87,19 +87,6 @@ u32_t TProcess::LoadELF(register void *image)
   Elf32_Phdr *p;
   Elf32_Ehdr *h = (Elf32_Ehdr *) image; /* образ ELF */
   Elf32_Phdr *ph = (Elf32_Phdr *) ((u32_t) h + (u32_t) h->e_phoff);
-  
-#if 0
-  /* на всякий случай оставлю этот код (вывод информации об Section Headers) */
-  Elf32_Shdr *sh = (Elf32_Shdr *) ((u32_t)h + (u32_t)h->e_shoff);
-  for(i=0; i < h->e_shnum-1; i++)
-    {
-      if(sh[i].sh_flags && SHF_ALLOC)
-        {
-	  printk("load addr=0x%X, file offset=0x%X, size=0x%X flags=0x%X\n",
-	  	 sh[i].sh_addr, sh[i].sh_offset, sh[i].sh_size, sh[i].sh_flags);
-        }
-    }
-#endif
 
   /*
     Если секция обозначена как загружаемая - выделим для неё память,
@@ -119,14 +106,13 @@ u32_t TProcess::LoadELF(register void *image)
       */
       /*
 	NOTE: выделяются свободные страницы, мапятся в область ядра
-	 После, эти же страницы мапятся в область конкретного процесса.
-	 __ВАЖНО__: Затем необходимо освободить область ядра от этих страниц (kfree())
-	 kfree() вызовет umap_page() для каждой страницы, но umap не будет
-	 добавлять их в пул свободных страниц - он проверяет количество использований
-	 каждой страницы. Страницы освободятся только при отсоединении их от области процесса.
+	После, эти же страницы мапятся в область конкретного процесса.
+	__ВАЖНО__: Затем необходимо освободить область ядра от этих страниц (kfree())
+	kfree() вызовет umap_page() для каждой страницы, но umap не будет
+	добавлять их в пул свободных страниц - он проверяет количество использований
+	каждой страницы. Страницы освободятся только при отсоединении их от области процесса.
        */
       object = (u32_t *) kmalloc(p->p_memsz + (p->p_vaddr % PAGE_SIZE));
-      //printk("sz=0x%X \n",p->p_filesz/sizeof(u32_t));
 
       if (p->p_filesz > 0) {
 	memcpy((u32_t *) ((u32_t)object + (p->p_vaddr % PAGE_SIZE)), (u32_t *) ((u32_t) image + p->p_offset), p->p_filesz);
@@ -137,7 +123,6 @@ u32_t TProcess::LoadELF(register void *image)
       kfree(object); /* освобождаем память ядра от ненужных тут страниц */
     }
   }
-
   /* Возвращаем указатель на точку входа */
   return h->e_entry;
 }
@@ -152,7 +137,7 @@ Thread *TProcess::thread_create(off_t eip,
 
 {
   Thread *thread = new Thread(this, eip, flags, kernel_stack, user_stack , code_segment, data_segment);
-  
+
   if(!threads){
     threads = new List<Thread *>(thread);
   } else {

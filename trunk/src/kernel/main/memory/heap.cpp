@@ -9,6 +9,8 @@
 #include <mm.h>
 #include <stdio.h>
 #include <hal.h>
+#include <string.h>
+#include <paging.h>
 
 HeapMemBlock *heap_free_ptr = NULL;
 HeapMemBlock kmem_block;
@@ -19,10 +21,9 @@ void *malloc(register size_t size)
 {
   if (!size)
     return 0;
-  //  printk("[%d]",size);
+
   HeapMemBlock *p, *prevp;
   unsigned int nunits;
-  unsigned int i;
 
   nunits = (size + sizeof(HeapMemBlock) - 1) / sizeof(HeapMemBlock) + 1;
   if ((prevp = heap_free_ptr) == NULL) {	/* списка своб. памяти ещё нет */
@@ -42,16 +43,7 @@ void *malloc(register size_t size)
 
       p = (HeapMemBlock *) ((unsigned long)p + sizeof(HeapMemBlock));
       /* очистим выделяемую область памяти */
-      size_t asize;
-      unsigned long *ptr;
-      asize = size - (size % sizeof(unsigned long));
-      if (size % sizeof(unsigned long))
-	asize += sizeof(unsigned long);
-
-      asize /= sizeof(unsigned long);
-      for (ptr = (unsigned long *)p, i = 0; i < asize; i++)
-	ptr[i] = 0;
-
+      memset(p, 0, size);
       return (void *)p;
     }
 
@@ -114,15 +106,11 @@ void free(register void *ptr)
 void *realloc(register void *ptr, register size_t size)
 {
   unsigned long *dst;
-  unsigned int i, oldsize;
-  dst = (unsigned long *)malloc(size);
-  if (!dst)
+  unsigned long oldsize;
+  if (!(dst = (unsigned long *)malloc(size)))
     return NULL;
-  oldsize =
-      ((HeapMemBlock *) ((int)ptr -
-			 sizeof(HeapMemBlock)))->size * sizeof(HeapMemBlock);
-  for (i = 0; i < oldsize / 4; i++)
-    dst[i] = ((unsigned long *)ptr)[i];
+  oldsize = ((HeapMemBlock *) ((unsigned long)ptr - sizeof(HeapMemBlock)))->size * sizeof(HeapMemBlock);
+  __memcpy(dst, ptr, oldsize);
   free(ptr);
 
   return (void *)dst;
@@ -137,18 +125,6 @@ void *operator  new[] (unsigned int size)
 {
   return malloc(size);
 };
-
-void *operator  new(unsigned int size, void *ptr)
-{
-  size = size;
-  return ptr;
-}
-
-void *operator  new[] (unsigned int size, void *ptr)
-{
-  size = size;
-  return ptr;
-}
 
 void operator  delete(void *ptr)
 {

@@ -11,12 +11,12 @@
 #define GDT_SIZE 8192*8-1
 
 struct gdt_entry{
-  u8_t bytes[8];
+  volatile u8_t bytes[8];
 }__attribute__ ((packed));
 
 struct gdtr {
-  u16_t limit;
-  gdt_entry *base;
+  volatile u16_t limit;
+  volatile gdt_entry *base;
 } __attribute__ ((packed));
 
 class GDT {

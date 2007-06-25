@@ -156,6 +156,7 @@ res_t send(message *message)
   } else {
     thread = THREAD(message->tid);
   }
+
   if (!hal->ProcMan->get_thread_by_tid(TID(thread)))
     return RES_FAULT;
 

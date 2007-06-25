@@ -144,16 +144,25 @@ class Keyboard{
 
   bool extended;
   u32_t * code_table;
-
+  u8_t kbd_read_mask;
   volatile char * chars;
   volatile size_t chars_top;
   volatile size_t chars_start;
   TMutex buffer_mutex;
   
   void led_update();
-  inline void wait() /* ожидание готовности клавиатуры */
+
+
+  inline void kb_wait(void)
   {
-    while ((inportb(0x64) & 2));
+    for (u32_t i = 0; (i < 0x10000) && (inportb(0x64) & 0x02); i++);
+    //while((inportb(0x64) & 0x02));
+  }
+
+  inline void send_cmd(u8_t ch)
+  {
+    kb_wait();
+    outportb(0x64, ch);
   }
 
   void set_repeat_rate(u8_t rate);

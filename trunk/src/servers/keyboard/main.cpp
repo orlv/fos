@@ -23,7 +23,7 @@ void thread_handler()
   struct message msg;
   u8_t num;
   kb = new Keyboard;
-  ready = 1;  
+  ready = 1;
 
   while(1){
     msg.recv_size = sizeof(num);

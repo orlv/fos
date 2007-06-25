@@ -50,13 +50,11 @@ class Thread{
   gdt_entry descr;
   u16_t flags;
   tid_t send_to;
-  void set_stack_pl0();
   void set_tss(register off_t eip,
 	       register void *kernel_stack,
 	       register void *user_stack,
 	       u16_t code_segment=USER_CODE_SEGMENT,
 	       u16_t data_segment=USER_DATA_SEGMENT);
-  void kprocess_set_tss(register off_t eip);
   List<kmessage *> *new_msg;
   List<kmessage *> *recvd_msg;
 };

@@ -117,12 +117,13 @@ TTY & TTY::operator <<(const char *str)
 TTY & TTY::operator <<(unsigned int t)
 {
   size_t i;
-  char *str = new char[11];
+  //char *str = new char[11];
+  char str[11];
 
   i = sprintf(str, "%d", t);
   outs(str, i);
 
-  delete str;
+  //delete str;
   return (*this);
 }
 

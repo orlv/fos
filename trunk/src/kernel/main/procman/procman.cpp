@@ -9,6 +9,7 @@
 #include <system.h>
 #include <hal.h>
 #include <string.h>
+#include <paging.h>
 
 void start_sched();
 void namer_srv();
@@ -28,21 +29,22 @@ TProcMan::TProcMan()
 
   stack = kmalloc(STACK_SIZE);
   thread = process->thread_create(0, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
-  proclist = new List<Thread *>(thread);
+  threadlist = new List<Thread *>(thread);
   hal->gdt->load_tss(SEL_N(BASE_TSK_SEL), &thread->descr);
   ltr(BASE_TSK_SEL);
   lldt(0);
 
   CurrentThread = thread;
-  
+
   stack = kmalloc(STACK_SIZE);
   thread = process->thread_create((off_t) &start_sched, FLAG_TSK_KERN, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
-  proclist->add_tail(thread);
+
   hal->gdt->load_tss(SEL_N(BASE_TSK_SEL) + 1, &thread->descr);
 
   stack = kmalloc(STACK_SIZE);
-  hal->tid_namer = (tid_t)process->thread_create((off_t) & namer_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
-  proclist->add_tail((Thread *)hal->tid_namer);
+
+  hal->tid_namer = (tid_t)process->thread_create((off_t) &namer_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
+  reg_thread(THREAD(hal->tid_namer));  
 }
 
 u32_t TProcMan::exec(register void *image, const string name)
@@ -56,72 +58,74 @@ u32_t TProcMan::exec(register void *image, const string name)
   /* создаём каталог страниц процесса */
   process->memory->pagedir = (u32_t *) kmalloc(PAGE_SIZE);
   /* скопируем указатели на таблицы страниц ядра (страницы, расположенные ниже KERNEL_MEM_LIMIT) */
-  for(u32_t i=0; i < KERNEL_MEM_LIMIT/(PAGE_SIZE*1024); i++){
+  for(u32_t i=0; i <= PAGE(KERNEL_MEM_LIMIT)/1024; i++){
     process->memory->pagedir[i] = hal->kmem->pagedir[i];
   }
-  
-  off_t eip = process->LoadELF(image);
 
-  Thread *thread = process->thread_create(eip, FLAG_TSK_KERN | FLAG_TSK_READY, kmalloc(STACK_SIZE), process->memory->mem_alloc(STACK_SIZE));
-  proclist->add_tail(thread);
- 
+  off_t eip;
+  eip = process->LoadELF(image);
+  Thread *thread = process->thread_create(eip, FLAG_TSK_READY, kmalloc(STACK_SIZE), process->memory->mem_alloc(STACK_SIZE));
+  reg_thread(thread);
   return 0;
 }
 
 /* Добавляет поток в список */
-void TProcMan::add(register Thread * thread)
+void TProcMan::reg_thread(register Thread * thread)
 {
-  proclist->add_tail(thread);
+  hal->mt_disable();
+  threadlist->add_tail(thread);
+  hal->mt_enable();
 }
 
-void TProcMan::del(register List<Thread *> * proc)
+void TProcMan::unreg_thread(register List<Thread *> * thread)
 {
-  delete proc->item;
-  delete proc;
+  hal->mt_disable();
+  delete thread->item;
+  delete thread;
+  hal->mt_enable();
 }
 
 res_t TProcMan::kill(register pid_t pid)
 {
-  List<Thread *> *current = proclist;
+  hal->mt_disable();
+  List<Thread *> *current = threadlist;
   /* то же, что get_process_by_pid() */
   do {
     if ((pid_t)current->item->process == pid){
-      if(current->item->flags | FLAG_TSK_KERN)
+      if(current->item->flags | FLAG_TSK_KERN){
+	hal->mt_enable();
 	return RES_FAULT;
+      }
 
       current->item->flags &= ~FLAG_TSK_READY; /* снимем отметку выполнения с процесса */
       delete current->item->process;         /* уничтожим процесс */
       delete current;   /* удалим процесс из списка пройессов */
+      hal->mt_enable();
       return RES_SUCCESS;
     }
     current = current->next;
-  } while (current != proclist);
+  } while (current != threadlist);
 
+  hal->mt_enable();
   return RES_FAULT;
 }
 
 /* возвращает указатель только в том случае, если поток существует */
 Thread *TProcMan::get_thread_by_tid(register tid_t tid)
 {
-  List<Thread *> *current = proclist;
+  hal->mt_disable();
+  List<Thread *> *current = threadlist;
 
   do {
     if ((tid_t)current->item == tid){
+      hal->mt_enable();
       return current->item;
     }
 
     current = current->next;
-  } while (current != proclist);
+  } while (current != threadlist);
 
-  return 0;
-}
-
-/*
-  Создаёт процесс в адресном пространстве ядра.
-  Полезен для создания серверов, удобно разделяющих структуры данных с другими процессами режима ядра
-*/
-TProcess *TProcMan::kprocess(register off_t eip, register u16_t flags)
-{
+  hal->mt_enable();
   return 0;
 }
 

@@ -14,10 +14,12 @@
 #include <drivers/pic.h>
 #include <namer.h>
 #include <mm.h>
+#include <stack.h>
 
 class HAL {
  private:
   multiboot_info_t *mbi;
+  atomic_t mt;
 
  public:
   HAL(register multiboot_info_t * mbi);
@@ -34,14 +36,31 @@ class HAL {
 
   page *phys_page;      /* массив информации о страницах */
   size_t pages_cnt;     /* общее количество страниц в системе */
-  memstack *free_page;  /* пул свободных страниц */
+  Stack<u32_t> *free_page;
+  //memstack *free_page;  /* пул свободных страниц */
   atomic_t free_pages;  /* количество свободных страниц */
-  memstack *free_lowpage;
+  Stack<u32_t> *free_lowpage;
+  //memstack *free_lowpage;
   atomic_t free_lowpages;
 
   inline void cli() { asm("cli"); };
   inline void sti() { asm("sti"); };
 
+  inline void mt_disable()
+  {
+    atomic_set(&mt, 0);
+  }
+
+  inline void mt_enable()
+  {
+    atomic_set(&mt, 1);
+  }
+
+  inline bool mt_status()
+  {
+    return atomic_read(&mt);
+  }
+  
   inline void hlt() { asm("hlt"); };
   
   inline void outportb(u16_t port, u8_t value){

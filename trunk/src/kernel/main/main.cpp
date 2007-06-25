@@ -32,6 +32,7 @@ static inline void EnableTimer()
 
 tid_t resolve(char *name)
 {
+  while(!hal->namer);
   volatile struct message msg;
   u32_t res;
   union fs_message m;
@@ -48,6 +49,7 @@ tid_t resolve(char *name)
 
 void namer_add(string name)
 {
+  while(!hal->tid_namer);
   struct message *msg = new struct message;
   u32_t res;
   union fs_message *m = new fs_message;
@@ -57,7 +59,7 @@ void namer_add(string name)
   msg->send_buf = m;
   strcpy(m->data3.buf,  name);
   m->data3.cmd = NAMER_CMD_ADD;
-  msg->tid = (tid_t)hal->namer;
+  msg->tid = 0;
   send(msg);
 }
 
@@ -73,12 +75,12 @@ void procman(ModuleFS *bindir)
   msg->tid = 0;
 
   while (1) {
-    //asm("incb 0xb8000+154\n" "movb $0x2f,0xb8000+155 ");
+    asm("incb 0xb8000+154\n" "movb $0x2f,0xb8000+155 ");
 
     msg->recv_size = 256;
     msg->recv_buf = pm;
     receive(msg);
-    //printf("ProcMan: cmd=%d, tid=%d\n", pm->cmd, msg->tid);
+    printf("ProcMan: cmd=%d, tid=%d\n", pm->cmd, msg->tid);
     
     switch(pm->cmd){
     case PROCMAN_CMD_EXEC:
@@ -126,7 +128,7 @@ void procman(ModuleFS *bindir)
       thread = hal->ProcMan->get_thread_by_tid(msg->tid);
       thread = thread->process->thread_create(pm->arg.value, FLAG_TSK_READY, kmalloc(PAGE_SIZE), thread->process->memory->mem_alloc(PAGE_SIZE));
       res = (u32_t) thread;
-      hal->ProcMan->add(thread);
+      hal->ProcMan->reg_thread(thread);
       break;
 
     case PROCMAN_CMD_INTERRUPT_ATTACH:
@@ -165,7 +167,7 @@ void out_banner()
 asmlinkage void init()
 {
   init_memory();
-#if 1
+  
   hal->cli();
   hal->pic = new PIC;
   hal->pic->remap(0x20, 0x28);
@@ -173,13 +175,13 @@ asmlinkage void init()
   int i;
   for(i = 0; i < 16; i++)
     hal->pic->mask(i);
-  
+
   hal->gdt = new GDT;
   hal->idt = new IDT;
 
   setup_idt();
   hal->sti();
-  
+
   VGA *con = new VGA;
   TTY *tty1 = new TTY(80, 25);
 
@@ -187,17 +189,19 @@ asmlinkage void init()
   tty1->SetTextColor(WHITE);
 
   stdout = tty1;
-#endif
 
   out_banner();
 
   hal->ProcMan = new TProcMan;
-
   SysTimer = new TTime;
 
   EnableTimer();
+  hal->mt_enable();
 
   namer_add("/sys/procman");
+
+  tid_t pro = resolve("/sys/procman");
+  printk("pro=0x%X\n", pro);
   
   extern multiboot_info_t *__mbi;
   ModuleFS *modules = new ModuleFS(__mbi);

@@ -13,6 +13,7 @@ tid_t procman;
 
 void _start()
 {
+  //while(1);
   while(!(namer = resolve("/sys/namer")));
   while(!(procman = resolve("/sys/procman")));
   tty = 0;

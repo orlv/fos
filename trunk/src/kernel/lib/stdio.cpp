@@ -8,8 +8,7 @@
 #include <drivers/char/tty/tty.h>
 #include <vsprintf.h>
 #include <system.h>
-
-extern TTY *stdout;
+#include <hal.h>
 
 int sprintf(char *str, const char *fmt, ...)
 {
@@ -24,18 +23,18 @@ char printbuf[2000];
 
 int printk(const char *fmt, ...)
 {
+  extern TTY *stdout;
   int i = 0;
-  //string str = new char[2000];
-  //if(!str) return 0;
-  va_list args;
-  va_start(args, fmt);
-  i = vsprintf(printbuf, fmt, args);
-  va_end(args);
-
-  if (stdout)
+  if (stdout){
+    va_list args;
+    va_start(args, fmt);
+    hal->mt_disable();
+    i = vsprintf(printbuf, fmt, args);
+    va_end(args);
+    
     *stdout << printbuf;
-  //stdout->write(0, str,i);
-  //delete str;
+    hal->mt_enable();
+  }
   return i;
 }
 
@@ -46,8 +45,10 @@ tid_t resolve(char *name);
 
 int printf(const char *fmt, ...)
 {
-  if(!tty && !(tty = resolve("/dev/tty")))
-    return 0;
+  return 0;
+  if(!tty)
+    if(!(tty = resolve("/dev/tty")))
+      return 0;
 
   int i = 0;
   va_list args;
@@ -60,7 +61,7 @@ int printf(const char *fmt, ...)
   m->data3.buf[i] = 0;
   volatile struct message msg;
   msg.send_buf = msg.recv_buf = m;
-  msg.send_size = 4 + i + 1;
+  msg.send_size = 8 + i + 1;
   msg.recv_size = sizeof(unsigned long);
   msg.tid = tty;
   send((struct message *)&msg);

@@ -97,6 +97,7 @@ u32_t scancodes_shifted[] = {
 Keyboard::Keyboard()
 {
   chars = new char[KB_CHARS_BUFF_SIZE];
+  //kbd_read_mask = 0x01;
   unmask_interrupt(KEYBOARD_IRQ_NUM);
   set_repeat_rate(0);
   led_update();
@@ -113,9 +114,9 @@ Keyboard::~Keyboard()
 
 void Keyboard::set_repeat_rate(u8_t rate)
 {
-  wait();
+  kb_wait();
   outportb(0x60, 0xf3);
-  wait();
+  kb_wait();
   outportb(0x60, rate);
 }
 
@@ -130,15 +131,23 @@ void Keyboard::led_update()
   if (leds.scroll)
     cmd += 1;
 
-  wait();
+  kb_wait();
   outportb(0x60, 0xed);
-  wait();
+  kb_wait();
   outportb(0x60, cmd);
 }
 
 void Keyboard::handler()
 {
-  char scancode = inportb(PORT_KBD_A);
+  char scancode;
+  send_cmd(0xad);         /* disable keyboard */
+  kb_wait();
+  //u8_t boo = inportb(0x64);
+  //printf("[0x%X]", boo);
+  //if ((boo & kbd_read_mask) == 0x01){
+  scancode = inportb(PORT_KBD_A);
+  //  }
+  send_cmd(0xae);         /* enable keyboard */
   unmask_interrupt(KEYBOARD_IRQ_NUM);
   decode(scancode);
 }

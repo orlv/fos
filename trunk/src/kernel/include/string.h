@@ -153,8 +153,8 @@ static inline size_t strlen(register const char *s)
   return __res;
 }
 
-#if 0
-static __always_inline void *__memcpy(register void *to, register const void *from, register size_t n)
+#if 1
+static inline void *__memcpy(register void *to, register const void *from, register size_t n)
 {
   int d0, d1, d2;
   __asm__ __volatile__("rep ; movsl\n\t" "movl %4,%%ecx\n\t" "andl $3,%%ecx\n\t"
@@ -246,5 +246,18 @@ static inline void *memcpy(register void *to, register const void *from, registe
     return to;
   }
 }
+
+static inline void * memset(void * s, char c, size_t count)
+{
+  int d0, d1;
+  __asm__ __volatile__(
+		       "rep\n\t"
+		       "stosb"
+		       : "=&c" (d0), "=&D" (d1)
+		       :"a" (c),"1" (s),"0" (count)
+		       :"memory");
+  return s;
+}
+
 
 #endif

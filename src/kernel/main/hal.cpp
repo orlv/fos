@@ -14,6 +14,7 @@ HAL::HAL(register multiboot_info_t * mbi)
 {
   this->mbi = mbi;
   user_int_handler = new u32_t[256];
+  mt_disable();
 }
 
 void HAL::panic(register const char *fmt, ...)

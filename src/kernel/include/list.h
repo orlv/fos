@@ -1,6 +1,6 @@
 /*
    include/list.h
-   Copyright (C) 2006 Oleg Fedorov
+   Copyright (C) 2006-2007 Oleg Fedorov
 */
 
 #ifndef _LIST_H
@@ -13,7 +13,7 @@
   Все элементы равнозначны. Подробности - см. связанные списки в Linux 2.6
 */
 template <class ListItem> class List {
-public:
+ public:
   List *prev;
   List *next;
 
@@ -30,7 +30,7 @@ public:
   /*
     -данный узел удаляется
     -правятся ссылки в prev и next
-    ВНИМАНИЕ! данные в data - не удаляются!
+    ВНИМАНИЕ! данные в item - не удаляются!
   */
   ~List()
     {
@@ -40,7 +40,7 @@ public:
 
 
   /* добавляет новый узел в начало списка (сразу после this) */
-  void add(ListItem item)
+  List<ListItem> * add(ListItem item)
   {
     List<ListItem> *list = new List<ListItem>(item);
       
@@ -49,10 +49,11 @@ public:
 
     list->prev = this;
     this->next = list;
+    return list;
   }  
   
   /* добавляет новый узел в конец списка (перед this) */
-  void add_tail(ListItem item)
+  List<ListItem> * add_tail(ListItem item)
   {
     List<ListItem> *list = new List<ListItem>(item);
     
@@ -61,6 +62,7 @@ public:
 
     list->next = this;
     this->prev = list;
+    return list;
   }
  
   /* удаляет узел из текущего списка, и добавляет его в другой список после

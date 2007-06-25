@@ -26,7 +26,7 @@ Thread::Thread(class TProcess *process,
   recvd_msg = new List<kmessage *>(_msg); /* пустое сообщение */
 
   this->process = process;
-  
+
   set_tss(eip, kernel_stack, user_stack, code_segment, data_segment);
 
   this->flags = flags;
@@ -55,12 +55,12 @@ void Thread::set_tss(register off_t eip,
 		     u16_t code_segment,
 		     u16_t data_segment)
 {
-  tss = (struct TSS *)kmalloc(sizeof(struct TSS));
+  tss = (struct TSS *)kmalloc(sizeof(TSS));
 
   tss->cr3 = (u32_t)kmem_phys_addr(PAGE((u32_t)process->memory->pagedir));
   tss->eip = eip;
 
-  tss->eflags = 0x00000202;
+  tss->eflags = X86_EFLAGS_IOPL|X86_EFLAGS_IF|X86_EFLAGS;
 
   stack_pl0 = (off_t) kernel_stack;
   tss->esp0 = (off_t) kernel_stack + STACK_SIZE - 1;
@@ -71,7 +71,7 @@ void Thread::set_tss(register off_t eip,
   tss->ds = (u16_t) data_segment;
   tss->ss0 = KERNEL_DATA_SEGMENT;
   
-  tss->IOPB = 0xffffffff;
+  tss->io_bitmap_base = 0xffffffff;
 
   /* создадим селектор TSS */
   hal->gdt->set_tss_descriptor((off_t) tss, &descr);
@@ -80,5 +80,5 @@ void Thread::set_tss(register off_t eip,
 void Thread::run()
 {
   hal->gdt->load_tss(SEL_N(BASE_TSK_SEL), &descr);
-  asm("ljmp $0x38, $0");
+  __asm__ __volatile__("ljmp $0x38, $0");
 }

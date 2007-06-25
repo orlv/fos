@@ -12,7 +12,6 @@
 
 #define BASE_TSK_SEL 0x38
 #define SEL_N(SEL) ((SEL)/8)
-//#define BASE_TSK_SEL_N 7
 
 static inline void sched_yield()
 {

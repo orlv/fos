@@ -15,6 +15,16 @@ asmlinkage void sys_call();
 
 void exception(string str, unsigned int cs,  unsigned int address, unsigned int errorcode)
 {
+#if 0
+  printk("\n--------------------------------------------------------------------------------" \
+	 "Exception: %s \n"						\
+	 "At addr: 0x%02X:0x%08X\n"					\
+	 "Errorcode: 0x%X",
+	 str, cs, address, errorcode);
+
+  hal->panic("fault in kernel task!");
+#endif
+
   if(hal->ProcMan->CurrentThread->flags & FLAG_TSK_KERN){
     printk("\n--------------------------------------------------------------------------------" \
 	   "Exception: %s \n"						\
@@ -25,7 +35,7 @@ void exception(string str, unsigned int cs,  unsigned int address, unsigned int 
 	   str, cs, address, hal->ProcMan->CurrentThread, hal->ProcMan->CurrentThread->process, hal->ProcMan->CurrentThread->process->name, errorcode);
     hal->panic("fault in kernel task!");
   } else {
-    printf("\n--------------------------------------------------------------------------------" \
+    printk("\n--------------------------------------------------------------------------------" \
 	   "Exception: %s \n"						\
 	   "At addr: 0x%02X:0x%08X\n"					\
 	   "Thread: 0x%X, Process: 0x%X \n"				\
@@ -33,9 +43,10 @@ void exception(string str, unsigned int cs,  unsigned int address, unsigned int 
 	   "Errorcode: 0x%X\n"						\
 	   "--------------------------------------------------------------------------------", \
 	   str, cs, address, hal->ProcMan->CurrentThread, hal->ProcMan->CurrentThread->process, hal->ProcMan->CurrentThread->process->name, errorcode);
-    
+
     hal->ProcMan->CurrentThread->flags |= FLAG_TSK_TERM;
     hal->ProcMan->CurrentThread->flags &= ~FLAG_TSK_READY;
+    hal->panic("fault in user task!");
     while(1);
   }
 }
@@ -159,7 +170,7 @@ IRQ_HANDLER(timer_handler)
   SysTimer->tick(); /* Считаем время */
 
   u16_t pid = curPID();
-  if (pid == 1) { /* Если мы в scheduler() */
+  if ((pid == 1) || (!hal->mt_status())) { /* Если мы в scheduler() */
     //asm("incb 0xb8000+156\n" "movb $0x5e,0xb8000+157 ");
 
     hal->outportb(0x20, 0x20);

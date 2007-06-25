@@ -8,32 +8,12 @@
 #include <paging.h>
 #include <stdio.h>
 #include <hal.h>
-
-//size_t memory_used;
-
-#include <drivers/char/tty/tty.h>
-#include <mm.h>
-#include <paging.h>
-#include <drivers/block/vga/vga.h>
-#include <string.h>
-#include <system.h>
-#include <stdio.h>
-#include <drivers/char/timer/timer.h>
-#include <hal.h>
-#include <traps.h>
-#include <vsprintf.h>
-#include <stdarg.h>
-#include <drivers/fs/modulefs/modulefs.h>
-#include <fs.h>
-
+#include <stack.h>
 
 void put_page(u32_t page)
 {
   if(!page_status(page) || !free_page(page)){ /* если эта страница больше никем не используется */
-    memstack *m = new memstack;
-    m->next = hal->free_page;
-    m->n = page;
-    hal->free_page = m;
+    hal->free_page->push(page);
     atomic_inc(&hal->free_pages);
   }
 }
@@ -41,12 +21,8 @@ void put_page(u32_t page)
 u32_t get_page()
 {
   if(atomic_read(&hal->free_pages)){
-    memstack *m;
-    m = hal->free_page;
-    hal->free_page =  hal->free_page->next;
-    //alloc_page(m->n);
     atomic_dec(&hal->free_pages);
-    return m->n;
+    return hal->free_page->pop();
   } else {
     return 0;
   }
@@ -55,22 +31,15 @@ u32_t get_page()
 void put_lowpage(u32_t page)
 {
   if(!page_status(page) || !free_page(page)){ /* если эта страница больше никем не используется */
-    memstack *m = new memstack;
-    m->next = hal->free_lowpage;
-    m->n = page;
-    hal->free_lowpage = m;
+    hal->free_lowpage->push(page);
     atomic_inc(&hal->free_lowpages);
   }
 }
 
 u32_t get_lowpage()
 {
-  memstack *m;
-  m = hal->free_page;
-  hal->free_page =  hal->free_page->next;
-  //alloc_page(m->n);
-  atomic_dec(&hal->free_pages);
-  return m->n;
+  atomic_dec(&hal->free_lowpages);
+  return hal->free_lowpage->pop();
 }
 
 
@@ -100,7 +69,7 @@ void init_memory()
   offs_t heap_start;
   if((low_freemem_start + heap_size + MIN_FREE_MEMORY) >= memory_size){
     /* памяти не хватит!! suxx */
-    while(1);
+    while(1) asm("incb 0xb8000+158\n" "movb $0x5f,0xb8000+159");
   }
 
   if(memory_size <= LOWMEM_SIZE /* 16Mb */){
@@ -113,7 +82,7 @@ void init_memory()
     heap_start = LOWMEM_SIZE;
     freemem_start = heap_start + heap_size;
   }
-
+  
   /* хип ядра */
   HeapMemBlock *kheap;
 
@@ -133,44 +102,19 @@ void init_memory()
   hal = new HAL(__mbi);
   hal->pages_cnt = pages_cnt;
   hal->phys_page = new page[hal->pages_cnt];
-  hal->free_page = new memstack;
-  hal->free_page->n = PAGE(freemem_start);
-
-#if 0
-  hal->cli();
-  hal->pic = new PIC;
-  hal->pic->remap(0x20, 0x28);
-
-  int i;
-  for(i = 0; i < 16; i++)
-    hal->pic->mask(i);
-
-  hal->gdt = new GDT;
-  hal->idt = new IDT;
-
-  setup_idt();
-  hal->sti();
-
-  VGA *con = new VGA;
-  TTY *tty1 = new TTY(80, 25);
-
-  tty1->stdout = con;
-  tty1->SetTextColor(WHITE);
-
-  extern TTY *stdout;
-  stdout = tty1;
-#endif
-
+  hal->free_page = new Stack<u32_t>(pages_cnt-PAGE(freemem_start)); //memstack;
+  
+  atomic_set(&hal->free_pages, 0);
+  
   /* заполним пул свободных страниц страницами, лежащими ниже KERNEL_MEM_LIMIT */
-  for(u32_t i = PAGE(freemem_start); (i < (hal->pages_cnt - PAGE(freemem_start))) && (i < PAGE(KERNEL_MEM_LIMIT)); i++){
+  for(u32_t i = PAGE(freemem_start); (i < hal->pages_cnt) && (i < PAGE(KERNEL_MEM_LIMIT)); i++){
     put_page(i);
   }
 
   /* создаем пул свободных нижних (<16Mb) страниц */
   if(freemem_start != low_freemem_start){
-    hal->free_lowpage = new memstack;
-    hal->free_lowpage->n = PAGE(low_freemem_start);
-    for(u32_t i = PAGE(low_freemem_start) + 1; i < (PAGE(LOWMEM_SIZE) - PAGE(low_freemem_start)); i++){
+    hal->free_lowpage = new Stack<u32_t>(PAGE(LOWMEM_SIZE)-PAGE(low_freemem_start)); //memstack;
+    for(u32_t i = PAGE(low_freemem_start); (i < hal->pages_cnt) && (i < PAGE(LOWMEM_SIZE)); i++){
       put_lowpage(i);
     }
   }
@@ -178,7 +122,7 @@ void init_memory()
   hal->kmem = new Memory(0, KERNEL_MEM_LIMIT, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS);
   hal->kmem->pagedir = (u32_t *) (get_page() * PAGE_SIZE);
   kmem_set_log_addr(PAGE((u32_t)hal->kmem->pagedir), PAGE((u32_t)hal->kmem->pagedir));
-  
+
   /* создадим таблицы страниц для всей памяти, входящей в KERNEL_MEM_LIMIT (32 каталога для 128 мегабайт) */
   for(u32_t i=0; i < KERNEL_MEM_LIMIT/(PAGE_SIZE*1024); i++){
     hal->kmem->pagedir[i] = (get_page()*PAGE_SIZE) | 3;
@@ -190,6 +134,7 @@ void init_memory()
   }
 
   hal->kmem->mmap((void *)hal->kmem->pagedir, (void *)hal->kmem->pagedir, PAGE_SIZE);
+
   /* смонтируем память от нуля до начала свободной памяти как есть */
   hal->kmem->mmap(0, 0, low_freemem_start);
 
@@ -209,14 +154,19 @@ void init_memory()
 void *kmalloc(register size_t size)
 {
   void *ptr;
+  hal->mt_disable();
   if(!(ptr = hal->kmem->mem_alloc(size)))
     hal->panic("Can't allocate 0x%X bytes of kernel memory!", size);
-  
+  hal->mt_enable();
+
+  memset(ptr, 0, size);
   return ptr;
 }
 
 void kfree(register void *ptr)
 {
+  hal->mt_disable();
   hal->kmem->mem_free(ptr);
+  hal->mt_enable();
 }
 

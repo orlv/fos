@@ -12,7 +12,8 @@ GDT::GDT()
   gdtr gdtr;
 
   gdtr.limit = GDT_SIZE;
-  gdt = gdtr.base = (gdt_entry *) kmalloc(GDT_SIZE);
+  gdt = (gdt_entry *) kmalloc(GDT_SIZE);
+  gdtr.base =  (gdt_entry *) (u32_t)gdt;
 
   /* null descriptor */
   clear_descriptor(0);
@@ -26,7 +27,7 @@ GDT::GDT()
   set_segment_descriptor(4, 0, 0xffffffff, 0, 1, 3, 1, 0);
 
   /* 0x28 */
-  set_segment_descriptor(5, 0, 0xffff, 1, 1, 0, 0, 1); 
+  set_segment_descriptor(5, 0, 0xffff, 1, 1, 0, 0, 1);
   /* 0x30 */
   set_segment_descriptor(6, 0, 0xffff, 0, 1, 0, 0, 0);
 

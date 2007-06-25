@@ -8,8 +8,11 @@
 
 #include <types.h>
 #include <hal.h>
+#include <string.h>
 
 void setup_paging();
+
+#define clear_page(page) memset((void *)(page), 0, PAGE_SIZE)
 
 static inline u32_t * pagetable_addr(u32_t n, u32_t *pagedir)
 {
@@ -21,6 +24,11 @@ static inline u32_t * kmem_phys_addr(u32_t n)
 {
   u32_t *pagetable = pagetable_addr(n, hal->kmem->pagedir);
   return (u32_t *) (pagetable[n & 0x3ff] & 0xfffff000);
+}
+
+static inline void flush_tlb_single(u32_t addr)
+{
+  __asm__ __volatile__("invlpg (%0)"::"r" (addr): "memory");
 }
 
 #endif

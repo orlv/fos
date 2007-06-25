@@ -96,7 +96,7 @@ static inline u32_t PAGE(u32_t address)
 }
 
 #define MMU_PAGE_PRESENT         1
-#define MMU_PAGE_WRITE_ACCESS   2
+#define MMU_PAGE_WRITE_ACCESS    2
 #define MMU_PAGE_USER_ACCESSABLE 4
 
 struct memblock {
@@ -105,14 +105,16 @@ struct memblock {
   size_t size; /* размер блока */
 };
 
+void *realloc(register void *ptr, register size_t size);
+
 class Memory {
  private:
-  List<memblock *> *UsedMem;
-  List<memblock *> *FreeMem;
+  List<memblock *> * volatile UsedMem;
+  List<memblock *> * volatile FreeMem;
   u16_t flags;
 
   void map_pages(register u32_t *phys_pages, register u32_t log_page, register size_t n);
-  void umap_pages(register u32_t *log_pages, register size_t n);
+  void umap_pages(register u32_t log_page, register size_t n);
 
   void *mem_alloc(register u32_t *phys_pages, register size_t pages_cnt);
   void *do_mmap(register u32_t *phys_pages, register void *log_address, register size_t pages_cnt);
@@ -123,6 +125,7 @@ class Memory {
   u32_t *pagedir; /* каталог страниц */
 
   u32_t mount_page(register u32_t phys_page, register u32_t log_page);
+  /* если указанная страница более нигде не используется - она добавляется в пул свободных страниц */
   u32_t umount_page(register u32_t log_page);
 
   void *mem_alloc(register size_t size);
@@ -131,6 +134,8 @@ class Memory {
   void *mmap(register void *phys_address, register void *log_address, register size_t size);
   void *kmmap(register void *kmem_address, register void *log_address, register size_t size);
   void mem_free(register void *ptr);
+  void dump_used();
+  void dump_free();
 };
 
 void put_page(u32_t page);

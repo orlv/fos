@@ -28,26 +28,26 @@
 
 void namer_srv()
 {
-  printk("[Namer]\n");
-
-  hal->namer = new Namer;
-
+  Namer *namer = new Namer;
+  hal->namer = namer;
   Tobject *obj;
   message *msg = new message;
   fs_message *m = new fs_message;
   u32_t res;
 
   hal->namer->add("/sys/namer", (sid_t)hal->ProcMan->CurrentThread);
-  
+
+  //printk("Namer: ready\n");
+
   while(1){
-    asm("incb 0xb8000+152\n" "movb $0x1f,0xb8000+153 ");
     msg->recv_size = sizeof(fs_message);
     msg->recv_buf = m;
 
     receive(msg);
-  
+    //printk("namer: cmd=0x%X\n", m->data.cmd);
     switch(m->data.cmd){
     case NAMER_CMD_ADD:
+      //printk("adding [%s]\n", m->data3.buf);
       obj = hal->namer->add(m->data3.buf, msg->tid);
 
       if(obj)
@@ -64,18 +64,25 @@ void namer_srv()
     case NAMER_CMD_ACCESS:
       obj = hal->namer->access(m->data3.buf, m->data3.buf);
       
-      if(obj){
-	printk("[%s]", m->data3.buf);
-      }
-      else
-	res = 0;
+      /*if(obj){
+	printk("namer: access to [%s]\n", m->data3.buf);
+	}*/
+      //else
+      //res = 0;
       
       forward(msg, obj->sid);
       break;
       
     case NAMER_CMD_RESOLVE:
+      //printk("namer: resolving [%s]\n", m->data3.buf);
       obj = hal->namer->access(m->data3.buf, 0);
-      res = obj->sid;
+      if(obj){
+	//printk("[%s]", m->data3.buf);
+	res = obj->sid;
+      } else {
+	res = RES_FAULT;
+      }
+
       msg->recv_size = 0;
       msg->send_size = sizeof(res);
       msg->send_buf = &res;

@@ -15,7 +15,7 @@ include ../Makefile.conf
 ASFLAGS =-Wall -nostdlib -nostdinc -Iinclude
 CFLAGS  =-Wall -ffreestanding -nostdlib -nostdinc -fno-stack-protector -Iinclude
 
-CXXFLAGS =-Wall -nostdinc -nostdinc++ -Iinclude -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin -fno-stack-protector -O2 -mregparm=3
+CXXFLAGS =-Wall -nostdinc -nostdinc++ -Iinclude -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin -fno-stack-protector -O0 -mregparm=3
 
 LDFLAGS =-nostdlib -static
 

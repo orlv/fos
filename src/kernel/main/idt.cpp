@@ -1,11 +1,10 @@
 /*
- * kernel/idt.cpp
+ * kernel/main/idt.cpp
  * Copyright (C) 2005-2007 Oleg Fedorov
  */
 
 #include <idt.h>
 #include <mm.h>
-#include <paging.h>
 
 IDT::IDT()
 {

@@ -4,7 +4,7 @@
  */
 
 #include <system.h>
-#include <paging.h>
+#include <mmu.h>
 #include <stdio.h>
 #include <mm.h>
 #include <hal.h>

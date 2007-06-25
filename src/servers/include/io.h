@@ -6,24 +6,24 @@
 #ifndef __IO_H
 #define __IO_H
 
-inline void outportb(unsigned short port, unsigned char value)
+inline void outb(unsigned char value, unsigned short port)
 {
   asm volatile ("outb %0,%1"::"a" (value), "d"(port));
 };
 
-inline unsigned char inportb(unsigned short port)
+inline unsigned char inb(unsigned short port)
 {
   unsigned char value;
   asm volatile ("inb %1, %0":"=a" (value):"d"(port));
   return value;
 };
 
-inline void outportw(unsigned short port, unsigned short value)
+inline void outw(unsigned short value, unsigned short port)
 {
   asm volatile ("outw %0,%1"::"a" (value), "d"(port));
 };
 
-inline unsigned short inportw(unsigned short port)
+inline unsigned short inw(unsigned short port)
 {
   unsigned short value;
   asm volatile ("inw %1, %0":"=a" (value):"d"(port));

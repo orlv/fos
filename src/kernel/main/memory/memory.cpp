@@ -7,7 +7,7 @@
 #include <mm.h>
 #include <process.h>
 #include <hal.h>
-#include <paging.h>
+#include <mmu.h>
 
 Memory::Memory(offs_t base, size_t size, u16_t flags)
 {

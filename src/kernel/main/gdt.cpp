@@ -1,11 +1,10 @@
 /*
- * kernel/gdt.cpp
+ * kernel/main/gdt.cpp
  * Copyright (C) 2005-2007 Oleg Fedorov
  */
 
 #include <gdt.h>
 #include <mm.h>
-#include <paging.h>
 
 GDT::GDT()
 {

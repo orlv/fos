@@ -3,10 +3,10 @@
   Copyright (C) 2005-2007 Oleg Fedorov
 */
 
-#include <mm.h>
-#include <paging.h>
-#include <procman.h>
 #include <process.h>
+#include <mm.h>
+#include <mmu.h>
+#include <procman.h>
 #include <stdio.h>
 #include <system.h>
 #include <hal.h>
@@ -15,22 +15,7 @@
 
 TProcess::TProcess()
 {
-  //u32_t eip;
-  //  if(flags & FLAG_TSK_KERN){
-  //  this->mem_init(KERNEL_MEM_BASE, KERNEL_MEM_SIZE);
-  //} else {
-  //this->mem_init(PROCESS_MEM_BASE, PROCESS_MEM_SIZE);
-  //}
-  
-  //if(flags & FLAG_TSK_KERN){ /* kernel process */
-  //this->PageDir = kPageDir;
-  //eip = (off_t) image;
-  //} else {                   /* user process   */
-  //this->PageDir = CreatePageDir();
-  //eip = LoadELF(image);
-  //}
-
-  //thread_create(eip, flags);
+  /* empty */
 }
 
 TProcess::~TProcess()

@@ -96,9 +96,8 @@ u32_t scancodes_shifted[] = {
 
 Keyboard::Keyboard()
 {
-  chars = new char[KB_CHARS_BUFF_SIZE];
-  //kbd_read_mask = 0x01;
-  unmask_interrupt(KEYBOARD_IRQ_NUM);
+  chars = new u8_t[KB_CHARS_BUFF_SIZE];
+  unmask_interrupt(KBD_IRQ_NUM);
   set_repeat_rate(0);
   led_update();
   code_table = scancodes;
@@ -109,15 +108,15 @@ Keyboard::Keyboard()
 
 Keyboard::~Keyboard()
 {
-  delete (char *)chars;
+  delete (u32_t *)chars;
 }
 
 void Keyboard::set_repeat_rate(u8_t rate)
 {
-  kb_wait();
-  outportb(0x60, 0xf3);
-  kb_wait();
-  outportb(0x60, rate);
+  wait_ready();
+  i8042.data_write(i8042_KBD_REPEAT_RATE);
+  wait_ready();
+  i8042.data_write(rate);
 }
 
 void Keyboard::led_update()
@@ -131,28 +130,25 @@ void Keyboard::led_update()
   if (leds.scroll)
     cmd += 1;
 
-  kb_wait();
-  outportb(0x60, 0xed);
-  kb_wait();
-  outportb(0x60, cmd);
+  wait_ready();
+  i8042.data_write(i8042_KBD_LEDS);
+  wait_ready();
+  i8042.data_write(cmd);
 }
 
 void Keyboard::handler()
 {
-  char scancode;
-  send_cmd(0xad);         /* disable keyboard */
-  kb_wait();
-  //u8_t boo = inportb(0x64);
-  //printf("[0x%X]", boo);
-  //if ((boo & kbd_read_mask) == 0x01){
-  scancode = inportb(PORT_KBD_A);
-  //  }
-  send_cmd(0xae);         /* enable keyboard */
-  unmask_interrupt(KEYBOARD_IRQ_NUM);
+  u8_t scancode = i8042.data_read();
+  
+  u8_t p = i8042.command_read();
+  i8042.command_write(p | 0x80);
+  i8042.command_write(p);
+  
+  unmask_interrupt(KBD_IRQ_NUM);
   decode(scancode);
 }
 
-res_t Keyboard::put(char ch)
+res_t Keyboard::put(u8_t ch)
 {
   buffer_mutex.lock();
   size_t i = chars_top + 1;
@@ -171,9 +167,9 @@ res_t Keyboard::put(char ch)
   return res;
 }
 
-char Keyboard::get()
+u8_t Keyboard::get()
 {
-  char ch;
+  u8_t ch;
 
   while(1){
     while(chars_start == chars_top);

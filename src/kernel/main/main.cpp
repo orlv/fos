@@ -6,7 +6,6 @@
 #include <multiboot.h>
 #include <drivers/char/tty/tty.h>
 #include <mm.h>
-#include <paging.h>
 #include <drivers/block/vga/vga.h>
 #include <string.h>
 #include <system.h>
@@ -16,9 +15,7 @@
 #include <traps.h>
 #include <vsprintf.h>
 #include <stdarg.h>
-
 #include <drivers/fs/modulefs/modulefs.h>
-
 #include <fs.h>
 
 TTY *stdout;

@@ -28,11 +28,12 @@ int printk(const char *fmt, ...)
   if (stdout){
     va_list args;
     va_start(args, fmt);
-    hal->mt_disable();
+    
     i = vsprintf(printbuf, fmt, args);
     va_end(args);
-    
-    *stdout << printbuf;
+
+    hal->mt_disable();
+    stdout->write(0, printbuf, i);
     hal->mt_enable();
   }
   return i;
@@ -45,7 +46,6 @@ tid_t resolve(char *name);
 
 int printf(const char *fmt, ...)
 {
-  return 0;
   if(!tty)
     if(!(tty = resolve("/dev/tty")))
       return 0;

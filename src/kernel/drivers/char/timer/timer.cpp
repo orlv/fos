@@ -28,13 +28,9 @@
 #define I8253_MODE_16BIT	0x30	/* r/w counter 16 bits, LSB first */
 #define I8253_MODE_BCD		0x01	/* count in BCD */
 
-static inline void EnableTimer()
+Timer::Timer()
 {
-  hal->outportb(0x21, hal->inportb(0x21) & 0xfe);	/* Enable timer */
-}
-
-TTime::TTime()
-{
+  printk("SysTimer: setting up.. ");
   u16_t msec_per_tick = 1;
   u16_t count = (1193182 * msec_per_tick + 500) / 1000;
   hal->outportb(I8253_MODE, I8253_MODE_SEL0 | I8253_MODE_RATEGEN | I8253_MODE_16BIT);
@@ -43,21 +39,22 @@ TTime::TTime()
   hal->outportb(I8253_CNTR0, count & 0xff);
   hal->outportb(I8253_CNTR0, count >> 8);
 
-  //  EnableTimer();
+  printk("[OK]\n");
+  enable();
 }
 
 u32_t uptime()
 {
-  extern TTime *SysTimer;
+  extern Timer *SysTimer;
   return SysTimer->uptime();
 }
 
-u32_t TTime::uptime()
+u32_t Timer::uptime()
 {
   return _uptime;
 }
 
-void TTime::tick()
+void Timer::tick()
 {
   _uptime++;
 }
@@ -70,7 +67,7 @@ asmlinkage void timer_handler(u16_t cs)
 {
   asm("incb 0xb8000+156\n" "movb $0x5e,0xb8000+157 ");
   while(1);
-  extern TTime *SysTimer;
+  extern Timer *SysTimer;
   SysTimer->tick();		/* Считаем время */
 
   u16_t pid = curPID();

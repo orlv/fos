@@ -27,7 +27,10 @@ asmlinkage int main()
   TTY *tty = new TTY(80, 25);
   tty->stdout = vga;
 
-  tty->outs("Console Activated \n");
+  char *dmesgbuf = new char[2000];
+  size_t len = dmesg(dmesgbuf, 2000);
+
+  tty->write(0, dmesgbuf, len);
 
   while (1) {
     msg->tid = 0;
@@ -41,7 +44,7 @@ asmlinkage int main()
       break;
 
     case FS_CMD_WRITE:
-      tty->outs(m->data3.buf);
+      tty->write(0, m->data3.buf, msg->recv_size - 9);
       res = RES_SUCCESS;
       break;
 

@@ -14,6 +14,7 @@
 #define PROCMAN_CMD_CREATE_THREAD    5
 #define PROCMAN_CMD_INTERRUPT_ATTACH 6
 #define PROCMAN_CMD_INTERRUPT_DETACH 7
+#define PROCMAN_CMD_DMESG            8
 
 struct procman_message {
   u32_t cmd;
@@ -261,7 +262,6 @@ asmlinkage size_t write(fd_t fd, void *buf, size_t count)
   return msg.send_size - 8;
 }
 
-
 asmlinkage fd_t open(const char *pathname, int flags)
 {
   tid_t thread = resolve("/dev/keyboard");
@@ -280,4 +280,20 @@ asmlinkage int close(fd_t fd)
 
   delete fd;
   return 0;
+}
+
+asmlinkage size_t dmesg(char *buf, size_t count)
+{
+  message msg;
+  procman_message pm;
+
+  pm.cmd = PROCMAN_CMD_DMESG;
+  msg.send_buf = (char *)&pm;
+  msg.recv_buf = buf;
+  msg.send_size = sizeof(procman_message);
+  msg.recv_size = count;
+  msg.tid = procman;
+  send(&msg);
+
+  return msg.recv_size;
 }

@@ -37,6 +37,7 @@ struct procman_message {
 #define PROCMAN_CMD_CREATE_THREAD    5
 #define PROCMAN_CMD_INTERRUPT_ATTACH 6
 #define PROCMAN_CMD_INTERRUPT_DETACH 7
+#define PROCMAN_CMD_DMESG            8
 
 class TProcMan {
 private:

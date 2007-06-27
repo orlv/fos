@@ -166,7 +166,7 @@ EXCEPTION_HANDLER(interrupt_hdl_not_present_exception)
 
 IRQ_HANDLER(timer_handler)
 {
-  extern TTime *SysTimer;
+  extern Timer *SysTimer;
   SysTimer->tick(); /* Считаем время */
 
   u16_t pid = curPID();

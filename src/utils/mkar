@@ -5,9 +5,9 @@ NAME=fos-`cat fos/src/VERSION`-`cat fos/src/BUILD`
 
 if [ ! -x arch/$NAME ]; then
     mkdir arch/$NAME
-    tar cvj --exclude="fos-src/trunk/tmp" --exclude=".svn" -f $NAME-src.tar.bz2 fos-src/trunk
+    tar cvj --exclude="fos/tmp" --exclude=".svn"  --exclude="lost+found" -f $NAME-src.tar.bz2 fos/
     mv $NAME-src.tar.bz2 arch/$NAME/
-    tar cvj --exclude="fos-src/trunk/tmp" -f $NAME-src-svn.tar.bz2 fos-src/trunk
+    tar cvj --exclude="fos/tmp" --exclude="lost+found" -f $NAME-src-svn.tar.bz2 fos/
     mv $NAME-src-svn.tar.bz2 arch/$NAME/
     cp ~/fos/tmp/FOS.iso.bz2 arch/$NAME/$NAME.iso.bz2
     echo Archive $NAME was created.

@@ -42,6 +42,7 @@ class Namer {
   //obj_info_t *list(off_t offset);  
 };
 
-tid_t namer_resolve(string name);
+tid_t resolve(char *name);
+void namer_add(string name);
 
 #endif

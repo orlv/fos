@@ -1,6 +1,6 @@
 /*
   drivers/char/tty/tty.h
-  Copyright (C) 2005-2006 Oleg Fedorov
+  Copyright (C) 2005-2007 Oleg Fedorov
 */
 
 #ifndef _TTY_H
@@ -9,9 +9,12 @@
 #include <types.h>
 //#include <tinterface.h>
 
+#define TTY_MODE_BLOCK  0
+#define TTY_MODE_CHAR   1
+
 class TTY			/*: public Tinterface */
 {
-private:
+ private:
   size_t bufsize;
 
   u8_t textcolor;
@@ -19,30 +22,29 @@ private:
   u16_t color;
 
   off_t offs;
-
+  u32_t mode;
+  
   struct TTY_GEOMETRY {
     size_t width;
     size_t height;
   } geom;
 
   void scroll_up();
-  void OutRaw(u8_t ch);
-  void Out(const char ch);
-  void outs(const char *str, size_t len);
-  p_u16_t buffer;
+  void out_ch(const char ch);
+  u16_t *buffer;
 
-public:
-   TTY(u16_t width, u16_t height);
+ public:
+  TTY(u16_t width, u16_t height);
   ~TTY();
 
-  //size_t read(off_t offset, void *buf, size_t count);
+  size_t read(off_t offset, void *buf, size_t count);
   size_t write(off_t offset, const void *buf, size_t count);
 
-  void outs(const char *str);
-  void refresh();
 
-  void SetTextColor(u8_t tcolor);
-  void SetBgColor(u8_t tcolor);
+  void refresh();
+  void set_mode(u32_t mode);
+  void set_text_color(u8_t color);
+  void set_bg_color(u8_t color);
 
   VGA *stdout;
 };

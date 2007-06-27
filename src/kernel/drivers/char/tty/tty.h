@@ -8,9 +8,14 @@
 
 #include <types.h>
 #include <tinterface.h>
+#include <tmutex.h>
 
-class TTY:public Tinterface {
+#define TTY_MODE_BLOCK  0
+#define TTY_MODE_CHAR   1
+
+class TTY: public Tinterface {
 private:
+  TMutex mutex;
   size_t bufsize;
 
   u8_t textcolor;
@@ -18,6 +23,7 @@ private:
   u16_t color;
 
   off_t offs;
+  u32_t mode;
 
   struct TTY_GEOMETRY {
     size_t width;
@@ -25,12 +31,9 @@ private:
   } geom;
 
   void scroll_up();
-  void OutRaw(u8_t ch);
-  void Out(const char ch);
+  void out_ch(const char ch);
 
-  void outs(const char *str);
-  void outs(const char *str, size_t len);
-  p_u16_t buffer;
+  u16_t *buffer;
 
 public:
    TTY(u16_t width, u16_t height);
@@ -40,12 +43,9 @@ public:
   size_t write(off_t offset, const void *buf, size_t count);
 
   void refresh();
-
-   TTY & operator <<(const char *);
-   TTY & operator <<(unsigned int);
-
-  void SetTextColor(u8_t tcolor);
-  void SetBgColor(u8_t tcolor);
+  void set_mode(u32_t mode);
+  void set_text_color(u8_t color);
+  void set_bg_color(u8_t color);
 };
 
 #endif

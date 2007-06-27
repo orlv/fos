@@ -34,31 +34,34 @@ class HAL {
 
   Memory *kmem;
 
-  page *phys_page;      /* массив информации о страницах */
-  size_t pages_cnt;     /* общее количество страниц в системе */
+  page *phys_page;        /* массив информации о страницах */
+  size_t pages_cnt;       /* общее количество страниц в системе */
   Stack<u32_t> *free_page;
-  //memstack *free_page;  /* пул свободных страниц */
-  atomic_t free_pages;  /* количество свободных страниц */
+  atomic_t free_pages;    /* количество свободных страниц */
   Stack<u32_t> *free_lowpage;
-  //memstack *free_lowpage;
-  atomic_t free_lowpages;
+  atomic_t free_lowpages; /* количество "нижних" страниц (лежащих ниже 16 Мб) */
 
   inline void cli() { asm("cli"); };
   inline void sti() { asm("sti"); };
 
+  inline void mt_reset()
+  {
+    atomic_set(&mt, 1);
+  }
+  
   inline void mt_disable()
   {
-    atomic_set(&mt, 0);
+    atomic_inc(&mt);
   }
 
   inline void mt_enable()
   {
-    atomic_set(&mt, 1);
+    if(atomic_read(&mt)) atomic_dec(&mt);
   }
 
   inline bool mt_status()
   {
-    return atomic_read(&mt);
+    return atomic_read(&mt) == 0;
   }
   
   inline void hlt() { asm("hlt"); };

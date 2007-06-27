@@ -71,6 +71,10 @@
 #define KERNEL_MEM_SIZE (USER_MEM_BASE - KERNEL_MEM_BASE)
 #define KERNEL_MEM_LIMIT (KERNEL_MEM_BASE + KERNEL_MEM_SIZE)
 
+#define MIN_FREE_MEMORY         0x10000 /* 64 Кб  */
+#define KERNEL_MIN_HEAP_SIZE    0x10000 /* 64 Кб  */
+#define LOWMEM_SIZE           0x1000000 /* 16 Мб  */
+
 //#define USER_PAGETABLE_DATA_SIZE (((SYSTEM_PAGES_MAX-(KERNEL_MEM_LIMIT/PAGE_SIZE))/1024)*4096) /* 3,875 Mb */
 //#define USER_PAGETABLE_DATA (KERNEL_MEM_LIMIT-USER_PAGETABLE_DATA_SIZE)
 
@@ -140,6 +144,11 @@ class Memory {
 
 void put_page(u32_t page);
 u32_t get_page();
+
+/* LowPages - страницы, расположенные ниже 16 Мб */
+void put_lowpage(u32_t page);
+u32_t get_lowpage();
+
 void * kmalloc(register size_t size);
 void  kfree(register void *ptr);
 

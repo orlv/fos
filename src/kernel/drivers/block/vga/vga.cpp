@@ -1,6 +1,6 @@
 /*
-	drivers/block/vga.cpp
-	Copyright (C) 2004-2006 Oleg Fedorov
+  drivers/block/vga/vga.cpp
+  Copyright (C) 2004-2006 Oleg Fedorov
 */
 
 #include "vga.h"

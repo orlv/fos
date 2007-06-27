@@ -3,14 +3,34 @@
 #
 
 default=0
-timeout=0
-hiddenmenu
+timeout=3
+#hiddenmenu
 
-title FOS
-	root (fd0)
-	kernel /fos/kernel
-	module /fos/ramdisk.gz
+title FOS - FOS is Operating System 
+      root (cd0)
+      kernel /root/kernel
+      module /root/modules/koi8-8x16.fnt
+      module /root/modules/test.txt
+      module /root/modules/vesa
+      module /root/modules/app1
+      module /root/modules/tty
+      module /root/modules/keyboard
+      module /root/modules/init
 
+title FOS - FOS is Operating System (network boot)
+      dhcp
+      tftpserver 192.168.2.3
+      root (nd)
+      kernel /root/kernel
+      module /root/modules/koi8-8x16.fnt
+      module /root/modules/test.txt
+      module /root/modules/vesa
+      module /root/modules/app1
+      module /root/modules/tty
+      module /root/modules/keyboard
+      module /root/modules/init
+	
+	
 title M$ W*NDOWS
 	root (hd0,0)
 	chainloader +1

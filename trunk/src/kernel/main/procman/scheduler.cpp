@@ -13,7 +13,7 @@
 #include <elf32.h>
 
 asmlinkage void scheduler_starter();
-extern TTime *SysTimer;
+extern Timer *SysTimer;
 
 /*
  * Для флоппи
@@ -31,7 +31,7 @@ void start_sched()
 void TProcMan::scheduler()
 {
   List<Thread *> *curr = threadlist;
-  //u32_t i=0;
+
   while (1) {
 #warning *** TODO: scheduler(): сделать таймеры
 
@@ -58,10 +58,7 @@ void TProcMan::scheduler()
     } while (1);
 
     CurrentThread = curr->item;
-    /*    printk("ct=0x%X \n", CurrentThread);
-    i++;
-    if(i > 3)
-    while(1);*/
+
     /*
      * Переключимся на выбранный процесс
      */

@@ -58,6 +58,8 @@ asmlinkage res_t interrupt_detach(u8_t n);
 
 asmlinkage int resmgr_attach(const char *pathname);
 
+asmlinkage size_t dmesg(char *buf, size_t count);
+
 /* xchg взят из linux-2.6.17 */
 
 struct __xchg_dummy { unsigned long a[4]; };

@@ -48,7 +48,7 @@ void *malloc(register size_t size)
 
     if (p == heap_free_ptr)		/* прошли первый цикл по списку */
       if ((p = morecore(nunits * sizeof(HeapMemBlock))) == NULL) {
-	hal->halt();
+	hal->panic("no free memory available in kernel heap!");
 	return NULL;		/* больше памяти нет */
       }
   }

@@ -26,6 +26,39 @@
 #include <namer.h>
 #include <system.h>
 
+tid_t resolve(char *name)
+{
+  while(!hal->namer);
+  volatile struct message msg;
+  u32_t res;
+  union fs_message m;
+  msg.recv_size = sizeof(res);
+  msg.recv_buf = &res;
+  msg.send_size = sizeof(fs_message);
+  m.data3.cmd = NAMER_CMD_RESOLVE;
+  strcpy((char *)m.data3.buf, name);
+  msg.send_buf = (char *)&m;
+  msg.tid = 0;
+  send((message *)&msg);
+  return res;
+}
+
+void namer_add(string name)
+{
+  while(!hal->tid_namer);
+  struct message *msg = new struct message;
+  u32_t res;
+  union fs_message *m = new fs_message;
+  msg->recv_size = sizeof(res);
+  msg->recv_buf = &res;
+  msg->send_size = sizeof(union fs_message);
+  msg->send_buf = m;
+  strcpy(m->data3.buf,  name);
+  m->data3.cmd = NAMER_CMD_ADD;
+  msg->tid = 0;
+  send(msg);
+}
+
 void namer_srv()
 {
   Namer *namer = new Namer;
@@ -37,7 +70,7 @@ void namer_srv()
 
   hal->namer->add("/sys/namer", (sid_t)hal->ProcMan->CurrentThread);
 
-  //printk("Namer: ready\n");
+  printk("namer: ready\n");
 
   while(1){
     msg->recv_size = sizeof(fs_message);
@@ -80,7 +113,7 @@ void namer_srv()
 	//printk("[%s]", m->data3.buf);
 	res = obj->sid;
       } else {
-	res = RES_FAULT;
+	res = 0;
       }
 
       msg->recv_size = 0;
@@ -91,7 +124,7 @@ void namer_srv()
 
     case NAMER_CMD_REM:
     default:
-      res = RES_FAULT;
+      res = 0;
       msg->recv_size = 0;
       msg->send_size = sizeof(res);
       msg->send_buf = &res;

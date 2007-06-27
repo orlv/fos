@@ -1,13 +1,14 @@
 /*
   drivers/char/tty/tty.cpp
-  Copyright (C) 2004-2006 Oleg Fedorov
+  Copyright (C) 2004-2007 Oleg Fedorov
+
+   - TODO: Упростить!!!! Выкинуть всё лишнее. 2006-11-12. Oleg.
+   - (Thu Jun 28 02:11:53 2007) Немного упрощено. Олег.
 */
 
-#warning  TODO: Упростить!!!! Выкинуть всё лишнее. 2006-11-12. Oleg.
 
 #include "vga.h"
 #include "tty.h"
-//#include <vsprintf.h>
 #include <string.h>
 
 TTY::TTY(u16_t width, u16_t height)
@@ -19,7 +20,7 @@ TTY::TTY(u16_t width, u16_t height)
 
   buffer = new u16_t[geom.width * geom.height];
 
-  textcolor = GREEN;
+  textcolor = LIGHTGRAY;
   bgcolor = BLACK;
   color = (textcolor << 8) | (bgcolor << 16);
 
@@ -49,7 +50,7 @@ void TTY::refresh()
     stdout->write(0, buffer, bufsize);
 }
 
-void TTY::Out(const char ch)
+void TTY::out_ch(const char ch)
 {
   switch (ch) {
   case '\n':
@@ -64,50 +65,58 @@ void TTY::Out(const char ch)
     break;
 
   default:
-    if (ch >= 0x20)
-      OutRaw(ch);
+    if (ch >= 0x20){
+      offs++;
+      if (offs > bufsize / 2) {
+	scroll_up();
+	offs -= geom.width;
+      }
+      buffer[offs - 1] = ch | color;
+    }
   }
-}
-
-void TTY::OutRaw(const u8_t ch)
-{
-  offs++;
-  if (offs > bufsize / 2) {
-    scroll_up();
-    offs -= geom.width;
-  }
-  buffer[offs - 1] = ch | color;
-}
-
-void TTY::outs(const char *str)
-{
-  size_t len = strlen(str);
-  for (size_t i = 0; i < len; i++)
-    Out(str[i]);
-  refresh();
-}
-
-void TTY::outs(const char *str, size_t len)
-{
-  for (size_t i = 0; i < len; i++)
-    Out(str[i]);
-  refresh();
 }
 
 size_t TTY::write(off_t offset, const void *buf, size_t count)
 {
-  outs((const char *)buf, count);
+  if(mode == TTY_MODE_BLOCK){
+    for (size_t i = 0; i < count; i++)
+      out_ch(((const char *)buf)[i]);
+    refresh();
+  } else {
+    stdout->write(offset, buf, count);
+  }
   return count;
 }
 
-void TTY::SetTextColor(u8_t tcolor)
+size_t TTY::read(off_t offset, void *buf, size_t count)
 {
-  textcolor = tcolor;
-  color = (textcolor << 8) | (bgcolor << 16);
+  if(count + offset > bufsize/2)
+    count = bufsize/2 - offset;
+
+  char ch;
+  size_t i, j;
+  for(i=offset, j=0; (i < (offset + count)) && (i < offs) ; i++){
+    ch = buffer[i] & 0xff;
+    if(ch){
+      ((char *)buf)[j] = ch;
+      j++;
+    } else if(!((i+1)%geom.width)){
+      ((char *)buf)[j] = '\n';
+      j++;
+    }
+  }
+
+  return j;
 }
 
-void TTY::SetBgColor(u8_t tcolor)
+void TTY::set_text_color(u8_t color)
 {
-  bgcolor = tcolor;
-  color = (textcolor << 8) | (bgcolor << 16);
+  textcolor = color;
+  this->color = (textcolor << 8) | (bgcolor << 16);
+}
+
+void TTY::set_bg_color(u8_t color)
+{
+  bgcolor = color;
+  this->color = (textcolor << 8) | (bgcolor << 16);
 }

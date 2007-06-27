@@ -7,7 +7,7 @@
 
 #include <drivers/block/vga/vga.h>
 #include "tty.h"
-#include <vsprintf.h>
+//#include <vsprintf.h>
 #include <string.h>
 
 TTY::TTY(u16_t width, u16_t height):Tinterface()
@@ -26,6 +26,7 @@ TTY::TTY(u16_t width, u16_t height):Tinterface()
   offs = 0;
 
   info.type = FTypeObject;
+  mode = TTY_MODE_BLOCK;
 }
 
 TTY::~TTY()
@@ -51,7 +52,7 @@ void TTY::refresh()
     stdout->write(0, buffer, bufsize);
 }
 
-void TTY::Out(const char ch)
+void TTY::out_ch(const char ch)
 {
   switch (ch) {
   case '\n':
@@ -66,75 +67,68 @@ void TTY::Out(const char ch)
     break;
 
   default:
-    if (ch >= 0x20)
-      OutRaw(ch);
+    if (ch >= 0x20){
+      offs++;
+      if (offs > bufsize / 2) {
+	scroll_up();
+	offs -= geom.width;
+      }
+      buffer[offs - 1] = ch | color;
+    }
   }
 }
 
-void TTY::OutRaw(const u8_t ch)
+void TTY::set_mode(u32_t mode)
 {
-  offs++;
-  if (offs > bufsize / 2) {
-    scroll_up();
-    offs -= geom.width;
+  this->mode = mode;
+}
+
+#include <stdio.h>
+
+size_t TTY::write(off_t offset, const void *buf, size_t count)
+{
+  mutex.lock();
+  if(mode == TTY_MODE_BLOCK){
+    for (size_t i = 0; i < count; i++)
+      out_ch(((const char *)buf)[i]);
+    refresh();
+  } else {
+    stdout->write(offset, buf, count);
   }
-  buffer[offs - 1] = ch | color;
-}
-
-void TTY::outs(const char *str)
-{
-  size_t len = strlen(str);
-  for (size_t i = 0; i < len; i++)
-    Out(str[i]);
-  refresh();
-}
-
-void TTY::outs(const char *str, size_t len)
-{
-  for (size_t i = 0; i < len; i++)
-    Out(str[i]);
-  refresh();
+  mutex.unlock();
+  return count;
 }
 
 size_t TTY::read(off_t offset, void *buf, size_t count)
 {
-  return 0;
+  if(count + offset > bufsize/2)
+    count = bufsize/2 - offset;
+
+  char ch;
+  size_t i, j;
+  mutex.lock();
+  for(i=offset, j=0; (i < (offset + count)) && (i < offs) ; i++){
+    ch = buffer[i] & 0xff;
+    if(ch){
+      ((char *)buf)[j] = ch;
+      j++;
+    } else if(!((i+1)%geom.width)){
+      ((char *)buf)[j] = '\n';
+      j++;
+    }
+  }
+  mutex.unlock();
+  return j;
 }
 
-size_t TTY::write(off_t offset, const void *buf, size_t count)
+void TTY::set_text_color(u8_t color)
 {
-  outs((const char *)buf, count);
-  return count;
+  textcolor = color;
+  this->color = (textcolor << 8) | (bgcolor << 16);
 }
 
-/* это тут вообще для прикола */
-TTY & TTY::operator <<(const char *str)
+void TTY::set_bg_color(u8_t color)
 {
-  outs(str);
-  return (*this);
-}
-
-TTY & TTY::operator <<(unsigned int t)
-{
-  size_t i;
-  //char *str = new char[11];
-  char str[11];
-
-  i = sprintf(str, "%d", t);
-  outs(str, i);
-
-  //delete str;
-  return (*this);
-}
-
-void TTY::SetTextColor(u8_t tcolor)
-{
-  textcolor = tcolor;
-  color = (textcolor << 8) | (bgcolor << 16);
-}
-
-void TTY::SetBgColor(u8_t tcolor)
-{
-  bgcolor = tcolor;
-  color = (textcolor << 8) | (bgcolor << 16);
+  bgcolor = color;
+  this->color = (textcolor << 8) | (bgcolor << 16);
 }

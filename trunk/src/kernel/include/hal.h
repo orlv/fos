@@ -16,10 +16,34 @@
 #include <mm.h>
 #include <stack.h>
 
+static inline void __mt_reset()
+{
+  extern atomic_t mt_state;
+  atomic_set(&mt_state, 1);
+}
+  
+static inline void __mt_disable()
+{
+  extern atomic_t mt_state;
+  atomic_inc(&mt_state);
+}
+
+static inline void __mt_enable()
+{
+  extern atomic_t mt_state;
+  if(atomic_read(&mt_state)) atomic_dec(&mt_state);
+}
+
+static inline bool __mt_status()
+{
+  extern atomic_t mt_state;
+  return atomic_read(&mt_state) == 0;
+}
+
+
 class HAL {
  private:
   multiboot_info_t *mbi;
-  atomic_t mt;
 
  public:
   HAL(register multiboot_info_t * mbi);
@@ -46,22 +70,22 @@ class HAL {
 
   inline void mt_reset()
   {
-    atomic_set(&mt, 1);
+    __mt_reset();
   }
   
   inline void mt_disable()
   {
-    atomic_inc(&mt);
+    __mt_disable();
   }
 
   inline void mt_enable()
   {
-    if(atomic_read(&mt)) atomic_dec(&mt);
+    __mt_enable();
   }
 
   inline bool mt_status()
   {
-    return atomic_read(&mt) == 0;
+    return __mt_status();
   }
   
   inline void hlt() { asm("hlt"); };

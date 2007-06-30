@@ -21,13 +21,15 @@ struct message {
 } __attribute__ ((packed));
 
 struct kmessage {
-  void * send_buf;
-  size_t send_size;
-  void * recv_buf;
-  size_t recv_size;
-  class Thread * thread;
+  void * volatile send_buf;
+  size_t volatile send_size;
+  void * volatile recv_buf;
+  size_t volatile recv_size;
+  class Thread * volatile thread;
   u32_t flags;
 };
+
+#define MAX_MSG_COUNT 32
 
 class Thread{
  private:
@@ -55,8 +57,11 @@ class Thread{
 	       register void *user_stack,
 	       u16_t code_segment=USER_CODE_SEGMENT,
 	       u16_t data_segment=USER_DATA_SEGMENT);
+
   List<kmessage *> *new_msg;
+  volatile size_t newmsg_count;
   List<kmessage *> *recvd_msg;
+  volatile size_t recvdmsg_count;
 };
 
 class TProcess {

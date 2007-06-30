@@ -31,7 +31,7 @@ void procman_srv()
 
   char *kmesg;
   size_t len;
-  
+
   printk("procman: registering /sys/procman\n");
   namer_add("/sys/procman");
   printk("procman: ready\n");

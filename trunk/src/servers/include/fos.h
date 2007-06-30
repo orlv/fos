@@ -15,9 +15,16 @@
 
 #define PAGE_SIZE 0x1000
 
-static inline void sys_call(volatile u32_t arg1, volatile u32_t arg2)
+static inline u32_t sys_call(volatile u32_t arg1, volatile u32_t arg2)
 {
-  __asm__ __volatile__ ("int $0x30"::"b" (arg1), "c"(arg2));
+  u32_t result;
+  __asm__ __volatile__ ("int $0x30":"=a"(result):"b"(arg1), "c"(arg2));
+  return result;
+}
+
+static inline void sched_yield()
+{
+  __asm__ __volatile__ ("int $3");
 }
 
 struct message {
@@ -28,9 +35,9 @@ struct message {
   tid_t tid;
 } __attribute__ ((packed));
 
-asmlinkage void reply(struct message *msg);
-asmlinkage void send(struct message *msg);
-asmlinkage void receive(struct message *msg);
+asmlinkage u32_t reply(struct message *msg);
+asmlinkage u32_t send(struct message *msg);
+asmlinkage u32_t receive(struct message *msg);
 
 static inline void mask_interrupt(u32_t int_num)
 {

@@ -105,17 +105,10 @@ void namer_srv()
       
       forward(msg, obj->sid);
       break;
-      
+
     case NAMER_CMD_RESOLVE:
       //printk("namer: resolving [%s]\n", m->data3.buf);
-      obj = hal->namer->access(m->data3.buf, 0);
-      if(obj){
-	//printk("[%s]", m->data3.buf);
-	res = obj->sid;
-      } else {
-	res = 0;
-      }
-
+      res = hal->namer->resolve(m->data3.buf);
       msg->recv_size = 0;
       msg->send_size = sizeof(res);
       msg->send_buf = &res;
@@ -133,14 +126,15 @@ void namer_srv()
   }
 }
 
-Tobject::Tobject(const string name, sid_t sid)
-{
-  this->sid = sid;
-  set_name(name);
-}
 
 Tobject::Tobject(const string name)
 {
+  set_name(name);
+}
+
+Tobject::Tobject(const string name, sid_t sid)
+{
+  this->sid = sid;
   set_name(name);
 }
 
@@ -214,7 +208,7 @@ Namer::Namer()
 /* режет строку пути на список из элементов пути */
 List<string> * path_strip(const string path);
 
-Tobject * Namer::access(const string name, string t_name)
+Tobject * Namer::access(const string name, string name_tail)
 {
   List<string> *path = path_strip(name);
   List<string> *entry = path;
@@ -224,7 +218,7 @@ Tobject * Namer::access(const string name, string t_name)
   List<string> *e;
   
   //size_t len = strlen(name);
-  //  string t_name = new char[len+1];
+  //  string name_tail = new char[len+1];
   //printk("Namer: %d:%s\n",len, name);
   int i=0, i1=0;
 
@@ -246,15 +240,15 @@ Tobject * Namer::access(const string name, string t_name)
 
   /* создадим переменную с окончанием пути (необходимо передать
      её конечному серверу) */
-  if(t_name){
-    t_name[0] = 0;
+  if(name_tail){
+    name_tail[0] = 0;
     list_for_each(entry, path){
       if(i)
 	i--;
       else {
 	n = entry->item;
-	strcat(t_name, "/");
-	strcat(t_name, n);
+	strcat(name_tail, "/");
+	strcat(name_tail, n);
       }
     }
   }
@@ -266,6 +260,35 @@ Tobject * Namer::access(const string name, string t_name)
   delete path;
 
   return obj;
+}
+
+sid_t Namer::resolve(const string name)
+{
+  List<string> *path = path_strip(name);
+  List<string> *entry = path;
+  List<string> *e;
+  Tobject * object = rootdir;
+  sid_t sid = rootdir->sid;
+
+  /* отыщем сервер */
+  do {
+    if(!(object = object->access(entry->item)))
+      break;
+
+    if(object->sid)
+      sid = object->sid;
+
+    entry = entry->next;
+  } while (entry != path);
+
+  list_for_each_safe(entry, e, path){
+    delete entry->item;
+    delete entry;
+  }
+  delete entry->item;
+  delete entry;
+
+  return sid;
 }
 
 /*

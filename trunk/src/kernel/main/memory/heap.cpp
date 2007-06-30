@@ -10,68 +10,108 @@
 #include <stdio.h>
 #include <hal.h>
 #include <string.h>
+#include <tmutex.h>
 
-HeapMemBlock *heap_free_ptr = NULL;
+HeapMemBlock * volatile heap_free_ptr = NULL;
 HeapMemBlock kmem_block;
-HeapMemBlock *morecore(register unsigned int nu);
+static HeapMemBlock *morecore(register size_t size);
 void free(register void *ptr);
+
+static TMutex heap_mutex;
+
+static void * volatile reserved_block = NULL;
+
+size_t volatile heap_free = 0;
+
+atomic_t mt_state;
 
 void *malloc(register size_t size)
 {
+  //printk("[0x%X] ", size);
+   
   if (!size)
     return 0;
 
   HeapMemBlock *p, *prevp;
   unsigned int nunits;
-
+  //iii++;
   nunits = (size + sizeof(HeapMemBlock) - 1) / sizeof(HeapMemBlock) + 1;
+  //printk("{0x%X}", nunits*sizeof(HeapMemBlock));
+  //heap_mutex.lock();
+  __mt_disable();
+  //printk("\"0x%X\"", heap_free_ptr);
   if ((prevp = heap_free_ptr) == NULL) {	/* списка своб. памяти ещё нет */
-    kmem_block.ptr = heap_free_ptr = prevp = &kmem_block;
+    kmem_block.next = heap_free_ptr = prevp = &kmem_block;
     kmem_block.size = 0;
   }
-  for (p = prevp->ptr;; prevp = p, p = p->ptr) {
-    if (p->size >= nunits) {	/* достаточно большой */
-      if (p->size == nunits)	/* точно нужного размера */
-	prevp->ptr = p->ptr;
-      else {			/* отрезаем хвостовую часть */
-	p->size -= nunits;	// + sizeof(HeapMemBlock);
+
+  for(p = prevp->next;; prevp = p, p = p->next){
+    //printk("(0x%x - 0x%x -> 0x%X)", p, p->size*sizeof(HeapMemBlock), p->next);
+    //if(iii > 22) while(1);
+    if (p->size >= nunits){ /* достаточно большой */
+      if (p->size == nunits) /* точно нужного размера */
+	prevp->next = p->next;
+      else { /* отрезаем хвостовую часть */
+	p->size -= nunits;
 	p += p->size;
 	p->size = nunits;
       }
       heap_free_ptr = prevp;
-
-      p = (HeapMemBlock *) ((unsigned long)p + sizeof(HeapMemBlock));
-      /* очистим выделяемую область памяти */
-      memset(p, 0, size);
-      return (void *)p;
+      //printk("(0x%x, 0x%X)=0x%X\n", p, p->size*sizeof(HeapMemBlock), (u32_t)(p + 1));
+      //heap_mutex.unlock();
+      heap_free -= p->size*sizeof(HeapMemBlock);
+      __mt_enable();
+      memset((void *)(p+1), 0, size);
+      return (void *)(p+1);
     }
 
-    if (p == heap_free_ptr)		/* прошли первый цикл по списку */
-      if ((p = morecore(nunits * sizeof(HeapMemBlock))) == NULL) {
+    if(p == heap_free_ptr){	/* прошли первый цикл по списку */
+      //heap_mutex.unlock();
+      __mt_enable();
+      if(!(p = morecore(nunits*sizeof(struct HeapMemBlock)))){
 	hal->panic("no free memory available in kernel heap!");
-	return NULL;		/* больше памяти нет */
       }
+    }
   }
 }
 
-#define NALLOC PAGE_SIZE	/* миним. число единиц памяти для запроса */
+void * heap_create_reserved_block()
+{
+  //if(!reserved_block){
+    reserved_block = kmalloc(HEAP_RESERVED_BLOCK_SIZE);
+    //}
+  return reserved_block;
+}
+
+#define MINALLOC PAGE_SIZE	/* миним. число единиц памяти для запроса */
 
 /* morecore: запрашивает у системы дополнительную память */
-HeapMemBlock *morecore(register unsigned int nu)
+static HeapMemBlock *morecore(register size_t size)
 {
-  char *cp;
   HeapMemBlock *up;
-  if (nu < NALLOC)
-    nu = 1;
-  else if (nu % NALLOC)
-    nu = nu / NALLOC + 1;
-  if(nu > PAGE_SIZE)
+  /*while(1) */ asm("incb 0xb8000+156\n" "movb $0x5e,0xb8000+157 ");
+  /* используем зарезервированный блок */
+  up = (HeapMemBlock *) reserved_block;
+  up->size = (HEAP_RESERVED_BLOCK_SIZE) / sizeof(HeapMemBlock);
+  free((void *)((unsigned int)up + sizeof(HeapMemBlock)));
+  /* теперь у нас есть память в хипе для работы kmalloc() */
+
+  /* сразу же зарезервируем новый блок */
+  reserved_block = kmalloc(HEAP_RESERVED_BLOCK_SIZE);
+  
+  if (size < MINALLOC)
+    size = MINALLOC;
+  else if (size % MINALLOC)
+    size = (size/MINALLOC + 1)*MINALLOC;
+  
+  if(!(up = (HeapMemBlock *) kmalloc(size))){
+    /* Упс, больше нет свободной памяти! */
     return NULL;
-  cp = (char *)kmalloc(nu * PAGE_SIZE);
-  if (!cp)			/* больше памяти нет */
-    return NULL;
-  up = (HeapMemBlock *) cp;
-  up->size = (nu * PAGE_SIZE) / sizeof(HeapMemBlock);
+  }
+
+  up->size = size / sizeof(HeapMemBlock);
+  //heap_mutex.lock(); /* не забыть снять эту блокировку внутри malloc() */
+  __mt_disable();
   free((void *)((unsigned int)up + sizeof(HeapMemBlock)));
   return heap_free_ptr;
 }
@@ -79,27 +119,39 @@ HeapMemBlock *morecore(register unsigned int nu)
 /* free: включает блок в список свободной памяти */
 void free(register void *ptr)
 {
-  if (!ptr)
-    return;
+  //printk("[0x%x]", ptr);
+  if (!ptr) return;
 
   HeapMemBlock *bp, *p;
-  /* указатель на начало блока */
-  bp = (HeapMemBlock *) ((unsigned int)ptr - sizeof(HeapMemBlock));
-  for (p = heap_free_ptr; !(bp > p && bp < p->ptr); p = p->ptr)
-    if (p >= p->ptr && (bp > p || bp < p->ptr))
+  bp = (HeapMemBlock *)ptr - 1; /* указатель на начало блока */
+
+  //printk("[0x%x, 0x%x]\n", bp, bp->size*sizeof(HeapMemBlock));
+  
+  //heap_mutex.lock();
+  __mt_disable();
+  heap_free += bp->size*sizeof(HeapMemBlock);
+  for (p = heap_free_ptr; !(p < bp && p->next > bp); p = p->next)
+    if ((p >= p->next && (p < bp || p->next > bp)))
       break;			/* освобождаем блок в начале или в конце */
 
-  if (bp + bp->size == p->ptr) {	/* слить с верхним соседом */
-    bp->size += p->ptr->size;
-    bp->ptr = (HeapMemBlock *) p->ptr->ptr;
+  /* слить с верхним соседом */
+  if (bp + bp->size == p->next) {
+    bp->size += p->next->size;
+    bp->next = p->next->next;
   } else
-    bp->ptr = p->ptr;
-  if (p + p->size == bp) {	/* слить с нижним соседом */
+    bp->next = p->next;
+
+  /* слить с нижним соседом */
+  if (p + p->size == bp) {
     p->size += bp->size;
-    p->ptr = bp->ptr;
+    p->next = bp->next;
   } else
-    p->ptr = bp;
-  heap_free_ptr = p;
+    p->next = bp;
+
+  /*  if(heap_free_ptr > p)*/ heap_free_ptr = p;
+  
+  //heap_mutex.unlock();
+  __mt_enable();
 }
 
 void *realloc(register void *ptr, register size_t size)
@@ -118,12 +170,12 @@ void *realloc(register void *ptr, register size_t size)
 void *operator  new(unsigned int size)
 {
   return malloc(size);
-};
+}
 
 void *operator  new[] (unsigned int size)
 {
   return malloc(size);
-};
+}
 
 void operator  delete(void *ptr)
 {

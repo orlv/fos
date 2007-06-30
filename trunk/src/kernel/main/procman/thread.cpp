@@ -22,8 +22,10 @@ Thread::Thread(class TProcess *process,
 {
   kmessage *_msg = new(kmessage);
   new_msg = new List<kmessage *>(_msg);   /* пустое сообщение */
+  newmsg_count = 0;
   recvd_msg = new List<kmessage *>(_msg); /* пустое сообщение */
-
+  recvdmsg_count = 0;
+  
   this->process = process;
 
   set_tss(eip, kernel_stack, user_stack, code_segment, data_segment);

@@ -93,6 +93,7 @@ void *Memory::mem_alloc(register u32_t *phys_pages, register size_t pages_cnt)
   }
 
   memblock *block = new memblock;
+  __mt_disable();
   block->vptr = p->vptr;
   block->size = size;
   block->phys_pages = phys_pages;
@@ -114,6 +115,8 @@ void *Memory::mem_alloc(register u32_t *phys_pages, register size_t pages_cnt)
     UsedMem->add_tail(block);
   else
     UsedMem = new List<memblock *>(block);
+
+  __mt_enable();
 
   return (void *)block->vptr;
 }
@@ -204,6 +207,8 @@ void *Memory::do_mmap(register u32_t *phys_pages, register void *log_address, re
 {
   memblock *p;
   size_t size = pages_cnt * PAGE_SIZE;
+
+  __mt_disable();
   List<memblock *> *curr = FreeMem;
   
   while(1) {
@@ -213,6 +218,7 @@ void *Memory::do_mmap(register u32_t *phys_pages, register void *log_address, re
     }
     curr = curr->next;
     if ((curr == FreeMem) || (p->vptr >= (u32_t) log_address)) {
+      __mt_enable();
       printk("TaskMem: can't map %d bytes to 0x%X!\n", size, log_address);
       return 0;
     }
@@ -242,7 +248,7 @@ void *Memory::do_mmap(register u32_t *phys_pages, register void *log_address, re
     }
     p->size = block->vptr - p->vptr;
   }
-
+  
   map_pages(phys_pages, PAGE((u32_t)log_address), pages_cnt);
   
 
@@ -250,6 +256,8 @@ void *Memory::do_mmap(register u32_t *phys_pages, register void *log_address, re
     UsedMem->add_tail(block);
   else
     UsedMem = new List<memblock *>(block);
+
+  __mt_enable();
 
   return (void *) block->vptr;
 }
@@ -323,7 +331,7 @@ void Memory::mem_free(register void *ptr)
     printk("No one page was allocated, nothing to free!\n");
     return;
   }
-  
+  __mt_disable();  
   /* выяснить size */
   while(1) {
     p = curr->item;
@@ -340,6 +348,7 @@ void Memory::mem_free(register void *ptr)
 
     curr = curr->next;
     if (curr == UsedMem) {
+      __mt_enable();
       printk("Deleting non-allocated page!\n");
       return;
     }
@@ -355,6 +364,7 @@ void Memory::mem_free(register void *ptr)
   if(FreeMem->item->vptr > p->vptr + p->size) {
     FreeMem = FreeMem->add_tail(p);
     c = FreeMem->item;
+    __mt_enable();
     return;
   }
 
@@ -365,6 +375,7 @@ void Memory::mem_free(register void *ptr)
       c->vptr = p->vptr;
       c->size += p->size;
       delete p;
+      __mt_enable();
       return;
     }
     
@@ -380,6 +391,7 @@ void Memory::mem_free(register void *ptr)
 	delete next;
 	delete curr->next;
       }
+      __mt_enable();
       return;
     }while (curr != FreeMem);
 
@@ -387,6 +399,7 @@ void Memory::mem_free(register void *ptr)
     /* разместить между нижним и верхним соседями */
     if ((c->vptr + c->size < p->vptr) && ((curr->next == FreeMem) ||  (next->vptr > p->vptr + p->size))) {
       curr->add(p);
+      __mt_enable();
       return;
     }
     
@@ -394,4 +407,5 @@ void Memory::mem_free(register void *ptr)
   }while (curr != FreeMem);
 
   curr->add_tail(p);
+  __mt_enable();
 }

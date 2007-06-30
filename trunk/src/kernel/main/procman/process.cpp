@@ -126,7 +126,9 @@ Thread *TProcess::thread_create(off_t eip,
   if(!threads){
     threads = new List<Thread *>(thread);
   } else {
+    __mt_disable();
     threads->add_tail(thread);
+    __mt_enable();
   }
   return thread;
 }

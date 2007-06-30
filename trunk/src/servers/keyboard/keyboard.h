@@ -83,9 +83,9 @@ class Keyboard{
   bool extended;
   u32_t * code_table;
   u8_t kbd_read_mask;
-  volatile u8_t * chars;
-  volatile size_t chars_top;
-  volatile size_t chars_start;
+  u8_t * volatile chars;
+  size_t volatile chars_top;
+  size_t volatile chars_start;
   TMutex buffer_mutex;
   
   void led_update();

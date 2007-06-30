@@ -66,11 +66,14 @@ asmlinkage void init()
   out_banner();
   printk("Memory size: %d Kb, free %dK (%dK high/%dK low)\n", hal->pages_cnt*4, atomic_read(&hal->free_pages)*4 + atomic_read(&hal->free_lowpages)*4, atomic_read(&hal->free_pages)*4, atomic_read(&hal->free_lowpages)*4);
 
+  extern size_t volatile heap_free;
+  printk("Memory size: %d Kb, free %dK (%dK high/%dK low), heap_free=%d\n", hal->pages_cnt*4, atomic_read(&hal->free_pages)*4 + atomic_read(&hal->free_lowpages)*4, atomic_read(&hal->free_pages)*4, atomic_read(&hal->free_lowpages)*4, heap_free);
+
   hal->ProcMan = new TProcMan;
   SysTimer = new Timer;
 
   printk("Kernel: start task switching\n");
-
+  
   hal->mt_reset();  /* сбросим счетчик на 1 */
   hal->mt_enable();
 
@@ -83,14 +86,20 @@ asmlinkage void init()
   Tinterface *obj = initrb->access("init");
   string elf_buf = new char[obj->info.size];
   obj->read(0, elf_buf, obj->info.size);
-  hal->ProcMan->exec(elf_buf, "init");
+
+    hal->ProcMan->exec(elf_buf, "init");
   delete elf_buf;
-  
+
   printk("--------------------------------------------------------------------------------" \
 	 "All OK. Main kernel procedure done.\n"			\
 	 "--------------------------------------------------------------------------------");
-
+  i=0;
   while(1){
+    i++;
+    if(i == 0x150){
+      printf("\nMemory size: %d Kb, free %dK (%dK high/%dK low), heap_free=%d ", hal->pages_cnt*4, atomic_read(&hal->free_pages)*4 + atomic_read(&hal->free_lowpages)*4, atomic_read(&hal->free_pages)*4, atomic_read(&hal->free_lowpages)*4, heap_free);
+      i=0;
+    }
     sched_yield();
   }
 }

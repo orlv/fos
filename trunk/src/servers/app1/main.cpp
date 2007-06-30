@@ -10,7 +10,6 @@
 asmlinkage int main()
 {
   printf("{Hello app1}\n");
-
   fd_t fd;
   while(!(fd = open("/dev/keyboard", 0)));
 

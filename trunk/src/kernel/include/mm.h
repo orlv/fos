@@ -71,9 +71,12 @@
 #define KERNEL_MEM_SIZE (USER_MEM_BASE - KERNEL_MEM_BASE)
 #define KERNEL_MEM_LIMIT (KERNEL_MEM_BASE + KERNEL_MEM_SIZE)
 
-#define MIN_FREE_MEMORY         0x10000 /* 64 Кб  */
-#define KERNEL_MIN_HEAP_SIZE    0x10000 /* 64 Кб  */
+#define MIN_FREE_MEMORY         0x100000 /* 64 Кб  */
+#define KERNEL_MIN_HEAP_SIZE    0x50000 /* 64 Кб  */
 #define LOWMEM_SIZE           0x1000000 /* 16 Мб  */
+
+
+#define HEAP_RESERVED_BLOCK_SIZE 0x1000
 
 //#define USER_PAGETABLE_DATA_SIZE (((SYSTEM_PAGES_MAX-(KERNEL_MEM_LIMIT/PAGE_SIZE))/1024)*4096) /* 3,875 Mb */
 //#define USER_PAGETABLE_DATA (KERNEL_MEM_LIMIT-USER_PAGETABLE_DATA_SIZE)
@@ -85,8 +88,8 @@ struct page {
 };
 
 struct HeapMemBlock {
-  HeapMemBlock *ptr;
-  unsigned int size;
+  HeapMemBlock *next;
+  size_t size;
 };
 
 struct memstack {
@@ -109,7 +112,8 @@ struct memblock {
   size_t size; /* размер блока */
 };
 
-void *realloc(register void *ptr, register size_t size);
+void * realloc(register void *ptr, register size_t size);
+void * heap_create_reserved_block();
 
 class Memory {
  private:

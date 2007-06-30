@@ -1,3 +1,8 @@
+Sat Jun 30 19:24:48 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 15142 (Version 0.0.41.6)
+	- Устранена утечка памяти в namer
+	- Исправлен heap ядра
+
 Thu Jun 28 02:01:07 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
 Build 14859 (Version 0.0.41.5)
 	- Добавлен вывод информации при инициализации системы

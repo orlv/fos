@@ -19,8 +19,6 @@ int sprintf(char *str, const char *fmt, ...)
   return i;
 }
 
-char printbuf[2000];
-
 int printk(const char *fmt, ...)
 {
   extern TTY *stdout;
@@ -28,13 +26,14 @@ int printk(const char *fmt, ...)
   if (stdout){
     va_list args;
     va_start(args, fmt);
-    
+    char *printbuf = new char[2000];
     i = vsprintf(printbuf, fmt, args);
     va_end(args);
 
     hal->mt_disable();
     stdout->write(0, printbuf, i);
     hal->mt_enable();
+    delete printbuf;
   }
   return i;
 }
@@ -53,7 +52,7 @@ int printf(const char *fmt, ...)
   int i = 0;
   va_list args;
   va_start(args, fmt);
-  fs_message *m = (fs_message *) printbuf;
+  fs_message *m = new fs_message;
   m->data3.cmd = FS_CMD_WRITE;
   i = vsprintf(m->data3.buf, fmt, args);
   va_end(args);
@@ -65,6 +64,7 @@ int printf(const char *fmt, ...)
   msg.recv_size = sizeof(unsigned long);
   msg.tid = tty;
   send((struct message *)&msg);
+  delete m;
 
   return i;
 }

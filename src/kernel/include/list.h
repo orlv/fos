@@ -14,8 +14,8 @@
 */
 template <class ListItem> class List {
  public:
-  List *prev;
-  List *next;
+  List * volatile prev;
+  List * volatile next;
 
   ListItem item;
 

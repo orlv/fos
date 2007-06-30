@@ -10,6 +10,23 @@
 #include <hal.h>
 #include <stack.h>
 
+
+#include <drivers/char/tty/tty.h>
+#include <mm.h>
+#include <drivers/block/vga/vga.h>
+#include <string.h>
+#include <system.h>
+#include <stdio.h>
+#include <drivers/char/timer/timer.h>
+#include <hal.h>
+#include <traps.h>
+#include <vsprintf.h>
+#include <stdarg.h>
+#include <drivers/fs/modulefs/modulefs.h>
+#include <fs.h>
+#include <drivers/char/usertty/usertty.h>
+
+
 void put_page(u32_t page)
 {
   if(page >= PAGE(LOWMEM_SIZE)){
@@ -84,28 +101,39 @@ void init_memory()
     freemem_start = heap_start + heap_size;
     freemem_end = memory_size;
   }
+
+  /* ----------------- */
+  __mt_reset();
   
   /* --  Хип ядра  -- */
   HeapMemBlock *kheap;
 
   kheap = (HeapMemBlock *) heap_start;
-  kheap->ptr = 0;
+  kheap->next = 0;
   kheap->size = heap_size / sizeof(HeapMemBlock);
 
   extern HeapMemBlock *heap_free_ptr;
   extern HeapMemBlock kmem_block;
 
-  kmem_block.ptr = heap_free_ptr = &kmem_block;
+  kmem_block.next = heap_free_ptr = &kmem_block;
   kmem_block.size = 0;
   
-  free((void *)((unsigned int)kheap + sizeof(HeapMemBlock)));
+  free((void *)(kheap+1));
   /* --  --  --  -- */
-  
+
+  /*  VGA *con = new VGA;
+  TTY *tty1 = new TTY(80, 25);
+
+  tty1->stdout = con;
+  tty1->set_text_color(WHITE);
+  extern TTY *stdout;
+  stdout = tty1;*/
+  //printk("dd");
+  //while(1);
   /* ------------  Тут уже можно использовать оператор new  ------------ */
   hal = new HAL(__mbi);
   hal->pages_cnt = pages_cnt;
   hal->phys_page = new page[hal->pages_cnt];
-  hal->mt_disable();
 
   /* Создаем пул свободных нижних (<16 Мб) страниц */
   atomic_set(&hal->free_lowpages, 0);
@@ -113,6 +141,8 @@ void init_memory()
   for(u32_t i = PAGE(low_freemem_start); (i < PAGE(heap_start)) && (i < PAGE(LOWMEM_SIZE)); i++){
     put_lowpage(i);
   }
+
+  //  printk("heap size = 0x%X (0x%X)\n", heap_size, heap_size / sizeof(HeapMemBlock));
   
   /*
     Заполним пул свободных страниц страницами, лежащими ниже KERNEL_MEM_LIMIT
@@ -139,7 +169,7 @@ void init_memory()
   for(u32_t i=0; i < KERNEL_MEM_LIMIT/(PAGE_SIZE*1024); i++){
     hal->kmem->mmap((void *)(hal->kmem->pagedir[i] & 0xfffff000), (void *)(hal->kmem->pagedir[i] & 0xfffff000), PAGE_SIZE);
   }
-
+  //while(1);
   hal->kmem->mmap((void *)hal->kmem->pagedir, (void *)hal->kmem->pagedir, PAGE_SIZE);
 
   /* Смонтируем память от нуля до начала свободной памяти как есть */
@@ -155,6 +185,8 @@ void init_memory()
   }
 
   enable_paging(hal->kmem->pagedir);
+
+  heap_create_reserved_block();
 }
 
 

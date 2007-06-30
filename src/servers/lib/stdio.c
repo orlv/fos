@@ -9,8 +9,6 @@
 #include <fos.h>
 #include <fs.h>
 
-#define PID_TTY 4
-
 int sprintf(char *str, const char *fmt, ...)
 {
   va_list args;
@@ -43,7 +41,10 @@ int printf(const char *fmt, ...)
   msg.send_size = 8 + i + 1;
   msg.recv_size = sizeof(unsigned long);
   msg.tid = tty;
-  send((struct message *)&msg);
+
+  while(send((struct message *)&msg) == RES_FAULT2){
+    sched_yield();
+  }
 
   return i;
 }

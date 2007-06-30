@@ -68,7 +68,9 @@ EXCEPTION_HANDLER(NMI_exception)
 
 EXCEPTION_HANDLER(int3_exception)
 {
-  exception("int3", cs, address, errorcode);
+  hal->outportb(0x20, 0x20);
+  sched_yield();
+  //exception("int3", cs, address, errorcode);
 }
 
 EXCEPTION_HANDLER(overflow_exception)
@@ -170,9 +172,8 @@ IRQ_HANDLER(timer_handler)
   SysTimer->tick(); /* Считаем время */
 
   u16_t pid = curPID();
+  asm("incb 0xb8000+150\n" "movb $0x5e,0xb8000+151 ");
   if ((pid == 1) || (!hal->mt_status())) { /* Если мы в scheduler() */
-    //asm("incb 0xb8000+156\n" "movb $0x5e,0xb8000+157 ");
-
     hal->outportb(0x20, 0x20);
     return;
   }

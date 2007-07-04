@@ -32,7 +32,7 @@ void put_page(u32_t page)
   if(page >= PAGE(LOWMEM_SIZE)){
     if(!page_status(page) || !free_page(page)){ /* если эта страница больше никем не используется */
       hal->free_page->push(page);
-      atomic_inc(&hal->free_pages);
+      hal->free_pages.inc();
     }
   } else {
     put_lowpage(page);
@@ -42,8 +42,8 @@ void put_page(u32_t page)
 /* если в пуле есть страницы - возвращаем одну, иначе пытаемся возвратить страницу из нижней памяти */
 u32_t get_page()
 {
-  if(atomic_read(&hal->free_pages)){
-    atomic_dec(&hal->free_pages);
+  if(hal->free_pages.read()){
+    hal->free_pages.dec();
     return hal->free_page->pop();
   } else {
     return get_lowpage();
@@ -54,14 +54,14 @@ void put_lowpage(u32_t page)
 {
   if(!page_status(page) || !free_page(page)){ /* если эта страница больше никем не используется */
     hal->free_lowpage->push(page);
-    atomic_inc(&hal->free_lowpages);
+    hal->free_lowpages.inc();
   }
 }
 
 u32_t get_lowpage()
 {
-  if(atomic_read(&hal->free_lowpages)){
-    atomic_dec(&hal->free_lowpages);
+  if(hal->free_lowpages.read()){
+    hal->free_lowpages.dec();
     return hal->free_lowpage->pop();
   } else {
     return 0;
@@ -136,7 +136,6 @@ void init_memory()
   hal->phys_page = new page[hal->pages_cnt];
 
   /* Создаем пул свободных нижних (<16 Мб) страниц */
-  atomic_set(&hal->free_lowpages, 0);
   hal->free_lowpage = new Stack<u32_t>(PAGE(LOWMEM_SIZE)-PAGE(low_freemem_start));
   for(u32_t i = PAGE(low_freemem_start); (i < PAGE(heap_start)) && (i < PAGE(LOWMEM_SIZE)); i++){
     put_lowpage(i);
@@ -148,7 +147,6 @@ void init_memory()
     Заполним пул свободных страниц страницами, лежащими ниже KERNEL_MEM_LIMIT
     Пул будет пуст, если нет свободной памяти выше 16 Мб -- запросы get_page() будут отдавать страницы из пула free_lowpage
   */
-  atomic_set(&hal->free_pages, 0);
   if(freemem_start){
     hal->free_page = new Stack<u32_t>(PAGE(freemem_end)-PAGE(freemem_start));
     for(u32_t i = PAGE(freemem_start); (i < PAGE(freemem_end)) && (i < PAGE(KERNEL_MEM_LIMIT)); i++){

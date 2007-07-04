@@ -50,7 +50,7 @@ static inline void lldt(u16_t ldt)
 struct __xchg_dummy { unsigned long a[100]; };
 #define __xg(x) ((struct __xchg_dummy *)(x))
 
-#define xchg(ptr,v) ((__typeof__(*(ptr)))__xchg((unsigned long)(v),(ptr),sizeof(*(ptr))))
+#define _xchg(ptr,v) ((__typeof__(*(ptr)))__xchg((unsigned long)(v),(ptr),sizeof(*(ptr))))
 
 static inline unsigned long __xchg(unsigned long x, volatile void * ptr, int size)
 {
@@ -77,7 +77,7 @@ static inline unsigned long __xchg(unsigned long x, volatile void * ptr, int siz
   return x;
 }
 
-#define cmpxchg(ptr,o,n)						\
+#define _cmpxchg(ptr,o,n)						\
   ((__typeof__(*(ptr)))__cmpxchg((ptr),(unsigned long)(o),		\
 				 (unsigned long)(n),sizeof(*(ptr))))
 

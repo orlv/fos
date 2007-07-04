@@ -22,6 +22,9 @@
 #define i8042_OUTPUT_FULL      0x01
 #define i8042_INPUT_FULL       0x02
 
+#define i8042_SET_COMMAND      0x60
+#define i8042_COMMAND          0x49
+
 /* Команды клавиатуры */
 #define i8042_KBD_LEDS         0xed /* изменить состояние светодиодов клавиатуры */
 #define i8042_KBD_ECHO         0xee /* эхо-запрос, клавиатура отвечает скан-кодом 0xee */
@@ -62,6 +65,11 @@ class i8042 {
   {
     outb(cmd, i8042_CMD);
   }
+
+  inline void wait_ready()
+  {
+    while ((status_read() & i8042_INPUT_FULL));
+  }
 };
 
 class Keyboard{
@@ -90,9 +98,9 @@ class Keyboard{
   
   void led_update();
 
-  inline void wait_ready()
+  inline bool key_pressed()
   {
-    while ((i8042.status_read() & i8042_INPUT_FULL));
+    return (i8042.status_read() & i8042_OUTPUT_FULL) == 1;
   }
   
   void set_repeat_rate(u8_t rate);

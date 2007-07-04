@@ -13,6 +13,5 @@ asmlinkage int main()
   printf("Init started! If you see this text - all work fine.\n");
   exec("keyboard");
   exec("app1");
-  //while(1) printf(".");
   return 0;
 }

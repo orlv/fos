@@ -26,7 +26,6 @@ u32_t umap_page(register u32_t log_page, register u32_t * pagedir)
 {
   u32_t page;
   //printk("um lp=[0x%X], pd=[0x%X]\n", log_page, pagedir);
-  flush_tlb_single(log_page*PAGE_SIZE);
   u32_t *pagetable = (u32_t *)(kmem_log_addr(PAGE((u32_t) pagetable_addr(log_page, pagedir))) * PAGE_SIZE);
 
   /* Узнаём физический адрес страницы */
@@ -36,13 +35,13 @@ u32_t umap_page(register u32_t log_page, register u32_t * pagedir)
 
   //printk("* log_pt=[0x%X], pys_page=0x%X \n ", pagetable, page);
   pagetable[log_page & 0x3ff] = 0;
+  flush_tlb_single(log_page*PAGE_SIZE);
   return (page);
 }
 
 u32_t map_page(register u32_t phys_page, register u32_t log_page, register u32_t * pagedir, register u16_t flags)
 {
   alloc_page(phys_page);
-  flush_tlb_single(log_page*PAGE_SIZE);
   /* если страница монтируется в область ядра - указываем в свойствах страницы её логический адрес */
   if(log_page < KERNEL_MEM_LIMIT){
     kmem_set_log_addr(phys_page, log_page);
@@ -71,6 +70,7 @@ u32_t map_page(register u32_t phys_page, register u32_t log_page, register u32_t
   }
   __mt_enable();  
   pagetable[log_page & 0x3ff] = (phys_page * PAGE_SIZE) | flags;
+  flush_tlb_single(log_page*PAGE_SIZE);
   //printk("{0x%X} \n", pagetable[log_page & 0x3ff]);
   return ((unsigned long)pagetable);
 }

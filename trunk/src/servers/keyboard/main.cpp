@@ -31,6 +31,7 @@ void thread_handler()
     receive(&msg);
     if(num == KBD_IRQ_NUM){
       kb->handler();
+      printf(".");
     } else {
       printf("Keyboard handler: unknown message received!\n");
     }
@@ -50,13 +51,13 @@ asmlinkage int main()
   struct message *msg = new message;
 
   resmgr_attach("/dev/keyboard");
-
+  while(1);
   while (1) {
     msg->tid = 0;
     msg->recv_size = sizeof(fs_message);
     msg->recv_buf = m;
     receive(msg);
-    
+
     switch(m->data.cmd){
     case FS_CMD_ACCESS:
       res = RES_SUCCESS;

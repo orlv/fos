@@ -13,6 +13,7 @@
 #define REPLY             3
 #define MASK_INTERRUPT    4
 #define UNMASK_INTERRUPT  5
+#define SCHED_YIELD       6
 
 /*
   
@@ -86,7 +87,7 @@ struct memmap {
 } __attribute__ ((packed));
 
 
-#define SYSCALL_HANDLER(func) asmlinkage void func (u32_t arg1, u32_t arg2); \
+#define SYSCALL_HANDLER(func) asmlinkage void func (u32_t cmd, u32_t arg); \
   asm(".globl " #func"\n"						\
       #func ": \n"							\
       "pusha \n"							\
@@ -113,53 +114,70 @@ struct memmap {
       "__result: .long 0");						\
   asmlinkage void _ ## func(unsigned int cs, unsigned int address, u32_t cmd, u32_t arg)
 
+void outchar(char ch, u32_t off)
+{
+  char *ptr = (char *) (0xb8000 + off);
+  ptr[0] = ch;
+  ptr[1] = 0xf0;
+}
+
+kmessage * get_message()
+{
+  //hal->cli();
+  hal->mt_disable();
+  Thread *current_thread = hal->ProcMan->CurrentThread;
+  if (!current_thread->new_messages_count.read()) {  /* если нет ни одного входящего сообщения -- отключаемся в ожидании */
+    /*  ожидание сообщения (отдаем управление планировщику, будем разблокированы по приходу сообщения) */
+    hal->ProcMan->CurrentThread->flags |= FLAG_TSK_RECV;
+    hal->mt_enable();
+    //hal->sti();
+    sched_yield();
+    hal->mt_disable();
+    //hal->cli();
+  }
+  
+  /* пришло сообщение, обрабатываем.. */
+  kmessage *message = current_thread->new_messages->next->item;
+  if (!(message->flags & MESSAGE_ASYNC)){
+    /* перемещаем сообщение в очередь полученных сообщений */
+    current_thread->new_messages->next->move_tail(current_thread->received_messages);
+    current_thread->received_messages_count.inc();
+  } else {
+    delete current_thread->new_messages->next; /* убираем сообщение из очереди новых сообщений */
+  }
+  current_thread->new_messages_count.dec();
+  hal->mt_enable();
+  //hal->sti();
+
+  return message;
+}
+
 void receive(message *message)
 {
   size_t size;
+  kmessage *received_message = get_message();
 
-  /* если нет ни одного входящего сообщения, отключаемся в ожидании */
-  if(!hal->ProcMan->CurrentThread->newmsg_count) {
-    hal->ProcMan->CurrentThread->flags |= FLAG_TSK_RECV;
-    sched_yield();
-  }
-
-  /*  . . . . . . . . . . . . . . . . . .      .
-      . . .       ожидание сообщения       . . .
-      .      . . . . . . . . . . . . . . . . . .   */
+  message->send_size = received_message->reply_size;
   
-  /* Пришло сообщение, обрабатываем.. */
-  hal->cli();
-  kmessage *msg = hal->ProcMan->CurrentThread->new_msg->next->item;
-  delete hal->ProcMan->CurrentThread->new_msg->next; /* убираем сообщение из очереди новых сообщений */
-  hal->ProcMan->CurrentThread->newmsg_count--;
-  if(!(msg->flags & MESSAGE_ASYNC)){
-    hal->ProcMan->CurrentThread->recvd_msg->add_tail(msg); /* помещаем сообщение в очередь обрабатываемых сообщений */
-    hal->ProcMan->CurrentThread->recvdmsg_count++;
-  }
-  hal->sti();
-
-  /* решаем, сколько байт сообщения копировать */
-  if (msg->send_size > message->recv_size)
-    size = message->recv_size;
+  if (received_message->size > message->recv_size) /* решаем, сколько байт сообщения копировать */
+    size = received_message->size = message->recv_size;
   else
-    size = msg->send_size;
-
-  if (size) /* копируем сообщение из ядра в процесс */
-    memcpy((u32_t *) message->recv_buf, (u32_t *) msg->send_buf, size);
-
-  message->tid = TID(msg->thread); /* не забываем указать отправителя сообщения */
+    size = message->recv_size = received_message->size;
   
-  msg->send_size = message->recv_size = size; /* отметим, сколько байт было передано */
+  if (size) /* копируем сообщение из ядра в память получателя */
+    memcpy(message->recv_buf, received_message->buffer, size);
 
-  delete (u32_t *)msg->send_buf; /* полученные данные больше не нужны в ядре, освобождаем память */
-  if((msg->flags & MESSAGE_ASYNC))
-    delete msg;
+  message->tid = TID(received_message->thread); /* укажем отправителя сообщения */
+
+  delete (u32_t *) received_message->buffer; /* переданные данные больше не нужны в ядре, освобождаем память */
+  if((received_message->flags & MESSAGE_ASYNC)) /* асинхронные сообщения не требуют ответа, сразу удаляем из ядра */
+    delete received_message;
 }
 
 res_t send(message *message)
 {
-  //printk("msg: 0x%X->0x%X\n", message, message->tid);
-  Thread *thread; /* процесс-получатель */
+  Thread *thread; /* поток-получатель */
+
   if(!message->tid){
     thread = THREAD(hal->tid_namer);
   } else {
@@ -169,149 +187,158 @@ res_t send(message *message)
   if (!hal->ProcMan->get_thread_by_tid(TID(thread)))
     return RES_FAULT;
 
-  if(thread->newmsg_count >= MAX_MSG_COUNT)
+  if(thread->new_messages_count.read() >= MAX_MSG_COUNT)
     return RES_FAULT2;
+
+  Thread *current_thread = hal->ProcMan->CurrentThread;
   
   /* простое предупреждение взаимоблокировки */
-  hal->ProcMan->CurrentThread->send_to = TID(thread);
-  if(thread->send_to == TID(hal->ProcMan->CurrentThread)){
-    hal->ProcMan->CurrentThread->send_to = 0;
+  current_thread->send_to = TID(thread);
+  if(thread->send_to == TID(current_thread)){
+    current_thread->send_to = 0;
     return RES_FAULT;
   }
 
   /* скопируем сообщение в память ядра */
-  kmessage *msg = new kmessage;
-  msg->send_buf = new char[message->send_size];
-  msg->send_size = message->send_size;
-  memcpy((u32_t *) msg->send_buf, (u32_t *) message->send_buf,
-	 msg->send_size);
+  kmessage *send_message = new kmessage;
+  send_message->buffer = new char[message->send_size];
+  send_message->size = message->send_size;
+  memcpy(send_message->buffer, message->send_buf, send_message->size);
 
-  msg->recv_buf = 0;
-  msg->recv_size = message->recv_size;
-  msg->thread = hal->ProcMan->CurrentThread;
-
-  hal->cli();
-  thread->new_msg->add_tail(msg);       /* добавим сообщение процессу-получателю */
-  thread->newmsg_count++;
-  thread->flags &= ~FLAG_TSK_RECV;	/* сбросим флаг ожидания получения сообщения (если он там есть) */
-  msg->thread->flags |= FLAG_TSK_SEND;	/* ожидаем ответа */
-  hal->sti();
-  sched_yield();
-
-  /* REPLY --> */
-  /* скопируем полученный ответ в память процесса */
-  memcpy((u32_t *) message->recv_buf, (u32_t *) msg->recv_buf,
-	 msg->recv_size);
-  message->send_size = msg->send_size;	/* сколько байт дошло до получателя */
-  message->recv_size = msg->recv_size;	/* сколько байт ответа пришло */
-
-  message->tid = TID(msg->thread); /* ответ на сообщение мог придти не от изначального получателя,
-			      а от другого процесса (при использовании получателем forward()) */
+  send_message->reply_size = message->recv_size;
+  send_message->thread = current_thread;
   
-  delete(u32_t *) msg->recv_buf; /* ответ на сообщение */
-  delete msg;
-  hal->ProcMan->CurrentThread->send_to = 0;
+  //hal->cli();
+  hal->mt_disable();
+  thread->new_messages->add_tail(send_message);       /* добавим сообщение процессу-получателю */
+  thread->new_messages_count.inc();
+  thread->flags &= ~FLAG_TSK_RECV;	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
+  send_message->thread->flags |= FLAG_TSK_SEND;	 /* ожидаем ответа */
+  //hal->sti();
+  hal->mt_enable();
+  sched_yield();                                 /*  ожидаем ответа  */
+
+
+  /* скопируем полученный ответ в память процесса */
+  memcpy(message->recv_buf, send_message->buffer, send_message->reply_size);
+  message->send_size = send_message->size;	  /* сколько байт дошло до получателя */
+  message->recv_size = send_message->reply_size;  /* сколько байт ответа пришло */
+  message->tid = TID(send_message->thread);       /* ответ на сообщение мог придти не от изначального получателя,
+						     а от другого процесса (при использовании получателем forward()) */
+  
+  delete (u32_t *) send_message->buffer; /* ответ на сообщение */
+  delete send_message;
+  current_thread->send_to = 0;
   return RES_SUCCESS;
 }
 
 res_t send_async(message *message)
 {
-  kmessage *msg;
+  //outchar('a', 0);
   Thread *thread; /* поток-получатель */
-  if (!(thread = hal->ProcMan->get_thread_by_tid(message->tid))){
+
+  if(!(thread = hal->ProcMan->get_thread_by_tid(message->tid)))
     return RES_FAULT;
-  }
 
-  if(thread->newmsg_count >= MAX_MSG_COUNT)
+  if(thread->new_messages_count.read() >= MAX_MSG_COUNT)
     return RES_FAULT2;
-  
+
+  hal->mt_disable();
   /* скопируем сообщение в память ядра */
-  msg = new kmessage;
-  msg->send_buf = new char[message->send_size];
-  msg->send_size = message->send_size;
-  memcpy((u32_t *) msg->send_buf, (u32_t *) message->send_buf,
-	 msg->send_size);
+  kmessage *send_message = new kmessage;
+  send_message->buffer = new char[message->send_size];
+  send_message->size = message->send_size;
+  memcpy(send_message->buffer, message->send_buf, send_message->size);
 
-  msg->flags = MESSAGE_ASYNC; /* не требует ответа - ответ игнорируется */
+  send_message->flags = MESSAGE_ASYNC; /* не требует ответа (ответ игнорируется) */
+  //send_message->thread = hal->ProcMan->CurrentThread;
 
-  msg->thread = hal->ProcMan->CurrentThread;
-
-  hal->cli();
-  thread->new_msg->add_tail(msg);
-  thread->newmsg_count++;
+  //hal->cli();
+  //hal->mt_disable();
+  thread->new_messages->add_tail(send_message);
+  thread->new_messages_count.inc();
   thread->flags &= ~FLAG_TSK_RECV;	/* сбросим флаг ожидания получения сообщения (если он там есть) */
-  hal->sti();
-
+  //hal->sti();
+  hal->mt_enable();
+  //outchar(' ', 0);
   return RES_SUCCESS;
 }
-
 
 void reply(message *message)
 {
   size_t size;
-  kmessage *msg = 0;
+  kmessage *send_message = 0;
   List<kmessage *> *entry;
-  Thread *thread;
+  List<kmessage *> *messages = hal->ProcMan->CurrentThread->received_messages;
+
   /* Ищем сообщение в списке полученных (чтобы ответ дошел, пользовательское приложение не должно менять поле tid) */
-  list_for_each (entry, hal->ProcMan->CurrentThread->recvd_msg) {
-    msg = entry->item;
-    if(msg->thread == THREAD(message->tid))
+  //hal->cli();
+  hal->mt_disable();
+  list_for_each (entry, messages) {
+    send_message = entry->item;
+    if(send_message->thread == THREAD(message->tid))
       break;
   }
+  hal->mt_enable();
+  //hal->sti();
 
-  if(!msg || !msg->thread) /* процесс 0 не отправляет никому сообщения,
-			      так что это ошибочный ответ */
+  if(!send_message)
     return;
 
-  thread = msg->thread;
-  msg->thread = hal->ProcMan->CurrentThread;
-  
-  if (msg->recv_size < message->send_size)
-    size = msg->recv_size;
-  else
-    size = message->send_size;
+  Thread *thread = send_message->thread;
+  send_message->thread = hal->ProcMan->CurrentThread;
 
-  msg->recv_size = message->send_size = size;
+  if (send_message->reply_size < message->send_size)
+    size = message->send_size = send_message->reply_size;
+  else
+    size = send_message->reply_size = message->send_size;
+
   if (size) {
-    msg->recv_buf = new char[size];
-    memcpy((u32_t *) msg->recv_buf, (u32_t *) message->send_buf, size);
+    send_message->buffer = new char[size];
+    memcpy(send_message->buffer, message->send_buf, size);
   }
 
-  hal->cli();
+  //hal->cli();
+  hal->mt_disable();
   delete entry; /* удалим запись о сообщении из списка полученных сообщений */
-  thread->flags &= ~FLAG_TSK_SEND; /* сбросим флаг SEND */
-  hal->sti();
+  thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
+  hal->mt_enable();
+  //hal->sti();
 }
 
 res_t forward(message *message, tid_t tid)
 {
   Thread *thread; /* процесс-получатель */
-  if (!(thread = hal->ProcMan->get_thread_by_tid(tid))){
+  if(!(thread = hal->ProcMan->get_thread_by_tid(tid)))
     return RES_FAULT;
-  }
 
-  kmessage *msg = 0;
+
+  kmessage *send_message = 0;
   List<kmessage *> *entry;
+  List<kmessage *> *messages = hal->ProcMan->CurrentThread->received_messages;
+
   /* Ищем сообщение в списке полученных (чтобы ответ дошел, пользовательское приложение не должно менять поле pid) */
-  list_for_each (entry, hal->ProcMan->CurrentThread->recvd_msg) {
-    msg = entry->item;
-    if(msg->thread == THREAD(message->tid))
+  //hal->cli();
+  hal->mt_disable();
+  list_for_each (entry, messages) {
+    send_message = entry->item;
+    if(send_message->thread == THREAD(message->tid))
       break;
   }
-
-  if(!msg || !msg->thread) /* процесс 0 не отправляет никому сообщения,
-		 так что будем считать - это ответ на
-		 несуществующее сообщение */
+  //hal->sti();
+  hal->mt_enable();
+  
+  if(!send_message)
     return RES_FAULT;
 
-  //msg = (struct kmessage *)hal->ProcMan->CurrentThread->new_msg->next->data;
-
-  hal->cli();
-  thread->new_msg->add_tail(msg);
+  //hal->cli();
+  hal->mt_disable();
+  thread->new_messages->add_tail(send_message);
   thread->flags &= ~FLAG_TSK_RECV;	/* сбросим флаг ожидания получения сообщения (если он там есть) */
-  hal->sti();
-
   delete entry; /* удалим ссылку на сообщение из своей очереди */
+  //hal->sti();
+  hal->mt_enable();
+  
   return RES_SUCCESS;
 }
 
@@ -344,6 +371,10 @@ SYSCALL_HANDLER(sys_call)
 
   case UNMASK_INTERRUPT:
     hal->pic->unmask(arg);
+    break;
+
+  case SCHED_YIELD:
+    sched_yield();
     break;
     
   default:

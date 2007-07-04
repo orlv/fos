@@ -1,3 +1,8 @@
+Wed Jul  4 03:09:43 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 15238 (Version 0.0.41.7)
+	- Добавлена дополнительная синхронизация в систему сообщений
+	- Система сообщений немного оптимизирована
+
 Sat Jun 30 19:24:48 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
 Build 15142 (Version 0.0.41.6)
 	- Устранена утечка памяти в namer

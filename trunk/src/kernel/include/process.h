@@ -11,6 +11,7 @@
 #include <list.h>
 #include <gdt.h>
 #include <mm.h>
+#include <atomic.h>
 
 struct message {
   void *send_buf;
@@ -21,10 +22,9 @@ struct message {
 } __attribute__ ((packed));
 
 struct kmessage {
-  void * volatile send_buf;
-  size_t volatile send_size;
-  void * volatile recv_buf;
-  size_t volatile recv_size;
+  void * buffer;
+  size_t size;
+  size_t reply_size;
   class Thread * volatile thread;
   u32_t flags;
 };
@@ -58,10 +58,10 @@ class Thread{
 	       u16_t code_segment=USER_CODE_SEGMENT,
 	       u16_t data_segment=USER_DATA_SEGMENT);
 
-  List<kmessage *> *new_msg;
-  volatile size_t newmsg_count;
-  List<kmessage *> *recvd_msg;
-  volatile size_t recvdmsg_count;
+  List<kmessage *> *new_messages;
+  atomic_t new_messages_count;
+  List<kmessage *> *received_messages;
+  atomic_t received_messages_count;
 };
 
 class TProcess {

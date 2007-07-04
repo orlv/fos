@@ -14,7 +14,7 @@ LD = ld
 
 include ../../Makefile.conf
 
-FLAGS=-Wall -nostdlib -nostdinc -I../include -I. -L../lib -fno-stack-protector -O3
+FLAGS=-Wall -nostdlib -nostdinc -I../include -I. -L../lib -fno-stack-protector -O0
 
 ASFLAGS =$(FLAGS)
 CFLAGS  =$(FLAGS) -ffreestanding -fno-leading-underscore

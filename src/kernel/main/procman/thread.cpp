@@ -21,10 +21,8 @@ Thread::Thread(class TProcess *process,
 	       u16_t data_segment)
 {
   kmessage *_msg = new(kmessage);
-  new_msg = new List<kmessage *>(_msg);   /* пустое сообщение */
-  newmsg_count = 0;
-  recvd_msg = new List<kmessage *>(_msg); /* пустое сообщение */
-  recvdmsg_count = 0;
+  new_messages = new List<kmessage *>(_msg);      /* пустое сообщение */
+  received_messages = new List<kmessage *>(_msg); /* пустое сообщение */
   
   this->process = process;
 
@@ -38,13 +36,13 @@ Thread::~Thread()
   List<kmessage *> *curr, *n;
   /* удалим все сообщения */
 #warning вернуть ошибку отправителям
-  list_for_each_safe(curr, n, new_msg){
+  list_for_each_safe(curr, n, new_messages){
     delete curr->item;
     delete curr;
   }
 
-  delete new_msg->item;
-  delete new_msg;
+  delete new_messages->item;
+  delete new_messages;
 
   kfree((void *)stack_pl0);
   delete tss;

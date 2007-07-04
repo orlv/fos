@@ -12,19 +12,21 @@
 #define  _FOS_REPLY             3
 #define  _FOS_MASK_INTERRUPT    4
 #define  _FOS_UNMASK_INTERRUPT  5
+#define  _FOS_SCHED_YIELD       6
 
 #define PAGE_SIZE 0x1000
 
-static inline u32_t sys_call(volatile u32_t arg1, volatile u32_t arg2)
+static inline u32_t sys_call(volatile u32_t cmd, volatile u32_t arg)
 {
   u32_t result;
-  __asm__ __volatile__ ("int $0x30":"=a"(result):"b"(arg1), "c"(arg2));
+  __asm__ __volatile__ ("int $0x30":"=a"(result):"b"(cmd), "c"(arg));
   return result;
 }
 
 static inline void sched_yield()
 {
-  __asm__ __volatile__ ("int $3");
+  sys_call(_FOS_SCHED_YIELD, 0);
+  //__asm__ __volatile__ ("int $3");
 }
 
 struct message {

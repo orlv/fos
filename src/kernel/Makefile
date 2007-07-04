@@ -13,9 +13,9 @@ LD = ld
 include ../Makefile.conf
 
 ASFLAGS =-Wall -nostdlib -nostdinc -Iinclude
-CFLAGS  =-Wall -ffreestanding -nostdlib -nostdinc -fno-stack-protector -Iinclude
+CFLAGS  =-g -Wall -ffreestanding -nostdlib -nostdinc -fno-stack-protector -Iinclude -O0
 
-CXXFLAGS =-Wall -nostdinc -nostdinc++ -Iinclude -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin -fno-stack-protector -O0 -mregparm=3
+CXXFLAGS =-g -Wall -nostdinc -nostdinc++ -Iinclude -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin -fno-stack-protector -O0 -mregparm=3
 
 LDFLAGS =-nostdlib -static
 
@@ -56,6 +56,7 @@ Objects =	main/boot/setup.o		\
 		main/tinterface.o		\
 		main/namer/namer.o		\
 		main/namer/parse.o		\
+		main/gdb-stub.o			\
 		lib/vsprintf.o			\
 		lib/stdio.o			\
 		lib/time.o			\

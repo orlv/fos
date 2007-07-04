@@ -58,7 +58,7 @@ res_t HAL::interrupt_attach(Thread *thread, u8_t n)
 
 res_t HAL::interrupt_detach(Thread *thread, u8_t n)
 {
-  Thread *t = (Thread *)user_int_handler[n];
+  Thread *t = THREAD(user_int_handler[n]);
 
   if(t == thread){
     user_int_handler[n] = 0;

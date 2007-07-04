@@ -19,25 +19,25 @@
 static inline void __mt_reset()
 {
   extern atomic_t mt_state;
-  atomic_set(&mt_state, 1);
+  mt_state.set(1);
 }
   
 static inline void __mt_disable()
 {
   extern atomic_t mt_state;
-  atomic_inc(&mt_state);
+  mt_state.inc();
 }
 
 static inline void __mt_enable()
 {
   extern atomic_t mt_state;
-  if(atomic_read(&mt_state)) atomic_dec(&mt_state);
+  if(mt_state.read()) mt_state.dec();
 }
 
 static inline bool __mt_status()
 {
   extern atomic_t mt_state;
-  return atomic_read(&mt_state) == 0;
+  return mt_state.read() == 0;
 }
 
 
@@ -45,6 +45,8 @@ class HAL {
  private:
   multiboot_info_t *mbi;
 
+  atomic_t interrupts;
+  
  public:
   HAL(register multiboot_info_t * mbi);
   
@@ -122,7 +124,7 @@ extern HAL *hal;
 static inline int page_status(u32_t n)
 {
   if(n < hal->pages_cnt)
-    return atomic_read(&hal->phys_page[n].mapcount);
+    return hal->phys_page[n].mapcount.read();
   else
     return -1;
 }
@@ -144,7 +146,7 @@ static inline void kmem_set_log_addr(u32_t n, u32_t kmap_address)
 static inline u32_t alloc_page(u32_t n)
 {
   if(n < hal->pages_cnt)
-    return atomic_inc_return(&hal->phys_page[n].mapcount);
+    return hal->phys_page[n].mapcount.inc_return();
   else
     return 0;
 }
@@ -152,7 +154,7 @@ static inline u32_t alloc_page(u32_t n)
 static inline u32_t free_page(u32_t n)
 {
   if(n < hal->pages_cnt)
-    return atomic_dec_return(&hal->phys_page[n].mapcount);
+    return hal->phys_page[n].mapcount.dec_return();
   else
     return 0;
 }

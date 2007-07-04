@@ -1,0 +1,3 @@
+#!/bin/sh
+
+qemu -net none -boot d -localtime -cdrom FOS-current.iso -m 32 -s

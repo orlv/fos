@@ -14,9 +14,10 @@ asmlinkage int main()
   while(!(fd = open("/dev/keyboard", 0)));
 
   char ch;
+  size_t sz;
   while(1){
-    read(fd, &ch, 1);
-    printf("%c", ch);
+    if(read(fd, &ch, 1))
+      printf("%c", ch);
   }
     
   return 0;

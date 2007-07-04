@@ -16,7 +16,7 @@ bool TMutex::lock(void)
   int result;
 
   do {
-    result = xchg(&FLockItem, 1);
+    result = _xchg(&FLockItem, 1);
   } while (result!=0);
 
   return true;
@@ -24,7 +24,7 @@ bool TMutex::lock(void)
 
 bool TMutex::try_lock(void)
 {
-  return xchg(&FLockItem, 1) == 0;
+  return _xchg(&FLockItem, 1) == 0;
 }
 
 bool TMutex::is_locked(void)
@@ -34,5 +34,5 @@ bool TMutex::is_locked(void)
 
 bool TMutex::unlock(void)
 {
-  return xchg(&FLockItem, 0) == 0;
+  return _xchg(&FLockItem, 0) == 0;
 }

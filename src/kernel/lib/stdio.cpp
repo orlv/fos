@@ -19,7 +19,7 @@ int sprintf(char *str, const char *fmt, ...)
   return i;
 }
 
-int printk(const char *fmt, ...)
+extern "C" int printk(const char *fmt, ...)
 {
   extern TTY *stdout;
   int i = 0;

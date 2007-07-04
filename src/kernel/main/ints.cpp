@@ -68,8 +68,7 @@ EXCEPTION_HANDLER(NMI_exception)
 
 EXCEPTION_HANDLER(int3_exception)
 {
-  hal->outportb(0x20, 0x20);
-  sched_yield();
+  /* NONE */
   //exception("int3", cs, address, errorcode);
 }
 
@@ -171,9 +170,8 @@ IRQ_HANDLER(timer_handler)
   extern Timer *SysTimer;
   SysTimer->tick(); /* Считаем время */
 
-  u16_t pid = curPID();
   asm("incb 0xb8000+150\n" "movb $0x5e,0xb8000+151 ");
-  if ((pid == 1) || (!hal->mt_status())) { /* Если мы в scheduler() */
+  if ((curPID() == 1) || (!hal->mt_status())) { /* Если мы в scheduler() */
     hal->outportb(0x20, 0x20);
     return;
   }
@@ -183,8 +181,8 @@ IRQ_HANDLER(timer_handler)
 
 void common_interrupt(u8_t n)
 {
+  hal->mt_disable();
   hal->pic->mask(n); /* Демаскировку должен производить обработчик */
-  hal->outportb(0x20, 0x20);
   //printk("Interrupt %d received\n", n);
   if(hal->user_int_handler[n]){
     struct message msg;
@@ -197,6 +195,8 @@ void common_interrupt(u8_t n)
   } else {
     hal->panic("Unhandled interrupt received!\n");
   }
+  hal->outportb(0x20, 0x20);
+  hal->mt_enable();
 }
 
 IRQ_HANDLER(irq_1)

@@ -81,3 +81,10 @@ void Thread::run()
   hal->gdt->load_tss(SEL_N(BASE_TSK_SEL), &descr);
   __asm__ __volatile__("ljmp $0x38, $0");
 }
+
+void Thread::parse_signals()
+{
+  if(signals){
+    /* to be added........... */
+  } 
+}

@@ -51,6 +51,10 @@ void TProcMan::scheduler()
     /* Выбираем следующий подходящий для запуска поток */
     do {
       curr = curr->next;
+      if(curr->item->signals){
+	curr->item->parse_signals();
+      }
+      
       /* Процесс готов к запуску? */
       if ((curr->item->flags & FLAG_TSK_READY) &&
 	  !(curr->item->flags & (FLAG_TSK_SEND | FLAG_TSK_RECV)))

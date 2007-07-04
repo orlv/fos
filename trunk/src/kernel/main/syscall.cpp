@@ -232,6 +232,7 @@ res_t send(message *message)
   return RES_SUCCESS;
 }
 
+#if 0
 res_t send_async(message *message)
 {
   //outchar('a', 0);
@@ -263,6 +264,7 @@ res_t send_async(message *message)
   //outchar(' ', 0);
   return RES_SUCCESS;
 }
+#endif
 
 void reply(message *message)
 {

@@ -56,7 +56,7 @@ class HAL {
   GDT *gdt;
   IDT *idt;
   PIC *pic;
-  u32_t *user_int_handler;
+  Thread ** user_int_handler;
 
   Memory *kmem;
 

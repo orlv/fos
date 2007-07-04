@@ -181,22 +181,24 @@ IRQ_HANDLER(timer_handler)
 
 void common_interrupt(u8_t n)
 {
-  hal->mt_disable();
+  //hal->mt_disable();
   hal->pic->mask(n); /* Демаскировку должен производить обработчик */
   //printk("Interrupt %d received\n", n);
   if(hal->user_int_handler[n]){
-    struct message msg;
-    u8_t data;
-    msg.send_size = sizeof(u8_t);
-    data = n;
-    msg.send_buf = &data;
-    msg.tid = hal->user_int_handler[n];
-    send_async(&msg);
+    Thread *thread = hal->user_int_handler[n];
+    thread->signals |= 1 << n;
+    //struct message msg;
+    //u8_t data;
+    //msg.send_size = sizeof(u8_t);
+    //data = n;
+    //msg.send_buf = &data;
+    //msg.tid = hal->user_int_handler[n];
+    //send_async(&msg);
   } else {
     hal->panic("Unhandled interrupt received!\n");
   }
   hal->outportb(0x20, 0x20);
-  hal->mt_enable();
+  //hal->mt_enable();
 }
 
 IRQ_HANDLER(irq_1)

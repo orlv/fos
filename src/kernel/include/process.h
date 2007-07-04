@@ -62,6 +62,9 @@ class Thread{
   atomic_t new_messages_count;
   List<kmessage *> *received_messages;
   atomic_t received_messages_count;
+
+  u32_t signals;
+  void parse_signals();
 };
 
 class TProcess {

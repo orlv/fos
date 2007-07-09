@@ -4,7 +4,6 @@
 
 include Makefile.conf
 
-
 all:
 	@echo "# GRUB Config: generated automatically - do not edit!" > $(GRUB_MENU)
 	@echo "timeout $(GRUB_TIMEOUT)" >> $(GRUB_MENU)

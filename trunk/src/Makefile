@@ -3,9 +3,10 @@
 # Copyright (C) 2004-2007 Oleg S. Fedorov
 #------------------------------------------------------------------------------
 
+TOPDIR = `pwd`/..
 include Makefile.conf
 
-all:	version build_kernel build_servers
+all:	version build_kernel build_user
 	@rm -f `find . -name \*~`
 	@expr `cat .build.next` + 1 | xargs echo -n > .build.next.tmp
 	@mv .build.next.tmp .build.next
@@ -39,35 +40,35 @@ version:
 
 build_kernel:
 	@echo \#--------------------------------- Building kernel ----------------------------
-	@make -s -C kernel
+	@make -s -C kernel $(MKFLAGS)
 	@echo \#------------------------------------------------------------------------------
 	@echo 
 
-build_servers:
-	@echo \#--------------------------------- Building servers ---------------------------
-	@make -s -C servers
+build_user:
+	@echo \#---------------------- Building usermode programs ----------------------------
+	@make -s -C usermode $(MKFLAGS)
 	@echo \#------------------------------------------------------------------------------
 
 
 #--------------------------------- Clean -------------------------------------
 
 clean_kernel:
-	@make -C kernel clean
+	@make -C kernel clean $(MKFLAGS)
 
-clean_servers:
-	@make -C servers clean
+clean_user:
+	@make -C usermode clean $(MKFLAGS)
 
-clean: clean_kernel clean_servers
+clean: clean_kernel clean_user
 	@rm -f $(BINDIR)/ramdisk.gz
 
 #--------------------------------- Install -----------------------------------
 
 menu:
-	@make -s -f Makefile.menu
+	@make -s -f Makefile.menu $(MKFLAGS)
 
 iso:
 	@echo Making ISO image
-	@make -f Makefile.iso
+	@make -f Makefile.iso $(MKFLAGS)
 
 install: menu iso
 

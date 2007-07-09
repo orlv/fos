@@ -2,30 +2,32 @@
 #	Copyright (C) 2006-2007 Oleg Fedorov
 #----------------------------------------------------------------------------#
 
-include ../Makefile.inc
+include $(MAIN_CONFIG)
+include $(CONFIG)
 
-Objects  = ../lib/startup.o \
+OBJECTS  = ../lib/startup.o \
 	main.o \
+	keyboard.o \
 	../lib/fos.o \
 	../lib/heap.o \
 	../lib/libcpp.o \
-	../lib/vsprintf.o \
 	../lib/stdio.o \
+	../lib/vsprintf.o \
+	../lib/tmutex.o \
 	../lib/msg.o
 
-
-PROGNAME = init
+PROGNAME = keyboard
 
 #-----------------------------------------------------------------------------#
 
-all:    $(Objects)
+all:    $(OBJECTS)
 	@echo \ Linking $(BINDIR)/$(PROGNAME)
-	@$(LD) $(LDFLAGS) -o $(BINDIR)/$(PROGNAME) --oformat=elf32-i386 --entry=_start $(Objects) --Ttext=$(USER_MEM_BASE)
+	@$(LD) $(LDFLAGS) -o $(BINDIR)/$(PROGNAME) --oformat=elf32-i386 --entry=_start $(OBJECTS) --Ttext=$(USER_MEM_BASE)
 
 #--------------------------------- Clean -------------------------------------#
 
 clean:
-	@rm -f $(Objects)
+	@rm -f $(OBJECTS)
 	@rm -f $(BINDIR)/$(PROGNAME)
 
 #-----------------------------------------------------------------------------#

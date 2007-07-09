@@ -7,12 +7,13 @@
 
 #include <types.h>
 
-#define  _FOS_SEND              1
-#define  _FOS_RECEIVE           2
-#define  _FOS_REPLY             3
-#define  _FOS_MASK_INTERRUPT    4
-#define  _FOS_UNMASK_INTERRUPT  5
-#define  _FOS_SCHED_YIELD       6
+#define _FOS_SEND              1
+#define _FOS_RECEIVE           2
+#define _FOS_REPLY             3
+#define _FOS_MASK_INTERRUPT    4
+#define _FOS_UNMASK_INTERRUPT  5
+#define _FOS_SCHED_YIELD       6
+#define _FOS_UPTIME            7
 
 #define PAGE_SIZE 0x1000
 
@@ -68,6 +69,8 @@ asmlinkage res_t interrupt_detach(u8_t n);
 asmlinkage int resmgr_attach(const char *pathname);
 
 asmlinkage size_t dmesg(char *buf, size_t count);
+
+asmlinkage u32_t uptime();
 
 /* xchg взят из linux-2.6.17 */
 

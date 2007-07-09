@@ -4,23 +4,24 @@
 */
 
 #include "hd.h"
-#include <hal.h>
+#include <fos.h>
+#include <string.h>
 #include <stdio.h>
-#include <system.h>
-#include <drivers/char/timer/timer.h>
+#include <fs.h>
 
 hd::hd()
 {
-  if (get_info() != RES_SUCCESS)
-    hal->panic("Kernel panic: hda initialization error");
+  get_info();
+  //if (get_info() != RES_SUCCESS)
+    //hal->panic("Kernel panic: hda initialization error");
 
-  printk("\nhda: \n");
-  printk("Serial number - %s\n", drive_id->serial_no);
-  printk("Model - %s\n", drive_id->model);
-  printk("Cyl - %d\n", drive_id->cur_cyls);
-  printk("Head - %d\n", drive_id->cur_heads);
-  printk("Sec - %d\n", drive_id->cur_sectors);
-  printk("lba_capacity - %d\n", drive_id->lba_capacity);
+  printf("\nhda: \n");
+  printf("Serial number - %s\n", drive_id->serial_no);
+  printf("Model - %s\n", drive_id->model);
+  printf("Cyl - %d\n", drive_id->cur_cyls);
+  printf("Head - %d\n", drive_id->cur_heads);
+  printf("Sec - %d\n", drive_id->cur_sectors);
+  printf("lba_capacity - %d\n", drive_id->lba_capacity);
 
   geometry.heads = drive_id->cur_heads;
   geometry.tracks = drive_id->cur_cyls;
@@ -28,16 +29,15 @@ hd::hd()
   blocks_cnt = drive_id->cur_heads * drive_id->cur_cyls * drive_id->cur_sectors;
   current_block = 0;
 
-  printk("hda: OK\n");
+  printf("hda: OK\n");
 }
 
 res_t hd::ready()
 {
-#warning FIX: изменить интервал времени для uptime()   (слишком велик)
   u32_t timeout = uptime() + 2;
-  while (!(hal->inportb(HD_STATUS) & 0x40)) {
+  while (!(inportb(HD_STATUS) & 0x40)) {
     if (timeout < uptime()) {
-      printk("HD_Timeout: ready\n");
+      printf("HD_Timeout: ready\n");
       return RES_FAULT;
     }
   }
@@ -47,9 +47,9 @@ res_t hd::ready()
 res_t hd::busy()
 {
   u32_t timeout = uptime() + 2;
-  while (hal->inportb(HD_STATUS) & 0x80) {
+  while (inportb(HD_STATUS) & 0x80) {
     if (timeout < uptime()) {
-      printk("HD_Timeout: busy\n");
+      printf("HD_Timeout: busy\n");
       return RES_FAULT2;
     }
   }
@@ -58,8 +58,10 @@ res_t hd::busy()
 
 void hd::check_error()
 {
-  if (hal->inportb(HD_STATUS) & 0x1)
-    hal->panic("HD_STATUS: ERROR!!!!");
+  if (inportb(HD_STATUS) & 0x1){
+    printf("HD_STATUS: ERROR!!!!");
+    while(1);
+  }
 }
 
 res_t hd::get_info()
@@ -70,19 +72,19 @@ res_t hd::get_info()
   if ((errno = busy()) != RES_SUCCESS)
     return errno;
 
-  hal->outportb(HD_CURRENT, 0xa0);
+  outportb(HD_CURRENT, 0xa0);
   if ((errno = ready()) != RES_SUCCESS)
     return errno;
 
-  hal->outportb(HD_STATUS, 0xec);	/* идентификация */
+  outportb(HD_STATUS, 0xec);	/* идентификация */
   if ((errno = busy()) != RES_SUCCESS)
     return errno;
 
-  for (i = 0; (i < 256) && (hal->inportb(HD_STATUS) & 0x08); i++) {
+  for (i = 0; (i < 256) && (inportb(HD_STATUS) & 0x08); i++) {
     if ((errno = busy()) != RES_SUCCESS)
       return errno;
     check_error();
-    ((u16_t *) drive_id)[i] = hal->inportw(HD_DATA);
+    ((u16_t *) drive_id)[i] = inportw(HD_DATA);
     if ((i >= 10 && i <= 19) || (i >= 27 && i <= 46)) {
     asm("xchgb %%ah, %%al":"=a"(((u16_t *) drive_id)[i])
     :	  "a"(((u16_t *) drive_id)[i]));
@@ -156,25 +158,25 @@ res_t hd::seek(u32_t block)
 
 u32_t hd::read_chs(u16_t head, u16_t track, u16_t sector, void *buffer)
 {
-  //  printk("%d,%d,%d,0x%X\n",head,track,sector,buffer);
+  //  printf("%d,%d,%d,0x%X\n",head,track,sector,buffer);
   u32_t i;
   u32_t errno;
   if ((errno = busy()) != RES_SUCCESS)
     return errno;
-  hal->outportb(HD_CURRENT, 0xa0 | head);
+  outportb(HD_CURRENT, 0xa0 | head);
   if ((errno = ready()) != RES_SUCCESS)
     return errno;
-  hal->outportb(HD_NSECTOR, 1);
-  hal->outportb(HD_SECTOR, sector);
-  hal->outportb(HD_LCYL, track);
-  hal->outportb(HD_HCYL, track >> 8);
-  hal->outportb(HD_STATUS, 0x20);
+  outportb(HD_NSECTOR, 1);
+  outportb(HD_SECTOR, sector);
+  outportb(HD_LCYL, track);
+  outportb(HD_HCYL, track >> 8);
+  outportb(HD_STATUS, 0x20);
 
-  for (i = 0; (i < 256) && (hal->inportb(HD_STATUS) & 0x08); i++) {
+  for (i = 0; (i < 256) && (inportb(HD_STATUS) & 0x08); i++) {
     if ((errno = busy()) != RES_SUCCESS)
       return errno;
     check_error();
-    ((u16_t *) buffer)[i] = hal->inportw(HD_DATA);
+    ((u16_t *) buffer)[i] = inportw(HD_DATA);
   }
 
   return (i * 2);
@@ -189,4 +191,50 @@ u32_t hd::rw(u16_t block, void *buffer, u8_t read)
 		    current_block % geometry.spt, buffer);
   } else
     return 0;
+}
+
+
+asmlinkage int main()
+{
+  printf("Usermode HDD driver\n");
+
+  u32_t res;
+  union fs_message *m = new fs_message;
+  struct message *msg = new message;
+
+  hd *hd = new hd;
+  resmgr_attach("/dev/hda");
+  char *buf = new char[4096];
+  
+  while (1) {
+    msg->tid = 0;
+    msg->recv_size = sizeof(fs_message);
+    msg->recv_buf = m;
+    receive(msg);
+
+    switch(m->data.cmd){
+    case FS_CMD_ACCESS:
+      res = RES_SUCCESS;
+      break;
+
+    case FS_CMD_WRITE:
+      //hd->write(m->data3.buf[0]);
+      res = RES_FAULT;
+      break;
+
+    case FS_CMD_READ:
+      //res = hd->read(m->data3.offset, buf, m->data3.);
+      res = RES_FAULT;
+      break;
+
+    default:
+      res = RES_FAULT;
+    }
+    
+    msg->send_buf = &res;
+    msg->send_size = sizeof(res);
+    reply(msg);
+  }
+
+  return 0;
 }

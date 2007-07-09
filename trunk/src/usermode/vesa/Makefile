@@ -2,30 +2,23 @@
 #	Copyright (C) 2006 Oleg Fedorov
 #----------------------------------------------------------------------------#
 
-include ../Makefile.inc
+include $(MAIN_CONFIG)
+include $(CONFIG)
 
-Objects  = ../lib/startup.o \
-	main.o \
-	../lib/fos.o \
-	../lib/heap.o \
-	../lib/libcpp.o \
-	vga.o \
-	tty.o \
-	../lib/msg.o
-
-
-PROGNAME = tty
+OBJECTS  = main.o
+PROGNAME = vesa
 
 #-----------------------------------------------------------------------------#
 
-all:    $(Objects)
+all:    $(OBJECTS)
 	@echo \ Linking $(BINDIR)/$(PROGNAME)
-	@$(LD) $(LDFLAGS) -o $(BINDIR)/$(PROGNAME) --oformat=elf32-i386 --entry=_start $(Objects) --Ttext=$(USER_MEM_BASE)
+	@$(LD) $(LDFLAGS) -o $(BINDIR)/$(PROGNAME) $(OBJECTS) --oformat=binary -Tldscript -Ttext=0x1f00
+#	$(LD) $(LDFLAGS) -shared -o $(BINDIR)/$(PROGNAME) $(OBJECTS) --oformat=elf32-i386
 
 #--------------------------------- Clean -------------------------------------#
 
 clean:
-	@rm -f $(Objects)
+	@rm -f $(OBJECTS)
 	@rm -f $(BINDIR)/$(PROGNAME)
 
 #-----------------------------------------------------------------------------#

@@ -13,12 +13,19 @@ asmlinkage int main()
   fd_t fd;
   while(!(fd = open("/dev/keyboard", 0)));
 
+  printf("uptime=%d\n", uptime());
   char ch;
-  size_t sz;
   while(1){
-    if(read(fd, &ch, 1))
-      printf("%c", ch);
+    if(read(fd, &ch, 1)){
+      switch(ch){
+      case 'u':
+	printf("uptime=%d\n", uptime());
+	break;
+
+      default:
+	printf("%c", ch);
+      }
+    }
   }
-    
   return 0;
 }

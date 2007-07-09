@@ -1,3 +1,7 @@
+Mon Jul  9 21:01:27 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 15312 (Version 0.0.41.8)
+	- Изменена система обработки прерываний
+
 Wed Jul  4 03:09:43 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
 Build 15238 (Version 0.0.41.7)
 	- Добавлена дополнительная синхронизация в систему сообщений

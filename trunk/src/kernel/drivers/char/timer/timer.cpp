@@ -58,26 +58,3 @@ void Timer::tick()
 {
   _uptime++;
 }
-
-#if 0
-#warning TODO: timer_handler(): Изменить. Такой вариант не походит.
-#warning TODO: Попробовать с сообщениями.
-
-asmlinkage void timer_handler(u16_t cs)
-{
-  asm("incb 0xb8000+156\n" "movb $0x5e,0xb8000+157 ");
-  while(1);
-  extern Timer *SysTimer;
-  SysTimer->tick();		/* Считаем время */
-
-  u16_t pid = curPID();
-  if (pid == 1) {		/* Если мы в scheduler() */
-    asm("incb 0xb8000+156\n" "movb $0x5e,0xb8000+157 ");
-
-    hal->outportb(0x20, 0x20);
-    return;
-  }
-  hal->outportb(0x20, 0x20);
-  pause();			/* Передадим управление scheduler() */
-}
-#endif

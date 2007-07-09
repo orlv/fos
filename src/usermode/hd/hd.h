@@ -1,13 +1,12 @@
 /*
-	drivers/block/hd/hd.h
-	Copyright (C) 2005-2006 Oleg Fedorov
+  drivers/block/hd/hd.h
+  Copyright (C) 2005-2007 Oleg Fedorov
 */
 
 #ifndef __HD_H
 #define __HD_H
 
 #include <types.h>
-#include <tinterface.h>
 
 #define HD_SECTOR_SIZE 512
 
@@ -271,7 +270,7 @@ struct hd_drive_id {
 				 */
 } __attribute__ ((packed));
 
-class hd:public Tinterface {
+class hd{
 private:
   struct drive_geometry {
     u32_t heads;
@@ -293,7 +292,7 @@ private:
   u32_t read_chs(u16_t head, u16_t track, u16_t sector, void *buffer);
 
 public:
-   hd();
+  hd();
 
   size_t read(off_t offset, void *buf, size_t count);
   size_t write(off_t offset, const void *buf, size_t count);

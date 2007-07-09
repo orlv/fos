@@ -297,3 +297,10 @@ asmlinkage size_t dmesg(char *buf, size_t count)
 
   return msg.recv_size;
 }
+
+asmlinkage u32_t uptime()
+{
+  u32_t time;
+  sys_call(_FOS_UPTIME, (u32_t)&time);
+  return time;
+}

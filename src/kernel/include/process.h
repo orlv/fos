@@ -63,6 +63,7 @@ class Thread{
   List<kmessage *> *received_messages;
   atomic_t received_messages_count;
 
+  res_t put_message(kmessage *message);
   u32_t signals;
   void parse_signals();
 };

@@ -82,9 +82,33 @@ void Thread::run()
   __asm__ __volatile__("ljmp $0x38, $0");
 }
 
+res_t Thread::put_message(kmessage *message)
+{
+  hal->mt_disable();
+  if(new_messages_count.read() >= MAX_MSG_COUNT){
+    hal->mt_enable();
+    return RES_FAULT2;
+  }
+
+  new_messages->add_tail(message);
+  new_messages_count.inc();
+  flags &= ~FLAG_TSK_RECV;	/* сбросим флаг ожидания получения сообщения (если он там есть) */
+
+  hal->mt_enable();
+  return RES_SUCCESS;
+}
+
 void Thread::parse_signals()
 {
-  if(signals){
-    /* to be added........... */
+  for(u32_t n=0, mask=1; signals && (n < sizeof(this->signals)*8); n++, mask = mask << 1){
+    if(signals & mask){
+      u32_t *data = new u32_t;
+      kmessage *message = new kmessage;
+      message->buffer = data;
+      message->size = sizeof(u32_t);
+      *data = n;
+      this->put_message(message);
+      signals = signals & ~mask;
+    }
   } 
 }

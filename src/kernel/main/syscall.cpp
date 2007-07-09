@@ -14,6 +14,7 @@
 #define MASK_INTERRUPT    4
 #define UNMASK_INTERRUPT  5
 #define SCHED_YIELD       6
+#define UPTIME            7
 
 /*
   
@@ -123,17 +124,14 @@ void outchar(char ch, u32_t off)
 
 kmessage * get_message()
 {
-  //hal->cli();
   hal->mt_disable();
   Thread *current_thread = hal->ProcMan->CurrentThread;
   if (!current_thread->new_messages_count.read()) {  /* если нет ни одного входящего сообщения -- отключаемся в ожидании */
     /*  ожидание сообщения (отдаем управление планировщику, будем разблокированы по приходу сообщения) */
     hal->ProcMan->CurrentThread->flags |= FLAG_TSK_RECV;
     hal->mt_enable();
-    //hal->sti();
     sched_yield();
     hal->mt_disable();
-    //hal->cli();
   }
   
   /* пришло сообщение, обрабатываем.. */
@@ -147,7 +145,6 @@ kmessage * get_message()
   }
   current_thread->new_messages_count.dec();
   hal->mt_enable();
-  //hal->sti();
 
   return message;
 }
@@ -208,16 +205,13 @@ res_t send(message *message)
   send_message->reply_size = message->recv_size;
   send_message->thread = current_thread;
   
-  //hal->cli();
   hal->mt_disable();
   thread->new_messages->add_tail(send_message);       /* добавим сообщение процессу-получателю */
   thread->new_messages_count.inc();
   thread->flags &= ~FLAG_TSK_RECV;	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
   send_message->thread->flags |= FLAG_TSK_SEND;	 /* ожидаем ответа */
-  //hal->sti();
   hal->mt_enable();
   sched_yield();                                 /*  ожидаем ответа  */
-
 
   /* скопируем полученный ответ в память процесса */
   memcpy(message->recv_buf, send_message->buffer, send_message->reply_size);
@@ -232,40 +226,6 @@ res_t send(message *message)
   return RES_SUCCESS;
 }
 
-#if 0
-res_t send_async(message *message)
-{
-  //outchar('a', 0);
-  Thread *thread; /* поток-получатель */
-
-  if(!(thread = hal->ProcMan->get_thread_by_tid(message->tid)))
-    return RES_FAULT;
-
-  if(thread->new_messages_count.read() >= MAX_MSG_COUNT)
-    return RES_FAULT2;
-
-  hal->mt_disable();
-  /* скопируем сообщение в память ядра */
-  kmessage *send_message = new kmessage;
-  send_message->buffer = new char[message->send_size];
-  send_message->size = message->send_size;
-  memcpy(send_message->buffer, message->send_buf, send_message->size);
-
-  send_message->flags = MESSAGE_ASYNC; /* не требует ответа (ответ игнорируется) */
-  //send_message->thread = hal->ProcMan->CurrentThread;
-
-  //hal->cli();
-  //hal->mt_disable();
-  thread->new_messages->add_tail(send_message);
-  thread->new_messages_count.inc();
-  thread->flags &= ~FLAG_TSK_RECV;	/* сбросим флаг ожидания получения сообщения (если он там есть) */
-  //hal->sti();
-  hal->mt_enable();
-  //outchar(' ', 0);
-  return RES_SUCCESS;
-}
-#endif
-
 void reply(message *message)
 {
   size_t size;
@@ -274,7 +234,6 @@ void reply(message *message)
   List<kmessage *> *messages = hal->ProcMan->CurrentThread->received_messages;
 
   /* Ищем сообщение в списке полученных (чтобы ответ дошел, пользовательское приложение не должно менять поле tid) */
-  //hal->cli();
   hal->mt_disable();
   list_for_each (entry, messages) {
     send_message = entry->item;
@@ -282,7 +241,6 @@ void reply(message *message)
       break;
   }
   hal->mt_enable();
-  //hal->sti();
 
   if(!send_message)
     return;
@@ -300,12 +258,10 @@ void reply(message *message)
     memcpy(send_message->buffer, message->send_buf, size);
   }
 
-  //hal->cli();
   hal->mt_disable();
   delete entry; /* удалим запись о сообщении из списка полученных сообщений */
   thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
   hal->mt_enable();
-  //hal->sti();
 }
 
 res_t forward(message *message, tid_t tid)
@@ -344,6 +300,8 @@ res_t forward(message *message, tid_t tid)
   return RES_SUCCESS;
 }
 
+u32_t uptime();
+
 SYSCALL_HANDLER(sys_call)
 {
   //printk("\nSyscall #%d, Process %d ", cmd,  hal->ProcMan->CurrentThread->pid);
@@ -377,6 +335,10 @@ SYSCALL_HANDLER(sys_call)
 
   case SCHED_YIELD:
     sched_yield();
+    break;
+
+  case UPTIME:
+    *(u32_t *)arg = uptime();
     break;
     
   default:

@@ -4,15 +4,10 @@
 
 #----------------------------------------------------------------------------#
 CC = gcc
-#CC = tcc
 C++ = gcc
-#AS = tcc
 AS = gcc
-#LD = tcc
 LD = ld
 #----------------------------------------------------------------------------#
-
-include ../../Makefile.conf
 
 FLAGS=-Wall -nostdlib -nostdinc -I../include -I. -L../lib -fno-stack-protector -O0
 

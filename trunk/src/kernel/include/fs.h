@@ -21,6 +21,14 @@ struct info_t {
   u32_t mtime;			/* время последней моификации */
 };
 
+struct fd {
+  tid_t thread;
+  offs_t offset;
+  u32_t id;
+};
+
+typedef struct fd* fd_t;
+
 #define FTypeObject    1
 #define FTypeDirectory 2
 
@@ -33,11 +41,20 @@ struct info_t {
 #define FS_CMD_WRITE  2
 #define FS_CMD_LIST   3
 
-#define NAMER_CMD_ACCESS  0
-#define NAMER_CMD_ADD     4
-#define NAMER_CMD_REM     5
-#define NAMER_CMD_RESOLVE 6
+#define BASE_CMD_N 64
 
+#define NAMER_CMD_ACCESS  FS_CMD_ACCESS
+#define NAMER_CMD_ADD     (BASE_CMD_N + 0)
+#define NAMER_CMD_REM     (BASE_CMD_N + 1)
+#define NAMER_CMD_RESOLVE (BASE_CMD_N + 2)
+
+int close(fd_t fd);
+fd_t open(const char *pathname, int flags);
+size_t read(fd_t fd, void *buf, size_t count);
+size_t write(fd_t fd, const void *buf, size_t count);
+int resmgr_attach(const char *pathname);
+
+#if 0
 union fs_message{
   struct {
     u32_t cmd;
@@ -59,5 +76,6 @@ union fs_message{
     char buf[FS_CMD_LEN];
   }data3;
 } __attribute__ ((packed));
+#endif
 
 #endif

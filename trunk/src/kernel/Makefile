@@ -13,7 +13,7 @@ LD = ld
 include ../Makefile.conf
 
 ASFLAGS =-Wall -nostdlib -nostdinc -Iinclude
-CFLAGS  =-g -Wall -ffreestanding -nostdlib -nostdinc -fno-stack-protector -Iinclude -O0
+CFLAGS  =-g -Wall -ffreestanding -nostdlib -nostdinc -fno-stack-protector -Iinclude -O3
 
 CXXFLAGS =-g -Wall -nostdinc -nostdinc++ -Iinclude -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin -fno-stack-protector -O0 -mregparm=3
 

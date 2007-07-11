@@ -17,38 +17,17 @@
 #define FS_CMD_WRITE  2
 #define FS_CMD_LIST   3
 
-#define NAMER_CMD_ACCESS  0
-#define NAMER_CMD_ADD     4
-#define NAMER_CMD_REM     5
-#define NAMER_CMD_RESOLVE 6
+#define BASE_CMD_N 64
 
-#define PID_NAMER 0
-
-union fs_message{
-  struct {
-    u32_t cmd;
-  }data;
-
-  struct {
-    u32_t cmd;
-    offs_t offset;
-  }data1;
-
-  struct {
-    u32_t cmd;
-    offs_t offset;
-  }data2;
-
-  struct {
-    u32_t cmd;
-    offs_t offset;
-    char buf[FS_CMD_LEN];
-  }data3;
-} __attribute__ ((packed));
+#define NAMER_CMD_ACCESS  FS_CMD_ACCESS
+#define NAMER_CMD_ADD     (BASE_CMD_N + 0)
+#define NAMER_CMD_REM     (BASE_CMD_N + 1)
+#define NAMER_CMD_RESOLVE (BASE_CMD_N + 2)
 
 struct fd {
-  tid_t thread;
+  tid_t  thread;
   offs_t offset;
+  u32_t  id;
 };
 
 typedef struct fd* fd_t;

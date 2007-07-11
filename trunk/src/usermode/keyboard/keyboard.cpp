@@ -167,6 +167,31 @@ void Keyboard::handler()
   unmask_interrupt(KBD_IRQ_NUM);
 }
 
+size_t Keyboard::write(off_t offset, const void *buf, size_t count)
+{
+  size_t i;
+  for(i=0; i<count; i++)
+    if(!put(((char *)buf)[i])){
+      i--;
+      break;
+    }
+
+  return i;
+}
+
+size_t Keyboard::read(off_t offset, void *buf, size_t count)
+{
+  size_t i;
+  for(i=0; i<count; i++)
+    ((char *)buf)[i] = get();
+    /*if(!((((char *)buf)[i]) = get())){
+      i--;
+      break;
+      }*/
+
+  return count;
+}
+
 res_t Keyboard::put(u8_t ch)
 {
   buffer_mutex.lock();

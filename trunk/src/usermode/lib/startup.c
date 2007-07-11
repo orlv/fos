@@ -6,18 +6,10 @@
 int main(void);
 
 #include <fos.h>
-
-tid_t namer;
-tid_t tty;
-tid_t procman;
+#include <fs.h>
 
 void _start()
 {
-  //while(1);
-  while(!(namer = resolve("/sys/namer")));
-  while(!(procman = resolve("/sys/procman")));
-  tty = 0;
-
   main();
   while(1);
 }

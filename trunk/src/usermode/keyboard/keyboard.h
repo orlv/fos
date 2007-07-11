@@ -105,7 +105,6 @@ class Keyboard{
   
   void set_repeat_rate(u8_t rate);
   void decode(u8_t scancode);
-
   
  public:
   Keyboard();
@@ -114,6 +113,9 @@ class Keyboard{
   res_t put(u8_t ch);
   u8_t get();
   void handler();
+
+  size_t write(off_t offset, const void *buf, size_t count);
+  size_t read(off_t offset, void *buf, size_t count);
 };
 
 #endif

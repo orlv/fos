@@ -31,7 +31,7 @@ void out_banner()
   extern u32_t build;
   extern const string compile_date, compile_time;
 
-  printk(" FOS OS. Revision %s. Build #%s %s %s \n"			\
+  printk(" FOS OS. Revision %s. Build #%d %s %s \n"			\
 	 "--------------------------------------------------------------------------------" \
 	 " Copyright (C) 2004-2007 Oleg Fedorov                      http://fos.osdev.ru/ " \
 	 "--------------------------------------------------------------------------------",
@@ -102,6 +102,20 @@ extern "C" void set_debug_traps();
 extern "C" void breakpoint();
 #endif
 
+asmlinkage tid_t exec(const char * filename)
+{
+  size_t len = strlen(filename);
+  if(len+1 > MAX_PATH_LEN)
+    return 0;
+  message msg;
+  msg.a0 = PROCMAN_CMD_EXEC;
+  msg.send_buf = filename;
+  msg.send_size = len + 1;
+  msg.recv_size = 0;
+  msg.tid = SYSTID_PROCMAN;
+  return send(&msg);
+}
+
 asmlinkage void init()
 {
   init_memory();
@@ -134,7 +148,7 @@ asmlinkage void init()
   //extern size_t volatile heap_free;
   //printk("Memory size: %d Kb, free %dK (%dK high/%dK low), heap_free=%d\n", hal->pages_cnt*4, atomic_read(&hal->free_pages)*4 + atomic_read(&hal->free_lowpages)*4, atomic_read(&hal->free_pages)*4, atomic_read(&hal->free_lowpages)*4, heap_free);
 
-  hal->ProcMan = new TProcMan;
+  hal->procman = new TProcMan;
 
 #ifdef __GDB_STUB
   printk("Setting up a GDB stub... ");
@@ -156,13 +170,6 @@ asmlinkage void init()
 
   extern multiboot_info_t *__mbi;
   initrb = new ModuleFS(__mbi);
-
-  printk("kernel: starting init\n");
-  Tinterface *obj = initrb->access("init");
-  string elf_buf = new char[obj->info.size];
-  obj->read(0, elf_buf, obj->info.size);
-  hal->ProcMan->exec(elf_buf, "init");
-  delete elf_buf;
 
   printk("--------------------------------------------------------------------------------" \
 	 "All OK. Main kernel procedure done.\n"			\

@@ -40,9 +40,28 @@ extern "C" int printk(const char *fmt, ...)
 
 #include <hal.h>
 
-tid_t tty = 0;
+fd_t tty = 0;
 tid_t resolve(char *name);
 
+int printf(const char *fmt, ...)
+{
+  return 0;
+  if(!tty)
+    if(!(tty = open("/dev/tty", 0)))
+      return 0;
+
+  va_list args;
+  va_start(args, fmt);
+  char *printbuf = new char[2048];
+  
+  size_t i = vsprintf(printbuf, fmt, args);
+  va_end(args);
+  printbuf[i] = 0;
+ 
+  return write(tty, printbuf, i);
+}
+
+#if 0
 int printf(const char *fmt, ...)
 {
   if(!tty)
@@ -68,3 +87,4 @@ int printf(const char *fmt, ...)
 
   return i;
 }
+#endif

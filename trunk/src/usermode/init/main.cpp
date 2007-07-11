@@ -9,7 +9,6 @@
 asmlinkage int main()
 {
   exec("tty");
-
   printf("Init started! If you see this text - all work fine.\n");
   exec("keyboard");
   exec("app1");

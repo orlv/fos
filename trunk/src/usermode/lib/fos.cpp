@@ -6,160 +6,100 @@
 #include <string.h>
 #include <fs.h>
 
-#define PROCMAN_CMD_EXEC             0
-#define PROCMAN_CMD_KILL             1
-#define PROCMAN_CMD_EXIT             2
-#define PROCMAN_CMD_MEM_ALLOC        3
-#define PROCMAN_CMD_MEM_MAP          4
-#define PROCMAN_CMD_CREATE_THREAD    5
-#define PROCMAN_CMD_INTERRUPT_ATTACH 6
-#define PROCMAN_CMD_INTERRUPT_DETACH 7
-#define PROCMAN_CMD_DMESG            8
-
-struct procman_message {
-  u32_t cmd;
-  union {
-    char buf[252];
-    u32_t tid;
-    u32_t value;
-    struct {
-      u32_t a1;
-      u32_t a2;
-    }val;
-  }arg;
-} __attribute__ ((packed));
-
-asmlinkage tid_t resolve(char *name)
-{
-  message msg;
-  u32_t res;
-  fs_message m;
-  msg.recv_size = sizeof(res);
-  msg.recv_buf = &res;
-  msg.send_size = sizeof(fs_message);
-  m.data3.cmd = NAMER_CMD_RESOLVE;
-  strcpy((char *)m.data3.buf, name);
-  msg.send_buf = (char *)&m;
-  msg.tid = 0;
-  send(&msg);
-  return res;
-}
-
-extern tid_t procman;
-extern tid_t namer;
+#define PROCMAN_CMD_EXEC             (BASE_CMD_N + 0)
+#define PROCMAN_CMD_KILL             (BASE_CMD_N + 1)
+#define PROCMAN_CMD_EXIT             (BASE_CMD_N + 2)
+#define PROCMAN_CMD_MEM_ALLOC        (BASE_CMD_N + 3)
+#define PROCMAN_CMD_MEM_MAP          (BASE_CMD_N + 4)
+#define PROCMAN_CMD_CREATE_THREAD    (BASE_CMD_N + 5)
+#define PROCMAN_CMD_INTERRUPT_ATTACH (BASE_CMD_N + 6)
+#define PROCMAN_CMD_INTERRUPT_DETACH (BASE_CMD_N + 7)
+#define PROCMAN_CMD_DMESG            (BASE_CMD_N + 8)
 
 asmlinkage void exit()
 {
   message msg;
-  procman_message pm;
-  pm.cmd = PROCMAN_CMD_EXIT;
-
-  msg.send_buf = (char *)&pm;
-  msg.recv_buf = 0;
-  msg.send_size = sizeof(procman_message);
+  msg.a0 = PROCMAN_CMD_EXIT;
+  msg.send_size = 0;
   msg.recv_size = 0;
-  msg.tid = procman;
+  msg.tid = SYSTID_PROCMAN;
   send(&msg);
-
   while(1);
 }
 
-asmlinkage void kill(tid_t tid)
+asmlinkage u32_t kill(tid_t tid)
 {
   message msg;
-  procman_message pm;
-  pm.cmd = PROCMAN_CMD_KILL;
-  pm.arg.tid = tid;
-
-  msg.send_buf = (char *)&pm;
-  msg.recv_buf = 0;
-  msg.send_size = sizeof(procman_message);
+  msg.a0 = PROCMAN_CMD_KILL;
+  msg.a1 = tid;
+  msg.send_size = 0;
   msg.recv_size = 0;
-  msg.tid = procman;
-  send(&msg);
-}
-
-asmlinkage res_t exec(const string filename)
-{
-  int i = strlen(filename);
-  if(i >= 256)
-    return RES_FAULT;
-
-  char res[3];
-  res[2] = 0;
-  message msg;
-  procman_message pm;
-  
-  pm.cmd = PROCMAN_CMD_EXEC;
-  strcpy(pm.arg.buf, filename);
-
-  msg.send_buf = (char *)&pm;
-  msg.recv_buf = (char *)&res;
-  msg.send_size = sizeof(procman_message);
-  msg.recv_size = 2;
-  msg.tid = procman;
-  send(&msg);
-
-  if(strcpy(res, "OK"))
-    return RES_SUCCESS;
+  msg.tid = SYSTID_PROCMAN;
+  if(send(&msg) == RES_SUCCESS)
+    return msg.a0;
   else
-    return RES_FAULT;
+    return 0;
 }
 
-asmlinkage void *kmemmap(offs_t ptr, size_t size)
+asmlinkage tid_t exec(const char * filename)
 {
+  size_t len = strlen(filename);
+  if(len+1 > MAX_PATH_LEN)
+    return 0;
   message msg;
-  procman_message pm;
-  volatile u32_t res;
+  msg.a0 = PROCMAN_CMD_EXEC;
+  msg.send_buf = filename;
+  msg.send_size = len + 1;
+  msg.recv_size = 0;
+  msg.tid = SYSTID_PROCMAN;
 
-  pm.cmd = PROCMAN_CMD_MEM_MAP;
-  pm.arg.val.a1 = ptr;
-  pm.arg.val.a2 = size;
-    
-  msg.send_buf = (char *)&pm;
-  msg.recv_buf = (char *)&res;
-  msg.send_size = sizeof(procman_message);
-  msg.recv_size = sizeof(res);
-  msg.tid = procman;
-  send(&msg);
-
-  return (void *)res;
+  if(send(&msg) == RES_SUCCESS)
+    return (tid_t) msg.a0;
+  else
+    return 0;
 }
 
-asmlinkage void *kmalloc(size_t size)
+asmlinkage void * kmemmap(offs_t ptr, size_t size)
 {
   message msg;
-  procman_message pm;
-  volatile u32_t res;
-  
-  pm.cmd = PROCMAN_CMD_MEM_ALLOC;
-  pm.arg.value = size;
-  msg.send_buf = (char *)&pm;
-  msg.recv_buf = (char *)&res;
-  msg.send_size = sizeof(procman_message);
-  msg.recv_size = sizeof(res);
-  msg.tid = procman;
-  send(&msg);
+  msg.a0 = PROCMAN_CMD_MEM_MAP;
+  msg.a1 = ptr;
+  msg.a2 = size;
+  msg.send_size = 0;
+  msg.recv_size = 0;
+  msg.tid = SYSTID_PROCMAN;
+  if(send(&msg) == RES_SUCCESS)
+    return (void *) msg.a0;
+  else
+    return 0;
+}
 
-  return (void *)res;
+asmlinkage void * kmalloc(size_t size)
+{
+  message msg;
+  msg.a0 = PROCMAN_CMD_MEM_ALLOC;
+  msg.a1 = size;
+  msg.send_size = 0;
+  msg.recv_size = 0;
+  msg.tid = SYSTID_PROCMAN;
+  if(send(&msg) == RES_SUCCESS)
+    return (void *) msg.a0;
+  else
+    return 0;
 }
 
 asmlinkage tid_t thread_create(off_t eip)
 {
   message msg;
-  procman_message pm;
-  volatile u32_t res;
-  
-  pm.cmd = PROCMAN_CMD_CREATE_THREAD;
-  pm.arg.value = eip;
-  msg.send_buf = (char *)&pm;
-  msg.recv_buf = (char *)&res;
-  msg.send_size = sizeof(procman_message);
-  msg.recv_size = sizeof(res);
-  msg.tid = procman;
-  send(&msg);
-
-  return (tid_t)res;
+  msg.a0 = PROCMAN_CMD_CREATE_THREAD;
+  msg.a1 = eip;
+  msg.send_size = 0;
+  msg.recv_size = 0;
+  msg.tid = SYSTID_PROCMAN;
+  if(send(&msg) == RES_SUCCESS)
+    return (tid_t) msg.a0;
+  else
+    return 0;
 }
 
 /*
@@ -169,37 +109,29 @@ asmlinkage tid_t thread_create(off_t eip)
 asmlinkage res_t interrupt_attach(u8_t n)
 {
   message msg;
-  procman_message pm;
-  volatile u32_t res;
-  
-  pm.cmd = PROCMAN_CMD_INTERRUPT_ATTACH;
-  pm.arg.value = n;
-  msg.send_buf = (char *)&pm;
-  msg.recv_buf = (char *)&res;
-  msg.send_size = sizeof(procman_message);
-  msg.recv_size = sizeof(res);
-  msg.tid = procman;
-  send(&msg);
-
-  return res;
+  msg.a0 = PROCMAN_CMD_INTERRUPT_ATTACH;
+  msg.a1 = n;
+  msg.send_size = 0;
+  msg.recv_size = 0;
+  msg.tid = SYSTID_PROCMAN;
+  if(send(&msg) == RES_SUCCESS)
+    return msg.a0;
+  else
+    return 0;
 }
 
 asmlinkage res_t interrupt_detach(u8_t n)
 {
   message msg;
-  procman_message pm;
-  volatile u32_t res;
-  
-  pm.cmd = PROCMAN_CMD_INTERRUPT_DETACH;
-  pm.arg.value = n;
-  msg.send_buf = (char *)&pm;
-  msg.recv_buf = (char *)&res;
-  msg.send_size = sizeof(procman_message);
-  msg.recv_size = sizeof(res);
-  msg.tid = procman;
-  send(&msg);
-
-  return res;
+  msg.a0 = PROCMAN_CMD_INTERRUPT_DETACH;
+  msg.a1 = n;
+  msg.send_size = 0;
+  msg.recv_size = 0;
+  msg.tid = SYSTID_PROCMAN;
+  if(send(&msg) == RES_SUCCESS)
+    return msg.a0;
+  else
+    return 0;
 }
 
 asmlinkage int resmgr_attach(const char *pathname)
@@ -208,19 +140,19 @@ asmlinkage int resmgr_attach(const char *pathname)
     return 0;
 
   message msg;
-  fs_message m;
-  int res;
-  msg.recv_size = sizeof(res);
-  msg.recv_buf = &res;
+  msg.a0 = NAMER_CMD_ADD;
   size_t len = strlen(pathname);
-  msg.send_size = 8 + len + 4;
-  m.data3.cmd = NAMER_CMD_ADD;
-  strncpy((char *)m.data3.buf, pathname, len);
-  m.data3.buf[len] = 0;
-  msg.send_buf = &m;
-  msg.tid = PID_NAMER;
-  send(&msg);
-  return res;
+  if(len+1 > MAX_PATH_LEN)
+    return 0;
+
+  msg.send_buf = pathname;
+  msg.send_size = len+1;
+  msg.recv_size = 0;
+  msg.tid = SYSTID_NAMER;
+  if(send(&msg) == RES_SUCCESS)
+    return msg.a0;
+  else
+    return 0;
 }
 
 asmlinkage size_t read(fd_t fd, void *buf, size_t count)
@@ -229,15 +161,26 @@ asmlinkage size_t read(fd_t fd, void *buf, size_t count)
     return 0;
 
   message msg;
-  fs_message m;
+  msg.a0 = FS_CMD_READ;
   msg.recv_size = count;
   msg.recv_buf = buf;
-  msg.send_size = 4;
-  m.data.cmd = FS_CMD_READ;
-  msg.send_buf = (char *)&m;
+  msg.send_size = 0;
+  msg.a1 = fd->id;
+  msg.a2 = fd->offset;
   msg.tid = fd->thread;
-  send(&msg);
-  return msg.recv_size;
+
+  do{
+    switch(send(&msg)){
+    case RES_SUCCESS:
+      return msg.recv_size;
+      
+    case RES_FAULT2: /* очередь получателя переполнена, обратимся чуть позже */
+      continue;
+      
+    default:
+      return 0;
+    }
+  }while(1);
 }
 
 asmlinkage size_t write(fd_t fd, void *buf, size_t count)
@@ -246,37 +189,55 @@ asmlinkage size_t write(fd_t fd, void *buf, size_t count)
     return 0;
 
   message msg;
-  fs_message m;
-  msg.recv_size = count;
-  msg.recv_buf = buf;
-
-  if(count > FS_CMD_LEN)
-    msg.send_size = sizeof(fs_message);
-  else
-    msg.send_size = 8 + count;
-  
-  m.data.cmd = FS_CMD_WRITE;
-  msg.send_buf = (char *)&m;
+  msg.a0 = FS_CMD_WRITE;
+  msg.recv_size = 0;
+  msg.send_buf = buf;
+  msg.a1 = fd->id;
+  msg.a2 = fd->offset;
   msg.tid = fd->thread;
-  send(&msg);
-  return msg.send_size - 8;
+
+  do{
+    msg.send_size = count;
+    
+    switch(send(&msg)){
+    case RES_SUCCESS:
+      return msg.a0;
+      
+    case RES_FAULT2: /* очередь получателя переполнена, обратимся чуть позже */
+      continue;
+      
+    default:
+      return 0;
+    }
+  }while(1);
 }
 
 asmlinkage fd_t open(const char *pathname, int flags)
 {
-  tid_t thread = resolve("/dev/keyboard");
-  if(!thread)
+  volatile struct message msg;
+  msg.a0 = FS_CMD_ACCESS;
+  size_t len = strlen(pathname);
+  if(len > MAX_PATH_LEN)
     return 0;
 
-  struct fd *fd = new struct fd;
-  fd->thread = thread;
-  return fd;
+  msg.send_buf = pathname;
+  msg.send_size = len+1;
+  msg.tid = SYSTID_NAMER;
+
+  u32_t result = send((message *)&msg);
+  if(result == RES_SUCCESS && msg.a0) {
+    struct fd *fd = new struct fd;
+    fd->thread = msg.tid;
+    fd->id = msg.a0;
+    return fd;
+  } else
+    return 0;
 }
 
 asmlinkage int close(fd_t fd)
 {
   if(!fd)
-    return -1;
+    return RES_FAULT;
 
   delete fd;
   return 0;
@@ -285,22 +246,18 @@ asmlinkage int close(fd_t fd)
 asmlinkage size_t dmesg(char *buf, size_t count)
 {
   message msg;
-  procman_message pm;
-
-  pm.cmd = PROCMAN_CMD_DMESG;
-  msg.send_buf = (char *)&pm;
+  msg.a0 = PROCMAN_CMD_DMESG;
   msg.recv_buf = buf;
-  msg.send_size = sizeof(procman_message);
   msg.recv_size = count;
-  msg.tid = procman;
-  send(&msg);
-
-  return msg.recv_size;
+  msg.send_size = 0;
+  msg.tid = SYSTID_PROCMAN;
+  if(send(&msg) == RES_SUCCESS)
+    return msg.recv_size;
+  else
+    return 0;
 }
 
 asmlinkage u32_t uptime()
 {
-  u32_t time;
-  sys_call(_FOS_UPTIME, (u32_t)&time);
-  return time;
+  return sys_call(_FOS_UPTIME, 0);
 }

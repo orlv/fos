@@ -1,5 +1,5 @@
 /*
-  kernel/main/hal.h
+  kernel/main/hal.cpp
   Copyright (C) 2007 Oleg Fedorov
 */
 
@@ -29,9 +29,10 @@ void HAL::panic(register const char *fmt, ...)
 
   printk("\n--------------------------------------------------------------------------------");
   printk("Kernel panic: %s \n", panic_buf);
-  printk("ID: %d \n", curPID());
-  if (ProcMan->CurrentThread)
-    printk("PID: %d \n", ProcMan->CurrentThread->process);
+  u16_t id = curPID();
+  printk("ID: %d \n", id);
+  if (procman->CurrentThread)
+    printk("PID: %d \n", procman->CurrentThread->process);
   printk("System Halted!\n");
   printk("--------------------------------------------------------------------------------");
   halt();
@@ -63,4 +64,3 @@ res_t HAL::interrupt_detach(Thread *thread, u8_t n)
   } else
     return RES_FAULT;
 }
-

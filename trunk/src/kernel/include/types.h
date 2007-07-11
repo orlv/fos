@@ -14,9 +14,10 @@ typedef unsigned long offs_t;
 
 typedef signed long res_t;
 
-#define RES_SUCCESS 1
-#define RES_FAULT   -1
+#define RES_SUCCESS   1
+#define RES_FAULT    -1
 #define RES_FAULT2   -2
+#define RES_FAULT3   -3
 
 typedef unsigned char *p_u8_t;
 typedef unsigned short *p_u16_t;

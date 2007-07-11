@@ -12,7 +12,7 @@
 
 class USERTTY: public Tinterface {
 private:
-  tid_t tty;
+  fd_t tty;
 
 public:
   USERTTY();

@@ -45,12 +45,11 @@ class HAL {
  private:
   multiboot_info_t *mbi;
 
-  atomic_t interrupts;
-  
  public:
   HAL(register multiboot_info_t * mbi);
   
-  TProcMan *ProcMan;
+  TProcMan *procman;
+  tid_t tid_procman;
   Namer *namer;
   tid_t tid_namer;
   GDT *gdt;

@@ -108,9 +108,9 @@ static inline unsigned long __cmpxchg(volatile void *ptr, unsigned long old, uns
 }
 
 res_t send(struct message *message);
-res_t send_async(struct message *message);
-void receive(struct message *message);
-void reply(struct message *message);
+//res_t send_async(struct message *message);
+res_t receive(struct message *message);
+res_t reply(struct message *message);
 res_t forward(struct message *message, pid_t pid);
 
 #endif

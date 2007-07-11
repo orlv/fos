@@ -11,7 +11,7 @@ asmlinkage int main()
 {
   printf("{Hello app1}\n");
   fd_t fd;
-  while(!(fd = open("/dev/keyboard", 0)));
+  while(!(fd = open("/dev/keyboard", 0))) sched_yield();
 
   printf("uptime=%d\n", uptime());
   char ch;
@@ -21,7 +21,7 @@ asmlinkage int main()
       case 'u':
 	printf("uptime=%d\n", uptime());
 	break;
-
+	
       default:
 	printf("%c", ch);
       }

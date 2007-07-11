@@ -17,122 +17,114 @@
 void start_sched();
 void namer_srv();
 
-void procman_srv()
+tid_t execute(char *pathname)
 {
   extern ModuleFS *initrb;
   Tinterface *object;
+  char *elf_buf;
+  tid_t result = 0;
+  
+  printk("procman: executing [%s]\n", pathname);
+  if((object = initrb->access(pathname))){
+    elf_buf = new char[object->info.size];
+    object->read(0, elf_buf, object->info.size);
+    result = hal->procman->exec(elf_buf, pathname);
+    delete elf_buf;
+    delete object;
+  }
+  return result;
+}
+
+void procman_srv()
+{
   Thread *thread;
   struct message *msg = new message;
-
-  u32_t res;
-  struct procman_message *pm = new procman_message;
-  char *elf_buf;
   msg->tid = 0;
-
+  
   char *kmesg;
   size_t len;
 
-  printk("procman: registering /sys/procman\n");
-  namer_add("/sys/procman");
+  //printk("procman: registering /sys/procman\n");
+  resmgr_attach("/sys/procman");
   printk("procman: ready\n");
+  char *pathname = new char[MAX_PATH_LEN];
+
+  execute("init");
   
   while (1) {
     //asm("incb 0xb8000+154\n" "movb $0x2f,0xb8000+155 ");
-    msg->recv_size = 256;
-    msg->recv_buf = pm;
+    msg->recv_size = MAX_PATH_LEN;
+    msg->recv_buf = pathname;
     receive(msg);
-    //printf("ProcMan: cmd=%d, tid=%d\n", pm->cmd, msg->tid);
-    
-    switch(pm->cmd){
+    //printk("procman: a0=%d from [%s]\n", msg->a0, THREAD(msg->tid)->process->name);
+
+    switch(msg->a0){
     case PROCMAN_CMD_EXEC:
-      if((object = initrb->access(pm->arg.buf))){
-	elf_buf = new char[object->info.size];
-	object->read(0, elf_buf, object->info.size);
-	hal->ProcMan->exec(elf_buf, pm->arg.buf);
-	delete elf_buf;
-	res = RES_SUCCESS;
-      } else {
-	res = RES_FAULT;
-      }
-      msg->send_size = sizeof(res);
-      msg->send_buf = &res;
-      msg->recv_size = 0;
+      msg->a0 = execute(pathname);
+      msg->send_size = 0;
       reply(msg);
       break;
 
     case PROCMAN_CMD_KILL:
-      if(hal->ProcMan->kill(pm->arg.pid)){
-	res = RES_FAULT;
-      } else {
-	res = RES_SUCCESS;
-      }
-      msg->send_size = sizeof(res);
-      msg->send_buf = &res;
-      msg->recv_size = 0;
+      if(hal->procman->kill(msg->a1))
+	msg->a0 = 1;
+      else
+	msg->a0 = 0;
+      msg->send_size = 0;
       reply(msg);
       break;
 
     case PROCMAN_CMD_EXIT:
-      thread = hal->ProcMan->get_thread_by_tid(msg->tid);
-      if(hal->ProcMan->kill((tid_t)thread)){
-	res = RES_FAULT;
-      } else {
-	res = RES_SUCCESS;
-      }
-      msg->send_size = sizeof(res);
-      msg->send_buf = &res;
-      msg->recv_size = 0;
+      thread = hal->procman->get_thread_by_tid(msg->tid);
+      if(hal->procman->kill(TID(thread)))
+	msg->a0 = 1;
+      else
+	msg->a0 = 0;
+      msg->send_size = 0;
       reply(msg);
       break;
 
     case PROCMAN_CMD_MEM_ALLOC:
-      thread = hal->ProcMan->get_thread_by_tid(msg->tid);
-      res = (u32_t) thread->process->memory->mem_alloc(pm->arg.value);
-      msg->send_size = sizeof(res);
-      msg->send_buf = &res;
-      msg->recv_size = 0;
+      //printk("procman: allocating 0x%X bytes of memory\n", msg->a1);
+      thread = hal->procman->get_thread_by_tid(msg->tid);
+      msg->a0 = (u32_t) thread->process->memory->mem_alloc(msg->a1);
+      msg->send_size = 0;
       reply(msg);
       break;
 
     case PROCMAN_CMD_MEM_MAP:
-      thread = hal->ProcMan->get_thread_by_tid(msg->tid);
-      res = (u32_t) thread->process->memory->mem_alloc_phys(pm->arg.val.a1, pm->arg.val.a2);
-      msg->send_size = sizeof(res);
-      msg->send_buf = &res;
-      msg->recv_size = 0;
+      //printk("procman: mapping 0x%X bytes of memory to 0x%X\n", msg->a2, msg->a1);
+      thread = hal->procman->get_thread_by_tid(msg->tid);
+      msg->a0 = (u32_t) thread->process->memory->mem_alloc_phys(msg->a1, msg->a2);
+      msg->send_size = 0;
       reply(msg);
       break;
 
     case PROCMAN_CMD_CREATE_THREAD:
-      thread = hal->ProcMan->get_thread_by_tid(msg->tid);
-      thread = thread->process->thread_create(pm->arg.value, FLAG_TSK_READY, kmalloc(PAGE_SIZE), thread->process->memory->mem_alloc(PAGE_SIZE));
-      res = (u32_t) thread;
-      hal->ProcMan->reg_thread(thread);
-      msg->send_size = sizeof(res);
-      msg->send_buf = &res;
-      msg->recv_size = 0;
+      thread = hal->procman->get_thread_by_tid(msg->tid);
+      thread = thread->process->thread_create(msg->a1, FLAG_TSK_READY, kmalloc(PAGE_SIZE), thread->process->memory->mem_alloc(PAGE_SIZE));
+      hal->procman->reg_thread(thread);
+      msg->a0 = (u32_t) thread;
+      msg->send_size = 0;
       reply(msg);
       break;
 
     case PROCMAN_CMD_INTERRUPT_ATTACH:
-      thread = hal->ProcMan->get_thread_by_tid(msg->tid);
-      res = hal->interrupt_attach(thread, pm->arg.value);
-      msg->send_size = sizeof(res);
-      msg->send_buf = &res;
-      msg->recv_size = 0;
+      thread = hal->procman->get_thread_by_tid(msg->tid);
+      msg->a0 = hal->interrupt_attach(thread, msg->a1);
+      msg->send_size = 0;
       reply(msg);
       break;
 
     case PROCMAN_CMD_INTERRUPT_DETACH:
-      thread = hal->ProcMan->get_thread_by_tid(msg->tid);
-      res = hal->interrupt_detach(thread, pm->arg.value);
-      msg->send_size = sizeof(res);
-      msg->send_buf = &res;
-      msg->recv_size = 0;
+      thread = hal->procman->get_thread_by_tid(msg->tid);
+      msg->a0 = hal->interrupt_detach(thread, msg->a1);
+      msg->send_size = 0;
       reply(msg);
       break;
 
     case PROCMAN_CMD_DMESG:
+      //printk("procman: dmesg \n");
       kmesg = new char[2000];
       extern TTY *stdout;
       len = stdout->read(0, kmesg, 2000);
@@ -141,22 +133,24 @@ void procman_srv()
       reply(msg);
       delete kmesg;
       break;
+
+    case FS_CMD_ACCESS:
+      msg->a0 = 1;
+      msg->send_size = 0;
+      reply(msg);
+      break;
       
     default:
-      res = RES_FAULT;
-      msg->send_size = sizeof(res);
-      msg->send_buf = &res;
-      msg->recv_size = 0;
+      msg->a0 = RES_FAULT;
+      msg->send_size = 0;
       reply(msg);
     }
-
   }
 }
 
-
 TProcMan::TProcMan()
 {
-  hal->ProcMan = this;
+  hal->procman = this;
 
   Thread *thread;
   void *stack;
@@ -183,12 +177,12 @@ TProcMan::TProcMan()
   printk("kernel: scheduler thread created (tid=0x%X)\n", thread);
 
   stack = kmalloc(STACK_SIZE);
-  thread = process->thread_create((off_t) &procman_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
-  reg_thread(thread);
-  printk("kernel: procman added to threads list (tid=0x%X)\n", thread);
+  hal->tid_procman = TID(process->thread_create((off_t) &procman_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT));
+  reg_thread(THREAD(hal->tid_procman));
+  printk("kernel: procman added to threads list (tid=0x%X)\n", hal->tid_procman);
   
   stack = kmalloc(STACK_SIZE);
-  hal->tid_namer = (tid_t)process->thread_create((off_t) &namer_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
+  hal->tid_namer = TID(process->thread_create((off_t) &namer_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT));
   reg_thread(THREAD(hal->tid_namer));
   printk("procman: namer added to threads list (tid=0x%X)\n", hal->tid_namer);
 }
@@ -277,6 +271,17 @@ Thread *TProcMan::get_thread_by_tid(register tid_t tid)
 
 void kill(pid_t pid)
 {
+  hal->panic("kernel: kill called\n");
+  /*
+  message msg;
+  msg.cmd = PROCMAN_CMD_KILL;
+  msg.a0 = tid;
+  msg.send_size = 0;
+  msg.recv_size = 0;
+  msg.tid = hal->tid_procman;
+  return send(&msg);
+   */
+  #if 0
   struct message *msg = new struct message;
   struct procman_message *pm = new procman_message;
   pm->cmd = PROCMAN_CMD_KILL;
@@ -290,4 +295,5 @@ void kill(pid_t pid)
   send(msg);
   delete msg;
   delete pm;
+  #endif
 }

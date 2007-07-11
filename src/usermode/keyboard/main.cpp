@@ -13,9 +13,9 @@ Keyboard *kb;
 
 void thread_handler()
 {
-  if(interrupt_attach(KBD_IRQ_NUM) == RES_SUCCESS){
+  if(interrupt_attach(KBD_IRQ_NUM) == RES_SUCCESS)
     printf("keyboard: interrupt attached\n");
-  } else {
+  else {
     printf("keyboard: can't attache interrupt!\n");
     exit();
   }
@@ -44,39 +44,38 @@ asmlinkage int main()
 
   while(!ready);
 
-  u32_t res;
-
-  union fs_message *m = new fs_message;
   struct message *msg = new message;
+  char *buffer = new char[KB_CHARS_BUFF_SIZE];
 
   resmgr_attach("/dev/keyboard");
 
   while (1) {
     msg->tid = 0;
-    msg->recv_size = sizeof(fs_message);
-    msg->recv_buf = m;
+    msg->recv_buf  = buffer;
+    msg->recv_size = KB_CHARS_BUFF_SIZE;
     receive(msg);
 
-    switch(m->data.cmd){
+    switch(msg->a0){
     case FS_CMD_ACCESS:
-      res = RES_SUCCESS;
+      msg->a0 = 1;
+      msg->send_size = 0;
       break;
 
     case FS_CMD_WRITE:
-      kb->put(m->data3.buf[0]);
-      res = RES_SUCCESS;
+      msg->a0 = kb->write(0, buffer, msg->send_size);
+      msg->send_size = 0;
       break;
 
     case FS_CMD_READ:
-      res = kb->get();
+      msg->a0 = kb->read(0, buffer, msg->send_size);
+      msg->send_buf = buffer;
       break;
 
     default:
-      res = RES_FAULT;
+      msg->a0 = 0;
+      msg->send_size = 0;
     }
     
-    msg->send_buf = &res;
-    msg->send_size = sizeof(res);
     reply(msg);
   }
 

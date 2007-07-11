@@ -9,51 +9,41 @@
 #include "tty.h"
 #include <fs.h>
 
-extern tid_t procman;
-extern tid_t namer;
-
 asmlinkage int main()
 {
-  while(!(procman = resolve("/sys/procman")));
-
-  u32_t res;
-  fs_message *m = new fs_message;
   message *msg = new message;
+  char *buffer = new char[2048];
 
   resmgr_attach("/dev/tty");
-  
+
   VGA *vga = new VGA;
   vga->init();
   TTY *tty = new TTY(80, 25);
   tty->stdout = vga;
 
-  char *dmesgbuf = new char[2000];
-  size_t len = dmesg(dmesgbuf, 2000);
+  size_t len = dmesg(buffer, 2048);
 
-  tty->write(0, dmesgbuf, len);
+  tty->write(0, buffer, len);
 
   while (1) {
     msg->tid = 0;
-    msg->recv_size = sizeof(fs_message);
-    msg->recv_buf = m;
+    msg->recv_size = 2048;
+    msg->recv_buf = buffer;
     receive(msg);
-
-    switch(m->data3.cmd){
+    switch(msg->a0){
     case FS_CMD_ACCESS:
-      res = RES_SUCCESS;
+      msg->a0 = 1;
       break;
 
     case FS_CMD_WRITE:
-      tty->write(0, m->data3.buf, msg->recv_size - 9);
-      res = RES_SUCCESS;
+      msg->a0 = tty->write(0, buffer, msg->recv_size);
       break;
 
     default:
-      res = RES_FAULT;
+      msg->a0 = 0;
     }
     
-    msg->send_buf = &res;
-    msg->send_size = sizeof(res);
+    msg->send_size = 0;
     reply(msg);
   }
   return 0;

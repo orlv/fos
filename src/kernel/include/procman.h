@@ -9,6 +9,7 @@
 #include <types.h>
 #include <process.h>
 #include <list.h>
+#include <fs.h>
 
 #define FLAG_TSK_READY 1
 #define FLAG_TSK_KERN  2
@@ -16,6 +17,7 @@
 #define FLAG_TSK_SEND  8
 #define FLAG_TSK_RECV  0x10
 
+#if 0
 struct procman_message {
   u32_t cmd;
   union {
@@ -28,16 +30,17 @@ struct procman_message {
     }val;
   }arg;
 } __attribute__ ((packed));
+#endif
 
-#define PROCMAN_CMD_EXEC             0
-#define PROCMAN_CMD_KILL             1
-#define PROCMAN_CMD_EXIT             2
-#define PROCMAN_CMD_MEM_ALLOC        3
-#define PROCMAN_CMD_MEM_MAP          4
-#define PROCMAN_CMD_CREATE_THREAD    5
-#define PROCMAN_CMD_INTERRUPT_ATTACH 6
-#define PROCMAN_CMD_INTERRUPT_DETACH 7
-#define PROCMAN_CMD_DMESG            8
+#define PROCMAN_CMD_EXEC             (BASE_CMD_N + 0)
+#define PROCMAN_CMD_KILL             (BASE_CMD_N + 1)
+#define PROCMAN_CMD_EXIT             (BASE_CMD_N + 2)
+#define PROCMAN_CMD_MEM_ALLOC        (BASE_CMD_N + 3)
+#define PROCMAN_CMD_MEM_MAP          (BASE_CMD_N + 4)
+#define PROCMAN_CMD_CREATE_THREAD    (BASE_CMD_N + 5)
+#define PROCMAN_CMD_INTERRUPT_ATTACH (BASE_CMD_N + 6)
+#define PROCMAN_CMD_INTERRUPT_DETACH (BASE_CMD_N + 7)
+#define PROCMAN_CMD_DMESG            (BASE_CMD_N + 8)
 
 class TProcMan {
 private:

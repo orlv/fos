@@ -26,37 +26,110 @@
 #include <namer.h>
 #include <system.h>
 
-tid_t resolve(char *name)
+int close(fd_t fd)
 {
-  while(!hal->namer);
-  volatile struct message msg;
-  u32_t res;
-  union fs_message m;
-  msg.recv_size = sizeof(res);
-  msg.recv_buf = &res;
-  msg.send_size = sizeof(fs_message);
-  m.data3.cmd = NAMER_CMD_RESOLVE;
-  strcpy((char *)m.data3.buf, name);
-  msg.send_buf = (char *)&m;
-  msg.tid = 0;
-  send((message *)&msg);
-  return res;
+  if(!fd)
+    return -1;
+
+  delete fd;
+  return 0;
 }
 
-void namer_add(string name)
+size_t read(fd_t fd, void *buf, size_t count)
 {
-  while(!hal->tid_namer);
-  struct message *msg = new struct message;
-  u32_t res;
-  union fs_message *m = new fs_message;
-  msg->recv_size = sizeof(res);
-  msg->recv_buf = &res;
-  msg->send_size = sizeof(union fs_message);
-  msg->send_buf = m;
-  strcpy(m->data3.buf,  name);
-  m->data3.cmd = NAMER_CMD_ADD;
-  msg->tid = 0;
-  send(msg);
+  if(!fd || !fd->thread)
+    return 0;
+
+  message msg;
+  msg.a0 = FS_CMD_READ;
+  msg.recv_size = count;
+  msg.recv_buf = buf;
+  msg.send_size = 0;
+  msg.a1 = fd->id;
+  msg.a2 = fd->offset;
+  msg.tid = fd->thread;
+
+  do{
+    switch(send(&msg)){
+    case RES_SUCCESS:
+      return msg.recv_size;
+      
+    case RES_FAULT2: /* очередь получателя переполнена, обратимся чуть позже */
+      continue;
+      
+    default:
+      return 0;
+    }
+  }while(1);
+}
+
+size_t write(fd_t fd, void *buf, size_t count)
+{
+  if(!fd || !fd->thread)
+    return 0;
+
+  message msg;
+  msg.a0 = FS_CMD_WRITE;
+  msg.recv_size = 0;
+  msg.send_buf = buf;
+  msg.a1 = fd->id;
+  msg.a2 = fd->offset;
+  msg.tid = fd->thread;
+
+  do{
+    msg.send_size = count;
+    
+    switch(send(&msg)){
+    case RES_SUCCESS:
+      return msg.a0;
+      
+    case RES_FAULT2: /* очередь получателя переполнена, обратимся чуть позже */
+      continue;
+      
+    default:
+      return 0;
+    }
+  }while(1);
+}
+
+fd_t open(const char *pathname, int flags)
+{
+  volatile struct message msg;
+  msg.a0 = FS_CMD_ACCESS;
+  size_t len = strlen(pathname);
+  if(len > MAX_PATH_LEN)
+    return 0;
+
+  msg.send_buf = pathname;
+  msg.send_size = len+1;
+  msg.tid = SYSTID_NAMER;
+
+  u32_t result = send((message *)&msg);
+  if(result == RES_SUCCESS && msg.a0) {
+    struct fd *fd = new struct fd;
+    fd->thread = msg.tid;
+    fd->id = msg.a0;
+    return fd;
+  } else
+    return 0;
+}
+
+int resmgr_attach(const char *pathname)
+{
+  if(!pathname)
+    return 0;
+
+  message msg;
+  msg.a0 = NAMER_CMD_ADD;
+  size_t len = strlen(pathname);
+  if(len+1 > MAX_PATH_LEN)
+    return 0;
+
+  msg.send_buf = pathname;
+  msg.send_size = len+1;
+  msg.recv_size = 0;
+  msg.tid = SYSTID_NAMER;
+  return send((message *)&msg);
 }
 
 void namer_srv()
@@ -65,67 +138,65 @@ void namer_srv()
   hal->namer = namer;
   Tobject *obj;
   message *msg = new message;
-  fs_message *m = new fs_message;
-  u32_t res;
+  char *pathname = new char[MAX_PATH_LEN];
+  char *path_tail = new char[MAX_PATH_LEN];
 
-  hal->namer->add("/sys/namer", (sid_t)hal->ProcMan->CurrentThread);
-
+  hal->namer->add("/sys/namer", (sid_t)hal->procman->CurrentThread);
   printk("namer: ready\n");
-
   while(1){
-    msg->recv_size = sizeof(fs_message);
-    msg->recv_buf = m;
+    msg->recv_size = MAX_PATH_LEN;
+    msg->recv_buf  = pathname;
 
     receive(msg);
-    //printk("namer: cmd=0x%X\n", m->data.cmd);
-    switch(m->data.cmd){
+    //printk("namer: a0=%d from [%s]\n", msg->a0, THREAD(msg->tid)->process->name);
+    switch(msg->a0){
     case NAMER_CMD_ADD:
-      //printk("adding [%s]\n", m->data3.buf);
-      obj = hal->namer->add(m->data3.buf, msg->tid);
+      //printk("namer: adding [%s]\n", pathname);
+      obj = hal->namer->add(pathname, msg->tid);
 
       if(obj)
-	res = RES_SUCCESS;
+	msg->a0 = RES_SUCCESS;
       else
-	res = RES_FAULT;
+	msg->a0 = RES_FAULT;
 
-      msg->recv_size = 0;
-      msg->send_size = sizeof(res);
-      msg->send_buf = &res;
+      msg->send_size = 0;
       reply(msg);
       break;
 
-    case NAMER_CMD_ACCESS:
-      obj = hal->namer->access(m->data3.buf, m->data3.buf);
-      
-      /*if(obj){
-	printk("namer: access to [%s]\n", m->data3.buf);
-	}*/
-      //else
-      //res = 0;
-      
-      forward(msg, obj->sid);
+    case FS_CMD_ACCESS:
+      //printk("namer: requested access to [%s]\n", pathname);
+      obj = hal->namer->access(pathname, path_tail);
+      //printk("[0x%X]", obj);
+      if(obj->sid){
+	strcpy(pathname, path_tail);
+	//printk("namer: access granted [%s]\n", pathname);
+	msg->send_size = strlen(pathname);
+	msg->send_buf = pathname;
+	forward(msg, obj->sid);
+      } else {
+	//printk("namer: access denied\n");
+	msg->send_size = 0;
+	msg->a0 = 0;
+	reply(msg);
+      }
+      memset(path_tail, 0, MAX_PATH_LEN);
       break;
 
-    case NAMER_CMD_RESOLVE:
+      //case NAMER_CMD_RESOLVE:
       //printk("namer: resolving [%s]\n", m->data3.buf);
-      res = hal->namer->resolve(m->data3.buf);
-      msg->recv_size = 0;
-      msg->send_size = sizeof(res);
-      msg->send_buf = &res;
+      /*      msg->a0 = hal->namer->resolve(pathname);
+      msg->send_size = 0;
       reply(msg);
-      break;
+      break;*/
 
-    case NAMER_CMD_REM:
+      //case NAMER_CMD_REM:
     default:
-      res = 0;
-      msg->recv_size = 0;
-      msg->send_size = sizeof(res);
-      msg->send_buf = &res;
+      msg->send_size = 0;
+      msg->a0 = 0;
       reply(msg);
     }
   }
 }
-
 
 Tobject::Tobject(const string name)
 {
@@ -212,47 +283,31 @@ Tobject * Namer::access(const string name, string name_tail)
 {
   List<string> *path = path_strip(name);
   List<string> *entry = path;
-  string n;
   Tobject * object = rootdir;
   Tobject * obj = object;
-  List<string> *e;
-  
-  //size_t len = strlen(name);
-  //  string name_tail = new char[len+1];
-  //printk("Namer: %d:%s\n",len, name);
-  int i=0, i1=0;
+  List<string> *e = path;
 
   /* отыщем сервер */
   do {
-    n = entry->item;
-    if(!(object = object->access(n))){
+    if(!(object = object->access(entry->item)))
       break;
-    }
 
     if(object->sid){
       obj = object;
-      i = i1;
+      e = entry;
     }
 
-    i1++;
     entry = entry->next;
   } while (entry != path);
-
-  /* создадим переменную с окончанием пути (необходимо передать
-     её конечному серверу) */
-  if(name_tail){
-    name_tail[0] = 0;
-    list_for_each(entry, path){
-      if(i)
-	i--;
-      else {
-	n = entry->item;
-	strcat(name_tail, "/");
-	strcat(name_tail, n);
-      }
-    }
-  }
   
+  /* создадим строку с окончанием пути (необходимо передать
+     её конечному серверу) */
+  do {
+    strcat(name_tail, "/");
+    strcat(name_tail, e->item);
+    e = e->next;
+  } while (e != path);
+
   list_for_each_safe(entry, e, path){
     delete entry->item;
     delete entry;

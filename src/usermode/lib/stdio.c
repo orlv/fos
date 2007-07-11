@@ -20,31 +20,17 @@ int sprintf(char *str, const char *fmt, ...)
 
 char printbuf[256];
 
-extern tid_t tty;
+fd_t tty=0;
 
 int printf(const char *fmt, ...)
 {
   if(!tty)
-    while(!(tty = resolve("/dev/tty")));
-  
-  int i = 0;
+    while(!(tty = open("/dev/tty", 0))) sched_yield();
+
   va_list args;
   va_start(args, fmt);
-  union fs_message *m = (union fs_message *) printbuf;
-  m->data3.cmd = FS_CMD_WRITE;
-  i = vsprintf(m->data3.buf, fmt, args);
+  size_t i = vsprintf(printbuf, fmt, args);
   va_end(args);
 
-  m->data3.buf[i] = 0;
-  volatile struct message msg;
-  msg.send_buf = msg.recv_buf = m;
-  msg.send_size = 8 + i + 1;
-  msg.recv_size = sizeof(unsigned long);
-  msg.tid = tty;
-
-  while(send((struct message *)&msg) == RES_FAULT2){
-    sched_yield();
-  }
-
-  return i;
+  return write(tty, printbuf, i);
 }

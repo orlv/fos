@@ -14,11 +14,18 @@
 #include <atomic.h>
 
 struct message {
-  void *send_buf;
+  const void * send_buf;
   size_t send_size;
-  void *recv_buf;
+
+  void * recv_buf;
   size_t recv_size;
-  tid_t tid;
+
+  tid_t  tid;
+
+  u32_t  a0;
+  u32_t  a1;
+  u32_t  a2;
+  u32_t  a3;
 } __attribute__ ((packed));
 
 struct kmessage {
@@ -27,9 +34,17 @@ struct kmessage {
   size_t reply_size;
   class Thread * volatile thread;
   u32_t flags;
+
+  u32_t  a0;
+  u32_t  a1;
+  u32_t  a2;
+  u32_t  a3;
 };
 
 #define MAX_MSG_COUNT 32
+
+#define SYSTID_NAMER   1
+#define SYSTID_PROCMAN 2
 
 class Thread{
  private:
@@ -63,9 +78,9 @@ class Thread{
   List<kmessage *> *received_messages;
   atomic_t received_messages_count;
 
-  res_t put_message(kmessage *message);
   u32_t signals;
   void parse_signals();
+  res_t put_message(kmessage *message);
 };
 
 class TProcess {
@@ -88,6 +103,5 @@ class TProcess {
 };
 
 #define MESSAGE_ASYNC 1
-
 
 #endif

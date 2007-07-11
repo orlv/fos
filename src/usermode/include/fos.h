@@ -7,15 +7,18 @@
 
 #include <types.h>
 
-#define _FOS_SEND              1
-#define _FOS_RECEIVE           2
-#define _FOS_REPLY             3
-#define _FOS_MASK_INTERRUPT    4
-#define _FOS_UNMASK_INTERRUPT  5
-#define _FOS_SCHED_YIELD       6
-#define _FOS_UPTIME            7
+#define  _FOS_SEND              1
+#define  _FOS_RECEIVE           2
+#define  _FOS_REPLY             3
+#define  _FOS_MASK_INTERRUPT    4
+#define  _FOS_UNMASK_INTERRUPT  5
+#define  _FOS_SCHED_YIELD       6
+#define  _FOS_UPTIME            7
 
 #define PAGE_SIZE 0x1000
+
+#define SYSTID_NAMER   1
+#define SYSTID_PROCMAN 2
 
 static inline u32_t sys_call(volatile u32_t cmd, volatile u32_t arg)
 {
@@ -27,20 +30,26 @@ static inline u32_t sys_call(volatile u32_t cmd, volatile u32_t arg)
 static inline void sched_yield()
 {
   sys_call(_FOS_SCHED_YIELD, 0);
-  //__asm__ __volatile__ ("int $3");
 }
 
 struct message {
-  void *send_buf;
+  const void * send_buf;
   size_t send_size;
-  void *recv_buf;
+
+  void * recv_buf;
   size_t recv_size;
-  tid_t tid;
+
+  tid_t  tid;
+
+  u32_t  a0;
+  u32_t  a1;
+  u32_t  a2;
+  u32_t  a3;
 } __attribute__ ((packed));
 
-asmlinkage u32_t reply(struct message *msg);
-asmlinkage u32_t send(struct message *msg);
-asmlinkage u32_t receive(struct message *msg);
+asmlinkage res_t reply(struct message *msg);
+asmlinkage res_t send(struct message *msg);
+asmlinkage res_t receive(struct message *msg);
 
 static inline void mask_interrupt(u32_t int_num)
 {
@@ -55,11 +64,11 @@ static inline void unmask_interrupt(u32_t int_num)
 asmlinkage tid_t resolve(char *name);
 
 asmlinkage void exit();
-asmlinkage void kill(tid_t tid);
-asmlinkage res_t exec(string filename);
+asmlinkage u32_t kill(tid_t tid);
+asmlinkage tid_t exec(const char * filename);
 
-asmlinkage void *kmemmap(offs_t ptr, size_t size);
-asmlinkage void *kmalloc(size_t size);
+asmlinkage void * kmemmap(offs_t ptr, size_t size);
+asmlinkage void * kmalloc(size_t size);
 
 asmlinkage tid_t thread_create(off_t eip);
 

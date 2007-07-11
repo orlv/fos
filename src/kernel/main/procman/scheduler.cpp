@@ -25,7 +25,7 @@ extern u16_t tmout;		/* Просто таймер, его небходимо б�
 
 void start_sched()
 {
-  hal->ProcMan->scheduler();
+  hal->procman->scheduler();
 }
 
 void TProcMan::scheduler()
@@ -51,6 +51,7 @@ void TProcMan::scheduler()
     /* Выбираем следующий подходящий для запуска поток */
     do {
       curr = curr->next;
+
       if(curr->item->signals){
 	curr->item->parse_signals();
       }

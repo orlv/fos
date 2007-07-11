@@ -1,5 +1,5 @@
 /*
-  kernel/main/exception/traps.cpp
+  kernel/main/ints.cpp
   Copyright (C) 2004-2007 Oleg Fedorov
 */
 
@@ -25,14 +25,14 @@ void exception(string str, unsigned int cs,  unsigned int address, unsigned int 
   hal->panic("fault in kernel task!");
 #endif
 
-  if(hal->ProcMan->CurrentThread->flags & FLAG_TSK_KERN){
+  if(hal->procman->CurrentThread->flags & FLAG_TSK_KERN){
     printk("\n--------------------------------------------------------------------------------" \
 	   "Exception: %s \n"						\
 	   "At addr: 0x%02X:0x%08X\n"					\
 	   "Thread: 0x%X, Process: 0x%X \n"				\
 	   "Name: [%s]\n"						\
 	   "Errorcode: 0x%X",
-	   str, cs, address, hal->ProcMan->CurrentThread, hal->ProcMan->CurrentThread->process, hal->ProcMan->CurrentThread->process->name, errorcode);
+	   str, cs, address, hal->procman->CurrentThread, hal->procman->CurrentThread->process, hal->procman->CurrentThread->process->name, errorcode);
     hal->panic("fault in kernel task!");
   } else {
     printk("\n--------------------------------------------------------------------------------" \
@@ -42,10 +42,10 @@ void exception(string str, unsigned int cs,  unsigned int address, unsigned int 
 	   "Name: [%s]\n"						\
 	   "Errorcode: 0x%X\n"						\
 	   "--------------------------------------------------------------------------------", \
-	   str, cs, address, hal->ProcMan->CurrentThread, hal->ProcMan->CurrentThread->process, hal->ProcMan->CurrentThread->process->name, errorcode);
+	   str, cs, address, hal->procman->CurrentThread, hal->procman->CurrentThread->process, hal->procman->CurrentThread->process->name, errorcode);
 
-    hal->ProcMan->CurrentThread->flags |= FLAG_TSK_TERM;
-    hal->ProcMan->CurrentThread->flags &= ~FLAG_TSK_READY;
+    hal->procman->CurrentThread->flags |= FLAG_TSK_TERM;
+    hal->procman->CurrentThread->flags &= ~FLAG_TSK_READY;
     hal->panic("fault in user task!");
     while(1);
   }
@@ -157,7 +157,7 @@ EXCEPTION_HANDLER(align_error_exception)
 
 EXCEPTION_HANDLER(machine_depend_error_exception)
 {
-hal->outportb(0x20, 0x20);  exception("[0x12] machine depend error", cs, address, errorcode);
+  exception("[0x12] machine depend error", cs, address, errorcode);
 }
 
 EXCEPTION_HANDLER(interrupt_hdl_not_present_exception)
@@ -187,7 +187,7 @@ void common_interrupt(u8_t n)
     thread->signals |= 1 << n;
   } else
     hal->panic("Unhandled interrupt received!\n");
-
+  
   hal->outportb(0x20, 0x20);
 }
 

@@ -17,8 +17,8 @@ all:
 	@make -s -C keyboard $(MKFLAGS)
 	@echo ---------------------------------\> Building init
 	@make -s -C init $(MKFLAGS)
-	@echo ---------------------------------\> Building hd
-	@make -s -C hd $(MKFLAGS)
+#	@echo ---------------------------------\> Building hd
+#	@make -s -C hd $(MKFLAGS)
 
 clean:
 	@make -s -C app1 clean
@@ -26,6 +26,6 @@ clean:
 	@make -s -C vesa clean
 	@make -s -C keyboard clean
 	@make -s -C init clean
-	@make -s -C hd clean
+#	@make -s -C hd clean
 
 # -----------------------------------------------------------------------------

@@ -67,7 +67,7 @@ void *malloc(register size_t size)
 
     if(p == heap_free_ptr){	/* прошли первый цикл по списку */
       //heap_mutex.unlock();
-      __mt_enable();
+      //__mt_enable();
       if(!(p = morecore(nunits*sizeof(struct HeapMemBlock)))){
 	hal->panic("no free memory available in kernel heap!");
       }
@@ -111,7 +111,7 @@ static HeapMemBlock *morecore(register size_t size)
 
   up->size = size / sizeof(HeapMemBlock);
   //heap_mutex.lock(); /* не забыть снять эту блокировку внутри malloc() */
-  __mt_disable();
+  //__mt_disable();
   free((void *)((unsigned int)up + sizeof(HeapMemBlock)));
   return heap_free_ptr;
 }

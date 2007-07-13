@@ -4,7 +4,7 @@
 #------------------------------------------------------------------------------
 
 TOPDIR = `pwd`/..
-include Makefile.conf
+include config.mk
 
 all:	version build_kernel build_user
 	@rm -f `find . -name \*~`
@@ -63,13 +63,20 @@ clean: clean_kernel clean_user
 
 #--------------------------------- Install -----------------------------------
 
-menu:
-	@make -s -f Makefile.menu $(MKFLAGS)
+grub_menu:
+	@echo "# GRUB Config: generated automatically - do not edit!" > $(GRUB_MENU)
+	@echo "timeout $(GRUB_TIMEOUT)" >> $(GRUB_MENU)
+	@echo "default 0" >> $(GRUB_MENU)
+	@echo "hiddenmenu" >> $(GRUB_MENU)
+	@echo "title $(GRUB_TITLE) (VERSION `cat VERSION`, BUILD `cat BUILD`)" >> $(GRUB_MENU)
+	@echo "	root($(GRUB_ROOT))" >> $(GRUB_MENU)
+	@echo "	kernel $(GRUB_KERNEL)" >> $(GRUB_MENU)
+	@echo $(GRUB_MODULES) | sed 's/ /\n/g' | sed 's/\/root/\tmodule \/root/g'  >> $(GRUB_MENU)
 
 iso:
 	@echo Making ISO image
 	@make -f Makefile.iso $(MKFLAGS)
 
-install: menu iso
+install: grub_menu iso
 
 #-----------------------------------------------------------------------------

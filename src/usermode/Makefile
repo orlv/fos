@@ -3,10 +3,12 @@
 # -----------------------------------------------------------------------------
 
 CONFIG      = `pwd`/Makefile.inc
-MAIN_CONFIG = $(TOPDIR)/src/Makefile.conf
+MAIN_CONFIG = $(TOPDIR)/src/config.mk
 MKFLAGS     = CONFIG=$(CONFIG) TOPDIR=$(TOPDIR) MAIN_CONFIG=$(MAIN_CONFIG)
 
 all:
+	@echo ---------------------------------\> Building namer
+	@make -s -C namer $(MKFLAGS)
 	@echo ---------------------------------\> Building app1
 	@make -s -C app1 $(MKFLAGS)
 	@echo ---------------------------------\> Building tty

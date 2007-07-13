@@ -1,6 +1,8 @@
 /*
-  kernel/main/fs/fs.cpp
+  namer/namer.cpp
   Copyright (C) 2006-2007 Oleg Fedorov
+
+  - (Fri Jul 13 17:51:58 2007) перемещено в usermode
 */
 
 /*
@@ -17,142 +19,35 @@
 
   Для открытия файлов следует пользоваться namer (иначе в случае вложенного монтирования
   будет открыт не тот файл)
- */
+*/
 
-#include <hal.h>
+#include "namer.h"
 #include <string.h>
 #include <stdio.h>
 #include <fs.h>
-#include <namer.h>
-#include <system.h>
+#include <fos.h>
 
-int close(fd_t fd)
-{
-  if(!fd)
-    return -1;
-
-  delete fd;
-  return 0;
-}
-
-size_t read(fd_t fd, void *buf, size_t count)
-{
-  if(!fd || !fd->thread)
-    return 0;
-
-  message msg;
-  msg.a0 = FS_CMD_READ;
-  msg.recv_size = count;
-  msg.recv_buf = buf;
-  msg.send_size = 0;
-  msg.a1 = fd->id;
-  msg.a2 = fd->offset;
-  msg.tid = fd->thread;
-
-  do{
-    switch(send(&msg)){
-    case RES_SUCCESS:
-      return msg.recv_size;
-      
-    case RES_FAULT2: /* очередь получателя переполнена, обратимся чуть позже */
-      continue;
-      
-    default:
-      return 0;
-    }
-  }while(1);
-}
-
-size_t write(fd_t fd, void *buf, size_t count)
-{
-  if(!fd || !fd->thread)
-    return 0;
-
-  message msg;
-  msg.a0 = FS_CMD_WRITE;
-  msg.recv_size = 0;
-  msg.send_buf = buf;
-  msg.a1 = fd->id;
-  msg.a2 = fd->offset;
-  msg.tid = fd->thread;
-
-  do{
-    msg.send_size = count;
-    
-    switch(send(&msg)){
-    case RES_SUCCESS:
-      return msg.a0;
-      
-    case RES_FAULT2: /* очередь получателя переполнена, обратимся чуть позже */
-      continue;
-      
-    default:
-      return 0;
-    }
-  }while(1);
-}
-
-fd_t open(const char *pathname, int flags)
-{
-  volatile struct message msg;
-  msg.a0 = FS_CMD_ACCESS;
-  size_t len = strlen(pathname);
-  if(len > MAX_PATH_LEN)
-    return 0;
-
-  msg.send_buf = pathname;
-  msg.send_size = len+1;
-  msg.tid = SYSTID_NAMER;
-
-  u32_t result = send((message *)&msg);
-  if(result == RES_SUCCESS && msg.a0) {
-    struct fd *fd = new struct fd;
-    fd->thread = msg.tid;
-    fd->id = msg.a0;
-    return fd;
-  } else
-    return 0;
-}
-
-int resmgr_attach(const char *pathname)
-{
-  if(!pathname)
-    return 0;
-
-  message msg;
-  msg.a0 = NAMER_CMD_ADD;
-  size_t len = strlen(pathname);
-  if(len+1 > MAX_PATH_LEN)
-    return 0;
-
-  msg.send_buf = pathname;
-  msg.send_size = len+1;
-  msg.recv_size = 0;
-  msg.tid = SYSTID_NAMER;
-  return send((message *)&msg);
-}
-
-void namer_srv()
+asmlinkage int main()
 {
   Namer *namer = new Namer;
-  hal->namer = namer;
   Tobject *obj;
   message *msg = new message;
   char *pathname = new char[MAX_PATH_LEN];
   char *path_tail = new char[MAX_PATH_LEN];
-
-  hal->namer->add("/sys/namer", (sid_t)hal->procman->CurrentThread);
-  printk("namer: ready\n");
+  char *ptr = (char *) 0x100;
+  //namer->add("/sys/namer", my_tid());
+  //printf("namer: ready\n");
   while(1){
     msg->recv_size = MAX_PATH_LEN;
     msg->recv_buf  = pathname;
 
     receive(msg);
-    //printk("namer: a0=%d from [%s]\n", msg->a0, THREAD(msg->tid)->process->name);
+
+    //printf("namer: a0=%d from [%s]\n", msg->a0, THREAD(msg->tid)->process->name);
     switch(msg->a0){
     case NAMER_CMD_ADD:
-      //printk("namer: adding [%s]\n", pathname);
-      obj = hal->namer->add(pathname, msg->tid);
+      //printf("namer: adding [%s]\n", pathname);
+      obj = namer->add(pathname, msg->tid);
 
       if(obj)
 	msg->a0 = RES_SUCCESS;
@@ -164,17 +59,22 @@ void namer_srv()
       break;
 
     case FS_CMD_ACCESS:
-      //printk("namer: requested access to [%s]\n", pathname);
-      obj = hal->namer->access(pathname, path_tail);
-      //printk("[0x%X]", obj);
+      //printf("namer: requested access to [%s]\n", pathname);
+      obj = namer->access(pathname, path_tail);
+      //printf("[0x%X]", obj);
       if(obj->sid){
 	strcpy(pathname, path_tail);
-	//printk("namer: access granted [%s]\n", pathname);
+	//printf("namer: access granted [%s]\n", pathname);
 	msg->send_size = strlen(pathname);
 	msg->send_buf = pathname;
-	forward(msg, obj->sid);
+	//forward(msg, obj->sid);
+	//msg->tid = obj->sid;
+	if(forward(msg, obj->sid) != RES_SUCCESS){
+	  msg->a0 = 0;
+	  reply(msg);
+	}
       } else {
-	//printk("namer: access denied\n");
+	//printf("namer: access denied\n");
 	msg->send_size = 0;
 	msg->a0 = 0;
 	reply(msg);
@@ -183,7 +83,7 @@ void namer_srv()
       break;
 
       //case NAMER_CMD_RESOLVE:
-      //printk("namer: resolving [%s]\n", m->data3.buf);
+      //printf("namer: resolving [%s]\n", m->data3.buf);
       /*      msg->a0 = hal->namer->resolve(pathname);
       msg->send_size = 0;
       reply(msg);
@@ -196,6 +96,40 @@ void namer_srv()
       reply(msg);
     }
   }
+  return 0;
+}
+
+size_t p_len(string p)
+{
+  size_t i = 0;
+  while (p[i] && (p[i] != '/'))
+    i++;
+  return i;
+}
+
+List<string> * path_strip(const string path)
+{
+  string name;
+  size_t len;
+  string p = path;
+  List<string> *lpath = 0;
+
+  while(1){
+    while (*p == '/') p++;
+    
+    if((len = p_len(p))){
+      name = new char[len + 1];
+      strncpy(name, p, len);
+      if(lpath)
+	lpath->add_tail(name);
+      else
+	lpath = new List<string>(name);
+      p += len;
+    }
+    else break;
+  }
+
+  return lpath;
 }
 
 Tobject::Tobject(const string name)

@@ -10,7 +10,8 @@ AS = gcc
 LD = ld
 #----------------------------------------------------------------------------#
 
-include ../Makefile.conf
+MAIN_CONFIG = $(TOPDIR)/src/config.mk
+include $(MAIN_CONFIG)
 
 ASFLAGS =-Wall -nostdlib -nostdinc -Iinclude
 CFLAGS  =-g -Wall -ffreestanding -nostdlib -nostdinc -fno-stack-protector -Iinclude -O3
@@ -54,8 +55,6 @@ Objects =	main/boot/setup.o		\
 		main/idt.o			\
 		main/main.o			\
 		main/tinterface.o		\
-		main/namer/namer.o		\
-		main/namer/parse.o		\
 		main/gdb-stub.o			\
 		lib/vsprintf.o			\
 		lib/stdio.o			\
@@ -63,6 +62,7 @@ Objects =	main/boot/setup.o		\
 		lib/pure.o			\
 		lib/version.o			\
 		lib/tmutex.o			\
+		lib/fs.o			\
 		main/syscall.o  		\
 		drivers/char/tty/tty.o		\
 		drivers/char/usertty/usertty.o	\

@@ -2,7 +2,7 @@
 # Copyright (C) 2007 Oleg Fedorov
 # -----------------------------------------------------------------------------
 
-include Makefile.conf
+include config.mk
 
 ISO_DIR_PATH=$(ISO_BUILD_DIR)/iso.image/$(ISO_DIR_NAME)
 FN=$(SYSTEM_NAME).iso

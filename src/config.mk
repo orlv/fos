@@ -14,11 +14,13 @@ BINDIR	    = $(SYSTEM_ROOT)/modules
 # -- Modules ------------------------------------------------------------------
 GRUB_MODULES =	/root/modules/koi8-8x16.fnt \
 		/root/modules/test.txt \
+		/root/modules/namer \
+		/root/modules/init \
 		/root/modules/vesa \
 		/root/modules/app1 \
 		/root/modules/tty \
-		/root/modules/keyboard \
-		/root/modules/init
+		/root/modules/keyboard
+
 
 GRUB_MENU    = $(TOPDIR)/boot/grub/menu.lst
 GRUB_TIMEOUT = 0

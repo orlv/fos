@@ -16,8 +16,8 @@ void enable_paging(u32_t * pagedir)
    * Включим страничную адресацию.
    */
 
-  __asm__ __volatile__("movl %%eax, %%cr3\n"	\
-		       "movl %%cr0, %%eax\n"	\
+  __asm__ __volatile__("movl %%eax, %%cr3\n"			\
+		       "movl %%cr0, %%eax\n"			\
 		       "orl $0x80000000, %%eax\n"		\
 		       "movl %%eax, %%cr0": :"a"(pagedir));
 }
@@ -26,6 +26,7 @@ u32_t umap_page(register u32_t log_page, register u32_t * pagedir)
 {
   u32_t page;
   //printk("um lp=[0x%X], pd=[0x%X]\n", log_page, pagedir);
+  __mt_disable();
   u32_t *pagetable = (u32_t *)(kmem_log_addr(PAGE((u32_t) pagetable_addr(log_page, pagedir))) * PAGE_SIZE);
 
   /* Узнаём физический адрес страницы */
@@ -36,6 +37,7 @@ u32_t umap_page(register u32_t log_page, register u32_t * pagedir)
   //printk("* log_pt=[0x%X], pys_page=0x%X \n ", pagetable, page);
   pagetable[log_page & 0x3ff] = 0;
   flush_tlb_single(log_page*PAGE_SIZE);
+  __mt_enable();
   return (page);
 }
 
@@ -68,9 +70,9 @@ u32_t map_page(register u32_t phys_page, register u32_t log_page, register u32_t
     pagetable = (u32_t *)(kmem_log_addr(PAGE((u32_t) pagetable)) * PAGE_SIZE);
     //printk("pt=[0x%X]\n", pagetable);
   }
-  __mt_enable();  
   pagetable[log_page & 0x3ff] = (phys_page * PAGE_SIZE) | flags;
   flush_tlb_single(log_page*PAGE_SIZE);
+  __mt_enable();  
   //printk("{0x%X} \n", pagetable[log_page & 0x3ff]);
   return ((unsigned long)pagetable);
 }

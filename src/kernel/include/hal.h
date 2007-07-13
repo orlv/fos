@@ -12,7 +12,6 @@
 #include <idt.h>
 #include <procman.h>
 #include <drivers/pic.h>
-#include <namer.h>
 #include <mm.h>
 #include <stack.h>
 
@@ -50,7 +49,6 @@ class HAL {
   
   TProcMan *procman;
   tid_t tid_procman;
-  Namer *namer;
   tid_t tid_namer;
   GDT *gdt;
   IDT *idt;

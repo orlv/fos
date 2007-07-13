@@ -17,21 +17,6 @@
 #define FLAG_TSK_SEND  8
 #define FLAG_TSK_RECV  0x10
 
-#if 0
-struct procman_message {
-  u32_t cmd;
-  union {
-    char buf[252];
-    u32_t pid;
-    u32_t value;
-    struct {
-      u32_t a1;
-      u32_t a2;
-    }val;
-  }arg;
-} __attribute__ ((packed));
-#endif
-
 #define PROCMAN_CMD_EXEC             (BASE_CMD_N + 0)
 #define PROCMAN_CMD_KILL             (BASE_CMD_N + 1)
 #define PROCMAN_CMD_EXIT             (BASE_CMD_N + 2)
@@ -57,9 +42,7 @@ public:
   res_t kill(register tid_t tid);
   Thread *get_thread_by_tid(register tid_t tid);
   u32_t curr_proc;
-  Thread *CurrentThread;
-
-  //u32_t *kPageDir;
+  Thread *current_thread;
 };
 
 void kill(tid_t tid);

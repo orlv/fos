@@ -25,14 +25,14 @@ void exception(string str, unsigned int cs,  unsigned int address, unsigned int 
   hal->panic("fault in kernel task!");
 #endif
 
-  if(hal->procman->CurrentThread->flags & FLAG_TSK_KERN){
+  if(hal->procman->current_thread->flags & FLAG_TSK_KERN){
     printk("\n--------------------------------------------------------------------------------" \
 	   "Exception: %s \n"						\
 	   "At addr: 0x%02X:0x%08X\n"					\
 	   "Thread: 0x%X, Process: 0x%X \n"				\
 	   "Name: [%s]\n"						\
 	   "Errorcode: 0x%X",
-	   str, cs, address, hal->procman->CurrentThread, hal->procman->CurrentThread->process, hal->procman->CurrentThread->process->name, errorcode);
+	   str, cs, address, hal->procman->current_thread, hal->procman->current_thread->process, hal->procman->current_thread->process->name, errorcode);
     hal->panic("fault in kernel task!");
   } else {
     printk("\n--------------------------------------------------------------------------------" \
@@ -42,10 +42,10 @@ void exception(string str, unsigned int cs,  unsigned int address, unsigned int 
 	   "Name: [%s]\n"						\
 	   "Errorcode: 0x%X\n"						\
 	   "--------------------------------------------------------------------------------", \
-	   str, cs, address, hal->procman->CurrentThread, hal->procman->CurrentThread->process, hal->procman->CurrentThread->process->name, errorcode);
+	   str, cs, address, hal->procman->current_thread, hal->procman->current_thread->process, hal->procman->current_thread->process->name, errorcode);
 
-    hal->procman->CurrentThread->flags |= FLAG_TSK_TERM;
-    hal->procman->CurrentThread->flags &= ~FLAG_TSK_READY;
+    hal->procman->current_thread->flags |= FLAG_TSK_TERM;
+    hal->procman->current_thread->flags &= ~FLAG_TSK_READY;
     hal->panic("fault in user task!");
     while(1);
   }

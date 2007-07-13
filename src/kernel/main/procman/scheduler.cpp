@@ -62,7 +62,7 @@ void TProcMan::scheduler()
 	break;
     } while (1);
 
-    CurrentThread = curr->item;
+    current_thread = curr->item;
 
     /*
      * Переключимся на выбранный процесс

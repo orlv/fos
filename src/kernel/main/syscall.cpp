@@ -8,13 +8,22 @@
 #include <string.h>
 #include <hal.h>
 
-#define SEND              1
-#define RECEIVE           2
-#define REPLY             3
-#define MASK_INTERRUPT    4
-#define UNMASK_INTERRUPT  5
-#define SCHED_YIELD       6
-#define UPTIME            7
+/* основные системные вызовы -- обмен сообщениями */
+#define _FOS_SEND              1
+#define _FOS_RECEIVE           2
+#define _FOS_REPLY             3
+#define _FOS_FORWARD           4
+
+/*
+  следующие функции целесообразнее разместить
+  в системных вызовах -- очень существенно сказавается
+  на производительности
+*/
+#define _FOS_MASK_INTERRUPT    5
+#define _FOS_UNMASK_INTERRUPT  6
+#define _FOS_SCHED_YIELD       7
+#define _FOS_UPTIME            8
+#define _FOS_MYTID             9 /* позволяет потоку узнать свой Thread ID */
 
 /*
   
@@ -97,6 +106,7 @@ struct memmap {
       "mov $0x10, %ax \n"     /* загрузим DS ядра */			\
       "mov %ax, %ds \n"							\
       "mov %ax, %es \n"							\
+      "push %edx \n"	      /* сохраним arg3 */			\
       "push %ecx \n"	      /* сохраним arg2 */			\
       "push %ebx \n"	      /* сохраним arg1 */			\
       "mov 48(%esp), %eax \n" /* сохраним eip */			\
@@ -106,19 +116,19 @@ struct memmap {
       "push %eax \n"							\
       "call _" #func " \n"						\
       "mov %eax, __result \n"						\
-      "add $16, %esp \n"						\
+      "add $20, %esp \n"						\
       "pop %es \n"							\
       "pop %ds \n"							\
       "popa \n"								\
       "mov __result, %eax \n"						\
       "iret \n"								\
       "__result: .long 0");						\
-  asmlinkage u32_t _ ## func(unsigned int cs, unsigned int address, u32_t cmd, u32_t arg)
+  asmlinkage u32_t _ ## func(unsigned int cs, unsigned int address, u32_t cmd, u32_t arg1, u32_t arg2)
 
 kmessage * get_message()
 {
   hal->mt_disable();
-  Thread *current_thread = hal->procman->CurrentThread;
+  Thread *current_thread = hal->procman->current_thread;
   if (!current_thread->new_messages_count.read()) {  /* если нет ни одного входящего сообщения -- отключаемся в ожидании */
     current_thread->flags |= FLAG_TSK_RECV;
     hal->mt_enable();
@@ -144,7 +154,7 @@ kmessage * get_message()
 
 res_t receive(message *message)
 {
-  //printk("receive [%s]\n", hal->procman->CurrentThread->process->name);
+  //printk("receive [%s]\n", hal->procman->current_thread->process->name);
   kmessage *received_message = get_message();
 
   message->send_size = received_message->reply_size;
@@ -193,7 +203,7 @@ res_t send(message *message)
     thread = hal->procman->get_thread_by_tid(message->tid);
   }
 
-  //printk("send [%s]->[%s] \n", hal->procman->CurrentThread->process->name, thread->process->name);
+  //printk("send [%s]->[%s] \n", hal->procman->current_thread->process->name, thread->process->name);
   
   if (!thread){
     message->send_size = 0;
@@ -205,7 +215,7 @@ res_t send(message *message)
     return RES_FAULT2;
   }
 
-  Thread *thread_sender = hal->procman->CurrentThread;
+  Thread *thread_sender = hal->procman->current_thread;
   
   /* простое предупреждение взаимоблокировки */
   thread_sender->send_to = TID(thread);
@@ -262,7 +272,7 @@ res_t reply(message *message)
 {
   kmessage *send_message = 0;
   List<kmessage *> *entry;
-  List<kmessage *> *messages = hal->procman->CurrentThread->received_messages;
+  List<kmessage *> *messages = hal->procman->current_thread->received_messages;
 
   /* Ищем сообщение в списке полученных (чтобы ответ дошел, пользовательское приложение не должно менять поле tid) */
   hal->mt_disable();
@@ -278,10 +288,10 @@ res_t reply(message *message)
     return RES_FAULT;
   }
 
-  //printk("reply [%s]->[0x%X]\n", hal->procman->CurrentThread->process->name, send_message->thread /*->process->name*/);
+  //printk("reply [%s]->[0x%X]\n", hal->procman->current_thread->process->name, send_message->thread /*->process->name*/);
   
   Thread *thread = send_message->thread;
-  send_message->thread = hal->procman->CurrentThread;
+  send_message->thread = hal->procman->current_thread;
 
   if (send_message->reply_size < message->send_size)
     message->send_size = send_message->reply_size;
@@ -305,9 +315,30 @@ res_t reply(message *message)
   return RES_SUCCESS;
 }
 
-res_t resend(message *message, tid_t tid)
+/*
+  переадресовать сообщение другому получателю
+  отправитель сообщения не меняется
+  должно вызываться только привилегированным потоком
+ */
+res_t forward(message *message, tid_t to)
 {
-  Thread *thread = hal->procman->get_thread_by_tid(tid);
+  Thread *thread;
+  switch(to){
+  case SYSTID_NAMER:
+    thread = THREAD(hal->tid_namer);
+    break;
+
+  case SYSTID_PROCMAN:
+    thread = THREAD(hal->tid_procman);
+    break;
+
+  case 0:
+    message->send_size = 0;
+    return RES_FAULT;
+
+  default:
+    thread = hal->procman->get_thread_by_tid(to);
+  }
 
   if (!thread){
     message->send_size = 0;
@@ -320,7 +351,7 @@ res_t resend(message *message, tid_t tid)
   }
 
   Thread *thread_sender = THREAD(message->tid);
-  
+  //printk("forward [%s]->[%s] \n", thread_sender->process->name , thread->process->name);
   /* простое предупреждение взаимоблокировки */
   thread_sender->send_to = TID(thread);
   if(thread->send_to == TID(thread_sender)){
@@ -331,7 +362,7 @@ res_t resend(message *message, tid_t tid)
 
   kmessage *send_message = 0;
   List<kmessage *> *entry;
-  List<kmessage *> *messages = hal->procman->CurrentThread->received_messages;
+  List<kmessage *> *messages = hal->procman->current_thread->received_messages;
 
   /* Ищем сообщение в списке полученных */
   hal->mt_disable();
@@ -347,7 +378,7 @@ res_t resend(message *message, tid_t tid)
     return RES_FAULT;
   }
 
-  //printk("resend [%s]->[%s] \n", send_message->thread->process->name , thread->process->name);
+  //printk("forward [%s]->[%s] \n", send_message->thread->process->name , thread->process->name);
   
   send_message->size = message->send_size;
   if(send_message->size){
@@ -361,64 +392,61 @@ res_t resend(message *message, tid_t tid)
   hal->mt_disable();
   entry->move_tail(thread->new_messages);
   thread->new_messages_count.inc();
-  hal->procman->CurrentThread->received_messages_count.dec();
+  hal->procman->current_thread->received_messages_count.dec();
   thread->flags &= ~FLAG_TSK_RECV;	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
   hal->mt_enable();
 
   return RES_SUCCESS;
 }
 
-res_t forward(message *message, tid_t tid)
-{
-  res_t result = resend(message, tid);
-  if(result != RES_SUCCESS){
-    //message->send_size = 0;
-    reply(message);
-  }
-
-  return result;  
-}
-
 u32_t uptime();
 
 SYSCALL_HANDLER(sys_call)
 {
-  //printk("\nSyscall #%d, Process %d ", cmd,  hal->ProcMan->CurrentThread->pid);
+  //printk("Syscall #%d (%s) arg1=0x%X, arg2=0x%X \n", cmd,  hal->procman->current_thread->process->name, arg1, arg2);
   u32_t result = 0;
   switch (cmd) {
 
-  case RECEIVE:
-    result = receive((message *)arg);
+  case _FOS_RECEIVE:
+    result = receive((message *)arg1);
     break;
 
   /*
     -----------------------------------------------------------------------------
-    SEND: сообщение копируется в буфер, управление передаётся планировщику
+    _FOS_SEND: сообщение копируется в буфер, управление передаётся планировщику
     когда адресат, получив сообщение, делает вызов REPLY -- управление возвращается
     -----------------------------------------------------------------------------
   */
-  case SEND:
-    result = send((message *)arg);
+  case _FOS_SEND:
+    result = send((message *)arg1);
     break;
 
-  case REPLY:
-    result = reply((message *)arg);
+  case _FOS_REPLY:
+    result = reply((message *)arg1);
     break;
 
-  case MASK_INTERRUPT:
-    hal->pic->mask(arg);
+  case _FOS_FORWARD:
+    result = forward((message *)arg1, arg2);
+    break;
+    
+  case _FOS_MASK_INTERRUPT:
+    hal->pic->mask(arg1);
     break;
 
-  case UNMASK_INTERRUPT:
-    hal->pic->unmask(arg);
+  case _FOS_UNMASK_INTERRUPT:
+    hal->pic->unmask(arg1);
     break;
 
-  case SCHED_YIELD:
+  case _FOS_SCHED_YIELD:
     sched_yield();
     break;
 
-  case UPTIME:
+  case _FOS_UPTIME:
     result = uptime();
+    break;
+
+  case _FOS_MYTID:
+    result = TID(hal->procman->current_thread);
     break;
     
   default:

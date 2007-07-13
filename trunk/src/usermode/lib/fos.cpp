@@ -261,3 +261,8 @@ asmlinkage u32_t uptime()
 {
   return sys_call(_FOS_UPTIME, 0);
 }
+
+asmlinkage tid_t my_tid()
+{
+  return sys_call(_FOS_MYTID, 0);
+}

@@ -31,8 +31,8 @@ void HAL::panic(register const char *fmt, ...)
   printk("Kernel panic: %s \n", panic_buf);
   u16_t id = curPID();
   printk("ID: %d \n", id);
-  if (procman->CurrentThread)
-    printk("PID: %d \n", procman->CurrentThread->process);
+  if (procman->current_thread)
+    printk("PID: %d \n", procman->current_thread->process);
   printk("System Halted!\n");
   printk("--------------------------------------------------------------------------------");
   halt();

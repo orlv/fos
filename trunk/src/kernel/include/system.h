@@ -113,4 +113,18 @@ res_t receive(struct message *message);
 res_t reply(struct message *message);
 res_t forward(struct message *message, pid_t pid);
 
+static inline u32_t _sys_call(volatile u32_t cmd, volatile u32_t arg)
+{
+  u32_t result;
+  __asm__ __volatile__ ("int $0x30":"=a"(result):"b"(cmd), "c"(arg));
+  return result;
+}
+
+static inline u32_t _sys_call2(volatile u32_t cmd, volatile u32_t arg1, volatile u32_t arg2)
+{
+  u32_t result;
+  __asm__ __volatile__ ("int $0x30":"=a"(result):"b"(cmd), "c"(arg1), "d"(arg2));
+  return result;
+}
+
 #endif

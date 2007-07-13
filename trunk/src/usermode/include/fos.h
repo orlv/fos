@@ -7,13 +7,22 @@
 
 #include <types.h>
 
-#define  _FOS_SEND              1
-#define  _FOS_RECEIVE           2
-#define  _FOS_REPLY             3
-#define  _FOS_MASK_INTERRUPT    4
-#define  _FOS_UNMASK_INTERRUPT  5
-#define  _FOS_SCHED_YIELD       6
-#define  _FOS_UPTIME            7
+/* основные системные вызовы -- обмен сообщениями */
+#define _FOS_SEND              1
+#define _FOS_RECEIVE           2
+#define _FOS_REPLY             3
+#define _FOS_FORWARD           4
+
+/*
+  следующие функции целесообразнее разместить
+  в системных вызовах -- очень существенно сказавается
+  на производительности
+*/
+#define _FOS_MASK_INTERRUPT    5
+#define _FOS_UNMASK_INTERRUPT  6
+#define _FOS_SCHED_YIELD       7
+#define _FOS_UPTIME            8
+#define _FOS_MYTID             9  /* позволяет потоку узнать свой Thread ID */
 
 #define PAGE_SIZE 0x1000
 
@@ -24,6 +33,13 @@ static inline u32_t sys_call(volatile u32_t cmd, volatile u32_t arg)
 {
   u32_t result;
   __asm__ __volatile__ ("int $0x30":"=a"(result):"b"(cmd), "c"(arg));
+  return result;
+}
+
+static inline u32_t sys_call2(volatile u32_t cmd, volatile u32_t arg1, volatile u32_t arg2)
+{
+  u32_t result;
+  __asm__ __volatile__ ("int $0x30":"=a"(result):"b"(cmd), "c"(arg1), "d"(arg2));
   return result;
 }
 
@@ -47,9 +63,10 @@ struct message {
   u32_t  a3;
 } __attribute__ ((packed));
 
-asmlinkage res_t reply(struct message *msg);
 asmlinkage res_t send(struct message *msg);
 asmlinkage res_t receive(struct message *msg);
+asmlinkage res_t reply(struct message *msg);
+asmlinkage res_t forward(struct message *msg, tid_t to);
 
 static inline void mask_interrupt(u32_t int_num)
 {
@@ -61,7 +78,7 @@ static inline void unmask_interrupt(u32_t int_num)
   sys_call(_FOS_UNMASK_INTERRUPT, int_num);
 }
 
-asmlinkage tid_t resolve(char *name);
+//asmlinkage tid_t resolve(char *name);
 
 asmlinkage void exit();
 asmlinkage u32_t kill(tid_t tid);
@@ -80,6 +97,7 @@ asmlinkage int resmgr_attach(const char *pathname);
 asmlinkage size_t dmesg(char *buf, size_t count);
 
 asmlinkage u32_t uptime();
+asmlinkage tid_t my_tid();
 
 /* xchg взят из linux-2.6.17 */
 

@@ -1,3 +1,15 @@
+Fri Jul 13 19:48:49 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 15678 (Version 0.0.42.5)
+	- namer вынесен в пользовательский поток
+
+Fri Jul 13 18:36:07 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 15616 (Version 0.0.42.4)
+	- Добавлен системный вызов forward() (позволяет переадресовать сообщение)
+
+Fri Jul 13 18:28:18 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 15616 (Version 0.0.42.3)
+	- Добавлен системный вызов my_tid() (возвращает tid потока)
+
 Wed Jul 11 20:54:22 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
 Build 15608 (Version 0.0.42.2)
 	- Улучшена система сообщений, все системные службы переведены

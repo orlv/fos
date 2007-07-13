@@ -14,8 +14,6 @@ asmlinkage int main()
   message *msg = new message;
   char *buffer = new char[2048];
 
-  resmgr_attach("/dev/tty");
-
   VGA *vga = new VGA;
   vga->init();
   TTY *tty = new TTY(80, 25);
@@ -25,6 +23,9 @@ asmlinkage int main()
 
   tty->write(0, buffer, len);
 
+  if(resmgr_attach("/dev/tty") != RES_SUCCESS)
+    return -1;
+  
   while (1) {
     msg->tid = 0;
     msg->recv_size = 2048;

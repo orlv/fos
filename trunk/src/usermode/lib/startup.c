@@ -5,9 +5,6 @@
 
 int main(void);
 
-#include <fos.h>
-#include <fs.h>
-
 void _start()
 {
   main();

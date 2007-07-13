@@ -160,16 +160,15 @@ asmlinkage void init()
 #endif
 
   SysTimer = new Timer;
-
-  printk("Kernel: start task switching\n");
+  extern multiboot_info_t *__mbi;
+  initrb = new ModuleFS(__mbi);
   
+  printk("Kernel: start task switching\n");
+ 
   hal->mt_reset();  /* сбросим счетчик на 1 */
   hal->mt_enable();
 
   sched_yield();
-
-  extern multiboot_info_t *__mbi;
-  initrb = new ModuleFS(__mbi);
 
   printk("--------------------------------------------------------------------------------" \
 	 "All OK. Main kernel procedure done.\n"			\

@@ -1,5 +1,5 @@
 /*
-  include/namer.h
+  namer/namer.h
   Copyright (C) 2006-2007 Oleg Fedorov
 
   2006-11-12. (fslayer.h) Всё хорошенько переделано. Oleg.
@@ -42,8 +42,5 @@ class Namer {
   //res_t remove(const string name);
   //obj_info_t *list(off_t offset);  
 };
-
-tid_t resolve(char *name);
-void namer_add(string name);
 
 #endif

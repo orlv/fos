@@ -15,7 +15,6 @@
 #include <fs.h>
 
 void start_sched();
-void namer_srv();
 
 tid_t execute(char *pathname)
 {
@@ -44,9 +43,12 @@ void procman_srv()
   char *kmesg;
   size_t len;
 
-  //printk("procman: registering /sys/procman\n");
-  resmgr_attach("/sys/procman");
-  printk("procman: ready\n");
+  hal->tid_namer = execute("namer");
+  //printk("namer=0x%X\n", hal->tid_namer);
+  printk("procman: registering /sys/procman\n");
+  //resmgr_attach("/sys/procman");
+  //printk("procman: ready\n");
+  //while(1);
   char *pathname = new char[MAX_PATH_LEN];
 
   execute("init");
@@ -168,7 +170,7 @@ TProcMan::TProcMan()
   ltr(BASE_TSK_SEL);
   lldt(0);
   
-  CurrentThread = thread;
+  current_thread = thread;
   printk("kernel: multitasking ready (kernel tid=0x%X)\n", thread);
 
   stack = kmalloc(STACK_SIZE);
@@ -180,18 +182,13 @@ TProcMan::TProcMan()
   hal->tid_procman = TID(process->thread_create((off_t) &procman_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT));
   reg_thread(THREAD(hal->tid_procman));
   printk("kernel: procman added to threads list (tid=0x%X)\n", hal->tid_procman);
-  
-  stack = kmalloc(STACK_SIZE);
-  hal->tid_namer = TID(process->thread_create((off_t) &namer_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT));
-  reg_thread(THREAD(hal->tid_namer));
-  printk("procman: namer added to threads list (tid=0x%X)\n", hal->tid_namer);
 }
 
-u32_t TProcMan::exec(register void *image, const string name)
+tid_t TProcMan::exec(register void *image, const string name)
 {
   TProcess *process = new TProcess();
-  process->memory = new Memory(USER_MEM_BASE, USER_MEM_SIZE, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS|MMU_PAGE_USER_ACCESSABLE);
 
+  process->memory = new Memory(USER_MEM_BASE, USER_MEM_SIZE, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS|MMU_PAGE_USER_ACCESSABLE);
   process->name = new char[strlen(name) + 1];
   strcpy(process->name, name);
 
@@ -202,11 +199,10 @@ u32_t TProcMan::exec(register void *image, const string name)
     process->memory->pagedir[i] = hal->kmem->pagedir[i];
   }
 
-  off_t eip;
-  eip = process->LoadELF(image);
+  off_t eip = process->LoadELF(image);
   Thread *thread = process->thread_create(eip, FLAG_TSK_READY, kmalloc(STACK_SIZE), process->memory->mem_alloc(STACK_SIZE));
   reg_thread(thread);
-  return 0;
+  return TID(thread);
 }
 
 /* Добавляет поток в список */

@@ -183,8 +183,7 @@ void common_interrupt(u8_t n)
 {
   hal->pic->mask(n); /* Демаскировку должен производить обработчик */
   if(hal->user_int_handler[n]){
-    Thread *thread = hal->user_int_handler[n];
-    thread->signals |= 1 << n;
+    hal->user_int_handler[n]->set_signal(n);
   } else
     hal->panic("Unhandled interrupt received!\n");
   
@@ -196,9 +195,9 @@ IRQ_HANDLER(irq_1)
   common_interrupt(1);
 }
 
-IRQ_HANDLER(irq_26)
+IRQ_HANDLER(irq_6)
 {
-  common_interrupt(26);
+  common_interrupt(6);
 }
 
 void setup_idt()
@@ -231,7 +230,7 @@ void setup_idt()
 
   hal->idt->set_intr_gate(0x20, (off_t) & timer_handler);
   hal->idt->set_intr_gate(0x21, (off_t) & irq_1);  /* keyboard */
-  hal->idt->set_intr_gate(0x26, (off_t) & irq_26); /* floppy */
+  hal->idt->set_intr_gate(0x26, (off_t) & irq_6); /* floppy */
 
   hal->idt->set_trap_gate(0x30, (off_t) & sys_call, 3);
 }

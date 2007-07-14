@@ -46,9 +46,23 @@ struct kmessage {
 #define SYSTID_NAMER   1
 #define SYSTID_PROCMAN 2
 
+#define SIGNAL_ALARM   0
+
+#define _MSG_SENDER_ANY    0
+#define _MSG_SENDER_SIGNAL 1
+
+#define _MSG_SYSTEM_TIDS 0x1000
+
+inline bool SYSTEM_TID(tid_t tid)
+{
+  return tid < _MSG_SYSTEM_TIDS;
+}
+
 class Thread{
  private:
   off_t stack_pl0;
+  u32_t alarm;
+  u32_t signals;
   
  public:
   Thread(class TProcess *process,
@@ -78,7 +92,26 @@ class Thread{
   List<kmessage *> *received_messages;
   atomic_t received_messages_count;
 
-  u32_t signals;
+  inline void set_signal(u8_t signal_n)
+  {
+    signals |= 1 << signal_n;
+  }
+
+  inline u32_t get_signals()
+  {
+    return signals;
+  }
+  
+  inline u32_t get_alarm()
+  {
+    return alarm;
+  }
+  
+  inline void set_alarm(u32_t time)
+  {
+    alarm = time;
+  }
+  
   void parse_signals();
   res_t put_message(kmessage *message);
 };

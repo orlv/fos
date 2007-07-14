@@ -1,15 +1,17 @@
 /*
-	drivers/block/floppy/floppy.h
-	Copyright (C) 2004-2006 Oleg Fedorov
+  floppy/floppy.h
+  Copyright (C) 2004-2007 Oleg Fedorov
 */
 
 #ifndef __FLOPPY_H
 #define __FLOPPY_H
 
 #include <types.h>
-#include <tinterface.h>
+//#include <tinterface.h>
 
-#if 1
+#define FLOPPY_BUFF_SIZE 512
+#define FLOPPY_IRQ_NUM     6
+
 /* drive geometries */
 #define DG144_HEADS       2	/* heads per drive (1.44M) */
 #define DG144_TRACKS     80	/* number of tracks (1.44M) */
@@ -41,7 +43,7 @@
 #define CMD_SEEK    (0x0f)	/* seek track */
 #define CMD_VERSION (0x10)	/* FDC version */
 
-class floppy:public Tinterface {
+class Floppy {
 private:
   struct drive_geometry {
     u8_t heads;
@@ -52,12 +54,10 @@ private:
   u16_t current_block;
   u16_t blocks_cnt;
 
-  //  u8_t motor;       /* Отображает состояние мотора 0-выключен, 1-включен*/
-
-  //  u16_t mtick;      /* Больше нуля - то уменьшается на 1, когда станет равным 0 - мотор выключается */
-  //  u16_t tmout;  /* Просто таймер, его небходимо будет убрать после добавления такой функции в ядро */
-
-  //  u8_t done;        /* Устанавливается в 1 после прерывания от контроллера дисковода */
+  //bool motor_on;       /* Отображает состояние мотора 0-выключен, 1-включен*/
+  //u32_t motor_ticks;   /* Больше нуля - то уменьшается на 1, когда станет равным 0 - мотор выключается */
+  //volatile bool *irq_done;
+  
   u8_t dchange;
   u8_t status[7];
   u8_t statsz;
@@ -65,11 +65,12 @@ private:
   u8_t sr0;
   u16_t fdc_track;
 
-  void *track_buf;		/* Адрес буфера дисковода */
+  void *track_buf;       /* адрес буфера дисковода  */
+  void *track_buf_phys;  /* физический адрес буфера */
 
   void reset();
-  void sendbyte(u16_t count);
-  u16_t getbyte();
+  void sendbyte(u8_t count);
+  u8_t getbyte();
   u8_t waitfdc(u8_t sensei);
   void block2hts(u16_t block, u16_t & head, u16_t & track, u16_t & sector);
   u8_t diskchange();
@@ -79,13 +80,12 @@ private:
   u8_t seek_track(u32_t _track);
   u32_t seek(u32_t block);
   u8_t rw(u16_t block, void *buf, u8_t read);
-
+  
 public:
-   floppy();
+  Floppy();
 
   size_t read(off_t offset, void *buf, size_t count);
   size_t write(off_t offset, const void *buf, size_t count);
 };
-#endif
 
 #endif

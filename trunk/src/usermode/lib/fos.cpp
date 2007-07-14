@@ -74,11 +74,12 @@ asmlinkage void * kmemmap(offs_t ptr, size_t size)
     return 0;
 }
 
-asmlinkage void * kmalloc(size_t size)
+asmlinkage void * kmalloc(size_t size, u32_t flags)
 {
   message msg;
   msg.a0 = PROCMAN_CMD_MEM_ALLOC;
   msg.a1 = size;
+  msg.a2 = flags;
   msg.send_size = 0;
   msg.recv_size = 0;
   msg.tid = SYSTID_PROCMAN;
@@ -155,14 +156,15 @@ asmlinkage int resmgr_attach(const char *pathname)
     return 0;
 }
 
-asmlinkage size_t read(fd_t fd, void *buf, size_t count)
+asmlinkage ssize_t read(int fildes, void *buf, size_t nbyte)
 {
-  if(!fd || !fd->thread)
-    return 0;
+  fd_t fd = (fd_t) fildes;
+  if(!fildes || fildes == -1 || !fd->thread)
+    return -1;
 
   message msg;
   msg.a0 = FS_CMD_READ;
-  msg.recv_size = count;
+  msg.recv_size = nbyte;
   msg.recv_buf = buf;
   msg.send_size = 0;
   msg.a1 = fd->id;
@@ -183,10 +185,11 @@ asmlinkage size_t read(fd_t fd, void *buf, size_t count)
   }while(1);
 }
 
-asmlinkage size_t write(fd_t fd, void *buf, size_t count)
+asmlinkage ssize_t write(int fildes, const void *buf, size_t nbyte)
 {
-  if(!fd || !fd->thread)
-    return 0;
+  fd_t fd = (fd_t) fildes;  
+  if(!fildes || fildes == -1 || !fd->thread)
+    return -1;
 
   message msg;
   msg.a0 = FS_CMD_WRITE;
@@ -197,7 +200,7 @@ asmlinkage size_t write(fd_t fd, void *buf, size_t count)
   msg.tid = fd->thread;
 
   do{
-    msg.send_size = count;
+    msg.send_size = nbyte;
     
     switch(send(&msg)){
     case RES_SUCCESS:
@@ -212,7 +215,7 @@ asmlinkage size_t write(fd_t fd, void *buf, size_t count)
   }while(1);
 }
 
-asmlinkage fd_t open(const char *pathname, int flags)
+asmlinkage int open(const char *pathname, int flags)
 {
   volatile struct message msg;
   msg.a0 = FS_CMD_ACCESS;
@@ -229,17 +232,17 @@ asmlinkage fd_t open(const char *pathname, int flags)
     struct fd *fd = new struct fd;
     fd->thread = msg.tid;
     fd->id = msg.a0;
-    return fd;
+    return (int) fd;
   } else
-    return 0;
+    return -1;
 }
 
-asmlinkage int close(fd_t fd)
+asmlinkage int close(int fildes)
 {
-  if(!fd)
-    return RES_FAULT;
+  if(!fildes || fildes == -1)
+    return -1;
 
-  delete fd;
+  delete (fd_t) fildes;
   return 0;
 }
 
@@ -260,6 +263,16 @@ asmlinkage size_t dmesg(char *buf, size_t count)
 asmlinkage u32_t uptime()
 {
   return sys_call(_FOS_UPTIME, 0);
+}
+
+asmlinkage u32_t alarm(u32_t ticks)
+{
+  return sys_call(_FOS_ALARM, ticks);
+}
+
+asmlinkage u32_t alarm2(u32_t ticks)
+{
+  return sys_call2(_FOS_ALARM, 0, ticks);
 }
 
 asmlinkage tid_t my_tid()

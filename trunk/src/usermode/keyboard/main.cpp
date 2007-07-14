@@ -21,19 +21,17 @@ void thread_handler()
   }
 
   struct message msg;
-  u8_t num;
   kb = new Keyboard;
   ready = 1;
-
+  
   while(1){
-    msg.recv_size = sizeof(num);
-    msg.recv_buf = &num;
+    msg.recv_size = 0;
+    msg.tid = _MSG_SENDER_SIGNAL;
     receive(&msg);
-    if(num == KBD_IRQ_NUM){
+    if(msg.a0 == KBD_IRQ_NUM)
       kb->handler();
-    } else {
-      printf("Keyboard handler: unknown message received!\n");
-    }
+    else
+      printf("Keyboard handler: unknown signal received!\n");
   }
 }
 
@@ -50,7 +48,7 @@ asmlinkage int main()
   resmgr_attach("/dev/keyboard");
 
   while (1) {
-    msg->tid = 0;
+    msg->tid = _MSG_SENDER_ANY;
     msg->recv_buf  = buffer;
     msg->recv_size = KB_CHARS_BUFF_SIZE;
     receive(msg);
@@ -62,12 +60,12 @@ asmlinkage int main()
       break;
 
     case FS_CMD_WRITE:
-      msg->a0 = kb->write(0, buffer, msg->send_size);
+      msg->a0 = kb->write(0, buffer, msg->recv_size);
       msg->send_size = 0;
       break;
 
     case FS_CMD_READ:
-      msg->a0 = kb->read(0, buffer, msg->send_size);
+      msg->send_size = msg->a0 = kb->read(0, buffer, msg->send_size);
       msg->send_buf = buffer;
       break;
 

@@ -20,12 +20,12 @@ int sprintf(char *str, const char *fmt, ...)
 
 char printbuf[256];
 
-fd_t tty=0;
+int tty = 0;
 
 int printf(const char *fmt, ...)
 {
   if(!tty)
-    while(!(tty = open("/dev/tty", 0))) sched_yield();
+    while((tty = open("/dev/tty", 0)) == -1) sched_yield();
 
   va_list args;
   va_start(args, fmt);

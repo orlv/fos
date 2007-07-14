@@ -32,9 +32,9 @@ struct fd {
 
 typedef struct fd* fd_t;
 
-asmlinkage fd_t open(const char *pathname, int flags);
-asmlinkage int close(fd_t fd);
-asmlinkage size_t read(fd_t fd, void *buf, size_t count);
-asmlinkage size_t write(fd_t fd, void *buf, size_t count);
+asmlinkage int open(const char *pathname, int flags);
+asmlinkage int close(int fildes);
+asmlinkage ssize_t read(int fildes, void *buf, size_t bytes);
+asmlinkage ssize_t write(int fildes, const void *buf, size_t bytes);
 
 #endif

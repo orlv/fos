@@ -1,3 +1,16 @@
+Sat Jul 14 17:08:37 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 15816 (Version 0.0.42.8)
+	- Добавлен драйвер флоппи-дисковода, работающий в режиме пользвателя
+
+Sat Jul 14 15:35:22 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 15791 (Version 0.0.42.7)
+	- Доработана система сообщений. Можно указать, от кого конкретно
+	  необходимо получить сообщение
+
+Sat Jul 14 02:57:45 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 15731 (Version 0.0.42.6)
+	- Добавлены таймеры (системный вызов alarm())
+
 Fri Jul 13 19:48:49 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
 Build 15678 (Version 0.0.42.5)
 	- namer вынесен в пользовательский поток

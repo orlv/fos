@@ -12,5 +12,6 @@ asmlinkage int main()
   printf("Init started! If you see this text - all work fine.\n");
   exec("keyboard");
   exec("app1");
+  exec("floppy");
   return 0;
 }

@@ -57,6 +57,7 @@ void procman_srv()
     //asm("incb 0xb8000+154\n" "movb $0x2f,0xb8000+155 ");
     msg->recv_size = MAX_PATH_LEN;
     msg->recv_buf = pathname;
+    msg->tid = _MSG_SENDER_ANY;;
     receive(msg);
     //printk("procman: a0=%d from [%s]\n", msg->a0, THREAD(msg->tid)->process->name);
 
@@ -89,7 +90,10 @@ void procman_srv()
     case PROCMAN_CMD_MEM_ALLOC:
       //printk("procman: allocating 0x%X bytes of memory\n", msg->a1);
       thread = hal->procman->get_thread_by_tid(msg->tid);
-      msg->a0 = (u32_t) thread->process->memory->mem_alloc(msg->a1);
+      if(!msg->a2)
+	msg->a0 = (u32_t) thread->process->memory->mem_alloc(msg->a1);
+      else
+	msg->a0 = get_lowpage() * PAGE_SIZE;
       msg->send_size = 0;
       reply(msg);
       break;

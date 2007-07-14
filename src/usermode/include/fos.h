@@ -22,7 +22,11 @@
 #define _FOS_UNMASK_INTERRUPT  6
 #define _FOS_SCHED_YIELD       7
 #define _FOS_UPTIME            8
-#define _FOS_MYTID             9  /* позволяет потоку узнать свой Thread ID */
+#define _FOS_ALARM             9
+#define _FOS_MYTID             10  /* позволяет потоку узнать свой Thread ID */
+
+#define _MSG_SENDER_ANY    0
+#define _MSG_SENDER_SIGNAL 1
 
 #define PAGE_SIZE 0x1000
 
@@ -85,7 +89,10 @@ asmlinkage u32_t kill(tid_t tid);
 asmlinkage tid_t exec(const char * filename);
 
 asmlinkage void * kmemmap(offs_t ptr, size_t size);
-asmlinkage void * kmalloc(size_t size);
+
+#define MEM_FLAG_LOWPAGE 1
+
+asmlinkage void * kmalloc(size_t size, u32_t flags);
 
 asmlinkage tid_t thread_create(off_t eip);
 
@@ -97,6 +104,8 @@ asmlinkage int resmgr_attach(const char *pathname);
 asmlinkage size_t dmesg(char *buf, size_t count);
 
 asmlinkage u32_t uptime();
+asmlinkage u32_t alarm(u32_t ticks); /* сообщение придет  через ticks */
+asmlinkage u32_t alarm2(u32_t ticks);  /* сообщение придет, когда ticks < uptime() */
 asmlinkage tid_t my_tid();
 
 /* xchg взят из linux-2.6.17 */

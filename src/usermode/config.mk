@@ -1,7 +1,5 @@
 #----------------------------------------------------------------------------#
-#	Copyright (C) 2006 Oleg Fedorov
-#----------------------------------------------------------------------------#
-
+#	Copyright (C) 2006-2007 Oleg Fedorov
 #----------------------------------------------------------------------------#
 CC = gcc
 C++ = gcc
@@ -9,7 +7,7 @@ AS = gcc
 LD = ld
 #----------------------------------------------------------------------------#
 
-FLAGS=-Wall -nostdlib -nostdinc -I../include -I. -L../lib -fno-stack-protector -O0
+FLAGS=-Wall -nostdlib -nostdinc -I../include -I. -L../lib -fno-stack-protector -O3
 
 ASFLAGS =$(FLAGS)
 CFLAGS  =$(FLAGS) -ffreestanding -fno-leading-underscore

@@ -102,11 +102,11 @@ void Thread::parse_signals()
 {
   for(u32_t n=0, mask=1; signals && (n < sizeof(this->signals)*8); n++, mask = mask << 1){
     if(signals & mask){
-      u32_t *data = new u32_t;
       kmessage *message = new kmessage;
-      message->buffer = data;
-      message->size = sizeof(u32_t);
-      *data = n;
+      message->size = 0;
+      message->a0 = n;
+      message->flags = MESSAGE_ASYNC;
+      message->thread = THREAD(_MSG_SENDER_SIGNAL);
       this->put_message(message);
       signals = signals & ~mask;
     }

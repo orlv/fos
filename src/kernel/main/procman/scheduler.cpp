@@ -15,14 +15,6 @@
 asmlinkage void scheduler_starter();
 extern Timer *SysTimer;
 
-/*
- * Для флоппи
- * TODO: Убрать 
- */
-extern u8_t motor;		/* Отображает состояние мотора 0-выключен, 1-включен */
-extern u16_t mtick;		/* Больше нуля - то уменьшается на 1, когда станет равным 0 - мотор выключается */
-extern u16_t tmout;		/* Просто таймер, его небходимо будет убрать после добавления такой функции в ядро */
-
 void start_sched()
 {
   hal->procman->scheduler();
@@ -31,28 +23,26 @@ void start_sched()
 void TProcMan::scheduler()
 {
   List<Thread *> *curr = threadlist;
+  u32_t _uptime;
 
   while (1) {
-#warning *** TODO: scheduler(): сделать таймеры
-
     asm("incb 0xb8000+158\n" "movb $0x5f,0xb8000+159");
 
-#if 0
-    /* Вместо этого кода сделать таймеры */
-    if (tmout)
-      tmout--;
-    if (mtick > 0)
-      mtick--;
-    else if (motor) {
-      outportb(0x3f2, 0x0c);	/* Выключим мотор флоппи */
-      motor = 0;
-    }
-#endif
+    _uptime = uptime();
+    
     /* Выбираем следующий подходящий для запуска поток */
     do {
       curr = curr->next;
 
-      if(curr->item->signals){
+      /* если установлен и истек таймер -- отправляем сигнал */
+      if(curr->item->get_alarm() && curr->item->get_alarm() < _uptime){
+	//printk("alarm = 0x%X, uptime=0x%X \n", curr->item->get_alarm(), _uptime);
+	curr->item->set_alarm(0);
+	curr->item->set_signal(SIGNAL_ALARM);
+      }
+
+      /* если пришли сигналы -- отправляем соответствующие сообщения */
+      if(curr->item->get_signals()){
 	curr->item->parse_signals();
       }
       

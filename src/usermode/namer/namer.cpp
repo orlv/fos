@@ -34,13 +34,13 @@ asmlinkage int main()
   message *msg = new message;
   char *pathname = new char[MAX_PATH_LEN];
   char *path_tail = new char[MAX_PATH_LEN];
-  char *ptr = (char *) 0x100;
+
   //namer->add("/sys/namer", my_tid());
   //printf("namer: ready\n");
   while(1){
     msg->recv_size = MAX_PATH_LEN;
     msg->recv_buf  = pathname;
-
+    msg->tid = _MSG_SENDER_ANY;
     receive(msg);
 
     //printf("namer: a0=%d from [%s]\n", msg->a0, THREAD(msg->tid)->process->name);
@@ -67,8 +67,6 @@ asmlinkage int main()
 	//printf("namer: access granted [%s]\n", pathname);
 	msg->send_size = strlen(pathname);
 	msg->send_buf = pathname;
-	//forward(msg, obj->sid);
-	//msg->tid = obj->sid;
 	if(forward(msg, obj->sid) != RES_SUCCESS){
 	  msg->a0 = 0;
 	  reply(msg);

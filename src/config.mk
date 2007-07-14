@@ -19,7 +19,8 @@ GRUB_MODULES =	/root/modules/koi8-8x16.fnt \
 		/root/modules/vesa \
 		/root/modules/app1 \
 		/root/modules/tty \
-		/root/modules/keyboard
+		/root/modules/keyboard \
+		/root/modules/floppy
 
 
 GRUB_MENU    = $(TOPDIR)/boot/grub/menu.lst

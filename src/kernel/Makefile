@@ -13,10 +13,11 @@ LD = ld
 MAIN_CONFIG = $(TOPDIR)/src/config.mk
 include $(MAIN_CONFIG)
 
-ASFLAGS =-Wall -nostdlib -nostdinc -Iinclude
-CFLAGS  =-g -Wall -ffreestanding -nostdlib -nostdinc -fno-stack-protector -Iinclude -O3
+#DEBUG =-g
 
-CXXFLAGS =-g -Wall -nostdinc -nostdinc++ -Iinclude -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin -fno-stack-protector -O0 -mregparm=3
+ASFLAGS =-Wall -nostdlib -nostdinc -Iinclude
+CFLAGS  =$(DEBUG) -Wall -ffreestanding -nostdlib -nostdinc -fno-stack-protector -Iinclude -O3
+CXXFLAGS =$(DEBUG) -Wall -nostdinc -nostdinc++ -Iinclude -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin -fno-stack-protector -O3 -mregparm=3
 
 LDFLAGS =-nostdlib -static
 
@@ -69,7 +70,6 @@ Objects =	main/boot/setup.o		\
 		drivers/block/vga/vga.o		\
 		drivers/char/timer/timer.o	\
 		drivers/char/cmos/cmos.o	\
-		drivers/dma.o			\
 		drivers/pic.o			\
 		drivers/fs/modulefs/modulefs.o
 

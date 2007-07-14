@@ -23,7 +23,8 @@
 #define _FOS_UNMASK_INTERRUPT  6
 #define _FOS_SCHED_YIELD       7
 #define _FOS_UPTIME            8
-#define _FOS_MYTID             9 /* позволяет потоку узнать свой Thread ID */
+#define _FOS_ALARM             9
+#define _FOS_MYTID            10 /* позволяет потоку узнать свой Thread ID */
 
 /*
   
@@ -125,26 +126,72 @@ struct memmap {
       "__result: .long 0");						\
   asmlinkage u32_t _ ## func(unsigned int cs, unsigned int address, u32_t cmd, u32_t arg1, u32_t arg2)
 
-kmessage * get_message()
+void wait_message()
+{
+  hal->procman->current_thread->flags |= FLAG_TSK_RECV;
+  hal->mt_enable();
+  sched_yield();
+  hal->mt_disable();
+}
+
+List<kmessage *> *get_message_any()
 {
   hal->mt_disable();
-  Thread *current_thread = hal->procman->current_thread;
-  if (!current_thread->new_messages_count.read()) {  /* если нет ни одного входящего сообщения -- отключаемся в ожидании */
-    current_thread->flags |= FLAG_TSK_RECV;
-    hal->mt_enable();
-    sched_yield();
-    hal->mt_disable();
+  if (!hal->procman->current_thread->new_messages_count.read())
+    wait_message();
+
+  return hal->procman->current_thread->new_messages->next;
+}
+
+List<kmessage *> *get_message_from(tid_t from)
+{
+  hal->mt_disable();
+  List<kmessage *> *messages = hal->procman->current_thread->new_messages;
+  List<kmessage *> *entry;
+
+  if (hal->procman->current_thread->new_messages_count.read()) { /* есть сообщения, обрабатываем.. */
+    list_for_each (entry, messages) {
+      if(entry->item->thread == THREAD(from))
+	return entry;
+    }
   }
   
-  /* пришло сообщение, обрабатываем.. */
-  kmessage *message = current_thread->new_messages->next->item;
+  while(1) {
+    if (!SYSTEM_TID(from) && hal->procman->current_thread->new_messages_count.read() > MAX_MSG_COUNT)
+      return 0;
+    
+    wait_message();
+    list_for_each (entry, messages) {
+      if(entry->item->thread == THREAD(from))
+	return entry;
+    }
+  }
+}
+
+kmessage * get_message(tid_t from)
+{
+  kmessage *message;
+  List<kmessage *> *entry;
+  Thread *current_thread = hal->procman->current_thread;
+
+  if(from)
+    entry = get_message_from(from);
+  else
+    entry = get_message_any();
+
+  if(!entry) {
+    hal->mt_enable();
+    return 0;
+  }
+
+  message = entry->item;
+  
   //printk("[0x%X]", message->thread);
-  if (!(message->flags & MESSAGE_ASYNC)){
-    /* перемещаем сообщение в очередь полученных сообщений */
-    current_thread->new_messages->next->move_tail(current_thread->received_messages);
+  if (!(message->flags & MESSAGE_ASYNC)){ /* перемещаем сообщение в очередь полученных сообщений */
+    entry->move_tail(current_thread->received_messages);
     current_thread->received_messages_count.inc();
   } else
-    delete current_thread->new_messages->next; /* убираем сообщение из очереди новых сообщений */
+    delete entry; /* убираем сообщение из очереди новых сообщений */
 
   current_thread->new_messages_count.dec();
   hal->mt_enable();
@@ -155,8 +202,10 @@ kmessage * get_message()
 res_t receive(message *message)
 {
   //printk("receive [%s]\n", hal->procman->current_thread->process->name);
-  kmessage *received_message = get_message();
-
+  kmessage *received_message = get_message(message->tid);
+  if(!received_message)
+    return RES_FAULT;
+  
   message->send_size = received_message->reply_size;
   
   if (received_message->size > message->recv_size) /* решаем, сколько байт сообщения копировать */
@@ -310,7 +359,7 @@ res_t reply(message *message)
   
   hal->mt_disable();
   delete entry; /* удалим запись о сообщении из списка полученных сообщений */
-  thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
+  if(TID(thread) > 0x1000) thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
   hal->mt_enable();
   return RES_SUCCESS;
 }
@@ -405,6 +454,7 @@ SYSCALL_HANDLER(sys_call)
 {
   //printk("Syscall #%d (%s) arg1=0x%X, arg2=0x%X \n", cmd,  hal->procman->current_thread->process->name, arg1, arg2);
   u32_t result = 0;
+  u32_t _uptime;
   switch (cmd) {
 
   case _FOS_RECEIVE:
@@ -443,6 +493,20 @@ SYSCALL_HANDLER(sys_call)
 
   case _FOS_UPTIME:
     result = uptime();
+    break;
+
+  case _FOS_ALARM:
+    _uptime = uptime();
+    if(hal->procman->current_thread->get_alarm() > _uptime)
+      result = hal->procman->current_thread->get_alarm() - _uptime;
+    else
+      result = 0;
+    
+    if(arg1)  /* текущее время + arg1 */
+      hal->procman->current_thread->set_alarm(_uptime + arg1);
+    else
+      hal->procman->current_thread->set_alarm(arg2);
+
     break;
 
   case _FOS_MYTID:

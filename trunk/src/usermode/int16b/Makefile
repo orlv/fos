@@ -6,13 +6,13 @@ include $(MAIN_CONFIG)
 include $(CONFIG)
 
 OBJECTS  = main.o
-PROGNAME = vesa
+PROGNAME = int16b
 
 #-----------------------------------------------------------------------------#
 
 all:    $(OBJECTS)
 	@echo \ Linking $(BINDIR)/$(PROGNAME)
-	@$(LD) $(LDFLAGS) -o $(BINDIR)/$(PROGNAME) $(OBJECTS) --oformat=binary -Tldscript -Ttext=0x1f00
+	@$(LD) $(LDFLAGS) -o $(BINDIR)/$(PROGNAME) $(OBJECTS) --oformat=binary -Tldscript -Ttext=0x500
 #	$(LD) $(LDFLAGS) -shared -o $(BINDIR)/$(PROGNAME) $(OBJECTS) --oformat=elf32-i386
 
 #--------------------------------- Clean -------------------------------------#

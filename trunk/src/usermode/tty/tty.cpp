@@ -12,7 +12,7 @@
 #include <string.h>
 
 TTY::TTY(u16_t width, u16_t height)
-{				/*:Tinterface() */
+{
   geom.width = width;
   geom.height = height;
 

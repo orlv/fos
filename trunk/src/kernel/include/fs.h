@@ -21,10 +21,20 @@ struct info_t {
   u32_t mtime;			/* время последней моификации */
 };
 
+#define NO_ERR                0
+#define ERR_EOF               1
+#define ERR_LOCALBUF_OVERFULL 2
+#define ERR_NO_SUCH_FILE      3
+#define ERR_UNKNOWN_CMD       4
+#define ERR_ACCESS_DENIED     5
+
+typedef u32_t ino_t;
+
 struct fd {
-  tid_t thread;
+  tid_t  thread;
   offs_t offset;
-  u32_t id;
+  ino_t  inode;
+  size_t  buf_size;
 };
 
 typedef struct fd* fd_t;
@@ -48,34 +58,10 @@ typedef struct fd* fd_t;
 #define NAMER_CMD_REM     (BASE_CMD_N + 1)
 #define NAMER_CMD_RESOLVE (BASE_CMD_N + 2)
 
-int close(fd_t fd);
-fd_t open(const char *pathname, int flags);
-size_t read(fd_t fd, void *buf, size_t count);
-size_t write(fd_t fd, const void *buf, size_t count);
+int close(int fildes);
+int open(const char *pathname, int flags);
+ssize_t read(int fildes, void *buf, size_t nbyte);
+ssize_t write(int fildes, const void *buf, size_t nbyte);
 int resmgr_attach(const char *pathname);
-
-#if 0
-union fs_message{
-  struct {
-    u32_t cmd;
-  }data;
-
-  struct {
-    u32_t cmd;
-    offs_t offset;
-  }data1;
-
-  struct {
-    u32_t cmd;
-    offs_t offset;
-  }data2;
-
-  struct {
-    u32_t cmd;
-    offs_t offset;
-    char buf[FS_CMD_LEN];
-  }data3;
-} __attribute__ ((packed));
-#endif
 
 #endif

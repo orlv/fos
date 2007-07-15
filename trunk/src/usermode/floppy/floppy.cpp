@@ -89,26 +89,33 @@ asmlinkage int main()
       switch(msg.a0){
       case FS_CMD_ACCESS:
 	msg.a0 = 1;
+	msg.a1 = FLOPPY_XCHG_BUF_SIZE;
+	msg.a2 = NO_ERR;
 	msg.send_size = 0;
 	break;
 
       case FS_CMD_WRITE:
-	if(msg.recv_size > FLOPPY_XCHG_BUF_SIZE)
-	  msg.recv_size = FLOPPY_XCHG_BUF_SIZE;
-	msg.a0 = floppy->write(0, buffer, msg.recv_size);
+	msg.a0 = floppy->write(msg.a2, buffer, msg.recv_size);
 	msg.send_size = 0;
+	if(msg.a0 < msg.recv_size)
+	  msg.a2 = ERR_EOF;
+	else
+	  msg.a2 = NO_ERR;
 	break;
 
       case FS_CMD_READ:
-	if(msg.send_size > FLOPPY_XCHG_BUF_SIZE)
-	  msg.send_size = FLOPPY_XCHG_BUF_SIZE;
-	
-	msg.send_size = msg.a0 = floppy->read(0, buffer, msg.send_size);
+	msg.a0 = floppy->read(msg.a2, buffer, msg.send_size);
+	if(msg.a0 < msg.send_size) {
+	  msg.send_size = msg.a0;
+	  msg.a2 = ERR_EOF;
+	} else
+	  msg.a2 = NO_ERR;
 	msg.send_buf = buffer;
 	break;
 
       default:
 	msg.a0 = 0;
+	msg.a2 = ERR_UNKNOWN_CMD;
 	msg.send_size = 0;
       }
       reply(&msg);
@@ -365,7 +372,7 @@ u8_t Floppy::seek_track(u32_t track)
 
 size_t Floppy::read(off_t offset, void *buf, size_t count)
 {
-  u32_t size = 0;
+  size_t size = 0;
 
   if (!count)
     return 0;
@@ -373,13 +380,13 @@ size_t Floppy::read(off_t offset, void *buf, size_t count)
   count = (count + BLOCK_SIZE - 1)/BLOCK_SIZE;
   offset = (offset + BLOCK_SIZE - 1)/BLOCK_SIZE;
   //printf("floppy: offset=0x%X, count=0x%X\n", offset, count);
-  if ((offset + count) > blocks_cnt)
-    return 0;
-
   current_block = offset + 1;
 
-  if ((count + current_block) > blocks_cnt)
+  if (current_block > blocks_cnt)
     return 0;
+
+  if ((current_block + count) > blocks_cnt)
+    count = blocks_cnt - current_block;
 
   while (count) {
     if (rw(current_block, &((char *)buf)[size], 1)) {
@@ -402,14 +409,13 @@ size_t Floppy::write(off_t offset, const void *buf, size_t count)
 
   count = (count + BLOCK_SIZE - 1)/BLOCK_SIZE;
   offset = (offset + BLOCK_SIZE - 1)/BLOCK_SIZE;
-
-  if ((offset + count) > blocks_cnt)
-    return 0;
-
   current_block = offset + 1;
-
-  if ((count + current_block) > blocks_cnt)
+  
+  if (current_block > blocks_cnt)
     return 0;
+
+  if ((current_block + count) > blocks_cnt)
+    count = blocks_cnt - current_block;
 
   while (count) {
     if (rw(current_block, &((char *)buf)[size], 0)) {

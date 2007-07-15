@@ -1,0 +1,2 @@
+#!/bin/bash
+sudo in.tftpd -v -l -s /home/oleg/fos/

@@ -1,3 +1,12 @@
+Mon Jul 16 00:08:03 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 16236 (Version 0.0.42.10)
+	- Начата работа над драйвером VESA 2.0 Framebuffer
+	  Задействован тестовый графический режим (1024x768@16bit)
+
+Sun Jul 15 16:34:19 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 15944 (Version 0.0.42.9)
+	- Усовершенствованы библиотечные файловые функции
+
 Sat Jul 14 17:08:37 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
 Build 15816 (Version 0.0.42.8)
 	- Добавлен драйвер флоппи-дисковода, работающий в режиме пользвателя

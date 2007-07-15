@@ -73,10 +73,19 @@ grub_menu:
 	@echo "	kernel $(GRUB_KERNEL)" >> $(GRUB_MENU)
 	@echo $(GRUB_MODULES) | sed 's/ /\n/g' | sed 's/\/root/\tmodule \/root/g'  >> $(GRUB_MENU)
 
+grub_tftp_menu:
+	@echo "# GRUB Config: generated automatically - do not edit!" > $(GRUB_TFTP_MENU)
+	@echo "timeout 1" >> $(GRUB_TFTP_MENU)
+	@echo "default 0" >> $(GRUB_TFTP_MENU)
+	@echo "title $(GRUB_TITLE) (VERSION `cat VERSION`, BUILD `cat BUILD`)" >> $(GRUB_TFTP_MENU)
+	@echo "	root	(nd)" >> $(GRUB_TFTP_MENU)
+	@echo "	kernel $(GRUB_KERNEL)" >> $(GRUB_TFTP_MENU)
+	@echo $(GRUB_MODULES) | sed 's/ /\n/g' | sed 's/\/root/\tmodule \/root/g'  >> $(GRUB_TFTP_MENU)
+
 iso:
 	@echo Making ISO image
 	@make -f Makefile.iso $(MKFLAGS)
 
-install: grub_menu iso
+install: grub_menu grub_tftp_menu iso
 
 #-----------------------------------------------------------------------------

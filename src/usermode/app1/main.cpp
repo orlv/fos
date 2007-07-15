@@ -15,6 +15,7 @@ asmlinkage int main()
   printf("uptime=%d\n", uptime());
   char ch;
   char *buf;
+  size_t len;
   extern int tty;
   
   while(1){
@@ -30,16 +31,38 @@ asmlinkage int main()
 	
       case 'a':
 	fd1 = open("/dev/fda", 0);
-	if(fd1 != -1) {
+	if(fd1 != -1 && tty) {
 	  buf = new char[512];
 	  read(fd1, buf, 512);
 	  printf("\n--------------------------------------------------------------------------------");
 	  write(tty, buf, 512);
 	  printf("\n--------------------------------------------------------------------------------");
-	  //for(int i=0; i<512; i++)
-	  //  printf("%c",buf[i]);
 	  delete buf;
 	}
+	close(fd1);
+	break;
+
+      case 'd':
+	if(tty) {
+	  buf = new char[2048];
+	  len = dmesg(buf, 2048);
+	  write(tty, buf, len);
+	  delete buf;
+	}
+	break;
+
+	
+      case 'g':
+	fd1 = open("/mnt/modules/test.txt", 0);
+	if(fd1 != -1 && tty) {
+	  buf = new char[512];
+	  read(fd1, buf, 512);
+	  printf("\n--------------------------------------------------------------------------------");
+	  write(tty, buf, 512);
+	  printf("\n--------------------------------------------------------------------------------");
+	  delete buf;
+	}
+	close(fd1);
 	break;
 	
       default:

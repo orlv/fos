@@ -24,10 +24,20 @@
 #define NAMER_CMD_REM     (BASE_CMD_N + 1)
 #define NAMER_CMD_RESOLVE (BASE_CMD_N + 2)
 
+#define NO_ERR                0
+#define ERR_EOF               1
+#define ERR_LOCALBUF_OVERFULL 2
+#define ERR_NO_SUCH_FILE      3
+#define ERR_UNKNOWN_CMD       4
+#define ERR_ACCESS_DENIED     5
+
+typedef u32_t ino_t;
+
 struct fd {
   tid_t  thread;
-  offs_t offset;
-  u32_t  id;
+  off_t offset;
+  ino_t  inode;
+  size_t  buf_size;
 };
 
 typedef struct fd* fd_t;
@@ -36,5 +46,23 @@ asmlinkage int open(const char *pathname, int flags);
 asmlinkage int close(int fildes);
 asmlinkage ssize_t read(int fildes, void *buf, size_t bytes);
 asmlinkage ssize_t write(int fildes, const void *buf, size_t bytes);
+
+#define SEEK_SET 0
+#define SEEK_CUR 1
+#define SEEK_END 2
+
+asmlinkage off_t lseek(int fildes, off_t offset, int whence);
+
+#if 0
+struct dirent {
+  ino_t          d_ino;       /* inode number */
+  off_t          d_off;       /* offset to the next dirent */
+  unsigned short d_reclen;    /* length of this record */
+  unsigned char  d_type;      /* type of file */
+  char           d_name[MAX_NAME_LEN]; /* filename */
+} __attribute__ ((packed));
+
+asmlinkage struct dirent *readdir(DIR *dir);
+#endif
 
 #endif

@@ -7,6 +7,7 @@
 #define _TYPES_H
 
 typedef unsigned long size_t;
+typedef signed int ssize_t;
 typedef unsigned long num_t;
 typedef unsigned long off_t;
 typedef unsigned long offs_t;

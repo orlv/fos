@@ -20,6 +20,7 @@ public:
   obj_info_t *list(off_t offset);
   size_t read(u32_t n, off_t offset, void *buf, size_t count);
   Tinterface *access(const string name);
+  int access2(const string name);
 };
 
 class ModuleFSFile:public Tinterface {

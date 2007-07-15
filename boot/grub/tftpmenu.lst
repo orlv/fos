@@ -1,9 +1,8 @@
 # GRUB Config: generated automatically - do not edit!
-timeout 0
+timeout 1
 default 0
-hiddenmenu
 title FOS - FOS is Operating System (VERSION 0.0.42.9, BUILD 16236)
-	root(cd0)
+	root	(nd)
 	kernel /root/kernel
 	module /root/modules/koi8-8x16.fnt
 	module /root/modules/test.txt

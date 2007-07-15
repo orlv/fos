@@ -489,6 +489,7 @@ SYSCALL_HANDLER(sys_call)
 
   case _FOS_SCHED_YIELD:
     sched_yield();
+    result = 0;
     break;
 
   case _FOS_UPTIME:

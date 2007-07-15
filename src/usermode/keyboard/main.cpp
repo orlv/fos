@@ -42,39 +42,52 @@ asmlinkage int main()
 
   while(!ready);
 
-  struct message *msg = new message;
+  struct message msg;
   char *buffer = new char[KB_CHARS_BUFF_SIZE];
 
   resmgr_attach("/dev/keyboard");
 
   while (1) {
-    msg->tid = _MSG_SENDER_ANY;
-    msg->recv_buf  = buffer;
-    msg->recv_size = KB_CHARS_BUFF_SIZE;
-    receive(msg);
+    msg.tid = _MSG_SENDER_ANY;
+    msg.recv_buf  = buffer;
+    msg.recv_size = KB_CHARS_BUFF_SIZE;
+    receive(&msg);
 
-    switch(msg->a0){
+    switch(msg.a0){
     case FS_CMD_ACCESS:
-      msg->a0 = 1;
-      msg->send_size = 0;
+      msg.a0 = 1;
+      msg.a1 = KB_CHARS_BUFF_SIZE;
+      msg.a2 = NO_ERR;
+      msg.send_size = 0;
       break;
 
     case FS_CMD_WRITE:
-      msg->a0 = kb->write(0, buffer, msg->recv_size);
-      msg->send_size = 0;
+      msg.a0 = kb->write(0, buffer, msg.recv_size);
+      msg.send_size = 0;
+      if(msg.a0 < msg.recv_size)
+	msg.a2 = ERR_EOF;
+      else
+	msg.a2 = NO_ERR;
       break;
 
     case FS_CMD_READ:
-      msg->send_size = msg->a0 = kb->read(0, buffer, msg->send_size);
-      msg->send_buf = buffer;
+      msg.a0 = kb->read(0, buffer, msg.send_size);
+      if(msg.a0 < msg.send_size) {
+	msg.send_size = msg.a0;
+	msg.a2 = ERR_EOF;
+      } else
+	msg.a2 = NO_ERR;
+
+      msg.send_buf = buffer;
       break;
 
     default:
-      msg->a0 = 0;
-      msg->send_size = 0;
+      msg.a0 = 0;
+      msg.a2 = ERR_UNKNOWN_CMD;
+      msg.send_size = 0;
     }
     
-    reply(msg);
+    reply(&msg);
   }
 
   return 0;

@@ -47,9 +47,9 @@ static inline u32_t sys_call2(volatile u32_t cmd, volatile u32_t arg1, volatile 
   return result;
 }
 
-static inline void sched_yield()
+static inline int sched_yield()
 {
-  sys_call(_FOS_SCHED_YIELD, 0);
+  return sys_call(_FOS_SCHED_YIELD, 0);
 }
 
 struct message {

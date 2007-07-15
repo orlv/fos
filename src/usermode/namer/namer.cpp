@@ -69,12 +69,14 @@ asmlinkage int main()
 	msg->send_buf = pathname;
 	if(forward(msg, obj->sid) != RES_SUCCESS){
 	  msg->a0 = 0;
+	  msg->a2 = ERR_NO_SUCH_FILE;
 	  reply(msg);
 	}
       } else {
 	//printf("namer: access denied\n");
 	msg->send_size = 0;
 	msg->a0 = 0;
+	msg->a2 = ERR_NO_SUCH_FILE;
 	reply(msg);
       }
       memset(path_tail, 0, MAX_PATH_LEN);
@@ -234,11 +236,15 @@ Tobject * Namer::access(const string name, string name_tail)
   
   /* создадим строку с окончанием пути (необходимо передать
      её конечному серверу) */
-  do {
-    strcat(name_tail, "/");
-    strcat(name_tail, e->item);
-    e = e->next;
-  } while (e != path);
+  e = e->next;
+  if (e == path)
+    strcat(name_tail, ".");
+  else
+    do {
+      strcat(name_tail, "/");
+      strcat(name_tail, e->item);
+      e = e->next;
+    } while (e != path);
 
   list_for_each_safe(entry, e, path){
     delete entry->item;

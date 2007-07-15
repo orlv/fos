@@ -13,8 +13,8 @@ all:
 	@make -s -C app1 $(MKFLAGS)
 	@echo ---------------------------------\> Building tty
 	@make -s -C tty $(MKFLAGS)
-	@echo ---------------------------------\> Building vesa
-	@make -s -C vesa $(MKFLAGS)
+	@echo ---------------------------------\> Building 16-bit bios interrupt service
+	@make -s -C int16b $(MKFLAGS)
 	@echo ---------------------------------\> Building keyboard
 	@make -s -C keyboard $(MKFLAGS)
 	@echo ---------------------------------\> Building init
@@ -28,7 +28,7 @@ clean:
 	@make -s -C namer clean
 	@make -s -C app1 clean
 	@make -s -C tty clean
-	@make -s -C vesa clean
+	@make -s -C int16b clean
 	@make -s -C keyboard clean
 	@make -s -C init clean
 	@make -s -C floppy clean

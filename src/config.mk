@@ -12,18 +12,19 @@ SYSTEM_SRC  = $(TOPDIR)/src
 BINDIR	    = $(SYSTEM_ROOT)/modules
 
 # -- Modules ------------------------------------------------------------------
-GRUB_MODULES =	/root/modules/koi8-8x16.fnt \
-		/root/modules/test.txt \
-		/root/modules/namer \
-		/root/modules/init \
-		/root/modules/vesa \
-		/root/modules/app1 \
-		/root/modules/tty \
-		/root/modules/keyboard \
+GRUB_MODULES =	/root/modules/koi8-8x16.fnt	\
+		/root/modules/test.txt		\
+		/root/modules/namer		\
+		/root/modules/init		\
+		/root/modules/int16b		\
+		/root/modules/app1		\
+		/root/modules/tty		\
+		/root/modules/keyboard		\
 		/root/modules/floppy
 
 
 GRUB_MENU    = $(TOPDIR)/boot/grub/menu.lst
+GRUB_TFTP_MENU = $(TOPDIR)/boot/grub/tftpmenu.lst
 GRUB_TIMEOUT = 0
 GRUB_TITLE   = FOS - FOS is Operating System
 GRUB_ROOT    = cd0

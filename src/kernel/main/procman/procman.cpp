@@ -15,6 +15,8 @@
 #include <fs.h>
 
 void start_sched();
+void grub_modulefs_srv();
+void vesafb_srv();
 
 tid_t execute(char *pathname)
 {
@@ -180,12 +182,20 @@ TProcMan::TProcMan()
   stack = kmalloc(STACK_SIZE);
   thread = process->thread_create((off_t) &start_sched, FLAG_TSK_KERN, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
   hal->gdt->load_tss(SEL_N(BASE_TSK_SEL) + 1, &thread->descr);
-  printk("kernel: scheduler thread created (tid=0x%X)\n", thread);
+  //printk("kernel: scheduler thread created (tid=0x%X)\n", thread);
 
   stack = kmalloc(STACK_SIZE);
   hal->tid_procman = TID(process->thread_create((off_t) &procman_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT));
   reg_thread(THREAD(hal->tid_procman));
-  printk("kernel: procman added to threads list (tid=0x%X)\n", hal->tid_procman);
+  //printk("kernel: procman added to threads list (tid=0x%X)\n", hal->tid_procman);
+
+  stack = kmalloc(STACK_SIZE);
+  thread = process->thread_create((off_t) &grub_modulefs_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
+  reg_thread(thread);
+
+  stack = kmalloc(STACK_SIZE);
+  thread = process->thread_create((off_t) &vesafb_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
+  reg_thread(thread);
 }
 
 tid_t TProcMan::exec(register void *image, const string name)

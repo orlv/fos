@@ -56,7 +56,6 @@ Objects =	main/boot/setup.o		\
 		main/idt.o			\
 		main/main.o			\
 		main/tinterface.o		\
-		main/gdb-stub.o			\
 		lib/vsprintf.o			\
 		lib/stdio.o			\
 		lib/time.o			\
@@ -65,6 +64,7 @@ Objects =	main/boot/setup.o		\
 		lib/tmutex.o			\
 		lib/fs.o			\
 		main/syscall.o  		\
+		drivers/vesafb.o		\
 		drivers/char/tty/tty.o		\
 		drivers/char/usertty/usertty.o	\
 		drivers/block/vga/vga.o		\

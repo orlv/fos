@@ -12,10 +12,9 @@
 #include <fs.h>
 #include <elf32.h>
 
-asmlinkage void scheduler_starter();
 extern Timer *SysTimer;
 
-void start_sched()
+void sched_srv()
 {
   hal->procman->scheduler();
 }

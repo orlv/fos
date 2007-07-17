@@ -14,7 +14,7 @@
 #include <drivers/char/tty/tty.h>
 #include <fs.h>
 
-void start_sched();
+void sched_srv();
 void grub_modulefs_srv();
 void vesafb_srv();
 
@@ -108,6 +108,18 @@ void procman_srv()
       reply(msg);
       break;
 
+    case PROCMAN_CMD_MEM_FREE:
+      //printk("procman: freeing 0x%X\n", msg->a1);
+      thread = hal->procman->get_thread_by_tid(msg->tid);
+      if(msg->a1 > USER_MEM_BASE){
+	msg->a0 = 1;
+	thread->process->memory->mem_free((void *)msg->a1);
+      } else
+	msg->a0 = -1;
+      msg->send_size = 0;
+      reply(msg);
+      break;
+
     case PROCMAN_CMD_CREATE_THREAD:
       thread = hal->procman->get_thread_by_tid(msg->tid);
       thread = thread->process->thread_create(msg->a1, FLAG_TSK_READY, kmalloc(PAGE_SIZE), thread->process->memory->mem_alloc(PAGE_SIZE));
@@ -180,7 +192,7 @@ TProcMan::TProcMan()
   printk("kernel: multitasking ready (kernel tid=0x%X)\n", thread);
 
   stack = kmalloc(STACK_SIZE);
-  thread = process->thread_create((off_t) &start_sched, FLAG_TSK_KERN, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
+  thread = process->thread_create((off_t) &sched_srv, FLAG_TSK_KERN, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
   hal->gdt->load_tss(SEL_N(BASE_TSK_SEL) + 1, &thread->descr);
   //printk("kernel: scheduler thread created (tid=0x%X)\n", thread);
 

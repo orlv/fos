@@ -356,10 +356,11 @@ res_t reply(message *message)
   send_message->a1 = message->a1;
   send_message->a2 = message->a2;
   send_message->a3 = message->a3;
-  
+
   hal->mt_disable();
   delete entry; /* удалим запись о сообщении из списка полученных сообщений */
-  if(TID(thread) > 0x1000) thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
+  if(TID(thread) > 0x1000)
+    thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
   hal->mt_enable();
   return RES_SUCCESS;
 }

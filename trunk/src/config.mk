@@ -12,15 +12,16 @@ SYSTEM_SRC  = $(TOPDIR)/src
 BINDIR	    = $(SYSTEM_ROOT)/modules
 
 # -- Modules ------------------------------------------------------------------
-GRUB_MODULES =	/root/modules/koi8-8x16.fnt	\
-		/root/modules/test.txt		\
+GRUB_MODULES =	/root/modules/test.txt		\
 		/root/modules/namer		\
 		/root/modules/init		\
 		/root/modules/int16b		\
+		/root/modules/fbtty		\
 		/root/modules/app1		\
 		/root/modules/tty		\
 		/root/modules/keyboard		\
-		/root/modules/floppy
+		/root/modules/floppy		\
+		/root/modules/font.psf
 
 
 GRUB_MENU    = $(TOPDIR)/boot/grub/menu.lst

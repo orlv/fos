@@ -9,140 +9,71 @@
 #include <stdio.h>
 #include <hal.h>
 
-struct vbe_info_block
-{
-  u8_t signature[4];
-  u16_t version;
-  u32_t oem_string_ptr;
-  u32_t capabilities;
-  u32_t video_mode_ptr;
-  u16_t total_memory;
-
-  u16_t oem_software_rev;
-  u32_t oem_vendor_name_ptr;
-  u32_t oem_product_name_ptr;
-  u32_t oem_product_rev_ptr;
-
-  u8_t reserved[222];
-
-  u8_t oem_data[256];
-} __attribute__ ((packed));
-
-struct vbe_mode_info_block
-{
-  /* Mandory information for all VBE revisions.  */
-  u16_t mode_attributes;
-  u8_t win_a_attributes;
-  u8_t win_b_attributes;
-  u16_t win_granularity;
-  u16_t win_size;
-  u16_t win_a_segment;
-  u16_t win_b_segment;
-  u32_t win_func_ptr;
-  u16_t bytes_per_scan_line;
-
-  /* Mandory information for VBE 1.2 and above.  */
-  u16_t x_resolution;
-  u16_t y_resolution;
-  u8_t x_char_size;
-  u8_t y_char_size;
-  u8_t number_of_planes;
-  u8_t bits_per_pixel;
-  u8_t number_of_banks;
-  u8_t memory_model;
-  u8_t bank_size;
-  u8_t number_of_image_pages;
-  u8_t reserved;
-
-  /* Direct Color fields (required for direct/6 and YUV/7 memory models).  */
-  u8_t red_mask_size;
-  u8_t red_field_position;
-  u8_t green_mask_size;
-  u8_t green_field_position;
-  u8_t blue_mask_size;
-  u8_t blue_field_position;
-  u8_t rsvd_mask_size;
-  u8_t rsvd_field_position;
-  u8_t direct_color_mode_info;
-
-  /* Mandory information for VBE 2.0 and above.  */
-  u32_t phys_base_addr;
-  u32_t reserved2;
-  u16_t reserved3;
-
-  /* Mandory information for VBE 3.0 and above.  */
-  u16_t lin_bytes_per_scan_line;
-  u8_t bnk_number_of_image_pages;
-  u8_t lin_number_of_image_pages;
-  u8_t lin_red_mask_size;
-  u8_t lin_red_field_position;
-  u8_t lin_green_mask_size;
-  u8_t lin_green_field_position;
-  u8_t lin_blue_mask_size;
-  u8_t lin_blue_field_position;
-  u8_t lin_rsvd_mask_size;
-  u8_t lin_rsvd_field_position;
-  u32_t max_pixel_clock;
-
-  /* Reserved field to make structure to be 256 bytes long, VESA BIOS 
-     Extension 3.0 Specification says to reserve 189 bytes here but 
-     that doesn't make structure to be 256 bytes. So additional one is 
-     added here.  */
-  u8_t reserved4[189 + 1];
-} __attribute__ ((packed));
-
 #define INJ_ADDRESS 0x500
 
-/*void putpixel(u16_t *framebuffer, u32_t offs, u16_t code)
-{
-  //u16_t *ptr = (u16_t *) 0xf0000000+offs;
-  freamebuffer[offset] = code;
-  }*/
+#define VBESRV_CMD_SET_MODE (BASE_CMD_N + 0)
+
+__attribute__((regparm(1))) struct vbe_mode_info_block * (*vbe_set_video_mode) (u16_t mode);
 
 void vesafb_srv()
 {
+  char *realmod_inj = (char *)INJ_ADDRESS;
+  vbe_set_video_mode = (__attribute__((regparm(1))) vbe_mode_info_block * (*)(u16_t)) INJ_ADDRESS;
+  struct vbe_mode_info_block * vbeinfo;
   while(1) {
     int fd = open("/mnt/modules/int16b", 0);
     if(fd != -1) {
-      char *buf = (char *)INJ_ADDRESS; //new char[512];
-      read(fd, buf, 512);
+      read(fd, realmod_inj, 512);
       close(fd);
-
-      struct vbe_mode_info_block *vbeinfo;
-      u16_t mode = 0x4117;
-      int result = 0;
-      hal->cli();
-      asm volatile("call *%%eax":"=a"(result), "=b"(vbeinfo):"a"(buf), "c"(mode));
-      hal->sti();
-      printk("vesafb: result=0x%X, vbeinfo=0x%X\n", result, vbeinfo);
-      if (((result & 0xff) != 0x4f) || (result & 0x100)) {
-	printk("vesafb: error setting videomode 0x%X!\n", mode);
-	while(1);
-      }
-
-      size_t lfb_size = vbeinfo->x_resolution * vbeinfo->y_resolution *  vbeinfo->bits_per_pixel;
-      
-      printk("vesafb: lfb address=%X   \n" \
-	     "vesafb: mode %dx%d@%dbpp \n" \
-	     "vesafb: lfb size=0x%X    \n",
-	     vbeinfo->phys_base_addr,
-	     vbeinfo->x_resolution,
-	     vbeinfo->y_resolution,
-	     vbeinfo->bits_per_pixel,
-	     lfb_size);
-
-      u16_t *lfb = (u16_t *)hal->kmem->mem_alloc_phys(vbeinfo->phys_base_addr, lfb_size);
-
-      while(1) {
-	for(u32_t j=0; j<1024; j++)
-	  for(u32_t i=0; i<768; i++)
-	    lfb[i*j] = ((i+1000000)/(j+1000));
-      }
-
-      while(1);
+      printk("vesafb: ready\n");
       break;
     } else
       continue;
+  }
+
+  struct message msg;
+  resmgr_attach("/dev/vbe");
+ 
+  while (1) {
+    msg.tid = _MSG_SENDER_ANY;
+    msg.recv_size = 0;
+    receive(&msg);
+
+    switch(msg.a0){
+    case FS_CMD_ACCESS:
+      msg.a0 = 1;
+      msg.a1 = 0;
+      msg.a2 = NO_ERR;
+      msg.send_size = 0;
+      break;
+
+    case VBESRV_CMD_SET_MODE:
+
+      hal->mt_disable();
+      hal->cli();
+      hal->pic->lock(); /* обязательно необходимо запретить все IRQ */
+      vbeinfo = vbe_set_video_mode(msg.a1);
+      hal->pic->unlock();
+      hal->sti();
+      hal->mt_enable();
+
+      if(vbeinfo) {
+	msg.send_buf = vbeinfo;
+	msg.a0 = 1;
+	msg.send_size = 256; // sizeof(vbe_mode_info_block);
+      } else {
+	msg.a0 = 0;
+	msg.send_size = 0;
+      }
+
+      break;
+
+    default:
+      msg.a0 = 0;
+      msg.a2 = ERR_UNKNOWN_CMD;
+      msg.send_size = 0;
+    }
+    reply(&msg);
   }
 
   while(1);

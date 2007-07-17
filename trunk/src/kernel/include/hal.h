@@ -140,20 +140,23 @@ static inline void kmem_set_log_addr(u32_t n, u32_t kmap_address)
     hal->phys_page[n].kernel_map = kmap_address;
 }
 
-static inline u32_t alloc_page(u32_t n)
+static inline int alloc_page(u32_t n)
 {
   if(n < hal->pages_cnt)
     return hal->phys_page[n].mapcount.inc_return();
   else
-    return 0;
+    return -1;
 }
 
-static inline u32_t free_page(u32_t n)
+static inline int free_page(u32_t n)
 {
-  if(n < hal->pages_cnt)
-    return hal->phys_page[n].mapcount.dec_return();
-  else
-    return 0;
+  if(n < hal->pages_cnt) {
+    if(hal->phys_page[n].mapcount.read())
+      return hal->phys_page[n].mapcount.dec_return();
+    else
+      return 0;
+  } else
+    return -1;
 }
 
 

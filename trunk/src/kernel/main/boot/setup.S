@@ -5,6 +5,7 @@
 
 .globl _start
 .globl __mbi
+//.globl vesa_init
 	
 .text
 _start:

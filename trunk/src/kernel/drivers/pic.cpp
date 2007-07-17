@@ -1,7 +1,8 @@
 /*
   drivers/pic.cpp
-  Copyright (C) 2007 Peter Zotov
   Copyright (C) 2007 Oleg Fedorov
+
+  Основано на коде PIC из StoryOS. (C) 2007 Peter Zotov
 */
 
 #include "pic.h"
@@ -9,11 +10,9 @@
 
 PIC::PIC()
 {
-  int i;
   /* запретим IRQ 0-15 */
-  for(i = 0; i < 16; i++){
+  for(int i = 0; i < 16; i++)
     mask(i);
-  }
 }
 
 void PIC::remap(u8_t v1, u8_t v2)
@@ -32,32 +31,50 @@ void PIC::remap(u8_t v1, u8_t v2)
   hal->outportb(0xA1, 0x0);
 }
 
+/* запрещает IRQ номер n */
 void PIC::mask(u8_t n)
 {
-  if(n > 15)
+  if (n > 15)
     hal->panic("PIC::mask(): n > 16!");
-  if(n == 2)
-    n = 9;
-  bool second_pic = n > 7;
-  if(second_pic)
+
+  u8_t port;
+  
+  if (n > 7) {
     n -= 8;
-  u8_t byte = 1 << n;
-  u8_t port = second_pic ? 0xA1 : 0x21;
-  u8_t mask = hal->inportb(port);
-  mask = mask | byte;
-  hal->outportb(port, mask);
+    port = 0xA1;
+  } else
+    port = 0x21;
+
+  hal->outportb(port, hal->inportb(port) | (1<<n));
 }
 
+/* разрешает IRQ номер n */
 void PIC::unmask(u8_t n)
 {
   if(n > 15)
     hal->panic("PIC::unmask(): n > 16!");
-  bool second_pic = n > 7;
-  if(second_pic)
+
+  u8_t port;
+  
+  if (n > 7) {
     n -= 8;
-  u8_t byte = 1 << n;
-  u8_t port = second_pic ? 0xA1 : 0x21;
-  u8_t mask = hal->inportb(port);
-  mask = mask & (~byte);
-  hal->outportb(port, mask);
+    port = 0xa1;
+  } else {
+    port = 0x21;
+  }
+
+  hal->outportb(port, hal->inportb(port) & ~(1<<n));
 }
+
+void PIC::lock()
+{
+  status = (hal->inportb(0xa1) << 8) | hal->inportb(0x21);
+  for(int i = 0; i < 16; i++)
+    mask(i);
+}
+
+void PIC::unlock()
+{
+  hal->outportb(0xa1, status >> 8);
+  hal->outportb(0x21, status & 0xff);
+}  

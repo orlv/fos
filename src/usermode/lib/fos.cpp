@@ -11,10 +11,11 @@
 #define PROCMAN_CMD_EXIT             (BASE_CMD_N + 2)
 #define PROCMAN_CMD_MEM_ALLOC        (BASE_CMD_N + 3)
 #define PROCMAN_CMD_MEM_MAP          (BASE_CMD_N + 4)
-#define PROCMAN_CMD_CREATE_THREAD    (BASE_CMD_N + 5)
-#define PROCMAN_CMD_INTERRUPT_ATTACH (BASE_CMD_N + 6)
-#define PROCMAN_CMD_INTERRUPT_DETACH (BASE_CMD_N + 7)
-#define PROCMAN_CMD_DMESG            (BASE_CMD_N + 8)
+#define PROCMAN_CMD_MEM_FREE         (BASE_CMD_N + 5)
+#define PROCMAN_CMD_CREATE_THREAD    (BASE_CMD_N + 6)
+#define PROCMAN_CMD_INTERRUPT_ATTACH (BASE_CMD_N + 7)
+#define PROCMAN_CMD_INTERRUPT_DETACH (BASE_CMD_N + 8)
+#define PROCMAN_CMD_DMESG            (BASE_CMD_N + 9)
 
 asmlinkage void exit()
 {
@@ -85,6 +86,20 @@ asmlinkage void * kmalloc(size_t size, u32_t flags)
   msg.tid = SYSTID_PROCMAN;
   if(send(&msg) == RES_SUCCESS)
     return (void *) msg.a0;
+  else
+    return 0;
+}
+
+asmlinkage int kfree(off_t ptr)
+{
+  message msg;
+  msg.a0 = PROCMAN_CMD_MEM_FREE;
+  msg.a1 = ptr;
+  msg.send_size = 0;
+  msg.recv_size = 0;
+  msg.tid = SYSTID_PROCMAN;
+  if(send(&msg) == RES_SUCCESS)
+    return msg.a0;
   else
     return 0;
 }

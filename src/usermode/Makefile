@@ -21,6 +21,8 @@ all:
 	@make -s -C init $(MKFLAGS)
 	@echo ---------------------------------\> Building floppy
 	@make -s -C floppy $(MKFLAGS)
+	@echo ---------------------------------\> Building fbtty
+	@make -s -C fbtty $(MKFLAGS)
 #	@echo ---------------------------------\> Building hd
 #	@make -s -C hd $(MKFLAGS)
 

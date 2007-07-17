@@ -30,7 +30,7 @@
 void put_page(u32_t page)
 {
   if(page >= PAGE(LOWMEM_SIZE)){
-    if(!page_status(page) || !free_page(page)){ /* если эта страница больше никем не используется */
+    if(!free_page(page)){ /* если эта страница больше никем не используется */
       hal->free_page->push(page);
       hal->free_pages.inc();
     }
@@ -52,7 +52,7 @@ u32_t get_page()
 
 void put_lowpage(u32_t page)
 {
-  if(!page_status(page) || !free_page(page)){ /* если эта страница больше никем не используется */
+  if(!free_page(page)){ /* если эта страница больше никем не используется */
     hal->free_lowpage->push(page);
     hal->free_lowpages.inc();
   }

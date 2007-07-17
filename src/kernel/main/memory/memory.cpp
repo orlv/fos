@@ -353,7 +353,7 @@ void Memory::mem_free(register void *ptr)
       return;
     }
   }
-
+  //printk("Memory: freeing 0x%X bytes, starting (virtual) 0x%X\n", p->size, p->vptr);
   umap_pages(PAGE(p->vptr), p->size / PAGE_SIZE);
 
   curr = FreeMem;

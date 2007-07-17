@@ -9,12 +9,17 @@
 #include <types.h>
 
 class PIC {
+  volatile u16_t status;
+  
  public:
   PIC();
 
   void remap(u8_t v1, u8_t v2);
   void mask(u8_t n);
   void unmask(u8_t n);
+
+  void lock();
+  void unlock();
 };
 
 #endif

@@ -4,9 +4,10 @@
 */
 
 int main(void);
+void exit(void);
 
 void _start()
 {
   main();
-  while(1);
+  exit();
 }

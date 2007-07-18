@@ -25,14 +25,18 @@ void TProcMan::scheduler()
   u32_t _uptime;
 
   while (1) {
-    asm("incb 0xb8000+158\n" "movb $0x5f,0xb8000+159");
+    //asm("incb 0xb8000+158\n" "movb $0x5f,0xb8000+159");
 
     _uptime = uptime();
     
     /* Выбираем следующий подходящий для запуска поток */
     do {
-      curr = curr->next;
-
+      if(((curr->item->flags & FLAG_TSK_TERM) || (curr->item->flags & FLAG_TSK_EXIT_THREAD)) && !(curr->item->flags & FLAG_TSK_SYSCALL)){
+	curr->item->flags &= ~FLAG_TSK_READY;
+	curr = do_kill(curr);
+      } else
+	curr = curr->next;
+      
       /* если установлен и истек таймер -- отправляем сигнал */
       if(curr->item->get_alarm() && curr->item->get_alarm() < _uptime){
 	//printk("alarm = 0x%X, uptime=0x%X \n", curr->item->get_alarm(), _uptime);
@@ -47,7 +51,7 @@ void TProcMan::scheduler()
       
       /* Процесс готов к запуску? */
       if ((curr->item->flags & FLAG_TSK_READY) &&
-	  !(curr->item->flags & (FLAG_TSK_SEND | FLAG_TSK_RECV)))
+	  !((curr->item->flags & FLAG_TSK_SEND) || (curr->item->flags & FLAG_TSK_RECV)))
 	break;
     } while (1);
 

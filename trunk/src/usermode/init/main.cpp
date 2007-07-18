@@ -13,5 +13,6 @@ asmlinkage int main()
   exec("keyboard");
   exec("shell");
   //exec("floppy");
+  exit();
   return 0;
 }

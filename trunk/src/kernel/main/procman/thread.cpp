@@ -33,19 +33,34 @@ Thread::Thread(class TProcess *process,
 
 Thread::~Thread()
 {
+  for(int n=0; n<256; n++){
+    if(hal->user_int_handler[n] == this){
+      hal->pic->mask(n);
+      hal->user_int_handler[n] = 0;
+    }
+  }
+
   List<kmessage *> *curr, *n;
-  /* удалим все сообщения */
-#warning вернуть ошибку отправителям
+  /* удалим все сообщения, вернем ошибки отправителям */
   list_for_each_safe(curr, n, new_messages){
+    curr->item->reply_size = 0;
+    curr->item->thread->flags &= ~FLAG_TSK_SEND;
     delete curr->item;
     delete curr;
   }
-
   delete new_messages->item;
   delete new_messages;
 
+  list_for_each_safe(curr, n, received_messages){
+    curr->item->reply_size = 0;
+    curr->item->thread->flags &= ~FLAG_TSK_SEND;
+    delete curr->item;
+    delete curr;
+  }
+  delete received_messages;
+  
   kfree((void *)stack_pl0);
-  delete tss;
+  kfree((void *)tss);
 }
 
 void Thread::set_tss(register off_t eip,

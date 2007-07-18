@@ -71,7 +71,7 @@ void procman_srv()
       break;
 
     case PROCMAN_CMD_KILL:
-      if(hal->procman->kill(msg->a1))
+      if(hal->procman->kill(msg->a1, FLAG_TSK_TERM))
 	msg->a0 = 1;
       else
 	msg->a0 = 0;
@@ -79,9 +79,21 @@ void procman_srv()
       reply(msg);
       break;
 
+      /* завершить все потоки в адресном пространстве */
     case PROCMAN_CMD_EXIT:
       thread = hal->procman->get_thread_by_tid(msg->tid);
-      if(hal->procman->kill(TID(thread)))
+      if(hal->procman->kill(TID(thread), FLAG_TSK_TERM))
+	msg->a0 = 1;
+      else
+	msg->a0 = 0;
+      msg->send_size = 0;
+      reply(msg);
+      break;
+
+      /* завершить только данный поток */
+    case PROCMAN_CMD_THREAD_EXIT:
+      thread = hal->procman->get_thread_by_tid(msg->tid);
+      if(hal->procman->kill(TID(thread), FLAG_TSK_EXIT_THREAD))
 	msg->a0 = 1;
       else
 	msg->a0 = 0;
@@ -247,48 +259,79 @@ void TProcMan::unreg_thread(register List<Thread *> * thread)
   hal->mt_enable();
 }
 
-res_t TProcMan::kill(register pid_t pid)
+List<Thread *> *TProcMan::do_kill(List<Thread *> *thread)
 {
-  hal->mt_disable();
-  List<Thread *> *current = threadlist;
-  /* то же, что get_process_by_pid() */
-  do {
-    if ((pid_t)current->item->process == pid){
-      if(current->item->flags | FLAG_TSK_KERN){
-	hal->mt_enable();
-	return RES_FAULT;
+  List<Thread *> *next;
+  printk("thread=0x%X\n", thread);
+  if(thread->item->flags & FLAG_TSK_TERM) {
+    TProcess *process = thread->item->process;
+    printk("process=0x%X\n", process);
+    List<Thread *> *current = threadlist;
+    do {
+      next = current->next;
+      if (current->item->process == process) {
+	printk("unreg!\n");
+	unreg_thread(current);
       }
+      printk("next=0x%X\n", next);
+      //printk("fooo"); while(1);
 
-      current->item->flags &= ~FLAG_TSK_READY; /* снимем отметку выполнения с процесса */
-      delete current->item->process;         /* уничтожим процесс */
-      delete current;   /* удалим процесс из списка пройессов */
-      hal->mt_enable();
-      return RES_SUCCESS;
-    }
-    current = current->next;
-  } while (current != threadlist);
-
-  hal->mt_enable();
-  return RES_FAULT;
+      current = next;
+    } while (current != threadlist);
+    delete process;
+  } else {
+    next = thread->next;
+    unreg_thread(thread);
+  }
+  
+  return next;
 }
 
-/* возвращает указатель только в том случае, если поток существует */
+res_t TProcMan::kill(register tid_t tid, u16_t flag)
+{
+  Thread *thread = get_thread_by_tid(tid);
+  res_t result = RES_FAULT;
+
+  if(thread) {
+    hal->mt_disable();
+    if(!(thread->flags & FLAG_TSK_KERN)) {
+
+      thread->flags |= flag;      /* поставим флаг завершения */
+
+      if(!(thread->flags & FLAG_TSK_SYSCALL))
+	thread->flags &= ~FLAG_TSK_READY;  /* снимем флаг выполнения с процесса */
+
+      result = RES_SUCCESS;
+    }
+    hal->mt_enable();
+  }
+
+  return result;
+}
+
+/* возвращает указатель только в том случае,
+   если поток существует, и не помечен для удаления */
 Thread *TProcMan::get_thread_by_tid(register tid_t tid)
 {
   hal->mt_disable();
   List<Thread *> *current = threadlist;
+  Thread *result = 0;
 
+  /* проходим список потоков в поисках соответствия */
   do {
-    if ((tid_t)current->item == tid){
-      hal->mt_enable();
-      return current->item;
+    if ((tid_t)current->item == tid) {
+      if(current->item->flags & (FLAG_TSK_TERM | FLAG_TSK_EXIT_THREAD))
+	result = 0;
+      else
+	result = current->item;
+      
+      break;
     }
-
     current = current->next;
   } while (current != threadlist);
 
   hal->mt_enable();
-  return 0;
+  return result;
 }
 
 void kill(pid_t pid)

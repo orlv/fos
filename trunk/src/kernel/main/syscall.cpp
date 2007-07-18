@@ -235,6 +235,7 @@ res_t send(message *message)
 {
   Thread *thread; /* процесс-получатель */
 
+  hal->mt_disable();
   switch(message->tid){
   case SYSTID_NAMER:
     thread = THREAD(hal->tid_namer);
@@ -256,21 +257,27 @@ res_t send(message *message)
   
   if (!thread){
     message->send_size = 0;
+    hal->mt_enable();
     return RES_FAULT;
   }
 
+  //  thread->enter_exit_lock();
+  //  hal->mt_enable(); /* #1 */
+  
   if(thread->new_messages_count.read() >= MAX_MSG_COUNT){
     message->send_size = 0;
+    hal->mt_enable();
     return RES_FAULT2;
   }
 
   Thread *thread_sender = hal->procman->current_thread;
-  
+ 
   /* простое предупреждение взаимоблокировки */
   thread_sender->send_to = TID(thread);
   if(thread->send_to == TID(thread_sender)){
     thread_sender->send_to = 0;
     message->send_size = 0;
+    hal->mt_enable();
     return RES_FAULT3;
   }
 
@@ -290,7 +297,7 @@ res_t send(message *message)
   send_message->reply_size = message->recv_size;
   send_message->thread = thread_sender;
 
-  hal->mt_disable();
+  //hal->mt_disable();
   thread->new_messages->add_tail(send_message);       /* добавим сообщение процессу-получателю */
   thread->new_messages_count.inc();
   thread->flags &= ~FLAG_TSK_RECV;	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
@@ -337,6 +344,17 @@ res_t reply(message *message)
     return RES_FAULT;
   }
 
+  if(send_message->thread->flags & (FLAG_TSK_TERM | FLAG_TSK_EXIT_THREAD)) {
+    /* поток-отправитель ожидает завершения */
+    hal->mt_disable();
+    send_message->reply_size = 0;
+    delete entry; /* удалим запись о сообщении из списка полученных сообщений */
+    if(TID(send_message->thread) > 0x1000)
+      send_message->thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
+    hal->mt_enable();
+    return RES_SUCCESS;
+  }
+
   //printk("reply [%s]->[0x%X]\n", hal->procman->current_thread->process->name, send_message->thread /*->process->name*/);
   
   Thread *thread = send_message->thread;
@@ -373,6 +391,7 @@ res_t reply(message *message)
 res_t forward(message *message, tid_t to)
 {
   Thread *thread;
+  hal->mt_disable();
   switch(to){
   case SYSTID_NAMER:
     thread = THREAD(hal->tid_namer);
@@ -384,6 +403,7 @@ res_t forward(message *message, tid_t to)
 
   case 0:
     message->send_size = 0;
+    hal->mt_enable();
     return RES_FAULT;
 
   default:
@@ -392,21 +412,25 @@ res_t forward(message *message, tid_t to)
 
   if (!thread){
     message->send_size = 0;
+    hal->mt_enable();
     return RES_FAULT;
   }
 
   if(thread->new_messages_count.read() >= MAX_MSG_COUNT){
     message->send_size = 0;
+    hal->mt_enable();
     return RES_FAULT2;
   }
 
   Thread *thread_sender = THREAD(message->tid);
   //printk("forward [%s]->[%s] \n", thread_sender->process->name , thread->process->name);
+
   /* простое предупреждение взаимоблокировки */
   thread_sender->send_to = TID(thread);
   if(thread->send_to == TID(thread_sender)){
     thread_sender->send_to = 0;
     message->send_size = 0;
+    hal->mt_enable();
     return RES_FAULT3;
   }
 
@@ -415,16 +439,17 @@ res_t forward(message *message, tid_t to)
   List<kmessage *> *messages = hal->procman->current_thread->received_messages;
 
   /* Ищем сообщение в списке полученных */
-  hal->mt_disable();
+  //hal->mt_disable();
   list_for_each (entry, messages) {
     send_message = entry->item;
     if(send_message->thread == THREAD(message->tid))
       break;
   }
-  hal->mt_enable();
+  //hal->mt_enable();
 
   if(!send_message){
     message->send_size = 0;
+    hal->mt_enable();
     return RES_FAULT;
   }
 
@@ -439,7 +464,7 @@ res_t forward(message *message, tid_t to)
 
   send_message->thread = thread_sender;
 
-  hal->mt_disable();
+  //hal->mt_disable();
   entry->move_tail(thread->new_messages);
   thread->new_messages_count.inc();
   hal->procman->current_thread->received_messages_count.dec();
@@ -451,9 +476,24 @@ res_t forward(message *message, tid_t to)
 
 u32_t uptime();
 
+void syscall_enter()
+{
+  hal->procman->current_thread->flags |= FLAG_TSK_SYSCALL;
+}
+
+void syscall_exit()
+{
+  hal->procman->current_thread->flags &= ~FLAG_TSK_SYSCALL;
+  if((hal->procman->current_thread->flags & FLAG_TSK_TERM) || (hal->procman->current_thread->flags & FLAG_TSK_EXIT_THREAD)) {
+    hal->procman->current_thread->flags &= ~FLAG_TSK_READY;
+    sched_yield();
+  }
+}
+
 SYSCALL_HANDLER(sys_call)
 {
   //printk("Syscall #%d (%s) arg1=0x%X, arg2=0x%X \n", cmd,  hal->procman->current_thread->process->name, arg1, arg2);
+  syscall_enter(); /* установим флаг нахождения в ядре */
   u32_t result = 0;
   u32_t _uptime;
   switch (cmd) {
@@ -520,5 +560,6 @@ SYSCALL_HANDLER(sys_call)
     break;
   }
 
+  syscall_exit(); /* проверим, не убили ли нас ;) */
   return result;
 }

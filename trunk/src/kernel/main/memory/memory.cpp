@@ -21,6 +21,39 @@ Memory::Memory(offs_t base, size_t size, u16_t flags)
   FreeMem = new List<memblock *>(block);
 }
 
+Memory::~Memory()
+{
+  printk("memory: dessctructor\n");
+  /* удалим список использованной памяти и освободим занятые страницы */
+  List<memblock *> *curr, *n;
+  list_for_each_safe (curr, n, UsedMem) {
+    umap_pages(PAGE(curr->item->vptr), curr->item->size / PAGE_SIZE);
+    delete curr->item;
+    delete curr;
+  }
+
+  delete UsedMem->item;
+  delete UsedMem;
+
+  /* удалим список свободной памяти */
+  list_for_each_safe (curr, n, FreeMem) {
+    delete curr->item;
+    delete curr;
+  }
+
+  /* освободим таблицы страниц и каталог страниц */
+  for (u32_t i = USER_MEM_BASE/1024; i < 1024; i++) {
+    if(pagedir[i]) {
+      u32_t pagetable = kmem_log_addr(PAGE(pagedir[i])) * PAGE_SIZE;
+      umount_page(pagetable);
+      kfree((void *)pagetable);
+    }
+  }
+
+  umount_page((u32_t)pagedir);
+  kfree(pagedir);
+}
+
 void *Memory::mem_alloc(register size_t size)
 {
   size_t pages_cnt = size - (size % MM_MINALLOC);
@@ -96,7 +129,7 @@ void *Memory::mem_alloc(register u32_t *phys_pages, register size_t pages_cnt)
   __mt_disable();
   block->vptr = p->vptr;
   block->size = size;
-  block->phys_pages = phys_pages;
+  //block->phys_pages = phys_pages;
 
   if (p->size > block->size) {	/* используем только часть блока */
     p->vptr += block->size;	/* скорректируем указатель на начало блока */
@@ -225,7 +258,7 @@ void *Memory::do_mmap(register u32_t *phys_pages, register void *log_address, re
   }
 
   memblock *block = new memblock;
-  block->phys_pages = phys_pages;
+  //block->phys_pages = phys_pages;
   block->vptr = (u32_t) log_address;
   block->size = size;
   

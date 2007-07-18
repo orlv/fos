@@ -1,3 +1,9 @@
+Wed Jul 18 15:39:32 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 16689 (Version 0.0.43.2)
+	- Реализована графическая консоль
+	- Добавлена тестовая программная оболочка (shell)
+	- Исправлены две таблицы ASCII-кодов клавиатуры
+
 Wed Jul 18 02:06:15 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
 Build 16640 (Version 0.0.43.1)
 	- В драйвер PIC добавлена возможность блокировки с сохранением

@@ -20,7 +20,10 @@ TProcess::TProcess()
 
 TProcess::~TProcess()
 {
-  hal->panic("Terminating process is not implemented");
+  //hal->panic("Terminating process is not implemented");
+  
+  delete memory;
+  delete name;
 #if 0
   List *curr, *n;
 
@@ -49,13 +52,13 @@ TProcess::~TProcess()
   delete curr;
 
   /* удаляем все потоки */
-  list_for_each_safe(curr, n, threads){
+  /*  list_for_each_safe(curr, n, threads){
     delete (Thread *)curr->data;
     delete curr;
   }
   delete (Thread *)curr->data;
   delete curr;
-
+  */
   
   u32_t i;
   for(i = USER_MEM_START/1024; i < 1024; i++){

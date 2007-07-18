@@ -59,6 +59,7 @@ res_t HAL::interrupt_attach(Thread *thread, u8_t n)
 res_t HAL::interrupt_detach(Thread *thread, u8_t n)
 {
   if(user_int_handler[n] == thread){
+    pic->mask(n);
     user_int_handler[n] = 0;
     return RES_SUCCESS;
   } else

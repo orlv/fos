@@ -108,7 +108,7 @@ static inline u32_t PAGE(u32_t address)
 
 struct memblock {
   offs_t vptr; /* на какой адрес в памяти процесса смонтировано */
-  u32_t *phys_pages; /* массив номеров физических страниц, использованных в блоке */
+  //u32_t *phys_pages; /* массив номеров физических страниц, использованных в блоке */
   size_t size; /* размер блока */
 };
 
@@ -129,6 +129,7 @@ class Memory {
 
  public:
   Memory(offs_t base, size_t size, u16_t flags);
+  ~Memory();
 
   u32_t *pagedir; /* каталог страниц */
 

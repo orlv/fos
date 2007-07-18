@@ -16,8 +16,7 @@ GRUB_MODULES =	/root/modules/test.txt		\
 		/root/modules/namer		\
 		/root/modules/init		\
 		/root/modules/int16b		\
-		/root/modules/fbtty		\
-		/root/modules/app1		\
+		/root/modules/shell		\
 		/root/modules/tty		\
 		/root/modules/keyboard		\
 		/root/modules/floppy		\

@@ -11,8 +11,7 @@ asmlinkage int main()
   exec("tty");
   printf("Init started! If you see this text - all work fine.\n");
   exec("keyboard");
-  exec("app1");
-  exec("floppy");
-  exec("fbtty");
+  exec("shell");
+  //exec("floppy");
   return 0;
 }

@@ -14,7 +14,7 @@ OBJECTS =	../lib/startup.o \
 		../lib/vsprintf.o \
 		../lib/msg.o
 
-PROGNAME = app1
+PROGNAME = shell
 
 #-----------------------------------------------------------------------------#
 

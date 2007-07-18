@@ -9,10 +9,10 @@ MKFLAGS     = CONFIG=$(CONFIG) TOPDIR=$(TOPDIR) MAIN_CONFIG=$(MAIN_CONFIG)
 all:
 	@echo ---------------------------------\> Building namer
 	@make -s -C namer $(MKFLAGS)
-	@echo ---------------------------------\> Building app1
-	@make -s -C app1 $(MKFLAGS)
-	@echo ---------------------------------\> Building tty
-	@make -s -C tty $(MKFLAGS)
+	@echo ---------------------------------\> Building shell
+	@make -s -C shell $(MKFLAGS)
+#	@echo ---------------------------------\> Building tty
+#	@make -s -C tty $(MKFLAGS)
 	@echo ---------------------------------\> Building 16-bit bios interrupt service
 	@make -s -C int16b $(MKFLAGS)
 	@echo ---------------------------------\> Building keyboard
@@ -28,8 +28,9 @@ all:
 
 clean:
 	@make -s -C namer clean
-	@make -s -C app1 clean
-	@make -s -C tty clean
+	@make -s -C shell clean
+#	@make -s -C tty clean
+	@make -s -C fbtty clean
 	@make -s -C int16b clean
 	@make -s -C keyboard clean
 	@make -s -C init clean

@@ -5,17 +5,18 @@
 include $(MAIN_CONFIG)
 include $(CONFIG)
 
-OBJECTS  = ../lib/startup.o \
-	fbtty.o \
-	../lib/fos.o \
-	../lib/heap.o \
-	../lib/libcpp.o \
-	../lib/stdio.o \
-	../lib/vsprintf.o \
-	../lib/tmutex.o \
+OBJECTS  = ../lib/startup.o 	\
+	fbtty.o 		\
+	fbterm.o		\
+	../lib/fos.o 		\
+	../lib/heap.o 		\
+	../lib/libcpp.o 	\
+	../lib/stdio.o 		\
+	../lib/vsprintf.o 	\
+	../lib/tmutex.o 	\
 	../lib/msg.o
 
-PROGNAME = fbtty
+PROGNAME = tty
 
 #-----------------------------------------------------------------------------#
 

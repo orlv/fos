@@ -1,6 +1,6 @@
 /*
   drivers/char/keyboard/keyboard.cpp
-  Copyright (C) 2004-2006 Oleg Fedorov
+  Copyright (C) 2004-2007 Oleg Fedorov
 */
 
 #include "keyboard.h"
@@ -11,87 +11,49 @@
 #define PORT_KBD_A      0x60
 
 u32_t scancodes[] = {
-  0,
-  0, //ESC
-  0x0031,0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037, 0x0038, 0x0039, 0x0030,
-  0x002D, 0x003D, 
-  8, //BACKSPACE
-  '\t',//TAB
-  0x0071, 0x0077, 0x0065, 0x0072, 0x0074, 0x0079, 0x0075, 0x0069, 0x006F, 0x0070, 0x005B, 0x005D,
-  '\n', //ENTER
-  0, //CTRL
-  0x0061, 0x0073, 0x0064, 0x0066, 0x0067, 0x0068, 0x006A, 0x006B, 0x006C, 0x003B, 0x0027, 0x0060,
-  0, //LEFT SHIFT,
-  0x005C, 0x007A, 0x0078, 0x0063, 0x0076, 0x0062, 0x006E, 0x005D, 0x002C, 0x002E, 0x002F,
-  0, //RIGHT SHIFT,
-  0x002A, //NUMPAD
-  0, //ALT
-  0x0020, //SPACE
-  0, //CAPSLOCK
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //F1 - F10
-  0, //NUMLOCK
-  0, //SCROLLOCK
-  0, //HOME
-  0, 
-  0, //PAGE UP
-  0x002D, //NUMPAD
-  0, 0,
-  0, //(r)
-  0x002B, //NUMPAD
-  0, //END
-  0, 
-  0, //PAGE DOWN
-  0, //INS
-  0, //DEL
-  0, //SYS RQ
-  0, 
-  0, 0, //F11-F12
-  0,
-  0, 0, 0, //F13-F15
-  0, 0, 0, 0, 0, 0, 0, 0, 0, //F16-F24
-  0, 0, 0, 0, 0, 0, 0, 0
+  0,                         /* Buffer owerflow */
+  0x1b, '1',   '2',  '3',  '4', /* ESC, 1, 2, 3, 4 */
+  '5',  '6',  '7',  '8',  '9', /* 5, 6, 7, 8, 9 */
+  '0',  '-',  '=', 0x08, 0x09, /* 0, -, =, Backspace, TAB */
+  'q',  'w',  'e',  'r',  't', /* q, w, e, r, t */
+  'y',  'u',  'i',  'o',  'p', /* y, u, i, o, p */
+  '[',  ']',  '\n',    0,  'a', /* [, ], Enter, Ctrl, a */
+  's',  'd',  'f',  'g',  'h', /* s, d, f, g, h */
+  'j',  'k',  'l',  ';', 0x27, /* j, k, l, ;, ' */
+  '`',    0, '\\',  'z',  'x', /* `, LShift, \, z, x */
+  'c',  'v',  'b',  'n',  'm', /* c, v, b, n, m */
+  ',',  '.',  '/',    0,  '*', /* ,, ., /, RShift, K* */
+  0, 0x20,    0, 0x3b, 0x3c, /* Alt, Space, CapsLock, F1, F2 */
+  0x3d, 0x3e, 0x3f, 0x40, 0x41, /* F3, F4, F5, F6, F7 */
+  0x42, 0x43, 0x44,    0,    0, /* F8, F9, F10, NumLock, ScrollLock */
+  0x47, 0x72, 0x49,  '-', 0x4b, /* Home, Up, PgUp, K-, Left */
+  0, 0x77,  '+', 0x4f, 0x80, /*  , Right, K+, End, Down */
+  0x51, 0x52, 0x53,    0,    0, /* PgDown, Ins, Del, SysRq, ??? */
+  '\\', 0x85, 0x86,    0,    0, /* Macro, F11, F12, PA1, F13/LWin */
+  0                             /* F14/RWin */
 };
 
 u32_t scancodes_shifted[] = {
-  0,
-  0, //ESC
-  0x0021, 0x0040, 0x0023, 0x0024, 0x0025, 0x005E, 0x0026, 0x002A, 0x0028, 0x0029,
-  0x005F, 0x002B, 
-  8, //BACKSPACE
-  '\t',//TAB
-  0x0051, 0x0057, 0x0045, 0x0052, 0x0054, 0x0059, 0x0055, 0x0049, 0x004F, 0x0050, 0x007B, 0x007D,
-  '\n', //ENTER
-  0, //CTRL
-  0x0041, 0x0053, 0x0044, 0x0046, 0x0047, 0x0048, 0x004A, 0x004B, 0x004C, 0x003A, 0x0022, 0x007E,
-  0, //LEFT SHIFT,
-  0x007C, 0x005A, 0x0058, 0x0043, 0x0056, 0x0042, 0x004E, 0x004D, 0x003C, 0x002E, 0x003F,
-  0, //RIGHT SHIFT,
-  0x002A, //NUMPAD
-  0, //ALT
-  0x0020, //SPACE
-  0, //CAPSLOCK
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //F1 - F10
-  0, //NUMLOCK
-  0, //SCROLLOCK
-  0, //HOME
-  0, 
-  0, //PAGE UP
-  0x002D, //NUMPAD
-  0, 0,
-  0, //(r)
-  0x002B, //NUMPAD
-  0, //END
-  0, 
-  0, //PAGE DOWN
-  0, //INS
-  0, //DEL
-  0, //SYS RQ
-  0, 
-  0, 0, //F11-F12
-  0,
-  0, 0, 0, //F13-F15
-  0, 0, 0, 0, 0, 0, 0, 0, 0, //F16-F24
-  0, 0, 0, 0, 0, 0, 0, 0
+  0,                   /* Buffer owerflow */
+  0x1b,  '!',  '@',  '#',  '$', /* ESC, !, @, #, $ */
+  '%',  '^',  '&',  '*',  '(', /* %, ^, &, *, ( */
+  ')',  '_',  '+', 0x08, 0x15, /* ), _, +, Backspace, TAB */
+  'Q',  'W',  'E',  'R',  'T', /* Q, W, E, R, T */
+  'Y',  'U',  'I',  'O',  'P', /* Y, U, I, O, P */
+  '{',  '}', 0x0d,    0,  'A', /* {, }, Enter, Ctrl, A */
+  'S',  'D',  'F',  'G',  'H', /* S, D, F, G, H */
+  'J',  'K',  'L',  ':',  '"', /* J, K, L, :, " */
+  '~',    0,  '|',  'Z',  'X', /* ~, LShift, |, Z, X */
+  'C',  'V',  'B',  'N',  'M', /* C, V, B, N, M */
+  '<',  '>',  '?',    0, 0x2a, /* <, >, ?, RShift, K* */
+  0, 0x20,    0, 0x54, 0x55, /* Alt, Space, CapsLock, F1, F2 */
+  0x56, 0x57, 0x58, 0x59, 0x5a, /* F3, F4, F5, F6, F7 */
+  0x5b, 0x5c, 0x5d,    0,    0, /* F8, F9, F10, NumLock, ScrollLock */
+  0x47, 0x72, 0x49, 0x2d, 0x4b, /* Home, Up, PgUp, K-, Left */
+  0, 0x77, 0x2b, 0x4f, 0x80, /*  , Right, K+, End, Down */
+  0x51, 0x52, 0x53,    0,    0, /* PgDown, Ins, Del, SysRq, ??? */
+  '\\', 0x87, 0x88,    0,    0, /* Macro, F11, F12, PA1, F13/LWin */
+  0                          /* F14/RWin */
 };
 
 Keyboard::Keyboard()

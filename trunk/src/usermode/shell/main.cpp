@@ -1,6 +1,6 @@
 /*
-  Copyright (C) 2007 Oleg Fedorov
- */
+  Copyright (C) 2007 Oleg Fedorov 
+*/
 
 #include <fos.h>
 #include <string.h>
@@ -33,6 +33,9 @@ void eval(const unsigned char *command)
     write(tty, buf, len);
     delete buf;
   }
+
+  if(!strcmp((const char *)command, "test"))
+    exec("test");
   
   printf("# ");
 }
@@ -170,3 +173,4 @@ asmlinkage int main()
   }
   return 0;
 }
+

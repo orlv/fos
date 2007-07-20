@@ -19,9 +19,11 @@ all:
 	@make -s -C init $(MKFLAGS)
 	@echo ---------------------------------\> Building floppy
 	@make -s -C floppy $(MKFLAGS)
+	@echo ---------------------------------\> Building test
+	@make -s -C test $(MKFLAGS)
 	@echo ---------------------------------\> Building fbtty
-#	@make -s -C tty $(MKFLAGS)
-	@make -s -C fbtty $(MKFLAGS)
+	@make -s -C tty $(MKFLAGS)
+#	@make -s -C fbtty $(MKFLAGS)
 #	@echo ---------------------------------\> Building hd
 #	@make -s -C hd $(MKFLAGS)
 
@@ -34,6 +36,7 @@ clean:
 	@make -s -C keyboard clean
 	@make -s -C init clean
 	@make -s -C floppy clean
+	@make -s -C test clean
 #	@make -s -C hd clean
 
 # -----------------------------------------------------------------------------

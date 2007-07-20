@@ -1,14 +1,14 @@
 /*
  * apps/lib/heap.c
  *
- * malloc НЯМНБЮМ МЮ ОПХЛЕПЕ ХГ ЙМХЦХ "ъГШЙ ОПНЦПЮЛЛХПНБЮМХЪ яХ" (я) а.йЕПМХЦЮМ, д.пХРВХ
+ * malloc основан на примере из книги "Язык программирования Си" (C) Б.Керниган, Д.Ритчи
  * :)
  */
 
 #include <fos.h>
 #include <types.h>
 #include <malloc.h>
-//#include <stdio.h>
+#include <string.h>
 
 #define MM_MINALLOC PAGE_SIZE /* размер выделяемой единицы */
 
@@ -28,7 +28,6 @@ void * malloc(size_t size)
   //  printk("[%d]",size);
   struct HeapMemBlock *p, *prevp;
   unsigned int	nunits;
-  unsigned int i;
 
   nunits = (size + sizeof(struct HeapMemBlock) - 1) / sizeof(struct HeapMemBlock) + 1;
   prevp = free_ptr;
@@ -46,20 +45,9 @@ void * malloc(size_t size)
 	p->size = nunits;
       }
       free_ptr = prevp;
-	  
-      p = (struct HeapMemBlock *)((unsigned long)p + sizeof(struct HeapMemBlock));
-      /* очистим выделяемую область памяти */
-      unsigned long asize;
-      unsigned long *ptr;
-      asize = size - (size % sizeof(unsigned long));
-      if (size % sizeof(unsigned long))
-	asize += sizeof(unsigned long);
-
-      asize /= sizeof(unsigned long);
-      for (ptr = (unsigned long *)p, i = 0; i < asize; i++)
-	ptr[i] = 0;
-
-      return (void *) p;
+	 
+      memset((void *)(p+1), 0, size);
+      return (void *)(p+1);
     }
 
     if(p == free_ptr)	/* прошли первый цикл по списку */

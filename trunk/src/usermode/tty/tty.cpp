@@ -64,6 +64,13 @@ void TTY::out_ch(const char ch)
     offs -= offs % geom.width;
     break;
 
+  case 0x08:
+    if(offs % geom.width) {
+      offs--;
+      buffer[offs] = ' ' | color;
+    }
+    break;
+
   default:
     if (ch >= 0x20){
       offs++;

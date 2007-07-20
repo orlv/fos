@@ -19,12 +19,12 @@ void setup_idt();
       "mov $0x10, %ax \n"     /* загрузим DS ядра */			\
       "mov %ax, %ds \n"							\
       "mov %ax, %es \n"							\
-      "mov 48(%esp), %eax \n" /* сохраним errorcode */			\
+      "mov 40(%esp), %eax \n" /* сохраним errorcode */			\
       "push %eax \n"							\
       "mov 48(%esp), %eax \n" /* сохраним eip */			\
       "push %eax \n"							\
       "xor %eax, %eax \n"						\
-      "mov 48(%esp), %ax \n"  /* сохраним cs */				\
+      "mov 56(%esp), %ax \n"  /* сохраним cs */				\
       "push %eax \n"							\
       "call _" #func " \n"						\
       "add $12, %esp \n"						\
@@ -34,7 +34,7 @@ void setup_idt();
       "iret");								\
   asmlinkage void _ ## func(unsigned int cs, unsigned int address, unsigned int errorcode)
 
-#define IRQ_HANDLER(func) extern "C" void func (unsigned int errcode); \
+#define IRQ_HANDLER(func) extern "C" void func (unsigned int errcode);	\
   asm(".globl " #func"\n"						\
       #func ": \n"							\
       "pusha \n"							\
@@ -46,7 +46,7 @@ void setup_idt();
       "mov 48(%esp), %eax \n" /* сохраним eip */			\
       "push %eax \n"							\
       "xor %eax, %eax \n"						\
-      "mov 48(%esp), %ax \n"  /* сохраним cs */				\
+      "mov 56(%esp), %ax \n"  /* сохраним cs */				\
       "push %eax \n"							\
       "call _" #func " \n"						\
       "add $8, %esp \n"							\

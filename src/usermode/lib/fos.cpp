@@ -296,6 +296,7 @@ asmlinkage int open(const char *pathname, int flags)
 
   msg.send_buf = pathname;
   msg.send_size = len+1;
+  msg.recv_size = 0;
   msg.tid = SYSTID_NAMER;
 
   u32_t result = send((message *)&msg);

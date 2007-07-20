@@ -97,6 +97,17 @@ struct memstack {
   u32_t n;
 };
 
+static inline u32_t OFFSET(void *ptr)
+{
+  return (u32_t) ptr;
+}
+
+static inline u32_t OFFSET(const void *ptr)
+{
+  return (u32_t) ptr;
+}
+
+
 static inline u32_t PAGE(u32_t address)
 {
   return address/PAGE_SIZE;
@@ -131,6 +142,8 @@ class Memory {
   Memory(offs_t base, size_t size, u16_t flags);
   ~Memory();
 
+  off_t mem_base;
+  
   u32_t *pagedir; /* каталог страниц */
 
   u32_t mount_page(register u32_t phys_page, register u32_t log_page);

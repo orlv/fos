@@ -20,53 +20,8 @@ TProcess::TProcess()
 
 TProcess::~TProcess()
 {
-  //hal->panic("Terminating process is not implemented");
-  
   delete memory;
   delete name;
-#if 0
-  List *curr, *n;
-
-  /* освободим выделенную память */
-  task_mem_block_t *c;
-  list_for_each_safe(curr, n, UsedMem){
-    c = (task_mem_block_t *) curr->data;
-    //    printk("0x%X 0x%X 0x%X \n", c->vptr, c->pptr, c->size);
-    kfree((void *)c->pptr);
-    delete(task_mem_block_t *) curr->data;
-    delete curr;
-  }
-
-  c = (task_mem_block_t *) UsedMem->data;
-  //printk("0x%X 0x%X 0x%X \n", c->vptr, c->pptr, c->size);
-  kfree((void *)c->pptr);
-  delete(task_mem_block_t *) curr->data;
-  delete curr;
-
-  /* удалим таблицы свободных блоков */
-  list_for_each_safe(curr, n, FreeMem){
-    delete (task_mem_block_t *)curr->data;
-    delete curr;
-  }
-  delete (task_mem_block_t *)curr->data;
-  delete curr;
-
-  /* удаляем все потоки */
-  /*  list_for_each_safe(curr, n, threads){
-    delete (Thread *)curr->data;
-    delete curr;
-  }
-  delete (Thread *)curr->data;
-  delete curr;
-  */
-  
-  u32_t i;
-  for(i = USER_MEM_START/1024; i < 1024; i++){
-    if(PageDir[i])
-      kfree((void *)(((u32_t)PageDir[i]) & 0xfffff000));
-  }
-  kfree((void *)(((u32_t)PageDir) & 0xfffff000));
-#endif
 }
 
 u32_t TProcess::LoadELF(register void *image)
@@ -84,9 +39,6 @@ u32_t TProcess::LoadELF(register void *image)
     if (p->p_type == ELF32_TYPE_LOAD && p->p_memsz) {
       //printk("flags=%d, addr=0x%X, type=%d, fileoffs=0x%X, filesz=0x%X, memsz=0x%X \n",
       //p->p_flags, p->p_vaddr, p->p_type, p->p_offset, p->p_filesz, p->p_memsz);
-      
-      if (p->p_filesz > p->p_memsz)
-	hal->panic("Invalid section!");
 
       /*
 	Выделим память под секцию
@@ -116,13 +68,7 @@ u32_t TProcess::LoadELF(register void *image)
 }
 
 
-Thread *TProcess::thread_create(off_t eip,
-				u16_t flags,
-				void * kernel_stack,
-				void * user_stack,
-				u16_t code_segment,
-				u16_t data_segment)
-
+Thread *TProcess::thread_create(off_t eip, u16_t flags,	void * kernel_stack, void * user_stack, u16_t code_segment, u16_t data_segment)
 {
   Thread *thread = new Thread(this, eip, flags, kernel_stack, user_stack , code_segment, data_segment);
 

@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <hal.h>
+#include <mmu.h>
 
 /* основные системные вызовы -- обмен сообщениями */
 #define _FOS_SEND              1
@@ -168,6 +169,40 @@ List<kmessage *> *get_message_from(tid_t from)
   }
 }
 
+
+#define MSG_CHK_SENDBUF  1
+#define MSG_CHK_RECVBUF  2
+
+static inline bool check_message(message *message, int flags)
+{
+  if(OFFSET(message) < hal->procman->current_thread->process->memory->mem_base)
+    return 1;
+  
+  u32_t *pagedir = hal->procman->current_thread->process->memory->pagedir;
+  u32_t count;
+
+  count = (OFFSET(message)%PAGE_SIZE + sizeof(struct message) + PAGE_SIZE - 1)/PAGE_SIZE;
+
+  if(!check_pages(PAGE(OFFSET(message)), pagedir, count))
+    return 1;
+    
+  if((flags & MSG_CHK_RECVBUF) && message->recv_size) {
+    count = (OFFSET(message->recv_buf)%PAGE_SIZE + message->recv_size + PAGE_SIZE - 1)/PAGE_SIZE;
+    
+    if(!check_pages(PAGE(OFFSET(message->recv_buf)), pagedir, count))
+      return 1;
+  }
+
+  if((flags & MSG_CHK_SENDBUF) && message->send_size) {
+    count = (OFFSET(message->send_buf)%PAGE_SIZE + message->send_size + PAGE_SIZE - 1)/PAGE_SIZE;
+  
+    if(!check_pages(PAGE(OFFSET(message->send_buf)), pagedir, count))
+      return 1;
+  }
+
+  return 0;
+}
+
 kmessage * get_message(tid_t from)
 {
   kmessage *message;
@@ -201,6 +236,9 @@ kmessage * get_message(tid_t from)
 
 res_t receive(message *message)
 {
+  if(check_message(message, MSG_CHK_RECVBUF))
+    return RES_FAULT;
+
   //printk("receive [%s]\n", hal->procman->current_thread->process->name);
   kmessage *received_message = get_message(message->tid);
   if(!received_message)
@@ -233,6 +271,9 @@ res_t receive(message *message)
 
 res_t send(message *message)
 {
+  if(check_message(message, MSG_CHK_SENDBUF|MSG_CHK_RECVBUF))
+    return RES_FAULT;
+
   Thread *thread; /* процесс-получатель */
 
   hal->mt_disable();
@@ -263,7 +304,7 @@ res_t send(message *message)
 
   //  thread->enter_exit_lock();
   //  hal->mt_enable(); /* #1 */
-  
+
   if(thread->new_messages_count.read() >= MAX_MSG_COUNT){
     message->send_size = 0;
     hal->mt_enable();
@@ -326,6 +367,9 @@ res_t send(message *message)
 
 res_t reply(message *message)
 {
+  if(check_message(message, MSG_CHK_SENDBUF))
+    return RES_FAULT;
+
   kmessage *send_message = 0;
   List<kmessage *> *entry;
   List<kmessage *> *messages = hal->procman->current_thread->received_messages;

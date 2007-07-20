@@ -1,11 +1,12 @@
 /*
-  namer/namer.cpp
+  lib/fs.cpp
   Copyright (C) 2006-2007 Oleg Fedorov
 */
 
 #include <hal.h>
 #include <string.h>
 #include <fs.h>
+#include <stdio.h>
 
 res_t do_send(message *msg)
 {
@@ -29,6 +30,9 @@ ssize_t read(int fildes, void *buf, size_t nbyte)
   message msg;
   size_t offset = 0;
 
+  printk("read!");
+  while(1);
+  
   if(fd->buf_size < nbyte)
     msg.recv_size = fd->buf_size;
   else
@@ -109,9 +113,11 @@ int open(const char *pathname, int flags)
 
   msg.send_buf = pathname;
   msg.send_size = len+1;
+  msg.recv_size = 0;
   msg.tid = SYSTID_NAMER;
 
   u32_t result = send((message *)&msg);
+  return -1;
   if(result == RES_SUCCESS && msg.a0 && msg.a2 == NO_ERR) {
     struct fd *fd = new struct fd;
     fd->thread = msg.tid;

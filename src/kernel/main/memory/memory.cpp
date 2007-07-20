@@ -19,11 +19,13 @@ Memory::Memory(offs_t base, size_t size, u16_t flags)
   block->size = size;
 
   FreeMem = new List<memblock *>(block);
+
+  mem_base = base;
 }
 
 Memory::~Memory()
 {
-  printk("memory: dessctructor\n");
+  //printk("memory: destructor\n");
   /* удалим список использованной памяти и освободим занятые страницы */
   List<memblock *> *curr, *n;
   list_for_each_safe (curr, n, UsedMem) {

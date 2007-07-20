@@ -13,24 +13,65 @@
 #include <drivers/fs/modulefs/modulefs.h>
 #include <drivers/char/tty/tty.h>
 #include <fs.h>
+#include <elf32.h>
 
 void sched_srv();
 void grub_modulefs_srv();
 void vesafb_srv();
 
+#define FOS_MAX_ELF_SECTION_SIZE 0x100000 
+
+int check_ELF_image(register void *image, register size_t image_size)
+{
+  Elf32_Phdr *p;
+  Elf32_Ehdr *h = (Elf32_Ehdr *) image; /* образ ELF */
+
+  if((image_size < sizeof(Elf32_Ehdr)) ||
+     ((u32_t) h->e_phoff < sizeof(Elf32_Ehdr)) ||
+     (image_size < (u32_t) h->e_phoff + sizeof(Elf32_Phdr)*h->e_phnum)) {
+    printk("Invalid ELF headers!\n");
+    return 1;
+  }
+ 
+  Elf32_Phdr *ph = (Elf32_Phdr *) ((u32_t) h + (u32_t) h->e_phoff);
+
+  for (p = ph; p < ph + h->e_phnum; p++){
+    if (p->p_type == ELF32_TYPE_LOAD && p->p_memsz) {
+      if ((p->p_filesz > p->p_memsz) ||
+	  (p->p_memsz > FOS_MAX_ELF_SECTION_SIZE)) {
+	printk("Invalid ELF section! Section file_size=0x%X, mem_size=0x%X, FOS_MAX_ELF_SECTION_SIZE=0x%X\n", p->p_filesz, p->p_memsz, FOS_MAX_ELF_SECTION_SIZE);
+	return 2;
+      }
+
+      if(p->p_filesz && (image_size < p->p_offset + p->p_filesz)) {
+	printk("Invalid ELF section: bigger than image size\n");
+	return 3;
+      }
+      
+      if((p->p_vaddr & 0xfffff000) < USER_MEM_BASE) {
+	printk("Can't map ELF section to 0x%X, USER_MEM_BASE=0x%X\n", p->p_vaddr, USER_MEM_BASE);
+	return 4;
+      }
+    }
+  }
+
+  return 0;
+}
+
 tid_t execute(char *pathname)
 {
   extern ModuleFS *initrb;
   Tinterface *object;
-  char *elf_buf;
+  char *elf_image;
   tid_t result = 0;
   
   printk("procman: executing [%s]\n", pathname);
   if((object = initrb->access(pathname))){
-    elf_buf = new char[object->info.size];
-    object->read(0, elf_buf, object->info.size);
-    result = hal->procman->exec(elf_buf, pathname);
-    delete elf_buf;
+    elf_image = new char[object->info.size];
+    object->read(0, elf_image, object->info.size);
+    if(!check_ELF_image(elf_image, object->info.size))
+      result = hal->procman->exec(elf_image, pathname);
+    delete elf_image;
     delete object;
   }
   return result;
@@ -190,7 +231,7 @@ TProcMan::TProcMan()
 
   process->name = "kernel";
   
-  process->memory = new Memory(USER_MEM_BASE, USER_MEM_SIZE, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS);
+  process->memory = hal->kmem; //new Memory(USER_MEM_BASE, USER_MEM_SIZE, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS);
   process->memory->pagedir = hal->kmem->pagedir;
 
   stack = kmalloc(STACK_SIZE);
@@ -262,18 +303,18 @@ void TProcMan::unreg_thread(register List<Thread *> * thread)
 List<Thread *> *TProcMan::do_kill(List<Thread *> *thread)
 {
   List<Thread *> *next;
-  printk("thread=0x%X\n", thread);
+  //printk("thread=0x%X\n", thread);
   if(thread->item->flags & FLAG_TSK_TERM) {
     TProcess *process = thread->item->process;
-    printk("process=0x%X\n", process);
+    //printk("process=0x%X\n", process);
     List<Thread *> *current = threadlist;
     do {
       next = current->next;
       if (current->item->process == process) {
-	printk("unreg!\n");
+	//printk("unreg!\n");
 	unreg_thread(current);
       }
-      printk("next=0x%X\n", next);
+      //printk("next=0x%X\n", next);
       //printk("fooo"); while(1);
 
       current = next;

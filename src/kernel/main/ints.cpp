@@ -26,7 +26,7 @@ void exception(string str, unsigned int cs,  unsigned int address, unsigned int 
 #endif
 
   if(hal->procman->current_thread->flags & FLAG_TSK_KERN){
-    printk("\n--------------------------------------------------------------------------------" \
+    printk("\n-------------------------------------------------------------------------------\n" \
 	   "Exception: %s \n"						\
 	   "At addr: 0x%02X:0x%08X\n"					\
 	   "Thread: 0x%X, Process: 0x%X \n"				\
@@ -35,18 +35,22 @@ void exception(string str, unsigned int cs,  unsigned int address, unsigned int 
 	   str, cs, address, hal->procman->current_thread, hal->procman->current_thread->process, hal->procman->current_thread->process->name, errorcode);
     hal->panic("fault in kernel task!");
   } else {
-    printk("\n--------------------------------------------------------------------------------" \
+    printk("\n-------------------------------------------------------------------------------\n" \
 	   "Exception: %s \n"						\
 	   "At addr: 0x%02X:0x%08X\n"					\
 	   "Thread: 0x%X, Process: 0x%X \n"				\
 	   "Name: [%s]\n"						\
 	   "Errorcode: 0x%X\n"						\
-	   "--------------------------------------------------------------------------------", \
+	   "-------------------------------------------------------------------------------\n", \
 	   str, cs, address, hal->procman->current_thread, hal->procman->current_thread->process, hal->procman->current_thread->process->name, errorcode);
 
+    if(address < USER_MEM_BASE) {
+      hal->panic("fault in kernel code!\n");
+    }
+    
     hal->procman->current_thread->flags |= FLAG_TSK_TERM;
     hal->procman->current_thread->flags &= ~FLAG_TSK_READY;
-    hal->panic("fault in user task!");
+    printk("fault in user task! task terminated\n");
     while(1);
   }
 }
@@ -126,21 +130,25 @@ EXCEPTION_HANDLER(page_fault_exception)
 {
   u32_t cr2;
   asm volatile ("mov %%cr2, %%eax":"=a" (cr2));
-  printk("\n-------------------------------------------------------------------------------");
-  printk("\n[0x0E] page fault");
-  printk("\ncr2 = 0x%08X", cr2);
+  printk("\n-------------------------------------------------------------------------------\n");
+  int level;
   if (errorcode & 4)
-    printk("\nLevel 3");
+    level = 3;
   else
-    printk("\nLevel 0");
+    level = 0;
+
+  printk("[0x0E] page fault!\nCPL=%d\n", level);
+  printk("cr2=0x%08X\n", cr2);
+
   if (errorcode & 2)
-    printk("\nWrite error: ");
+    printk("Write error: ");
   else
-    printk("\nRead error: ");
+    printk("Read error: ");
+
   if (errorcode & 1)
-    printk("Permission denied");
+    printk("permission denied");
   else
-    printk("Page not found");
+    printk("page not found");
 
   exception("[0x0E] page fault", cs, address, errorcode);
 }

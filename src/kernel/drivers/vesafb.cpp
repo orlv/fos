@@ -8,22 +8,31 @@
 #include <fs.h>
 #include <stdio.h>
 #include <hal.h>
+#include <string.h>
+#include "vbe.h"
+
 
 #define INJ_ADDRESS 0x500
 
 #define VBESRV_CMD_SET_MODE (BASE_CMD_N + 0)
 
-__attribute__((regparm(1))) struct vbe_mode_info_block * (*vbe_set_video_mode) (u16_t mode);
+__attribute__((regparm(1))) vbe_mode_info_block * (*vbe_set_video_mode) (u16_t mode);
+
+#define INJ_BUF_SIZE 1024
 
 void vesafb_srv()
 {
-  char *realmod_inj = (char *)INJ_ADDRESS;
+  char *realmod_inj = new char[INJ_BUF_SIZE]; //(char *)INJ_ADDRESS;
   vbe_set_video_mode = (__attribute__((regparm(1))) vbe_mode_info_block * (*)(u16_t)) INJ_ADDRESS;
-  struct vbe_mode_info_block * vbeinfo;
+  vbe_mode_info_block * vbeinfo;
+  vbe_mode_info_block * vbeinfo_l = new vbe_mode_info_block;
+
   while(1) {
     int fd = open("/mnt/modules/int16b", 0);
     if(fd != -1) {
-      read(fd, realmod_inj, 512);
+      size_t size = read(fd, realmod_inj, INJ_BUF_SIZE);
+      memcpy((char *)INJ_ADDRESS, realmod_inj, size);
+      delete realmod_inj;
       close(fd);
       printk("vesafb: ready\n");
       break;
@@ -48,7 +57,6 @@ void vesafb_srv()
       break;
 
     case VBESRV_CMD_SET_MODE:
-
       hal->mt_disable();
       hal->cli();
       hal->pic->lock(); /* обязательно необходимо запретить все IRQ */
@@ -58,7 +66,9 @@ void vesafb_srv()
       hal->mt_enable();
 
       if(vbeinfo) {
-	msg.send_buf = vbeinfo;
+	vbeinfo_l = new vbe_mode_info_block;
+	memcpy(vbeinfo_l, vbeinfo, sizeof(vbe_mode_info_block));
+	msg.send_buf = vbeinfo_l;
 	msg.a0 = 1;
 	msg.send_size = 256; // sizeof(vbe_mode_info_block);
       } else {

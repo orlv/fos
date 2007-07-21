@@ -175,29 +175,41 @@ List<kmessage *> *get_message_from(tid_t from)
 
 static inline bool check_message(message *message, int flags)
 {
-  if(OFFSET(message) < hal->procman->current_thread->process->memory->mem_base)
+  if(OFFSET(message) < hal->procman->current_thread->process->memory->mem_base) {
+    printk("foo #1\n");
+    //while(1);
     return 1;
+  }
   
   u32_t *pagedir = hal->procman->current_thread->process->memory->pagedir;
   u32_t count;
 
   count = (OFFSET(message)%PAGE_SIZE + sizeof(struct message) + PAGE_SIZE - 1)/PAGE_SIZE;
 
-  if(!check_pages(PAGE(OFFSET(message)), pagedir, count))
+  if(!check_pages(PAGE(OFFSET(message)), pagedir, count)){
+    printk("foo #2\n");
+    //while(1);
     return 1;
-    
+  }
+
   if((flags & MSG_CHK_RECVBUF) && message->recv_size) {
     count = (OFFSET(message->recv_buf)%PAGE_SIZE + message->recv_size + PAGE_SIZE - 1)/PAGE_SIZE;
     
-    if(!check_pages(PAGE(OFFSET(message->recv_buf)), pagedir, count))
+    if(!check_pages(PAGE(OFFSET(message->recv_buf)), pagedir, count)) {
+      printk("recv_buf=0x%X, pd=0x%X, count=0x%X\n", message->recv_buf, pagedir, count);
+      //while(1);
       return 1;
+    }
   }
 
   if((flags & MSG_CHK_SENDBUF) && message->send_size) {
     count = (OFFSET(message->send_buf)%PAGE_SIZE + message->send_size + PAGE_SIZE - 1)/PAGE_SIZE;
-  
-    if(!check_pages(PAGE(OFFSET(message->send_buf)), pagedir, count))
+    if(!check_pages(PAGE(OFFSET(message->send_buf)), pagedir, count)){
+      printk("send_buf=0x%X, pd=0x%X, count=0x%X\n", message->send_buf, pagedir, count);
+      printk("foo #3\n");
+      //while(1);
       return 1;
+    }
   }
 
   return 0;

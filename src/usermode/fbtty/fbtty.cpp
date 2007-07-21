@@ -13,15 +13,7 @@
 #define FBTTY_PUT_CH (BASE_CMD_N + 2)
 
 fbterm *fb=0;
-/*
-void outs(char *str)
-{
-  while(*str){
-    fb->out_ch(*str);
-    str++;
-  }
-}
-*/
+
 #define RECV_BUF_SIZE 2048
 
 asmlinkage int main()
@@ -56,12 +48,10 @@ asmlinkage int main()
 
     case FBTTY_CMD_SET_MODE:
       msg.a0 = fb->set_videomode(msg.a1);
-      msg.send_size = 0;
       break;
 
     case FBTTY_LOAD_FONT:
       msg.a0 = fb->load_font(buffer);
-      msg.send_size = 0;
       break;
 
       /*    case FBTTY_PUT_CH:

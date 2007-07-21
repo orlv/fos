@@ -22,6 +22,14 @@ TProcess::~TProcess()
 {
   delete memory;
   delete name;
+
+  List<Thread *> *curr, *n;
+  list_for_each_safe(curr, n, threads){
+    //delete curr->item;
+    delete curr;
+  }
+  //delete threads->item;
+  delete threads;
 }
 
 u32_t TProcess::LoadELF(register void *image)
@@ -43,8 +51,7 @@ u32_t TProcess::LoadELF(register void *image)
       /*
 	Выделим память под секцию
 	Учтём, что начало секции может быть не выровнено по началу страницы
-      */
-      /*
+
 	NOTE: выделяются свободные страницы, мапятся в область ядра
 	После, эти же страницы мапятся в область конкретного процесса.
 	__ВАЖНО__: Затем необходимо освободить область ядра от этих страниц (kfree())

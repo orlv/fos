@@ -80,9 +80,6 @@ asmlinkage void init()
   out_banner();
   printk("Memory size: %d Kb, free %dK (%dK high/%dK low)\n", hal->pages_cnt*4, hal->free_pages.read()*4 + hal->free_lowpages.read()*4, hal->free_pages.read()*4, hal->free_lowpages.read()*4);
 
-  //extern size_t volatile heap_free;
-  //printk("Memory size: %d Kb, free %dK (%dK high/%dK low), heap_free=%d\n", hal->pages_cnt*4, atomic_read(&hal->free_pages)*4 + atomic_read(&hal->free_lowpages)*4, atomic_read(&hal->free_pages)*4, atomic_read(&hal->free_lowpages)*4, heap_free);
-
   hal->procman = new TProcMan;
 
   SysTimer = new Timer;
@@ -100,13 +97,19 @@ asmlinkage void init()
 	 "All OK. Main kernel procedure done.\n"			\
 	 "-------------------------------------------------------------------------------\n");
 
-  //i=0;
+#if 0
+  extern size_t volatile heap_free;
+  i=0;
   while(1){
-    /*i++;
-    if(i == 0x150){
-      printk("\nMemory size: %d Kb, free %dK (%dK high/%dK low), heap_free=%d ", hal->pages_cnt*4, hal->free_pages.read()*4 + hal->free_lowpages.read()*4, hal->free_pages.read()*4, hal->free_lowpages.read()*4, heap_free);
+    i++;
+    if(i == 0x60){
+      printk("Memory size: %d Kb, free %dK (%dK high/%dK low), heap_free=%d \n", hal->pages_cnt*4, hal->free_pages.read()*4 + hal->free_lowpages.read()*4, hal->free_pages.read()*4, hal->free_lowpages.read()*4, heap_free);
       i=0;
-      }*/
+    }
     sched_yield();
   }
+#else
+  while(1)
+    sched_yield();
+#endif
 }

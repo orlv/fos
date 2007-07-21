@@ -35,21 +35,17 @@ void eval(const unsigned char *command)
   }
 
   if(!strcmp((const char *)command, "test"))
-    exec("test");
+    printf("executing \"test\", tid=0x%X\n", exec("test"));
   
   printf("# ");
 }
 
 asmlinkage int main()
 {
-  int fd, fd1;
+  int fd;
   while((fd = open("/dev/keyboard", 0)) == -1) sched_yield();
   printf("uptime=%d\n", uptime());
   char ch;
-  char *buf;
-  size_t len;
-  extern int tty;
-  volatile struct message msg;
   unsigned char *command = new unsigned char [256];
   size_t i=0;
   printf("\nWelcome to FOS Operating System\n" \

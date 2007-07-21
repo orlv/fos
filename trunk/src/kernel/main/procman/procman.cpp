@@ -88,10 +88,9 @@ void procman_srv()
 
   hal->tid_namer = execute("namer");
   //printk("namer=0x%X\n", hal->tid_namer);
-  printk("procman: registering /sys/procman\n");
+  //printk("procman: registering /sys/procman\n");
   //resmgr_attach("/sys/procman");
   //printk("procman: ready\n");
-  //while(1);
   char *pathname = new char[MAX_PATH_LEN];
 
   execute("init");
@@ -101,8 +100,9 @@ void procman_srv()
     msg->recv_size = MAX_PATH_LEN;
     msg->recv_buf = pathname;
     msg->tid = _MSG_SENDER_ANY;;
+
     receive(msg);
-    //printk("procman: a0=%d from [%s]\n", msg->a0, THREAD(msg->tid)->process->name);
+    printk("procman: a0=%d from [%s]\n", msg->a0, THREAD(msg->tid)->process->name);
 
     switch(msg->a0){
     case PROCMAN_CMD_EXEC:
@@ -303,20 +303,13 @@ void TProcMan::unreg_thread(register List<Thread *> * thread)
 List<Thread *> *TProcMan::do_kill(List<Thread *> *thread)
 {
   List<Thread *> *next;
-  //printk("thread=0x%X\n", thread);
   if(thread->item->flags & FLAG_TSK_TERM) {
     TProcess *process = thread->item->process;
-    //printk("process=0x%X\n", process);
     List<Thread *> *current = threadlist;
     do {
       next = current->next;
-      if (current->item->process == process) {
-	//printk("unreg!\n");
+      if (current->item->process == process)
 	unreg_thread(current);
-      }
-      //printk("next=0x%X\n", next);
-      //printk("fooo"); while(1);
-
       current = next;
     } while (current != threadlist);
     delete process;
@@ -373,33 +366,4 @@ Thread *TProcMan::get_thread_by_tid(register tid_t tid)
 
   hal->mt_enable();
   return result;
-}
-
-void kill(pid_t pid)
-{
-  hal->panic("kernel: kill called\n");
-  /*
-  message msg;
-  msg.cmd = PROCMAN_CMD_KILL;
-  msg.a0 = tid;
-  msg.send_size = 0;
-  msg.recv_size = 0;
-  msg.tid = hal->tid_procman;
-  return send(&msg);
-   */
-  #if 0
-  struct message *msg = new struct message;
-  struct procman_message *pm = new procman_message;
-  pm->cmd = PROCMAN_CMD_KILL;
-  pm->arg.pid = pid;
-
-  msg->send_buf = pm;
-  msg->recv_buf = 0;
-  msg->send_size = sizeof(struct procman_message);
-  msg->recv_size = 0;
-  msg->tid = 0;
-  send(msg);
-  delete msg;
-  delete pm;
-  #endif
 }

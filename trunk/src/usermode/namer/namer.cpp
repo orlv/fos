@@ -35,15 +35,11 @@ asmlinkage int main()
   char *pathname = new char[MAX_PATH_LEN];
   char *path_tail = new char[MAX_PATH_LEN];
 
-  //namer->add("/sys/namer", my_tid());
-  //printf("namer: ready\n");
   while(1){
     msg->recv_size = MAX_PATH_LEN;
     msg->recv_buf  = pathname;
     msg->tid = _MSG_SENDER_ANY;
     receive(msg);
-
-    //printf("namer: a0=%d from [%s]\n", msg->a0, THREAD(msg->tid)->process->name);
     switch(msg->a0){
     case NAMER_CMD_ADD:
       //printf("namer: adding [%s]\n", pathname);
@@ -143,13 +139,6 @@ Tobject::Tobject(const string name, sid_t sid)
   set_name(name);
 }
 
-void Tobject::set_name(const string name)
-{
-  delete this->name;
-  this->name = new char[strlen(name) + 1];
-  strcpy(this->name, name);
-}
-
 Tobject::~Tobject()
 {
   List<Tobject *> *entry, *n;
@@ -161,6 +150,13 @@ Tobject::~Tobject()
   }
   
   delete sub_objects;
+}
+
+void Tobject::set_name(const string name)
+{
+  delete this->name;
+  this->name = new char[strlen(name) + 1];
+  strcpy(this->name, name);
 }
 
 Tobject * Tobject::add_sub(const string name, sid_t sid)
@@ -225,12 +221,10 @@ Tobject * Namer::access(const string name, string name_tail)
   do {
     if(!(object = object->access(entry->item)))
       break;
-
     if(object->sid){
       obj = object;
       e = entry;
     }
-
     entry = entry->next;
   } while (entry != path);
   
@@ -250,6 +244,7 @@ Tobject * Namer::access(const string name, string name_tail)
     delete entry->item;
     delete entry;
   }
+  delete path->item;
   delete path;
 
   return obj;

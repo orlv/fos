@@ -25,9 +25,9 @@ Memory::Memory(offs_t base, size_t size, u16_t flags)
 
 Memory::~Memory()
 {
-  //printk("memory: destructor\n");
-  /* удалим список использованной памяти и освободим занятые страницы */
   List<memblock *> *curr, *n;
+
+  /* удалим список использованной памяти и освободим выделенные страницы */
   list_for_each_safe (curr, n, UsedMem) {
     umap_pages(PAGE(curr->item->vptr), curr->item->size / PAGE_SIZE);
     delete curr->item;
@@ -43,16 +43,25 @@ Memory::~Memory()
     delete curr;
   }
 
+  delete FreeMem->item;
+  delete FreeMem;
+  
   /* освободим таблицы страниц и каталог страниц */
   for (u32_t i = USER_MEM_BASE/1024; i < 1024; i++) {
     if(pagedir[i]) {
       u32_t pagetable = kmem_log_addr(PAGE(pagedir[i])) * PAGE_SIZE;
-      umount_page(pagetable);
+#if 0
+      for(u32_t j=0; j<1024; j++) {
+	if(((u32_t *)pagetable)[j])
+	  put_page(PAGE(((u32_t *)pagetable)[j]));
+      }
+#endif
+      put_page(PAGE(pagetable));
       kfree((void *)pagetable);
     }
   }
 
-  umount_page((u32_t)pagedir);
+  put_page(PAGE(OFFSET(pagedir)));
   kfree(pagedir);
 }
 

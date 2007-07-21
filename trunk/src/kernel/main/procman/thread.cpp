@@ -12,13 +12,7 @@
 #include <string.h>
 #include <stdio.h>
 
-Thread::Thread(class TProcess *process,
-	       off_t eip,
-	       u16_t flags,
-	       void * kernel_stack,
-	       void * user_stack,
-	       u16_t code_segment,
-	       u16_t data_segment)
+Thread::Thread(class TProcess *process, off_t eip, u16_t flags, void * kernel_stack, void * user_stack, u16_t code_segment, u16_t data_segment)
 {
   kmessage *_msg = new(kmessage);
   new_messages = new List<kmessage *>(_msg);      /* пустое сообщение */

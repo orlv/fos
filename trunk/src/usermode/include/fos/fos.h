@@ -3,12 +3,10 @@
   Copyright (C) 2007 Oleg Fedorov
  */
 
-#ifndef FOS_H
-#define FOS_H
+#ifndef _FOS_H
+#define _FOS_H
 
 #include <types.h>
-
-#define PAGE_SIZE 0x1000
 
 static inline void mask_interrupt(u32_t int_num)
 {
@@ -23,13 +21,6 @@ static inline void unmask_interrupt(u32_t int_num)
 //asmlinkage tid_t resolve(char *name);
 asmlinkage u32_t kill(tid_t tid);
 asmlinkage tid_t exec(const char * filename);
-
-asmlinkage void * kmemmap(offs_t ptr, size_t size);
-
-#define MEM_FLAG_LOWPAGE 1
-
-asmlinkage void * kmalloc(size_t size, u32_t flags);
-asmlinkage int kfree(off_t ptr);
 
 asmlinkage tid_t thread_create(off_t eip);
 

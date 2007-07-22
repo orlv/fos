@@ -6,20 +6,10 @@ include ../config.mk
 
 INSTALLDIR	=	$(TOPDIR)/lib
 
-OUTPUT		=	libc.a
+OUTPUT		=	libcpp.a
 
-OBJECTS		=	startup.o	\
-			close.o		\
-			exit.o		\
-			lseek.o		\
-			malloc.o	\
-			open.o		\
-			read.o		\
-			write.o		\
-			malloc.o	\
-			sprintf.o	\
-			vsprintf.o	\
-			printf.o
+OBJECTS		=	tmutex.o	\
+			libcpp.o
 
 all:	$(OBJECTS)
 	$(AR) rc $(OUTPUT) $(OBJECTS)

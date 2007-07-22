@@ -10,20 +10,9 @@
 
 asmlinkage void exit(int status);
 
-#ifdef __cplusplus
-extern "C"
-#endif
-void *malloc(size_t size);
-
-#ifdef __cplusplus
-extern "C"
-#endif
-void free(void *ptr);
-
-#ifdef __cplusplus
-extern "C"
-#endif
-void *realloc(void *ptr, size_t size);
+asmlinkage void *malloc(size_t size);
+asmlinkage void free(void *ptr);
+asmlinkage void *realloc(void *ptr, size_t size);
 
 
 #endif

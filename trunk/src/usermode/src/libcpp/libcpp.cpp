@@ -2,7 +2,7 @@
   Copyright (C) 2006-2007 Oleg Fedorov
 */
 
-#include <malloc.h>
+#include <stdlib.h>
 
 void *operator  new(unsigned int size)
 {

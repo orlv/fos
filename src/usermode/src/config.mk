@@ -8,12 +8,15 @@ LD = ld
 AR = ar
 #----------------------------------------------------------------------------#
 
-FLAGS=-Wall -nostdlib -nostdinc -I../include -I. -L../lib -fno-stack-protector -O3
+PWD=`pwd`
+TOPDIR=$(PWD)/../..
+
+FLAGS=-Wall -nostdlib -nostdinc -I$(TOPDIR)/include -fno-stack-protector -O3
 
 ASFLAGS =$(FLAGS)
 CFLAGS  =$(FLAGS) -ffreestanding -fno-leading-underscore
 CXXFLAGS=$(FLAGS) -nostdinc++ -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin
-LDFLAGS =-nostdlib -L=$(BINDIR)
+LDFLAGS =-nostdlib -L$(TOPDIR)/lib 
 
 .s.o:
 	@echo "Compiling $<"

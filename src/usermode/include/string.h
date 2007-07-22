@@ -1,6 +1,6 @@
 /*
-  servers/include/string.h
-  Взято из linux-2.6.17
+  include/string.h
+  Основано на string.h из linux-2.6.17
 */
 
 #ifndef __STRING_H

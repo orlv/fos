@@ -34,4 +34,19 @@ asmlinkage res_t receive(struct message *msg);
 asmlinkage res_t reply(struct message *msg);
 asmlinkage res_t forward(struct message *msg, tid_t to);
 
+#include <sched.h>
+
+static inline res_t do_send(struct message *msg)
+{
+  res_t result;
+  while(1) {
+    result = send(msg);
+    if(result == RES_FAULT2) { /* очередь получателя переполнена, обратимся чуть позже */
+      sched_yield();
+      continue;
+    }
+    return result;
+  }
+}
+
 #endif

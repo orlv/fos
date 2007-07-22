@@ -19,11 +19,6 @@
 
 #define BASE_CMD_N 64
 
-#define NAMER_CMD_ACCESS  FS_CMD_ACCESS
-#define NAMER_CMD_ADD     (BASE_CMD_N + 0)
-#define NAMER_CMD_REM     (BASE_CMD_N + 1)
-#define NAMER_CMD_RESOLVE (BASE_CMD_N + 2)
-
 #define NO_ERR                0
 #define ERR_EOF               1
 #define ERR_LOCALBUF_OVERFULL 2
@@ -41,10 +36,6 @@ struct fd {
 };
 
 typedef struct fd* fd_t;
-
-#define SEEK_SET 0
-#define SEEK_CUR 1
-#define SEEK_END 2
 
 #if 0
 struct dirent {

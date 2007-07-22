@@ -6,20 +6,22 @@ include ../config.mk
 
 INSTALLDIR	=	$(TOPDIR)/lib
 
-OUTPUT		=	libc.a
+OUTPUT		=	libfos.a
 
-OBJECTS		=	startup.o	\
-			close.o		\
-			exit.o		\
-			lseek.o		\
-			malloc.o	\
-			open.o		\
-			read.o		\
-			write.o		\
-			malloc.o	\
-			sprintf.o	\
-			vsprintf.o	\
-			printf.o
+OBJECTS		=	message.o	\
+			kill.o		\
+			exec.o		\
+			kmemmap.o	\
+			kmalloc.o	\
+			kfree.o		\
+			thcreate.o	\
+			intattach.o	\
+			intdetach.o	\
+			resmgrattach.o	\
+			dmesg.o		\
+			uptime.o	\
+			alarm.o		\
+			alarm2.o
 
 all:	$(OBJECTS)
 	$(AR) rc $(OUTPUT) $(OBJECTS)

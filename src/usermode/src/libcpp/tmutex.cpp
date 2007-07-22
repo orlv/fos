@@ -3,8 +3,8 @@
   (C) XSystem Kernel Team
 */
 
-#include <tmutex.h>
-#include <fos.h>
+#include <c++/tmutex.h>
+#include <asm/xchg.h>
 
 TMutex::TMutex(void)
 {

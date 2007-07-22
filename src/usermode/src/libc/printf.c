@@ -7,6 +7,7 @@
 #include <vsprintf.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sched.h>
 
 char printbuf[256];
 int tty = 0;

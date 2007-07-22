@@ -5,12 +5,11 @@
  * :)
  */
 
-#include <fos.h>
-#include <types.h>
-#include <malloc.h>
+#include <stdlib.h>
+#include <fos/page.h>
 #include <string.h>
 
-#define MM_MINALLOC PAGE_SIZE /* размер выделяемой единицы */
+#define MM_MINALLOC getpagesize() /* размер выделяемой единицы */
 
 struct HeapMemBlock{
   struct HeapMemBlock *ptr;

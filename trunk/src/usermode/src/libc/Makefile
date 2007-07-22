@@ -1,27 +1,37 @@
+#----------------------------------------------------------------------------#
+#	Copyright (C) 2007 Oleg Fedorov
+#----------------------------------------------------------------------------#
 
-CONFIG      = ../config.mk
-MAIN_CONFIG = ../../config.mk
+include ../config.mk
 
-include $(MAIN_CONFIG)
-include $(CONFIG)
+INSTALLDIR	=	$(TOPDIR)/lib
 
-OBJECTS =	startup.o	\
-		fos.o		\
-		heap.o		\
-		libcpp.o	\
-		msg.o		\
-		tmutex.o	\
-		vsprintf.o
+OUTPUT		=	libc.a
 
-OUTPUT = ../lib/libc.a
+OBJECTS		=	startup.o	\
+			fos.o		\
+			malloc.o	\
+			libcpp.o	\
+			sprintf.o	\
+			vsprintf.o	\
+			printf.o	\
+			msg.o		\
+			tmutex.o	\
 
-all:    $(OBJECTS)
+
+all:	$(OBJECTS)
 	$(AR) rc $(OUTPUT) $(OBJECTS)
 
- #--------------------------------- Clean -------------------------------------#
+install:
+	cp $(OUTPUT) $(INSTALLDIR)/$(OUTPUT)
+
+#--------------------------------- Clean -------------------------------------#
 
 clean:
 	@rm -f $(OBJECTS)
 	@rm -f $(OUTPUT)
+
+uninstall:
+	rm -f $(INSTALLDIR)/$(OUTPUT)
 
 #-----------------------------------------------------------------------------#

@@ -1,25 +1,14 @@
 /*
-    lib/stdio.c
+    lib/printf.c
     Copyright (C) 2006-2007 Oleg Fedorov
 */
 
-#include <stdio.h>
 #include <stdarg.h>
 #include <vsprintf.h>
-#include <fos.h>
-#include <fs.h>
-
-int sprintf(char *str, const char *fmt, ...)
-{
-  va_list args;
-  va_start(args, fmt);
-  int i = vsprintf(str, fmt, args);
-  va_end(args);
-  return i;
-}
+#include <unistd.h>
+#include <fcntl.h>
 
 char printbuf[256];
-
 int tty = 0;
 
 int printf(const char *fmt, ...)

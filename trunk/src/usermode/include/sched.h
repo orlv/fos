@@ -1,5 +1,6 @@
 /*
-  Copiright (C) 2007 Oleg Fedorov
+  include/sched.h
+  Copyright (C) 2007 Oleg Fedorov
  */
 
 #ifndef _SCHED_H

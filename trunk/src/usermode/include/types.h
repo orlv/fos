@@ -6,12 +6,13 @@
 #ifndef _TYPES_H
 #define _TYPES_H
 
+#include <stddef.h>
+
 typedef unsigned int size_t;
 typedef signed int ssize_t;
 typedef unsigned int num_t;
 typedef unsigned int off_t;
 typedef unsigned int offs_t;
-//typedef long long off_t;
 
 typedef unsigned char *p_u8_t;
 typedef unsigned short *p_u16_t;
@@ -30,8 +31,6 @@ typedef unsigned long u32_t;
 typedef signed char s8_t;
 typedef signed short s16_t;
 typedef signed long s32_t;
-
-#define NULL 0
 
 #ifdef __cplusplus
 #define asmlinkage extern "C" __attribute__((regparm(0)))

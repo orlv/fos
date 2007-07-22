@@ -83,8 +83,6 @@ static inline void unmask_interrupt(u32_t int_num)
 }
 
 //asmlinkage tid_t resolve(char *name);
-
-asmlinkage void exit();
 asmlinkage u32_t kill(tid_t tid);
 asmlinkage tid_t exec(const char * filename);
 

@@ -42,16 +42,9 @@ struct fd {
 
 typedef struct fd* fd_t;
 
-asmlinkage int open(const char *pathname, int flags);
-asmlinkage int close(int fildes);
-asmlinkage ssize_t read(int fildes, void *buf, size_t bytes);
-asmlinkage ssize_t write(int fildes, const void *buf, size_t bytes);
-
 #define SEEK_SET 0
 #define SEEK_CUR 1
 #define SEEK_END 2
-
-asmlinkage off_t lseek(int fildes, off_t offset, int whence);
 
 #if 0
 struct dirent {

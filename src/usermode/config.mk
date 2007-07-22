@@ -5,6 +5,7 @@ CC = gcc
 C++ = gcc
 AS = gcc
 LD = ld
+AR = ar
 #----------------------------------------------------------------------------#
 
 FLAGS=-Wall -nostdlib -nostdinc -I../include -I. -L../lib -fno-stack-protector -O3

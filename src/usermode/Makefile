@@ -22,8 +22,8 @@ all:
 	@echo ---------------------------------\> Building test
 	@make -s -C test $(MKFLAGS)
 	@echo ---------------------------------\> Building fbtty
-#	@make -s -C tty $(MKFLAGS)
-	@make -s -C fbtty $(MKFLAGS)
+	@make -s -C tty $(MKFLAGS)
+#	@make -s -C fbtty $(MKFLAGS)
 #	@echo ---------------------------------\> Building hd
 #	@make -s -C hd $(MKFLAGS)
 

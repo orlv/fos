@@ -219,6 +219,7 @@ int fbterm::set_videomode(u16_t mode)
       lfb_cache = (u16_t *)kmalloc(lfb_size, 0);
       mode = msg.a1;
 
+      bar(scr_width-20, 0, 20, 20, 0xadef);
       bar(10, 10, scr_width-20, scr_height-20, 0x4aad);
       close(fd);
       return 1;

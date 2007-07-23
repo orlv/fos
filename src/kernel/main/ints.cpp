@@ -47,11 +47,11 @@ void exception(string str, unsigned int cs,  unsigned int address, unsigned int 
     if(address < USER_MEM_BASE) {
       hal->panic("fault in kernel code!\n");
     }
-    
+
+    printk("fault in user task! task terminated\n");
     hal->procman->current_thread->flags |= FLAG_TSK_TERM;
     hal->procman->current_thread->flags &= ~FLAG_TSK_READY;
-    printk("fault in user task! task terminated\n");
-    while(1);
+    while(1) sched_yield();
   }
 }
 
@@ -173,7 +173,18 @@ EXCEPTION_HANDLER(interrupt_hdl_not_present_exception)
   exception("interrupt_hdl_not_present", cs, address, errorcode);
 }
 
-IRQ_HANDLER(timer_handler)
+void common_interrupt(u8_t n)
+{
+  hal->pic->mask(n); /* Демаскировку должен производить обработчик */
+  if(hal->user_int_handler[n]){
+    hal->user_int_handler[n]->set_signal(n);
+  } else
+    hal->panic("Unhandled interrupt received!\n");
+  
+  hal->outportb(0x20, 0x20);
+}
+
+IRQ_HANDLER(irq_0)
 {
   extern Timer *SysTimer;
   SysTimer->tick(); /* Считаем время */
@@ -188,26 +199,21 @@ IRQ_HANDLER(timer_handler)
   sched_yield();  /* Передадим управление scheduler() */
 }
 
-void common_interrupt(u8_t n)
-{
-  hal->pic->mask(n); /* Демаскировку должен производить обработчик */
-  if(hal->user_int_handler[n]){
-    hal->user_int_handler[n]->set_signal(n);
-  } else
-    hal->panic("Unhandled interrupt received!\n");
-  
-  hal->outportb(0x20, 0x20);
-}
-
-IRQ_HANDLER(irq_1)
-{
-  common_interrupt(1);
-}
-
-IRQ_HANDLER(irq_6)
-{
-  common_interrupt(6);
-}
+IRQ_HANDLER(irq_1)  { common_interrupt(1);  }
+IRQ_HANDLER(irq_2)  { common_interrupt(2);  }
+IRQ_HANDLER(irq_3)  { common_interrupt(3);  }
+IRQ_HANDLER(irq_4)  { common_interrupt(4);  }
+IRQ_HANDLER(irq_5)  { common_interrupt(5);  }
+IRQ_HANDLER(irq_6)  { common_interrupt(6);  }
+IRQ_HANDLER(irq_7)  { common_interrupt(7);  }
+IRQ_HANDLER(irq_8)  { common_interrupt(8);  }
+IRQ_HANDLER(irq_9)  { common_interrupt(9);  }
+IRQ_HANDLER(irq_10) { common_interrupt(10); }
+IRQ_HANDLER(irq_11) { common_interrupt(11); }
+IRQ_HANDLER(irq_12) { common_interrupt(12); }
+IRQ_HANDLER(irq_13) { common_interrupt(13); }
+IRQ_HANDLER(irq_14) { common_interrupt(14); }
+IRQ_HANDLER(irq_15) { common_interrupt(15); }
 
 void setup_idt()
 {
@@ -231,15 +237,29 @@ void setup_idt()
   hal->idt->set_trap_gate(0x10, (off_t) & FPU_error_exception, 0);
   hal->idt->set_trap_gate(0x11, (off_t) & align_error_exception, 0);
   hal->idt->set_trap_gate(0x12, (off_t) & machine_depend_error_exception, 0);
+
   for (i = 0x13; i < 0x20; i++)
     hal->idt->set_trap_gate(i, (off_t) & reserved_exception, 0);
 
-  for (i = 0x20; i < 0x100; i++)
-    hal->idt->set_trap_gate(i, (off_t) & interrupt_hdl_not_present_exception, 0);
-
-  hal->idt->set_intr_gate(0x20, (off_t) & timer_handler);
-  hal->idt->set_intr_gate(0x21, (off_t) & irq_1);  /* keyboard */
+  hal->idt->set_intr_gate(0x20, (off_t) & irq_0); /* timer */
+  hal->idt->set_intr_gate(0x21, (off_t) & irq_1); /* keyboard */
+  hal->idt->set_intr_gate(0x22, (off_t) & irq_2);
+  hal->idt->set_intr_gate(0x23, (off_t) & irq_3);
+  hal->idt->set_intr_gate(0x24, (off_t) & irq_4);
+  hal->idt->set_intr_gate(0x25, (off_t) & irq_5);
   hal->idt->set_intr_gate(0x26, (off_t) & irq_6); /* floppy */
+  hal->idt->set_intr_gate(0x27, (off_t) & irq_7);
+  hal->idt->set_intr_gate(0x28, (off_t) & irq_8);
+  hal->idt->set_intr_gate(0x29, (off_t) & irq_9);
+  hal->idt->set_intr_gate(0x2a, (off_t) & irq_10);
+  hal->idt->set_intr_gate(0x2b, (off_t) & irq_11);
+  hal->idt->set_intr_gate(0x2c, (off_t) & irq_12);
+  hal->idt->set_intr_gate(0x2d, (off_t) & irq_13);
+  hal->idt->set_intr_gate(0x2e, (off_t) & irq_14);
+  hal->idt->set_intr_gate(0x2f, (off_t) & irq_15);
 
-  hal->idt->set_trap_gate(0x30, (off_t) & sys_call, 3);
+  hal->idt->set_trap_gate(0x30, (off_t) & sys_call, 3); /* системный вызов */
+
+  for (i = 0x31; i < 0x100; i++)
+    hal->idt->set_trap_gate(i, (off_t) & interrupt_hdl_not_present_exception, 0);
 }

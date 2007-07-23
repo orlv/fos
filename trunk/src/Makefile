@@ -46,7 +46,8 @@ build_kernel:
 
 build_user:
 	@echo \#---------------------- Building usermode programs ----------------------------
-	@make -s -C usermode $(MKFLAGS)
+	@make -s -C usermode/src/
+	@cp usermode/modules/* $(SYSTEM_ROOT)/modules/
 	@echo \#------------------------------------------------------------------------------
 
 
@@ -56,7 +57,7 @@ clean_kernel:
 	@make -C kernel clean $(MKFLAGS)
 
 clean_user:
-	@make -C usermode clean $(MKFLAGS)
+	@make -C usermode/src/ clean uninstall $(MKFLAGS)
 
 clean: clean_kernel clean_user
 	@rm -f $(BINDIR)/ramdisk.gz

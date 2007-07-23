@@ -2,11 +2,13 @@
   Copyright (C) 2007 Oleg Fedorov
  */
 
-#include <fos.h>
+#include <fos/fos.h>
+#include <fos/fs.h>
+#include <fos/message.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "keyboard.h"
-#include <fs.h>
 
 volatile bool ready = 0;
 Keyboard *kb;
@@ -17,7 +19,7 @@ void thread_handler()
     printf("keyboard: interrupt attached\n");
   else {
     printf("keyboard: can't attache interrupt!\n");
-    exit();
+    exit(1);
   }
 
   struct message msg;

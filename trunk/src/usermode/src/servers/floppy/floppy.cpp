@@ -5,13 +5,17 @@
   - перенесено в usermode (Fri Jul 13 21:53:00 2007)
 */
 
-#include "floppy.h"
-#include "dma.h"
-#include <fos.h>
+#include <fos/fos.h>
+#include <fos/fs.h>
+#include <fos/message.h>
+#include <fos/page.h>
+#include <sys/io.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <fs.h>
-#include <io.h>
+#include "floppy.h"
+#include "dma.h"
+
 
 #define BLOCK_SIZE 512
 
@@ -57,7 +61,7 @@ asmlinkage int main()
     printf("floppy: interrupt attached\n");
   else {
     printf("floppy: can't attache interrupt!\n");
-    exit();
+    exit(1);
   }
   
   floppy = new Floppy;

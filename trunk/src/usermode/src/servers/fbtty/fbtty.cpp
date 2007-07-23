@@ -2,10 +2,11 @@
   Copyright (C) 2007 Oleg Fedorov
  */
 
-#include <fos.h>
+#include <fos/message.h>
+#include <fos/fos.h>
+#include <fos/fs.h>
 #include <string.h>
 #include <stdio.h>
-#include <fs.h>
 #include "fbterm.h"
 
 #define FBTTY_CMD_SET_MODE (BASE_CMD_N + 0)

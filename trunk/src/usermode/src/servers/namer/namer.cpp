@@ -21,11 +21,13 @@
   будет открыт не тот файл)
 */
 
-#include "namer.h"
+#include <fos/fs.h>
+#include <fos/fos.h>
+#include <fos/message.h>
+#include <fos/namer.h>
 #include <string.h>
 #include <stdio.h>
-#include <fs.h>
-#include <fos.h>
+#include "namer.h"
 
 asmlinkage int main()
 {

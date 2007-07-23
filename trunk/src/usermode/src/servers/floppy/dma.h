@@ -22,6 +22,6 @@ const struct dma_channel dmainfo[] = {
   {0x82, 0x06, 0x07}
 };
 
-void dma_xfer(u16_t channel, u32_t physaddr, u16_t length, u8_t read);
+asmlinkage void dma_xfer(u16_t channel, u32_t physaddr, u16_t length, u8_t read);
 
 #endif

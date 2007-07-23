@@ -7,12 +7,11 @@
 #define _TTY_H
 
 #include <types.h>
-//#include <tinterface.h>
 
 #define TTY_MODE_BLOCK  0
 #define TTY_MODE_CHAR   1
 
-class TTY			/*: public Tinterface */
+class TTY
 {
  private:
   size_t bufsize;

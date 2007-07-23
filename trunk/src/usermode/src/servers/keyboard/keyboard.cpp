@@ -3,10 +3,9 @@
   Copyright (C) 2004-2007 Oleg Fedorov
 */
 
-#include "keyboard.h"
-#include <fos.h>
+#include <fos/fos.h>
 #include <stdio.h>
-#include <io.h>
+#include "keyboard.h"
 
 #define PORT_KBD_A      0x60
 

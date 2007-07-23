@@ -6,21 +6,12 @@ include ../config.mk
 
 INSTALLDIR	=	$(TOPDIR)/lib
 
-OUTPUT		=	libc.a
+OUTPUT		=	crt0.o
 
-OBJECTS		=	close.o		\
-			malloc.o	\
-			exit.o		\
-			lseek.o		\
-			open.o		\
-			read.o		\
-			write.o		\
-			sprintf.o	\
-			vsprintf.o	\
-			printf.o
+OBJECTS		=	crt0.o
 
-all:	$(OBJECTS)
-	$(AR) rcs $(OUTPUT) $(OBJECTS)
+all:		$(OBJECTS)
+
 
 install:
 	cp $(OUTPUT) $(INSTALLDIR)/$(OUTPUT)

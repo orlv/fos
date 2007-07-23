@@ -8,8 +8,8 @@
 #define __KEYBOARD_H
 
 #include <types.h>
-#include <io.h>
-#include <tmutex.h>
+#include <sys/io.h>
+#include <c++/tmutex.h>
 
 #define KB_CHARS_BUFF_SIZE 256
 

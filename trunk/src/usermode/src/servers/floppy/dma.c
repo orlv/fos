@@ -1,11 +1,11 @@
 /*
-  kernel/drivers/dma.cpp
+  kernel/drivers/dma.c
   Copyright (C) 2004-2006 Oleg Fedorov
 */
 
 #include <types.h>
+#include <sys/io.h>
 #include "dma.h"
-#include <io.h>
 
 /*
  * this sets up a DMA trasfer between a device and memory.  Pass the DMA

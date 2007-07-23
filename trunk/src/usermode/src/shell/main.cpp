@@ -2,10 +2,12 @@
   Copyright (C) 2007 Oleg Fedorov 
 */
 
-#include <fos.h>
+#include <fos/fos.h>
 #include <string.h>
 #include <stdio.h>
-#include <fs.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sched.h>
 
 #define FBTTY_CMD_SET_MODE (BASE_CMD_N + 0)
 #define FBTTY_LOAD_FONT (BASE_CMD_N + 1)
@@ -13,7 +15,6 @@
 
 void eval(const unsigned char *command)
 {
-  //printf("%s\n", command);
   if(!strcmp((const char *) command, "help"))
     printf("FOS - FOS is Operating System\n"	\
 	   "Available next builtin commands:\n" \

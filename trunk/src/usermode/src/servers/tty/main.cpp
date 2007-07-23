@@ -2,12 +2,12 @@
   Copyright (C) 2007 Oleg Fedorov
  */
 
-#include <fos.h>
-#include <string.h>
-#include <vsprintf.h>
+#include <fos/fos.h>
+#include <fos/fs.h>
+#include <fos/message.h>
 #include "vga.h"
 #include "tty.h"
-#include <fs.h>
+
 
 #define RECV_BUF_SIZE 2048
 

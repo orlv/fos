@@ -7,7 +7,6 @@
 #define _VGA_H
 
 #include <types.h>
-//#include "tty.h"
 
 /* VGA data register ports */
 #define VGA_CRT_DC      0x3D5	/* CRT Controller Data Register - color emulation */

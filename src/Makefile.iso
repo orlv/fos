@@ -10,7 +10,6 @@ FN=$(SYSTEM_NAME).iso
 all: clean
 	mkdir $(ISO_BUILD_DIR)/iso.image
 	mkdir $(ISO_BUILD_DIR)/iso.image/$(SRC_DIR_NAME)
-	#cp -r $(SYSTEM_SRC) $(ISO_BUILD_DIR)/iso.image/
 	cp -r $(TOPDIR)/boot $(ISO_BUILD_DIR)/iso.image/
 	cp -rf $(SYSTEM_ROOT) $(ISO_BUILD_DIR)/iso.image/$(ROOT_DIR_NAME)
 	rm -rf `find $(ISO_BUILD_DIR)/iso.image/ -name .svn`

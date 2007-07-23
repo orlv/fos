@@ -1,31 +1,28 @@
 #----------------------------------------------------------------------------#
-#	Copyright (C) 2006-2007 Oleg Fedorov
+#	Copyright (C) 2007 Oleg Fedorov
 #----------------------------------------------------------------------------#
 
-include $(MAIN_CONFIG)
-include $(CONFIG)
+include ../config.mk
 
-OBJECTS  = 	../lib/startup.o \
-		main.o \
-		../lib/fos.o \
-		../lib/heap.o \
-		../lib/libcpp.o \
-		../lib/vsprintf.o \
-		../lib/stdio.o \
-		../lib/msg.o
+INSTALLDIR	= 	$(TOPDIR)/modules
+OUTPUT		=	init
 
-PROGNAME = init
+OBJECTS		=	init.o
 
-#-----------------------------------------------------------------------------#
+LDLIBS		=	-lc -lcpp -lfos
 
-all:    $(OBJECTS)
-	@echo \ Linking $(BINDIR)/$(PROGNAME)
-	@$(LD) $(LDFLAGS) -o $(BINDIR)/$(PROGNAME) --oformat=elf32-i386 --entry=_start $(OBJECTS) --Ttext=$(USER_MEM_BASE)
+all:	$(OBJECTS)
+	@echo \ Linking $(OUTPUT)
+	@$(LD) $(LDFLAGS) -o $(OUTPUT) ../../lib/crt0.o $(OBJECTS) $(LDLIBS) --entry=_start --oformat=elf32-i386  --Ttext=$(USER_MEM_BASE)
 
-#--------------------------------- Clean -------------------------------------#
+install:
+	cp $(OUTPUT) $(INSTALLDIR)/$(OUTPUT)
 
 clean:
 	@rm -f $(OBJECTS)
-	@rm -f $(BINDIR)/$(PROGNAME)
+	@rm -f $(OUTPUT)
+
+uninstall:
+	rm -f $(INSTALLDIR)/$(OUTPUT)
 
 #-----------------------------------------------------------------------------#

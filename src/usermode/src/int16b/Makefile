@@ -2,23 +2,27 @@
 #	Copyright (C) 2006 Oleg Fedorov
 #----------------------------------------------------------------------------#
 
-include $(MAIN_CONFIG)
-include $(CONFIG)
+include ../config.mk
 
-OBJECTS  = main.o
-PROGNAME = int16b
+
+INSTALLDIR	=	$(TOPDIR)/modules
+OUTPUT		=	int16b
+OBJECTS		=	main.o
 
 #-----------------------------------------------------------------------------#
 
 all:    $(OBJECTS)
-	@echo \ Linking $(BINDIR)/$(PROGNAME)
-	@$(LD) $(LDFLAGS) -o $(BINDIR)/$(PROGNAME) $(OBJECTS) --oformat=binary -Tldscript -Ttext=0x500
-#	$(LD) $(LDFLAGS) -shared -o $(BINDIR)/$(PROGNAME) $(OBJECTS) --oformat=elf32-i386
+	@echo \ Linking $(OUTPUT)
+	@$(LD) $(LDFLAGS) -o $(OUTPUT) $(OBJECTS) --oformat=binary -Tldscript -Ttext=0x500
 
-#--------------------------------- Clean -------------------------------------#
+install:
+	cp $(OUTPUT) $(INSTALLDIR)/$(OUTPUT)
 
 clean:
 	@rm -f $(OBJECTS)
-	@rm -f $(BINDIR)/$(PROGNAME)
+	@rm -f $(OUTPUT)
+
+uninstall:
+	rm -f $(INSTALLDIR)/$(OUTPUT)
 
 #-----------------------------------------------------------------------------#

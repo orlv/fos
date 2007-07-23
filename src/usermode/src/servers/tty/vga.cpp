@@ -5,10 +5,10 @@
   (Tue Mar 13 21:04:41 2007) Доработано для использования в сервере консоли
 */
 
-#include "vga.h"
-#include <io.h>
+#include <fos/page.h>
+#include <sys/io.h>
 #include <stdio.h>
-#include <fos.h>
+#include "vga.h"
 
 VGA::VGA()
 {				/*:Tinterface() */
@@ -27,7 +27,7 @@ res_t VGA::init()
   bufsize = geom.height * geom.width;
 
   reset();
-  //return RES_SUCCESS;
+
   return (u32_t) fb;
 }
 

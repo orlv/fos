@@ -2,9 +2,9 @@
   Copyright (C) 2007 Oleg Fedorov
  */
 
-#include <fos.h>
 #include <stdio.h>
-#include <fs.h>
+#include <stdlib.h>
+#include <fos/fos.h>
 
 asmlinkage int main()
 {
@@ -13,6 +13,6 @@ asmlinkage int main()
   exec("keyboard");
   exec("shell");
   //exec("floppy");
-  exit();
+  exit(0);
   return 0;
 }

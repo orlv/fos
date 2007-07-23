@@ -2,10 +2,12 @@
   Copyright (C) 2007 Oleg Fedorov
 */
 
-#include "fbterm.h"
 #include <string.h>
-#include <fos.h>
-#include <fs.h>
+#include <fos/message.h>
+#include <fos/fs.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include "fbterm.h"
 #include "vbe.h"
 #include "psf.h"
 

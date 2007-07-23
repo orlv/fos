@@ -1,7 +1,4 @@
-#include <fos.h>
-#include <string.h>
 #include <stdio.h>
-#include <fs.h>
 
 asmlinkage int main()
 {

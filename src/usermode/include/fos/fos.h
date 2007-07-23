@@ -7,6 +7,7 @@
 #define _FOS_H
 
 #include <types.h>
+#include <fos/syscall.h>
 
 static inline void mask_interrupt(u32_t int_num)
 {

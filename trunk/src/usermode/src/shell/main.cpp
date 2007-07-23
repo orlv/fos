@@ -23,20 +23,16 @@ void eval(const unsigned char *command)
 
   if(!strcmp((const char *)command, "rm -rf /"))
     printf("Oooops! ;)\n");
-
-  if(!strcmp((const char *)command, "uptime"))
+  else if(!strcmp((const char *)command, "uptime"))
     printf("uptime=%d\n", uptime());
-
-  if(!strcmp((const char *)command, "dmesg")) {
+  else if(!strcmp((const char *)command, "dmesg")) {
     extern int tty;
     char *buf = new char[2048];
     size_t len = dmesg(buf, 2048);
     write(tty, buf, len);
     delete buf;
-  }
-
-  if(!strcmp((const char *)command, "test"))
-    printf("executing \"test\", tid=0x%X\n", exec("test"));
+  } else
+    printf("executing \"%s\", tid=0x%X\n", command, exec((const char *)command));
   
   printf("# ");
 }

@@ -1,2 +1,0 @@
-#!/bin/sh
-dd if=koi8-8x16.psf of=koi8-8x16.fnt bs=1 skip=4 count=4096

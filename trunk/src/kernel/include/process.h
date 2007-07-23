@@ -45,6 +45,7 @@ struct kmessage {
 
 #define SYSTID_NAMER   1
 #define SYSTID_PROCMAN 2
+#define SYSTID_MM      3
 
 #define SIGNAL_ALARM   0
 
@@ -64,7 +65,6 @@ class Thread {
   u32_t alarm;
   u32_t signals;
 
-  //atomic_t exit_lock;
  public:
   Thread(class TProcess *process,
 	 off_t eip,
@@ -115,23 +115,6 @@ class Thread {
   
   void parse_signals();
   res_t put_message(kmessage *message);
-
-#if 0
-  inline void enter_exit_lock()
-  {
-    exit_lock->inc();
-  }
-
-  inline void leave_exit_lock()
-  {
-    exit_lock->dec();
-  }
-
-  inline bool check_exit_lock()
-  {
-    return exit_lock->read() > 0;
-  }
-#endif
 };
 
 class TProcess {

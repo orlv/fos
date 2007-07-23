@@ -8,12 +8,12 @@
 void * kmemmap(offs_t ptr, size_t size)
 {
   struct message msg;
-  msg.a0 = PROCMAN_CMD_MEM_MAP;
+  msg.a0 = MM_CMD_MEM_MAP;
   msg.a1 = ptr;
   msg.a2 = size;
   msg.send_size = 0;
   msg.recv_size = 0;
-  msg.tid = SYSTID_PROCMAN;
+  msg.tid = SYSTID_MM;
   if(send(&msg) == RES_SUCCESS)
     return (void *) msg.a0;
   else

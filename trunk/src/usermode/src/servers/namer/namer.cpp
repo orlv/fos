@@ -80,14 +80,33 @@ asmlinkage int main()
       memset(path_tail, 0, MAX_PATH_LEN);
       break;
 
-      //case NAMER_CMD_RESOLVE:
+    case FS_CMD_STAT:
+      obj = namer->access(pathname, path_tail);
+      if(obj->sid){
+	strcpy(pathname, path_tail);
+	msg->send_size = strlen(pathname);
+	msg->send_buf = pathname;
+	if(forward(msg, obj->sid) != RES_SUCCESS){
+	  msg->a0 = 0;
+	  msg->a2 = ERR_NO_SUCH_FILE;
+	  reply(msg);
+	}
+      } else {
+	msg->send_size = 0;
+	msg->a0 = 0;
+	msg->a2 = ERR_NO_SUCH_FILE;
+	reply(msg);
+      }
+      memset(path_tail, 0, MAX_PATH_LEN);
+      break;
+
+      /*case NAMER_CMD_RESOLVE:
       //printf("namer: resolving [%s]\n", m->data3.buf);
-      /*      msg->a0 = hal->namer->resolve(pathname);
+      msg->a0 = hal->namer->resolve(pathname);
       msg->send_size = 0;
       reply(msg);
       break;*/
 
-      //case NAMER_CMD_REM:
     default:
       msg->send_size = 0;
       msg->a0 = 0;
@@ -97,7 +116,7 @@ asmlinkage int main()
   return 0;
 }
 
-size_t p_len(string p)
+static inline size_t p_len(string p)
 {
   size_t i = 0;
   while (p[i] && (p[i] != '/'))

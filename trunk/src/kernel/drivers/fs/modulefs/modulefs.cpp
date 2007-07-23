@@ -16,8 +16,11 @@ void grub_modulefs_srv()
   struct message msg;
   char *buffer = new char[MODULEFS_BUFF_SIZE];
   extern ModuleFS *initrb;
+  printk("modulefs: sss\n");
   while(resmgr_attach("/mnt/modules") != RES_SUCCESS);
-  printk("modulefs server started\n");
+  printk("modulefs: started\n");
+  struct stat *statbuf = new struct stat;
+
   while (1) {
     msg.tid = _MSG_SENDER_ANY;
     msg.recv_buf  = buffer;
@@ -28,7 +31,7 @@ void grub_modulefs_srv()
     case FS_CMD_ACCESS:
       buffer[msg.recv_size] = 0;
       //printk("modulefs: access to [%s]\n", buffer);
-      msg.a0 = initrb->access2(buffer) + 1;
+      msg.a0 = initrb->access(buffer) + 1;
       msg.a1 = MODULEFS_BUFF_SIZE;
       msg.a2 = NO_ERR;
       //printk("[a0=%d]", msg.a0);
@@ -46,6 +49,24 @@ void grub_modulefs_srv()
       msg.send_buf = buffer;
       break;
 
+    case FS_CMD_STAT:
+      buffer[msg.recv_size] = 0;
+      //printk("modulefs: stat of [%s]\n", buffer);
+      msg.a0 = msg.a1 = initrb->access(buffer) + 1;
+      if(!msg.a0) {
+	msg.send_size = 0;
+	break;
+      }
+
+    case FS_CMD_FSTAT:
+      //printk("modulefs: fstat(%d)\n", msg.a1);
+      initrb->stat(statbuf, msg.a1-1);
+      msg.a1 = MODULEFS_BUFF_SIZE;
+      msg.a2 = NO_ERR;
+      msg.send_size = sizeof(struct stat);
+      msg.send_buf = statbuf;
+      break;
+      
     default:
       msg.a0 = 0;
       msg.a2 = ERR_UNKNOWN_CMD;
@@ -71,15 +92,13 @@ static const char *__get_name(const char *str)
 ModuleFS::ModuleFS(multiboot_info_t * mbi)
 {
   this->mbi = mbi;
-  info.type = FTypeDirectory;
 }
 
-int ModuleFS::access2(const string name)
+int ModuleFS::access(const string name)
 {
-  int i;
   char *_name = (char *) __get_name(name);
   /* Ищем соответствующее имя файла */
-  for (i = 0; i < (int) mbi->mods_count; i++) {
+  for (u32_t i = 0; i < mbi->mods_count; i++) {
     if (!strcmp(_name, __get_name((const char *)((module_t *) mbi->mods_addr)[i].string))) /* нашли! */
       return i;
   }
@@ -87,31 +106,29 @@ int ModuleFS::access2(const string name)
   return -1;
 }
 
-
-Tinterface *ModuleFS::access(const string name)
+void ModuleFS::stat(struct stat *statbuf, u32_t n)
 {
-  u32_t i;
-  Tinterface *file = 0;
+  statbuf->st_dev     = 0;
+  statbuf->st_ino     = n;
+  statbuf->st_mode    = 0777;
+  statbuf->st_nlink   = 1;
+  statbuf->st_uid     = 0;
+  statbuf->st_gid     = 0;
+  statbuf->st_rdev    = 0;
+      
+  statbuf->st_size    = size(n);
+      
+  statbuf->st_blksize = 1;
+  statbuf->st_blocks  = statbuf->st_size;
+  statbuf->st_atime   = 0;
+  statbuf->st_mtime   = 0;
+  statbuf->st_ctime   = 0;
+}
 
-  /* Ищем соответствующее имя файла */
-  for (i = 0; i < mbi->mods_count; i++) {
-    if (!strcmp(name, __get_name((const char *)((module_t *) mbi->mods_addr)[i].string))) {	/* нашли! */
-      file = new ModuleFSFile(i, this);
-
-      file->info.type = FTypeObject;
-      file->info.uid = 0;
-      file->info.gid = 0;
-      file->info.mode = 0700;
-      file->info.size =
-	  ((module_t *) mbi->mods_addr)[i].mod_end -
-	  ((module_t *) mbi->mods_addr)[i].mod_start;
-      file->info.atime = 0;
-      file->info.mtime = 0;
-      break;
-    }
-  }
-
-  return file;
+size_t ModuleFS::size(u32_t n)
+{
+  return ((module_t *) mbi->mods_addr)[n].mod_end -
+    ((module_t *) mbi->mods_addr)[n].mod_start;
 }
 
 size_t ModuleFS::read(u32_t n, off_t offset, void *buf, size_t count)
@@ -131,6 +148,7 @@ size_t ModuleFS::read(u32_t n, off_t offset, void *buf, size_t count)
   return count;
 }
 
+#if 0
 obj_info_t *ModuleFS::list(off_t offset)
 {
   if (offset >= mbi->mods_count)	/* переполнение */
@@ -141,7 +159,7 @@ obj_info_t *ModuleFS::list(off_t offset)
   dirent->info.type = FTypeObject;
   dirent->info.uid = 0;
   dirent->info.gid = 0;
-  dirent->info.mode = 0700;
+  dirent->info.mode = 0777;
   dirent->info.size =
       ((module_t *) mbi->mods_addr)[i].mod_end -
       ((module_t *) mbi->mods_addr)[i].mod_start;
@@ -153,6 +171,7 @@ obj_info_t *ModuleFS::list(off_t offset)
   strcpy(dirent->name, name);
   return dirent;
 }
+#endif
 
 ModuleFSFile::ModuleFSFile(u32_t n, ModuleFS * parentdir)
 {

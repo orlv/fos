@@ -51,6 +51,7 @@ ssize_t read(int fildes, void *buf, size_t nbyte)
       return -2;
     
     offset += msg.a0;
+    fd->offset = offset;
   
     if((msg.a2 == ERR_EOF) || offset >= nbyte)
       return offset;
@@ -90,6 +91,7 @@ ssize_t write(int fildes, const void *buf, size_t nbyte)
       return -2;
     
     offset += msg.a0;
+    fd->offset = offset;
 
     if((msg.a2 == ERR_EOF) || offset >= nbyte)
       return offset;
@@ -150,4 +152,46 @@ int resmgr_attach(const char *pathname)
   msg.recv_size = 0;
   msg.tid = SYSTID_NAMER;
   return send((message *)&msg);
+}
+
+int stat(const char *path, struct stat *buf)
+{
+  size_t len = strlen(path);
+  if(len > MAX_PATH_LEN)
+    return 0;
+
+  volatile struct message msg;
+  msg.a0 = FS_CMD_STAT;
+  msg.send_buf = path;
+  msg.send_size = len+1;
+  msg.recv_buf = buf;
+  msg.recv_size = sizeof(struct stat);
+  msg.tid = SYSTID_NAMER;
+
+  if(send((struct message *)&msg) == RES_SUCCESS &&
+     msg.a2 == NO_ERR)
+    return 0;
+  else
+    return -1;
+}
+
+int fstat(int fildes, struct stat *buf)
+{
+  fd_t fd = (fd_t) fildes;
+  if(!fildes || fildes == -1 || !fd->thread)
+    return -1;
+
+  struct message msg;
+  msg.a0 = FS_CMD_FSTAT;
+  msg.a1 = fd->inode;
+  msg.send_size = 0;
+  msg.recv_buf = buf;
+  msg.recv_size = sizeof(struct stat);
+  msg.tid = fd->thread;
+
+  if(send((struct message *)&msg) == RES_SUCCESS &&
+     msg.a2 == NO_ERR)
+    return 0;
+  else
+    return -1;
 }

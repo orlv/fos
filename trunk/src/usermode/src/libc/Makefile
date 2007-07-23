@@ -17,7 +17,10 @@ OBJECTS		=	close.o		\
 			write.o		\
 			sprintf.o	\
 			vsprintf.o	\
-			printf.o
+			printf.o	\
+			time.o		\
+			stat.o		\
+			fstat.o
 
 all:	$(OBJECTS)
 	$(AR) rcs $(OUTPUT) $(OBJECTS)

@@ -3,7 +3,6 @@
  */
 
 #include <fos/message.h>
-#include <fos/syscall.h>
 #include <fos/fs.h>
 #include <string.h>
 #include <stdlib.h>

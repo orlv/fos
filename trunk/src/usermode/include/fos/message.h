@@ -13,6 +13,7 @@
 
 #define SYSTID_NAMER   1
 #define SYSTID_PROCMAN 2
+#define SYSTID_MM      3
 
 struct message {
   const void * send_buf;

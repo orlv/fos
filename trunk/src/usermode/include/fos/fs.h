@@ -1,10 +1,10 @@
 /*
-  include/fs.h
-  Copyright (C) 2006 Oleg Fedorov
+  include/fos/fs.h
+  Copyright (C) 2006-2007 Oleg Fedorov
 */
 
-#ifndef __FS_H
-#define __FS_H
+#ifndef _FOS_FS_H
+#define _FOS_FS_H    1
 
 #include <types.h>
 
@@ -16,6 +16,8 @@
 #define FS_CMD_READ   1
 #define FS_CMD_WRITE  2
 #define FS_CMD_LIST   3
+#define FS_CMD_STAT   4
+#define FS_CMD_FSTAT  5
 
 #define BASE_CMD_N 64
 

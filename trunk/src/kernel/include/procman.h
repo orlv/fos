@@ -23,13 +23,14 @@
 #define PROCMAN_CMD_KILL             (BASE_CMD_N + 1)
 #define PROCMAN_CMD_EXIT             (BASE_CMD_N + 2)
 #define PROCMAN_CMD_THREAD_EXIT      (BASE_CMD_N + 3)
-#define PROCMAN_CMD_MEM_ALLOC        (BASE_CMD_N + 4)
-#define PROCMAN_CMD_MEM_MAP          (BASE_CMD_N + 5)
-#define PROCMAN_CMD_MEM_FREE         (BASE_CMD_N + 6)
-#define PROCMAN_CMD_CREATE_THREAD    (BASE_CMD_N + 7)
-#define PROCMAN_CMD_INTERRUPT_ATTACH (BASE_CMD_N + 8)
-#define PROCMAN_CMD_INTERRUPT_DETACH (BASE_CMD_N + 9)
-#define PROCMAN_CMD_DMESG            (BASE_CMD_N + 10)
+#define PROCMAN_CMD_CREATE_THREAD    (BASE_CMD_N + 4)
+#define PROCMAN_CMD_INTERRUPT_ATTACH (BASE_CMD_N + 5)
+#define PROCMAN_CMD_INTERRUPT_DETACH (BASE_CMD_N + 6)
+#define PROCMAN_CMD_DMESG            (BASE_CMD_N + 7)
+
+#define MM_CMD_MEM_ALLOC        (BASE_CMD_N + 0)
+#define MM_CMD_MEM_MAP          (BASE_CMD_N + 1)
+#define MM_CMD_MEM_FREE         (BASE_CMD_N + 2)
 
 class TProcMan {
 private:

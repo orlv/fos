@@ -58,51 +58,118 @@ int check_ELF_image(register void *image, register size_t image_size)
   return 0;
 }
 
-tid_t execute(char *pathname)
+tid_t execute_module(char *pathname)
 {
+  printk("procman: executing module %s\n", pathname);
+
   extern ModuleFS *initrb;
-  Tinterface *object;
-  char *elf_image;
   tid_t result = 0;
-  
-  printk("procman: executing [%s]\n", pathname);
-  if((object = initrb->access(pathname))){
-    elf_image = new char[object->info.size];
-    object->read(0, elf_image, object->info.size);
-    if(!check_ELF_image(elf_image, object->info.size))
+
+  int fd = initrb->access(pathname);
+  if(fd){
+    size_t size = initrb->size(fd);
+    char *elf_image = new char[size];
+    initrb->read(fd, 0, elf_image, size);
+    if(!check_ELF_image(elf_image, size))
       result = hal->procman->exec(elf_image, pathname);
     delete elf_image;
-    delete object;
   }
   return result;
 }
 
-void procman_srv()
+tid_t execute(char *pathname)
+{
+  tid_t result = 0;
+  
+  printk("procman: executing %s\n", pathname);
+  int fd = open(pathname, 0);
+
+  if (fd != -1) {
+    struct stat *statbuf = new struct stat;
+    fstat(fd, statbuf);
+    char *elf_image = new char[statbuf->st_size];
+    read(fd, elf_image, statbuf->st_size);
+    if(!check_ELF_image(elf_image, statbuf->st_size))
+      result = hal->procman->exec(elf_image, pathname);
+    delete statbuf;
+    delete elf_image;
+  }
+  return result;
+}
+
+void mm_srv()
 {
   Thread *thread;
   struct message *msg = new message;
   msg->tid = 0;
-  
+  while (1) {
+    msg->recv_size = 0;
+    msg->tid = _MSG_SENDER_ANY;
+
+    receive(msg);
+
+    switch(msg->a0){
+    case MM_CMD_MEM_ALLOC:
+      //printk("mm: allocating 0x%X bytes of memory\n", msg->a1);
+      thread = hal->procman->get_thread_by_tid(msg->tid);
+      if(!msg->a2)
+	msg->a0 = (u32_t) thread->process->memory->mem_alloc(msg->a1);
+      else
+	msg->a0 = get_lowpage() * PAGE_SIZE;
+      msg->send_size = 0;
+      reply(msg);
+      break;
+
+    case MM_CMD_MEM_MAP:
+      //printk("mm: mapping 0x%X bytes of memory to 0x%X\n", msg->a2, msg->a1);
+      thread = hal->procman->get_thread_by_tid(msg->tid);
+      msg->a0 = (u32_t) thread->process->memory->mem_alloc_phys(msg->a1, msg->a2);
+      msg->send_size = 0;
+      reply(msg);
+      break;
+
+    case MM_CMD_MEM_FREE:
+      //printk("mm: freeing 0x%X\n", msg->a1);
+      thread = hal->procman->get_thread_by_tid(msg->tid);
+      if(msg->a1 > USER_MEM_BASE){
+	msg->a0 = 1;
+	thread->process->memory->mem_free((void *)msg->a1);
+      } else
+	msg->a0 = -1;
+      msg->send_size = 0;
+      reply(msg);
+      break;
+      
+    default:
+      msg->a0 = RES_FAULT;
+      msg->send_size = 0;
+      reply(msg);
+    }
+  }
+}
+
+void procman_srv()
+{
+  hal->tid_namer = execute_module("namer");
+
+  Thread *thread;
   char *kmesg;
   size_t len;
 
-  hal->tid_namer = execute("namer");
-  //printk("namer=0x%X\n", hal->tid_namer);
-  //printk("procman: registering /sys/procman\n");
-  //resmgr_attach("/sys/procman");
-  //printk("procman: ready\n");
+  struct message *msg = new message;
+  msg->tid = 0;
   char *pathname = new char[MAX_PATH_LEN];
 
-  execute("init");
-  
+  execute_module("init");
+
   while (1) {
     //asm("incb 0xb8000+154\n" "movb $0x2f,0xb8000+155 ");
     msg->recv_size = MAX_PATH_LEN;
     msg->recv_buf = pathname;
-    msg->tid = _MSG_SENDER_ANY;;
+    msg->tid = _MSG_SENDER_ANY;
 
     receive(msg);
-    printk("procman: a0=%d from [%s]\n", msg->a0, THREAD(msg->tid)->process->name);
+    //printk("procman: a0=%d from [%s]\n", msg->a0, THREAD(msg->tid)->process->name);
 
     switch(msg->a0){
     case PROCMAN_CMD_EXEC:
@@ -138,37 +205,6 @@ void procman_srv()
 	msg->a0 = 1;
       else
 	msg->a0 = 0;
-      msg->send_size = 0;
-      reply(msg);
-      break;
-
-    case PROCMAN_CMD_MEM_ALLOC:
-      //printk("procman: allocating 0x%X bytes of memory\n", msg->a1);
-      thread = hal->procman->get_thread_by_tid(msg->tid);
-      if(!msg->a2)
-	msg->a0 = (u32_t) thread->process->memory->mem_alloc(msg->a1);
-      else
-	msg->a0 = get_lowpage() * PAGE_SIZE;
-      msg->send_size = 0;
-      reply(msg);
-      break;
-
-    case PROCMAN_CMD_MEM_MAP:
-      //printk("procman: mapping 0x%X bytes of memory to 0x%X\n", msg->a2, msg->a1);
-      thread = hal->procman->get_thread_by_tid(msg->tid);
-      msg->a0 = (u32_t) thread->process->memory->mem_alloc_phys(msg->a1, msg->a2);
-      msg->send_size = 0;
-      reply(msg);
-      break;
-
-    case PROCMAN_CMD_MEM_FREE:
-      //printk("procman: freeing 0x%X\n", msg->a1);
-      thread = hal->procman->get_thread_by_tid(msg->tid);
-      if(msg->a1 > USER_MEM_BASE){
-	msg->a0 = 1;
-	thread->process->memory->mem_free((void *)msg->a1);
-      } else
-	msg->a0 = -1;
       msg->send_size = 0;
       reply(msg);
       break;
@@ -254,6 +290,10 @@ TProcMan::TProcMan()
   reg_thread(THREAD(hal->tid_procman));
   //printk("kernel: procman added to threads list (tid=0x%X)\n", hal->tid_procman);
 
+  stack = kmalloc(STACK_SIZE);
+  hal->tid_mm = TID(process->thread_create((off_t) &mm_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT));
+  reg_thread(THREAD(hal->tid_mm));
+  
   stack = kmalloc(STACK_SIZE);
   thread = process->thread_create((off_t) &grub_modulefs_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
   reg_thread(thread);

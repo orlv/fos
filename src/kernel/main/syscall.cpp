@@ -298,6 +298,10 @@ res_t send(message *message)
     thread = THREAD(hal->tid_procman);
     break;
 
+  case SYSTID_MM:
+    thread = THREAD(hal->tid_mm);
+    break;
+   
   case 0:
     message->send_size = 0;
     return RES_FAULT;

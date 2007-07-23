@@ -11,12 +11,20 @@
 #include "vbe.h"
 #include "psf.h"
 
+#include "fos-logo.h"
+
 #define FONTBUF_SIZE 0x5000
 #define CH_SPACE 0
 #define X_BORDER 30
 #define Y_BORDER 18
 
 #define VBESRV_CMD_SET_MODE (BASE_CMD_N + 0)
+
+void out_logo(size_t x, size_t y)
+{
+}
+
+	      
 
 fbterm::fbterm()
 {
@@ -78,6 +86,15 @@ void fbterm::sync()
 void fbterm::redraw()
 {
   bar(10, 10, scr_width-20, scr_height-20, 0x4aad);
+  u8_t p[3];
+  char *data = (char *) &header_data;
+  u16_t color;
+  for(size_t i=0; i<height; i++)
+    for(size_t j=0; j<width; j++) {
+      HEADER_PIXEL(data, p);
+      color = ((p[0] & 0xf8) >> 3) << 11 | ((p[1] & 0xfc) >> 2) << 5 | ((p[2] & 0xf8) >> 3);
+      putpixel(j+scr_width-width, i, color);
+    }
 
   _x = X_BORDER;
   _y = Y_BORDER;
@@ -221,8 +238,20 @@ int fbterm::set_videomode(u16_t mode)
       lfb_cache = (u16_t *)kmalloc(lfb_size, 0);
       mode = msg.a1;
 
-      bar(scr_width-20, 0, 20, 20, 0xadef);
-      bar(10, 10, scr_width-20, scr_height-20, 0x4aad);
+      //bar(0, 0, scr_width, scr_height, 0xeefe);
+      //bar(scr_width-20, 0, 20, 20, 0xadef);
+      bar(0, 0, scr_width, scr_height, 0x4aad);
+
+      u8_t p[3];
+      char *data = (char *) &header_data;
+      u16_t color;
+	for(size_t i=0; i<height; i++)
+	  for(size_t j=0; j<width; j++) {
+	    HEADER_PIXEL(data, p);
+	    color = ((p[0] & 0xf8) >> 3) << 11 | ((p[1] & 0xfc) >> 2) << 5 | ((p[2] & 0xf8) >> 3);
+	    putpixel(j+scr_width-width, i, color);
+	  }
+
       close(fd);
       return 1;
     }

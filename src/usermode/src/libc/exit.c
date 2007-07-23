@@ -3,7 +3,6 @@
  */
 
 #include <fos/message.h>
-#include <fos/syscall.h>
 #include <fos/procman.h>
 
 void exit(int status)

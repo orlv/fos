@@ -3,7 +3,6 @@
  */
 
 #include <fos/message.h>
-#include <fos/syscall.h>
 #include <fos/fs.h>
 
 ssize_t write(int fildes, const void *buf, size_t nbyte)

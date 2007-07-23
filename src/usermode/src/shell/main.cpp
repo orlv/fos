@@ -8,31 +8,41 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sched.h>
+#include <stdlib.h>
 
 #define FBTTY_CMD_SET_MODE (BASE_CMD_N + 0)
 #define FBTTY_LOAD_FONT (BASE_CMD_N + 1)
 #define FBTTY_PUT_CH (BASE_CMD_N + 2)
 
-void eval(const unsigned char *command)
+void eval(const char *command)
 {
-  if(!strcmp((const char *) command, "help"))
-    printf("FOS - FOS is Operating System\n"	\
-	   "Available next builtin commands:\n" \
-	   " uptime\n"				\
-	   " dmesg\n");
-
-  if(!strcmp((const char *)command, "rm -rf /"))
-    printf("Oooops! ;)\n");
-  else if(!strcmp((const char *)command, "uptime"))
-    printf("uptime=%d\n", uptime());
-  else if(!strcmp((const char *)command, "dmesg")) {
-    extern int tty;
-    char *buf = new char[2048];
-    size_t len = dmesg(buf, 2048);
-    write(tty, buf, len);
-    delete buf;
-  } else
-    printf("executing \"%s\", tid=0x%X\n", command, exec((const char *)command));
+  if(strlen(command)) {
+    if(!strcmp((const char *) command, "help"))
+      printf("FOS - FOS is Operating System\n"	\
+	     "Available next builtin commands:\n"	\
+	     " uptime\n"				\
+	     " dmesg\n");
+    else if(!strcmp((const char *)command, "rm -rf /"))
+      printf("Oooops! ;)\n");
+    else if(!strcmp((const char *)command, "exit")) {
+      printf("done.\n");
+      exit(0);
+    } else if(!strcmp((const char *)command, "uptime"))
+      printf("uptime=%d\n", uptime());
+    else if(!strcmp((const char *)command, "dmesg")) {
+      extern int tty;
+      char *buf = new char[2048];
+      size_t len = dmesg(buf, 2048);
+      write(tty, buf, len);
+      delete buf;
+    } else {
+      tid_t tid = exec(command);
+      if(!tid)
+	printf("shell: %s: command not found\n", command);
+      else
+	printf("shell: tid=0x%X\n", tid);
+    }
+  }
   
   printf("# ");
 }
@@ -43,7 +53,7 @@ asmlinkage int main()
   while((fd = open("/dev/keyboard", 0)) == -1) sched_yield();
   printf("uptime=%d\n", uptime());
   char ch;
-  unsigned char *command = new unsigned char [256];
+  char *command = new char [256];
   size_t i=0;
   printf("\nWelcome to FOS Operating System\n" \
 	 "# ");
@@ -72,96 +82,11 @@ asmlinkage int main()
 	i++;
       }
 
-      if(i > 254)
+      if(i > 254) {
+	command[i] = 0;
 	eval(command);
-
-#if 0
-      switch(ch){
-      case 'a':
-	fd1 = open("/dev/fda", 0);
-	if(fd1 != -1 && tty) {
-	  buf = new char[512];
-	  read(fd1, buf, 512);
-	  printf("\n-------------------------------------------------------------------------------\n");
-	  write(tty, buf, 512);
-	  printf("\n-------------------------------------------------------------------------------\n");
-	  delete buf;
-	}
-	close(fd1);
-	break;
-
-      case 'd':
-	if(tty) {
-	  buf = new char[2048];
-	  len = dmesg(buf, 2048);
-	  write(tty, buf, len);
-	  delete buf;
-	}
-	break;
-
-	
-      case 'g':
-	fd1 = open("/mnt/modules/test.txt", 0);
-	if(fd1 != -1 && tty) {
-	  buf = new char[512];
-	  read(fd1, buf, 512);
-	  printf("\n-------------------------------------------------------------------------------\n");
-	  write(tty, buf, 512);
-	  printf("\n-------------------------------------------------------------------------------\n");
-	  delete buf;
-	}
-	close(fd1);
-	break;
-#if 0
-      case 'v':
-	while(1){
-	  fd1 = open("/dev/fbtty", 0);
-	  if(fd1 != -1) {
-	    msg.a0 = FBTTY_CMD_SET_MODE;
-	    msg.a1 = 0x4114;
-	    msg.send_size = 0;
-	    msg.recv_size = 0;
-	    msg.tid = ((fd_t) fd1)->thread;
-	    send((message *)&msg);
-	    close(fd1);
-	    break;
-	  }
-	}
-	break;
-
-      case 'p':
-	fd1 = open("/dev/fbtty", 0);
-	if(fd1 != -1) {
-	  msg.a0 = FBTTY_LOAD_FONT;
-	  msg.send_size = strlen("/mnt/modules/font.psf") + 1;
-	  msg.send_buf = "/mnt/modules/font.psf";
-	  msg.recv_size = 0;
-	  msg.tid = ((fd_t) fd1)->thread;
-	  send((message *)&msg);
-	  close(fd1);
-	}
-	break;
-
-      case '.':
-	while(1){
-	  fd1 = open("/dev/fbtty", 0);
-	  if(fd1 != -1) {
-	    msg.a0 = FBTTY_PUT_CH;
-	    msg.a1 = '.';
-	    msg.send_size = 0;
-	    msg.recv_size = 0;
-	    msg.tid = ((fd_t) fd1)->thread;
-	    send((message *)&msg);
-	    close(fd1);
-	    break;
-	  }
-	}
-	break;
-#endif	
-      default:
-	printf("%c", ch);
+	i = 0;
       }
-#endif
     }
   }
   return 0;

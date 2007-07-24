@@ -2,6 +2,8 @@
   Copyright (C) 2007 Oleg Fedorov
 */
 
+#warning удалить весь этот код, и написать как следует
+
 #include <string.h>
 #include <fos/message.h>
 #include <fos/fs.h>
@@ -12,6 +14,7 @@
 #include "psf.h"
 
 #include "fos-logo.h"
+#include "corner-left.h"
 
 #define FONTBUF_SIZE 0x5000
 #define CH_SPACE 0
@@ -19,12 +22,6 @@
 #define Y_BORDER 18
 
 #define VBESRV_CMD_SET_MODE (BASE_CMD_N + 0)
-
-void out_logo(size_t x, size_t y)
-{
-}
-
-	      
 
 fbterm::fbterm()
 {
@@ -87,13 +84,21 @@ void fbterm::redraw()
 {
   bar(10, 10, scr_width-20, scr_height-20, 0x4aad);
   u8_t p[3];
-  char *data = (char *) &header_data;
+  char *data = (char *) &logo_header_data;
   u16_t color;
-  for(size_t i=0; i<height; i++)
-    for(size_t j=0; j<width; j++) {
-      HEADER_PIXEL(data, p);
+  for(size_t i=0; i<logo_height; i++)
+    for(size_t j=0; j<logo_width; j++) {
+      LOGO_HEADER_PIXEL(data, p);
       color = ((p[0] & 0xf8) >> 3) << 11 | ((p[1] & 0xfc) >> 2) << 5 | ((p[2] & 0xf8) >> 3);
-      putpixel(j+scr_width-width, i, color);
+      putpixel(j+scr_width-logo_width, i, color);
+    }
+
+  data = (char *) &corner_header_data;
+  for(size_t i=0; i<corner_height; i++)
+    for(size_t j=0; j<corner_width; j++) {
+      CORNER_HEADER_PIXEL(data, p);
+      color = ((p[0] & 0xf8) >> 3) << 11 | ((p[1] & 0xfc) >> 2) << 5 | ((p[2] & 0xf8) >> 3);
+      putpixel(j, i, color);
     }
 
   _x = X_BORDER;
@@ -243,15 +248,23 @@ int fbterm::set_videomode(u16_t mode)
       bar(0, 0, scr_width, scr_height, 0x4aad);
 
       u8_t p[3];
-      char *data = (char *) &header_data;
+      char *data = (char *) &logo_header_data;
       u16_t color;
-	for(size_t i=0; i<height; i++)
-	  for(size_t j=0; j<width; j++) {
-	    HEADER_PIXEL(data, p);
-	    color = ((p[0] & 0xf8) >> 3) << 11 | ((p[1] & 0xfc) >> 2) << 5 | ((p[2] & 0xf8) >> 3);
-	    putpixel(j+scr_width-width, i, color);
-	  }
+      for(size_t i=0; i<logo_height; i++)
+	for(size_t j=0; j<logo_width; j++) {
+	  LOGO_HEADER_PIXEL(data, p);
+	  color = ((p[0] & 0xf8) >> 3) << 11 | ((p[1] & 0xfc) >> 2) << 5 | ((p[2] & 0xf8) >> 3);
+	  if(color) putpixel(j+scr_width-logo_width, i, color);
+	}
 
+      data = (char *) &corner_header_data;
+      for(size_t i=0; i<corner_height; i++)
+	for(size_t j=0; j<corner_width; j++) {
+	  CORNER_HEADER_PIXEL(data, p);
+	  color = ((p[0] & 0xf8) >> 3) << 11 | ((p[1] & 0xfc) >> 2) << 5 | ((p[2] & 0xf8) >> 3);
+	  if(p[2]) putpixel(j, i, color);
+	}
+	
       close(fd);
       return 1;
     }

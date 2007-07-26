@@ -1,13 +1,12 @@
 /*
-	drivers/char/cmos/cmos.cpp
-	Copyright (C) 2006 Oleg Fedorov
+  drivers/char/cmos/cmos.cpp
+  Copyright (C) 2006 Oleg Fedorov
 */
 
-#include <types.h>
 #include "cmos.h"
-#include <tinterface.h>
-#include <hal.h>
-#include <stdio.h>
+#include <types.h>
+#include <fos/hal.h>
+#include <fos/printk.h>
 
 static u32_t DecodeBCD(u32_t bcd)
 {

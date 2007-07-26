@@ -6,7 +6,7 @@
 */
 
 #include "pic.h"
-#include <hal.h>
+#include <fos/hal.h>
 
 PIC::PIC()
 {

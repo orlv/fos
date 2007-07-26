@@ -3,12 +3,12 @@
   Copyright (C) 2007 Oleg Fedorov
 */
 
-#include <hal.h>
+#include <fos/hal.h>
 #include <stdarg.h>
 #include <vsprintf.h>
-#include <stdio.h>
-#include <system.h>
-#include <procman.h>
+#include <fos/printk.h>
+#include <fos/fos.h>
+#include <fos/procman.h>
 
 HAL::HAL(register multiboot_info_t * mbi)
 {

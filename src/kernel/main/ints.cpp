@@ -3,15 +3,15 @@
   Copyright (C) 2004-2007 Oleg Fedorov
 */
 
-#include <traps.h>
-#include <stdio.h>
-#include <system.h>
-#include <mm.h>
-#include <hal.h>
-#include <procman.h>
-#include <drivers/char/timer/timer.h>
+#include <fos/traps.h>
+#include <fos/printk.h>
+#include <fos/fos.h>
+#include <fos/mm.h>
+#include <fos/hal.h>
+#include <fos/procman.h>
+#include <fos/drivers/char/timer/timer.h>
 
-asmlinkage void sys_call();
+asmlinkage void sys_call_handler();
 
 void exception(string str, unsigned int cs,  unsigned int address, unsigned int errorcode)
 {
@@ -258,7 +258,7 @@ void setup_idt()
   hal->idt->set_intr_gate(0x2e, (off_t) & irq_14);
   hal->idt->set_intr_gate(0x2f, (off_t) & irq_15);
 
-  hal->idt->set_trap_gate(0x30, (off_t) & sys_call, 3); /* системный вызов */
+  hal->idt->set_trap_gate(0x30, (off_t) & sys_call_handler, 3); /* системный вызов */
 
   for (i = 0x31; i < 0x100; i++)
     hal->idt->set_trap_gate(i, (off_t) & interrupt_hdl_not_present_exception, 0);

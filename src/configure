@@ -1,0 +1,137 @@
+#!/bin/sh
+
+TOPDIR=`pwd`/..
+
+echo "Generating config.mk"
+cat > config.mk <<EOF
+# -----------------------------------------------------------------------------
+# Copyright (C) 2007 Oleg Fedorov
+# -----------------------------------------------------------------------------
+SYSTEM_NAME     = FOS
+SYSTEM_ROOT	= $TOPDIR
+SYSTEM_SRC	= $TOPDIR/src
+BINDIR		= $TOPDIR/boot/modules
+KERNEL_PATHNAME	= $TOPDIR/boot/fos
+INCLUDE		= $TOPDIR/include
+LIB		= $TOPDIR/lib
+
+# -- Modules ------------------------------------------------------------------
+GRUB_MODULES =	/boot/modules/test.txt		\\
+		/boot/modules/namer		\\
+		/boot/modules/init		\\
+		/boot/modules/int16b		\\
+		/boot/modules/shell		\\
+		/boot/modules/tty		\\
+		/boot/modules/keyboard		\\
+		/boot/modules/floppy		\\
+		/boot/modules/test		\\
+		/boot/modules/font.psf
+
+
+GRUB_MENU    = $TOPDIR/boot/grub/menu.lst
+GRUB_TFTP_MENU = $TOPDIR/boot/grub/tftpmenu.lst
+GRUB_TIMEOUT = 0
+GRUB_TITLE   = FOS - FOS is Operating System
+GRUB_ROOT    = cd0
+GRUB_KERNEL  = /boot/fos
+
+# -- User Programms -----------------------------------------------------------
+# Базовый адрес пользовательских программ
+USER_MEM_BASE = 0x8000000
+# -----------------------------------------------------------------------------
+EOF
+
+echo "Generating usermode/config.mk"
+
+cat > usermode/config.mk <<EOF
+# -----------------------------------------------------------------------------
+# Copyright (C) 2007 Oleg Fedorov
+# -----------------------------------------------------------------------------
+CC = gcc
+C++ = gcc
+AS = gcc
+LD = ld
+AR = ar
+#----------------------------------------------------------------------------#
+
+SYSTEM_NAME     = FOS
+SYSTEM_ROOT	= $TOPDIR
+SYSTEM_SRC	= $TOPDIR/src
+BINDIR		= $TOPDIR/boot/modules
+INSTALLDIR	= $TOPDIR/boot/modules
+INCLUDE		= $TOPDIR/include
+LIB		= $TOPDIR/lib
+FLAGS		= -Wall -nostdlib -nostdinc -I\$(INCLUDE) -fno-stack-protector -O3
+
+ASFLAGS		= \$(FLAGS)
+CFLAGS		= \$(FLAGS) -ffreestanding -fno-leading-underscore
+CXXFLAGS	= \$(FLAGS) -nostdinc++ -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin
+LDFLAGS		= -nostdlib -L\$(LIB)
+
+.s.o:
+	@echo "Compiling \$<"
+	@\$(AS) \$(ASFLAGS) -c -o \$*.o \$<
+
+.S.o:
+	@echo "Compiling \$<"
+	@\$(AS) \$(CFLAGS) -c -o \$*.o \$<
+
+.c.o:
+	@echo "Compiling \$<"
+	@\$(CC) \$(CFLAGS) -c -o \$*.o \$<
+
+.cpp.o:
+	@echo "Compiling \$<"
+	@\$(C++) \$(CXXFLAGS) -c -o \$*.o \$<
+
+# Базовый адрес пользовательских программ
+USER_MEM_BASE = 0x8000000
+# -----------------------------------------------------------------------------
+EOF
+
+echo "Generating usermode/servers/config.mk"
+cat > usermode/servers/config.mk <<EOF
+# -----------------------------------------------------------------------------
+# Copyright (C) 2007 Oleg Fedorov
+# -----------------------------------------------------------------------------
+CC = gcc
+C++ = gcc
+AS = gcc
+LD = ld
+AR = ar
+#----------------------------------------------------------------------------#
+
+SYSTEM_NAME     = FOS
+SYSTEM_ROOT	= $TOPDIR
+SYSTEM_SRC	= $TOPDIR/src
+BINDIR		= $TOPDIR/boot/modules
+INSTALLDIR	= $TOPDIR/boot/modules
+INCLUDE		= $TOPDIR/include
+LIB		= $TOPDIR/lib
+FLAGS		= -Wall -nostdlib -nostdinc -I\$(INCLUDE) -fno-stack-protector -O3
+
+ASFLAGS		= \$(FLAGS)
+CFLAGS		= \$(FLAGS) -ffreestanding -fno-leading-underscore
+CXXFLAGS	= \$(FLAGS) -nostdinc++ -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin
+LDFLAGS		= -nostdlib -L\$(LIB)
+
+.s.o:
+	@echo "Compiling \$<"
+	@\$(AS) \$(ASFLAGS) -c -o \$*.o \$<
+
+.S.o:
+	@echo "Compiling \$<"
+	@\$(AS) \$(CFLAGS) -c -o \$*.o \$<
+
+.c.o:
+	@echo "Compiling \$<"
+	@\$(CC) \$(CFLAGS) -c -o \$*.o \$<
+
+.cpp.o:
+	@echo "Compiling \$<"
+	@\$(C++) \$(CXXFLAGS) -c -o \$*.o \$<
+
+# Базовый адрес пользовательских программ
+USER_MEM_BASE = 0x8000000
+# -----------------------------------------------------------------------------
+EOF

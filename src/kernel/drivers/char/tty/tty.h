@@ -7,13 +7,12 @@
 #define _TTY_H
 
 #include <types.h>
-#include <tinterface.h>
-#include <tmutex.h>
+#include <c++/tmutex.h>
 
 #define TTY_MODE_BLOCK  0
 #define TTY_MODE_CHAR   1
 
-class TTY: public Tinterface {
+class TTY {
 private:
   TMutex mutex;
   size_t bufsize;
@@ -23,7 +22,6 @@ private:
   u16_t color;
 
   off_t offs;
-  u32_t mode;
 
   struct TTY_GEOMETRY {
     size_t width;
@@ -42,10 +40,26 @@ public:
   size_t read(off_t offset, void *buf, size_t count);
   size_t write(off_t offset, const void *buf, size_t count);
 
-  void refresh();
-  void set_mode(u32_t mode);
   void set_text_color(u8_t color);
   void set_bg_color(u8_t color);
 };
+
+/* Vga colors */
+#define	BLACK			0
+#define	BLUE			1
+#define	GREEN			2
+#define	CYAN			3
+#define	RED			4
+#define	MAGENTA			5
+#define	BROWN			6
+#define	LIGHTGRAY		7
+#define	DARKGRAY		8
+#define	LIGHTBLUE		9
+#define	LIGHTGREEN		10
+#define	LIGHTCYAN		11
+#define	LIGHTRED		12
+#define	LIGHTMAGENTA		13
+#define	YELLOW			14
+#define	WHITE			15
 
 #endif

@@ -3,8 +3,8 @@
  * Copyright (C) 2005-2007 Oleg Fedorov
  */
 
-#include <idt.h>
-#include <mm.h>
+#include <fos/idt.h>
+#include <fos/mm.h>
 
 IDT::IDT()
 {

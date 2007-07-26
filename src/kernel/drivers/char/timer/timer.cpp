@@ -3,10 +3,8 @@
   Copyright (C) 2006-2007 Oleg Fedorov
 */
 
-#include <hal.h>
-#include <system.h>
-#include <stdio.h>
 #include "timer.h"
+#include <fos/printk.h>
 
 #define I8253_CNTR0	0x040	/* timer 0 counter port */
 #define I8253_CNTR1	0x041	/* timer 1 counter port */
@@ -46,7 +44,7 @@ Timer::Timer()
   enable();
 }
 
-u32_t uptime()
+u32_t kuptime()
 {
   extern Timer *SysTimer;
   return SysTimer->uptime();

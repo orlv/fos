@@ -3,11 +3,12 @@
  * Copyright (C) 2005-2007 Oleg Fedorov
  */
 
-#include <system.h>
-#include <mmu.h>
-#include <stdio.h>
-#include <mm.h>
-#include <hal.h>
+#include <fos/mmu.h>
+#include <fos/pager.h>
+#include <fos/fos.h>
+#include <fos/printk.h>
+#include <fos/mm.h>
+#include <fos/hal.h>
 
 void enable_paging(u32_t * pagedir)
 {
@@ -74,4 +75,11 @@ u32_t map_page(register u32_t phys_page, register u32_t log_page, register u32_t
   __mt_enable();  
   //printk("{0x%X} \n", pagetable[log_page & 0x3ff]);
   return ((unsigned long)pagetable);
+}
+
+/* если страница выдана kmalloc() - возвратит её физический адрес */
+u32_t * kmem_phys_addr(u32_t n)
+{
+  u32_t *pagetable = pagetable_addr(n, hal->kmem->pager->pagedir);
+  return (u32_t *) (pagetable[n & 0x3ff] & 0xfffff000);
 }

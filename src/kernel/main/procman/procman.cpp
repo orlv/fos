@@ -3,17 +3,22 @@
   Copyright (C) 2005-2007 Oleg Fedorov
 */
 
-#include <mm.h>
-#include <procman.h>
-#include <stdio.h>
-#include <system.h>
-#include <hal.h>
+#include <fos/mm.h>
+#include <fos/pager.h>
+#include <fos/procman.h>
+#include <fos/printk.h>
+#include <fos/fos.h>
+#include <fos/hal.h>
 #include <string.h>
 
-#include <drivers/fs/modulefs/modulefs.h>
-#include <drivers/char/tty/tty.h>
-#include <fs.h>
-#include <elf32.h>
+#include <fos/drivers/fs/modulefs/modulefs.h>
+#include <fos/drivers/char/tty/tty.h>
+#include <fos/fs.h>
+#include <sys/elf32.h>
+
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 void sched_srv();
 void grub_modulefs_srv();
@@ -267,8 +272,8 @@ TProcMan::TProcMan()
 
   process->name = "kernel";
   
-  process->memory = hal->kmem; //new Memory(USER_MEM_BASE, USER_MEM_SIZE, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS);
-  process->memory->pagedir = hal->kmem->pagedir;
+  process->memory = hal->kmem;
+  process->memory->pager->pagedir = hal->kmem->pager->pagedir;
 
   stack = kmalloc(STACK_SIZE);
   thread = process->thread_create(0, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
@@ -312,10 +317,10 @@ tid_t TProcMan::exec(register void *image, const string name)
   strcpy(process->name, name);
 
   /* создаём каталог страниц процесса */
-  process->memory->pagedir = (u32_t *) kmalloc(PAGE_SIZE);
+  process->memory->pager = new Pager(OFFSET(kmalloc(PAGE_SIZE)));
   /* скопируем указатели на таблицы страниц ядра (страницы, расположенные ниже KERNEL_MEM_LIMIT) */
   for(u32_t i=0; i <= PAGE(KERNEL_MEM_LIMIT)/1024; i++){
-    process->memory->pagedir[i] = hal->kmem->pagedir[i];
+    process->memory->pager->pagedir[i] = hal->kmem->pager->pagedir[i];
   }
 
   off_t eip = process->LoadELF(image);

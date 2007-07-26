@@ -8,7 +8,7 @@
 
 #include <types.h>
 #include <time.h>
-#include <hal.h>
+#include <fos/hal.h>
 
 #define TIMER_IRQ_NUM 0
 
@@ -32,6 +32,6 @@ public:
   }
 };
 
-u32_t uptime();    /* получить показания таймера */
+u32_t kuptime();    /* получить показания таймера */
 
 #endif

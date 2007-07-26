@@ -6,11 +6,11 @@
  * :)
  */
 
-#include <mm.h>
-#include <stdio.h>
-#include <hal.h>
+#include <fos/mm.h>
+#include <fos/printk.h>
+#include <fos/hal.h>
+#include <c++/tmutex.h>
 #include <string.h>
-#include <tmutex.h>
 
 HeapMemBlock * volatile heap_free_ptr = NULL;
 HeapMemBlock kmem_block;
@@ -89,7 +89,6 @@ void * heap_create_reserved_block()
 static HeapMemBlock *morecore(register size_t size)
 {
   HeapMemBlock *up;
-  /*while(1) */ asm("incb 0xb8000+156\n" "movb $0x5e,0xb8000+157 ");
   /* используем зарезервированный блок */
   up = (HeapMemBlock *) reserved_block;
   up->size = (HEAP_RESERVED_BLOCK_SIZE) / sizeof(HeapMemBlock);
@@ -111,7 +110,7 @@ static HeapMemBlock *morecore(register size_t size)
 
   up->size = size / sizeof(HeapMemBlock);
   //heap_mutex.lock(); /* не забыть снять эту блокировку внутри malloc() */
-  //__mt_disable();
+
   free((void *)((unsigned int)up + sizeof(HeapMemBlock)));
   return heap_free_ptr;
 }
@@ -127,7 +126,6 @@ void free(register void *ptr)
 
   //printk("[0x%x, 0x%x]\n", bp, bp->size*sizeof(HeapMemBlock));
   
-  //heap_mutex.lock();
   __mt_disable();
   heap_free += bp->size*sizeof(HeapMemBlock);
   for (p = heap_free_ptr; !(p < bp && p->next > bp); p = p->next)
@@ -148,9 +146,8 @@ void free(register void *ptr)
   } else
     p->next = bp;
 
-  /*  if(heap_free_ptr > p)*/ heap_free_ptr = p;
+  heap_free_ptr = p;
   
-  //heap_mutex.unlock();
   __mt_enable();
 }
 
@@ -161,7 +158,7 @@ void *realloc(register void *ptr, register size_t size)
   if (!(dst = (unsigned long *)malloc(size)))
     return NULL;
   oldsize = ((HeapMemBlock *) ((unsigned long)ptr - sizeof(HeapMemBlock)))->size * sizeof(HeapMemBlock);
-  __memcpy(dst, ptr, oldsize);
+  memcpy(dst, ptr, oldsize);
   free(ptr);
 
   return (void *)dst;

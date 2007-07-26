@@ -6,7 +6,6 @@
 #ifndef __CMOS_H
 #define __CMOS_H
 
-#include <tinterface.h>
 #include <types.h>
 
 struct time {
@@ -18,16 +17,14 @@ struct time {
   u8_t sec;
 } __attribute__ ((packed));
 
-class CMOS:public Tinterface {
-protected:
+class CMOS {
+ private:
   u8_t read(u8_t data);
   void write(u8_t data, u8_t reg);
 
-public:
-   CMOS();
-
+ public:
+  CMOS();
   size_t read(off_t offset, void *buf, size_t count);
-
 };
 
 #endif

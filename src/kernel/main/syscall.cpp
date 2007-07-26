@@ -3,29 +3,12 @@
  * Copyright (C) 2005-2007 Oleg Fedorov
  */
 
-#include <system.h>
-#include <stdio.h>
+#include <fos/printk.h>
+#include <fos/hal.h>
+#include <fos/syscall.h>
+#include <fos/pager.h>
+#include <fos/drivers/char/timer/timer.h>
 #include <string.h>
-#include <hal.h>
-#include <mmu.h>
-
-/* основные системные вызовы -- обмен сообщениями */
-#define _FOS_SEND              1
-#define _FOS_RECEIVE           2
-#define _FOS_REPLY             3
-#define _FOS_FORWARD           4
-
-/*
-  следующие функции целесообразнее разместить
-  в системных вызовах -- очень существенно сказавается
-  на производительности
-*/
-#define _FOS_MASK_INTERRUPT    5
-#define _FOS_UNMASK_INTERRUPT  6
-#define _FOS_SCHED_YIELD       7
-#define _FOS_UPTIME            8
-#define _FOS_ALARM             9
-#define _FOS_MYTID            10 /* позволяет потоку узнать свой Thread ID */
 
 /*
   
@@ -181,7 +164,7 @@ static inline bool check_message(message *message, int flags)
     return 1;
   }
   
-  u32_t *pagedir = hal->procman->current_thread->process->memory->pagedir;
+  u32_t *pagedir = hal->procman->current_thread->process->memory->pager->pagedir;
   u32_t count;
 
   count = (OFFSET(message)%PAGE_SIZE + sizeof(struct message) + PAGE_SIZE - 1)/PAGE_SIZE;
@@ -550,7 +533,7 @@ void syscall_exit()
   }
 }
 
-SYSCALL_HANDLER(sys_call)
+SYSCALL_HANDLER(sys_call_handler)
 {
   //printk("Syscall #%d (%s) arg1=0x%X, arg2=0x%X \n", cmd,  hal->procman->current_thread->process->name, arg1, arg2);
   syscall_enter(); /* установим флаг нахождения в ядре */
@@ -594,11 +577,11 @@ SYSCALL_HANDLER(sys_call)
     break;
 
   case _FOS_UPTIME:
-    result = uptime();
+    result = kuptime();
     break;
 
   case _FOS_ALARM:
-    _uptime = uptime();
+    _uptime = kuptime();
     if(hal->procman->current_thread->get_alarm() > _uptime)
       result = hal->procman->current_thread->get_alarm() - _uptime;
     else

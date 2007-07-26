@@ -4,20 +4,18 @@
  */
 
 #include <multiboot.h>
-#include <drivers/char/tty/tty.h>
-#include <mm.h>
-#include <drivers/block/vga/vga.h>
+#include <fos/drivers/char/tty/tty.h>
+#include <fos/mm.h>
 #include <string.h>
-#include <system.h>
-#include <stdio.h>
-#include <drivers/char/timer/timer.h>
-#include <hal.h>
-#include <traps.h>
+#include <fos/fos.h>
+#include <fos/printk.h>
+#include <fos/drivers/char/timer/timer.h>
+#include <fos/hal.h>
+#include <fos/traps.h>
 #include <vsprintf.h>
 #include <stdarg.h>
-#include <drivers/fs/modulefs/modulefs.h>
-#include <fs.h>
-#include <drivers/char/usertty/usertty.h>
+#include <fos/drivers/fs/modulefs/modulefs.h>
+#include <fos/fs.h>
 
 TTY *stdout;
 Timer *SysTimer;
@@ -69,10 +67,10 @@ asmlinkage void init()
   setup_idt();
   hal->sti();
 
-  VGA *con = new VGA;
+  //VGA *con = new VGA;
   TTY *tty1 = new TTY(80, 25);
 
-  tty1->stdout = con;
+  //tty1->stdout = con;
   tty1->set_text_color(WHITE);
 
   stdout = tty1;

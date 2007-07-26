@@ -3,14 +3,14 @@
   Copyright (C) 2005-2007 Oleg Fedorov
 */
 
-#include <mm.h>
-#include <procman.h>
-#include <stdio.h>
-#include <system.h>
-#include <drivers/char/timer/timer.h>
-#include <hal.h>
-#include <fs.h>
-#include <elf32.h>
+#include <fos/mm.h>
+#include <fos/procman.h>
+#include <fos/printk.h>
+#include <fos/fos.h>
+#include <fos/drivers/char/timer/timer.h>
+#include <fos/hal.h>
+#include <fos/fs.h>
+#include <sys/elf32.h>
 
 extern Timer *SysTimer;
 
@@ -27,7 +27,7 @@ void TProcMan::scheduler()
   while (1) {
     //asm("incb 0xb8000+158\n" "movb $0x5f,0xb8000+159");
 
-    _uptime = uptime();
+    _uptime = kuptime();
     
     /* Выбираем следующий подходящий для запуска поток */
     do {

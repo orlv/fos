@@ -3,14 +3,11 @@
   Copyright (C) 2005-2007 Oleg Fedorov
 */
 
-#include <process.h>
-#include <procman.h>
-#include <mm.h>
-#include <mmu.h>
-#include <system.h>
-#include <hal.h>
-#include <string.h>
-#include <stdio.h>
+#include <fos/thread.h>
+#include <fos/mmu.h>
+#include <fos/fos.h>
+#include <fos/hal.h>
+#include <fos/pager.h>
 
 Thread::Thread(class TProcess *process, off_t eip, u16_t flags, void * kernel_stack, void * user_stack, u16_t code_segment, u16_t data_segment)
 {
@@ -65,7 +62,7 @@ void Thread::set_tss(register off_t eip,
 {
   tss = (struct TSS *)kmalloc(sizeof(TSS));
 
-  tss->cr3 = (u32_t)kmem_phys_addr(PAGE((u32_t)process->memory->pagedir));
+  tss->cr3 = (u32_t)kmem_phys_addr(PAGE((u32_t)process->memory->pager->pagedir));
   tss->eip = eip;
 
   tss->eflags = X86_EFLAGS_IOPL|X86_EFLAGS_IF|X86_EFLAGS;

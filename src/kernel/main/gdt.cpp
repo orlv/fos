@@ -3,8 +3,8 @@
  * Copyright (C) 2005-2007 Oleg Fedorov
  */
 
-#include <gdt.h>
-#include <mm.h>
+#include <fos/gdt.h>
+#include <fos/mm.h>
 
 GDT::GDT()
 {

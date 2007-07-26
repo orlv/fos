@@ -9,7 +9,7 @@
 /* we use this so that we can do without the ctype library */
 #define is_digit(c)	((c) >= '0' && (c) <= '9')
 
-int skip_atoi(const char **s)
+static inline int skip_atoi(const char **s)
 {
   int i = 0;
 
@@ -31,7 +31,7 @@ int __res; \
 __asm__("divl %4":"=a" (n),"=d" (__res):"0" (n),"1" (0),"r" (base)); \
 __res; })
 
-char *number(char *str, int num, int base, int size, int precision, int type)
+static inline char *number(char *str, int num, int base, int size, int precision, int type)
 {
   char c, sign, tmp[36];
   const char *digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -91,7 +91,7 @@ char *number(char *str, int num, int base, int size, int precision, int type)
   return str;
 }
 
-int vsprintf(char *buf, const char *fmt, va_list args)
+asmlinkage int vsprintf(char *buf, const char *fmt, va_list args)
 {
   int len;
   int i;

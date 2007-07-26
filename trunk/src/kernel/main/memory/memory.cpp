@@ -3,11 +3,11 @@
   Copyright (C) 2007 Oleg Fedorov
 */
 
-#include <stdio.h>
-#include <mm.h>
-#include <process.h>
-#include <hal.h>
-#include <mmu.h>
+#include <fos/mm.h>
+#include <fos/printk.h>
+#include <fos/process.h>
+#include <fos/hal.h>
+#include <fos/pager.h>
 
 Memory::Memory(offs_t base, size_t size, u16_t flags)
 {
@@ -29,7 +29,7 @@ Memory::~Memory()
 
   /* удалим список использованной памяти и освободим выделенные страницы */
   list_for_each_safe (curr, n, UsedMem) {
-    umap_pages(PAGE(curr->item->vptr), curr->item->size / PAGE_SIZE);
+    pager->umap_pages(PAGE(curr->item->vptr), curr->item->size / PAGE_SIZE);
     delete curr->item;
     delete curr;
   }
@@ -45,24 +45,8 @@ Memory::~Memory()
 
   delete FreeMem->item;
   delete FreeMem;
-  
-  /* освободим таблицы страниц и каталог страниц */
-  for (u32_t i = USER_MEM_BASE/1024; i < 1024; i++) {
-    if(pagedir[i]) {
-      u32_t pagetable = kmem_log_addr(PAGE(pagedir[i])) * PAGE_SIZE;
-#if 0
-      for(u32_t j=0; j<1024; j++) {
-	if(((u32_t *)pagetable)[j])
-	  put_page(PAGE(((u32_t *)pagetable)[j]));
-      }
-#endif
-      put_page(PAGE(pagetable));
-      kfree((void *)pagetable);
-    }
-  }
 
-  put_page(PAGE(OFFSET(pagedir)));
-  kfree(pagedir);
+  delete pager;
 }
 
 void *Memory::mem_alloc(register size_t size)
@@ -153,7 +137,7 @@ void *Memory::mem_alloc(register u32_t *phys_pages, register size_t pages_cnt)
     delete curr;
   }
   
-  map_pages(phys_pages, PAGE(block->vptr), pages_cnt);
+  pager->map_pages(phys_pages, PAGE(block->vptr), pages_cnt);
     
   if (UsedMem)
     UsedMem->add_tail(block);
@@ -293,7 +277,7 @@ void *Memory::do_mmap(register u32_t *phys_pages, register void *log_address, re
     p->size = block->vptr - p->vptr;
   }
   
-  map_pages(phys_pages, PAGE((u32_t)log_address), pages_cnt);
+  pager->map_pages(phys_pages, PAGE((u32_t)log_address), pages_cnt);
   
 
   if (UsedMem)
@@ -304,66 +288,6 @@ void *Memory::do_mmap(register u32_t *phys_pages, register void *log_address, re
   __mt_enable();
 
   return (void *) block->vptr;
-}
-
-u32_t Memory::mount_page(register u32_t phys_page, register u32_t log_page)
-{
-  return map_page(phys_page, log_page, pagedir, flags);
-}
-
-u32_t Memory::umount_page(register u32_t log_page)
-{
-  return umap_page(log_page, pagedir);
-}
-
-void Memory::map_pages(register u32_t *phys_pages, register u32_t log_page, register size_t n)
-{
-  for (size_t i = 0; i < n; i++) {
-    mount_page(phys_pages[i], log_page);
-    log_page++;
-  }
-}
-
-void Memory::umap_pages(register u32_t log_page, register size_t n)
-{
-  for (size_t i = 0; i < n ; i++) {
-    umount_page(log_page);
-    log_page++;
-  }
-}
-
-void Memory::dump_used()
-{
-  List<memblock *> *curr = UsedMem;
-  memblock *p;
-  
-  while(1) {
-    p = curr->item;
-    printk("{vptr=0x%X, size=0x%X. um=0x%X} \n", p->vptr, p->size, UsedMem);
-    curr = curr->next;
-    if (curr == UsedMem) {
-      return;
-    }
-  }
-  
-}
-
-void Memory::dump_free()
-{
-  List<memblock *> *curr = FreeMem;
-  memblock *p;
-  u32_t i=0;  
-  while(i<5) {
-    i++;
-    p = curr->item;
-    printk("{vptr=0x%X, size=0x%X. fm=0x%X} \n", p->vptr, p->size, FreeMem);
-    curr = curr->next;
-    if (curr == FreeMem) {
-      return;
-    }
-  }
-  printk("overflow \n");
-  
 }
 
 void Memory::mem_free(register void *ptr)
@@ -398,7 +322,7 @@ void Memory::mem_free(register void *ptr)
     }
   }
   //printk("Memory: freeing 0x%X bytes, starting (virtual) 0x%X\n", p->size, p->vptr);
-  umap_pages(PAGE(p->vptr), p->size / PAGE_SIZE);
+  pager->umap_pages(PAGE(p->vptr), p->size / PAGE_SIZE);
 
   curr = FreeMem;
   memblock *c;

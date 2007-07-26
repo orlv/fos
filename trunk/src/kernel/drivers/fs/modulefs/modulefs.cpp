@@ -4,10 +4,11 @@
 */
 
 #include "modulefs.h"
-#include <stdio.h>
+#include <fos/printk.h>
+#include <fos/mm.h>
+#include <fos/procman.h>
+#include <sys/stat.h>
 #include <string.h>
-#include <mm.h>
-#include <procman.h>
 
 #define MODULEFS_BUFF_SIZE 0x2000
 

@@ -10,17 +10,14 @@ AS = gcc
 LD = ld
 #----------------------------------------------------------------------------#
 
-MAIN_CONFIG = $(TOPDIR)/src/config.mk
-include $(MAIN_CONFIG)
+include ../config.mk
 
 #DEBUG =-g
 
-ASFLAGS =-Wall -nostdlib -nostdinc -Iinclude
-CFLAGS  =$(DEBUG) -Wall -ffreestanding -nostdlib -nostdinc -fno-stack-protector -Iinclude -O3
-CXXFLAGS =$(DEBUG) -Wall -nostdinc -nostdinc++ -Iinclude -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin -fno-stack-protector -O3 -mregparm=3
-
-LDFLAGS =-nostdlib -static
-
+ASFLAGS		= -DiKERNEL $(DEBUG) -Wall -nostdlib -nostdinc -I$(INCLUDE)
+CFLAGS		= -DiKERNEL $(DEBUG) -Wall -O3 -I$(INCLUDE) -nostdinc -ffreestanding -fno-stack-protector 
+CXXFLAGS	= -DiKERNEL $(DEBUG) -Wall -O3 -I$(INCLUDE) -nostdinc -nostdinc++ -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin -fno-stack-protector -mregparm=3
+LDFLAGS		= -nostdlib -static
 
 .s.o:
 	@echo "Compiling $<"
@@ -38,10 +35,9 @@ LDFLAGS =-nostdlib -static
 	@echo "Compiling $<"
 	@$(C++) $(CXXFLAGS) -c -o $*.o $<
 
-
 #-----------------------------------------------------------------------------#
 
-Objects =	main/boot/setup.o		\
+OBJECTS =	main/boot/setup.o		\
 		main/hal.o			\
 		main/procman/procman.o		\
 		main/procman/scheduler.o	\
@@ -52,13 +48,12 @@ Objects =	main/boot/setup.o		\
 		main/memory/kmalloc.o		\
 		main/memory/heap.o		\
 		main/memory/memory.o		\
+		main/memory/pager.o		\
 		main/gdt.o			\
 		main/idt.o			\
 		main/main.o			\
-		main/tinterface.o		\
 		lib/vsprintf.o			\
-		lib/stdio.o			\
-		lib/time.o			\
+		lib/printk.o			\
 		lib/pure.o			\
 		lib/version.o			\
 		lib/tmutex.o			\
@@ -66,8 +61,6 @@ Objects =	main/boot/setup.o		\
 		main/syscall.o  		\
 		drivers/vesafb.o		\
 		drivers/char/tty/tty.o		\
-		drivers/char/usertty/usertty.o	\
-		drivers/block/vga/vga.o		\
 		drivers/char/timer/timer.o	\
 		drivers/char/cmos/cmos.o	\
 		drivers/pic.o			\
@@ -75,22 +68,18 @@ Objects =	main/boot/setup.o		\
 
 #-----------------------------------------------------------------------------#
 
-all:    $(Objects)
+all:    $(OBJECTS)
 	@echo Kernel objects OK
-ifeq ($(LD), tcc)
-	@$(LD) $(LDFLAGS) -o $(SYSTEM_ROOT)/kernel $(Objects) -Wl,-Ttext,0x100000 -Wl,--oformat,elf32-i386
-else
 	@echo Linking kernel image \($(SYSTEM_ROOT)/kernel\)
-	@$(LD) $(LDFLAGS) -o $(SYSTEM_ROOT)/kernel $(Objects) -Ttext=0x100000 --oformat=elf32-i386 --entry=_start
-endif
+	@$(LD) $(LDFLAGS) -o $(KERNEL_PATHNAME) $(OBJECTS) -Ttext=0x100000 --oformat=elf32-i386 --entry=_start
 
 strip:
-	@strip $(SYSTEM_ROOT)/kernel
+	@strip $(KERNEL_PATHNAME)
 
 #--------------------------------- Clean -------------------------------------#
 
 clean:
-	@rm -f $(Objects)
-	@rm -f $(SYSTEM_ROOT)/kernel
+	@rm -f $(OBJECTS)
+	@rm -f $(KERNEL_PATHNAME)
 
 #-----------------------------------------------------------------------------#

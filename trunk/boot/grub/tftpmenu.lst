@@ -1,16 +1,16 @@
 # GRUB Config: generated automatically - do not edit!
 timeout 1
 default 0
-title FOS - FOS is Operating System (VERSION 0.0.43.7, BUILD 17414)
+title FOS - FOS is Operating System (VERSION 0.0.43.8, BUILD 17419)
 	root	(nd)
-	kernel /root/kernel
-	module /root/modules/test.txt
-	module /root/modules/namer
-	module /root/modules/init
-	module /root/modules/int16b
-	module /root/modules/shell
-	module /root/modules/tty
-	module /root/modules/keyboard
-	module /root/modules/floppy
-	module /root/modules/test
-	module /root/modules/font.psf
+	kernel /boot/fos
+	module /boot/modules/test.txt
+	module /boot/modules/namer
+	module /boot/modules/init
+	module /boot/modules/int16b
+	module /boot/modules/shell
+	module /boot/modules/tty
+	module /boot/modules/keyboard
+	module /boot/modules/floppy
+	module /boot/modules/test
+	module /boot/modules/font.psf

@@ -3,8 +3,8 @@
   (C) XSystem Kernel Team
 */
 
-#include <tmutex.h>
-#include <system.h>
+#include <c++/tmutex.h>
+#include <asm/xchg.h>
 
 TMutex::TMutex(void)
 {
@@ -16,7 +16,7 @@ bool TMutex::lock(void)
   int result;
 
   do {
-    result = _xchg(&FLockItem, 1);
+    result = xchg(&FLockItem, 1);
   } while (result!=0);
 
   return true;
@@ -24,7 +24,7 @@ bool TMutex::lock(void)
 
 bool TMutex::try_lock(void)
 {
-  return _xchg(&FLockItem, 1) == 0;
+  return xchg(&FLockItem, 1) == 0;
 }
 
 bool TMutex::is_locked(void)
@@ -34,5 +34,5 @@ bool TMutex::is_locked(void)
 
 bool TMutex::unlock(void)
 {
-  return _xchg(&FLockItem, 0) == 0;
+  return xchg(&FLockItem, 0) == 0;
 }

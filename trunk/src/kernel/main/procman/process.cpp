@@ -3,14 +3,14 @@
   Copyright (C) 2005-2007 Oleg Fedorov
 */
 
-#include <process.h>
-#include <mm.h>
-#include <mmu.h>
-#include <procman.h>
-#include <stdio.h>
-#include <system.h>
-#include <hal.h>
-#include <elf32.h>
+#include <fos/process.h>
+#include <fos/mm.h>
+#include <fos/mmu.h>
+#include <fos/procman.h>
+#include <fos/printk.h>
+#include <fos/fos.h>
+#include <fos/hal.h>
+#include <sys/elf32.h>
 #include <string.h>
 
 TProcess::TProcess()

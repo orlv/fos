@@ -3,25 +3,15 @@
   Copyright (C) 2006-2007 Oleg Fedorov
 */
 
-#include <hal.h>
+#include <fos/hal.h>
+#include <fos/fs.h>
+#include <fos/printk.h>
+#include <fos/namer.h>
 #include <string.h>
-#include <fs.h>
-#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
 
-res_t do_send(message *msg)
-{
-  res_t result;
-  while(1) {
-    result = send(msg);
-    if(result == RES_FAULT2) { /* очередь получателя переполнена, обратимся чуть позже */
-      sched_yield();
-      continue;
-    }
-    return result;
-  }
-}
-
-ssize_t read(int fildes, void *buf, size_t nbyte)
+asmlinkage ssize_t read(int fildes, void *buf, size_t nbyte)
 {
   fd_t fd = (fd_t) fildes;
   if(!fildes || fildes == -1 || !fd->thread)
@@ -61,7 +51,7 @@ ssize_t read(int fildes, void *buf, size_t nbyte)
   } while(1);
 }
 
-ssize_t write(int fildes, const void *buf, size_t nbyte)
+asmlinkage ssize_t write(int fildes, const void *buf, size_t nbyte)
 {
   fd_t fd = (fd_t) fildes;  
   if(!fildes || fildes == -1 || !fd->thread)
@@ -102,7 +92,7 @@ ssize_t write(int fildes, const void *buf, size_t nbyte)
   } while(1);
 }
 
-int open(const char *pathname, int flags)
+asmlinkage int open(const char *pathname, int flags)
 {
   volatile struct message msg;
   msg.a0 = FS_CMD_ACCESS;
@@ -127,7 +117,7 @@ int open(const char *pathname, int flags)
     return -1;
 }
 
-int close(int fildes)
+asmlinkage int close(int fildes)
 {
   if(!fildes || fildes == -1)
     return -1;
@@ -136,7 +126,7 @@ int close(int fildes)
   return 0;
 }
 
-int resmgr_attach(const char *pathname)
+asmlinkage int resmgr_attach(const char *pathname)
 {
   if(!pathname)
     return 0;
@@ -154,7 +144,7 @@ int resmgr_attach(const char *pathname)
   return send((message *)&msg);
 }
 
-int stat(const char *path, struct stat *buf)
+asmlinkage int stat(const char *path, struct stat *buf)
 {
   size_t len = strlen(path);
   if(len > MAX_PATH_LEN)
@@ -175,7 +165,7 @@ int stat(const char *path, struct stat *buf)
     return -1;
 }
 
-int fstat(int fildes, struct stat *buf)
+asmlinkage int fstat(int fildes, struct stat *buf)
 {
   fd_t fd = (fd_t) fildes;
   if(!fildes || fildes == -1 || !fd->thread)

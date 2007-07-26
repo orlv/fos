@@ -1,32 +1,25 @@
 /*
   drivers/char/tty/tty.cpp
-  Copyright (C) 2004-2006 Oleg Fedorov
+  Copyright (C) 2004-2007 Oleg Fedorov
 */
 
-#warning  TODO: Упростить!!!! Выкинуть всё лишнее. 2006-11-12. Oleg.
-
-#include <drivers/block/vga/vga.h>
 #include "tty.h"
-//#include <vsprintf.h>
 #include <string.h>
 
-TTY::TTY(u16_t width, u16_t height):Tinterface()
+TTY::TTY(u16_t width, u16_t height)
 {
   geom.width = width;
   geom.height = height;
 
   bufsize = geom.width * geom.height * 2;
 
-  buffer = new u16_t[geom.width * geom.height];
+  buffer = (u16_t *) 0x000b8000; //new u16_t[geom.width * geom.height];
 
   textcolor = GREEN;
   bgcolor = BLACK;
   color = (textcolor << 8) | (bgcolor << 16);
 
   offs = 0;
-
-  info.type = FTypeObject;
-  mode = TTY_MODE_BLOCK;
 }
 
 TTY::~TTY()
@@ -43,13 +36,6 @@ void TTY::scroll_up()
   for (; i < geom.width * geom.height; i++) {
     buffer[i] = 0;
   }
-}
-
-void TTY::refresh()
-{
-  if (stdout)			/* stdout (например vga) можно отключить, и подключить 
-				   к нему другую виртуальную консоль */
-    stdout->write(0, buffer, bufsize);
 }
 
 void TTY::out_ch(const char ch)
@@ -78,23 +64,11 @@ void TTY::out_ch(const char ch)
   }
 }
 
-void TTY::set_mode(u32_t mode)
-{
-  this->mode = mode;
-}
-
-#include <stdio.h>
-
 size_t TTY::write(off_t offset, const void *buf, size_t count)
 {
   mutex.lock();
-  if(mode == TTY_MODE_BLOCK){
-    for (size_t i = 0; i < count; i++)
-      out_ch(((const char *)buf)[i]);
-    refresh();
-  } else {
-    stdout->write(offset, buf, count);
-  }
+  for (size_t i = 0; i < count; i++)
+    out_ch(((const char *)buf)[i]);
   mutex.unlock();
   return count;
 }

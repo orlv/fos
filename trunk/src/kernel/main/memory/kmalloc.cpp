@@ -3,29 +3,19 @@
  * Copyright (C) 2007 Oleg Fedorov
  */
 
-#include <mm.h>
+#include <fos/mm.h>
+#include <fos/mmu.h>
+#include <fos/printk.h>
+#include <fos/hal.h>
+#include <fos/pager.h>
+#include <c++/stack.h>
 #include <multiboot.h>
-#include <mmu.h>
-#include <stdio.h>
-#include <hal.h>
-#include <stack.h>
-
-
-#include <drivers/char/tty/tty.h>
-#include <mm.h>
-#include <drivers/block/vga/vga.h>
 #include <string.h>
-#include <system.h>
-#include <stdio.h>
-#include <drivers/char/timer/timer.h>
-#include <hal.h>
-#include <traps.h>
-#include <vsprintf.h>
-#include <stdarg.h>
-#include <drivers/fs/modulefs/modulefs.h>
-#include <fs.h>
-#include <drivers/char/usertty/usertty.h>
 
+/*
+#include <drivers/char/tty/tty.h>
+#include <drivers/block/vga/vga.h>
+*/
 
 void put_page(u32_t page)
 {
@@ -155,26 +145,26 @@ void init_memory()
   }
 
   hal->kmem = new Memory(0, KERNEL_MEM_LIMIT, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS);
-  hal->kmem->pagedir = (u32_t *) (get_page() * PAGE_SIZE); /* каталог страниц ядра */
-  kmem_set_log_addr(PAGE((u32_t)hal->kmem->pagedir), PAGE((u32_t)hal->kmem->pagedir));
+  hal->kmem->pager = new Pager(get_page() * PAGE_SIZE); /* каталог страниц ядра */
+  kmem_set_log_addr(PAGE(OFFSET(hal->kmem->pager->pagedir)), PAGE(OFFSET(hal->kmem->pager->pagedir)));
 
   /* Создадим таблицы страниц для всей памяти, входящей в KERNEL_MEM_LIMIT (32 каталога для 128 мегабайт) */
   for(u32_t i=0; i < KERNEL_MEM_LIMIT/(PAGE_SIZE*1024); i++){
-    hal->kmem->pagedir[i] = (get_page()*PAGE_SIZE) | 3;
-    kmem_set_log_addr(PAGE(hal->kmem->pagedir[i]), PAGE(hal->kmem->pagedir[i]));
+    hal->kmem->pager->pagedir[i] = (get_page()*PAGE_SIZE) | 3;
+    kmem_set_log_addr(PAGE(hal->kmem->pager->pagedir[i]), PAGE(hal->kmem->pager->pagedir[i]));
   }
 
   for(u32_t i=0; i < KERNEL_MEM_LIMIT/(PAGE_SIZE*1024); i++){
-    hal->kmem->mmap((void *)(hal->kmem->pagedir[i] & 0xfffff000), (void *)(hal->kmem->pagedir[i] & 0xfffff000), PAGE_SIZE);
+    hal->kmem->mmap(ADDRESS(hal->kmem->pager->pagedir[i] & 0xfffff000), ADDRESS(hal->kmem->pager->pagedir[i] & 0xfffff000), PAGE_SIZE);
   }
-  //while(1);
-  hal->kmem->mmap((void *)hal->kmem->pagedir, (void *)hal->kmem->pagedir, PAGE_SIZE);
+
+  hal->kmem->mmap(hal->kmem->pager->pagedir, hal->kmem->pager->pagedir, PAGE_SIZE);
 
   /* Смонтируем память от нуля до начала свободной памяти как есть */
   hal->kmem->mmap(0, 0, low_freemem_start);
 
   /* Смонтируем heap */
-  hal->kmem->mmap((void *)heap_start, (void *)heap_start, heap_size);
+  hal->kmem->mmap(ADDRESS(heap_start), ADDRESS(heap_start), heap_size);
 
   /* Дополним пул свободных страниц оставшимися свободными страницами (если они остались, конечно) */
   for(u32_t i = PAGE(KERNEL_MEM_LIMIT); i < hal->pages_cnt; i++){
@@ -182,7 +172,7 @@ void init_memory()
     put_page(i);
   }
 
-  enable_paging(hal->kmem->pagedir);
+  enable_paging(hal->kmem->pager->pagedir);
 
   heap_create_reserved_block();
 }

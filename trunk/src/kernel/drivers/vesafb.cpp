@@ -5,10 +5,12 @@
  * основано на коде из GRUB
  */
 
-#include <fs.h>
-#include <stdio.h>
-#include <hal.h>
+#include <fos/fs.h>
+#include <fos/printk.h>
+#include <fos/hal.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include "vbe.h"
 
 

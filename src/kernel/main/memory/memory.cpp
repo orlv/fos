@@ -9,10 +9,8 @@
 #include <fos/hal.h>
 #include <fos/pager.h>
 
-Memory::Memory(offs_t base, size_t size, u16_t flags)
+Memory::Memory(offs_t base, size_t size)
 {
-  this->flags = flags;
-
   memblock *block = new memblock;
 
   block->vptr = base;

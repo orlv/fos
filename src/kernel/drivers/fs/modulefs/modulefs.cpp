@@ -17,7 +17,7 @@ void grub_modulefs_srv()
   struct message msg;
   char *buffer = new char[MODULEFS_BUFF_SIZE];
   extern ModuleFS *initrb;
-  printk("modulefs: sss\n");
+  printk("modulefs: waiting for namer..\n");
   while(resmgr_attach("/mnt/modules") != RES_SUCCESS);
   printk("modulefs: started\n");
   struct stat *statbuf = new struct stat;

@@ -83,23 +83,23 @@ void fbterm::sync()
 void fbterm::redraw()
 {
   bar(10, 10, scr_width-20, scr_height-20, 0x4aad);
-  u8_t p[3];
-  char *data = (char *) &logo_header_data;
-  u16_t color;
-  for(size_t i=0; i<logo_height; i++)
-    for(size_t j=0; j<logo_width; j++) {
-      LOGO_HEADER_PIXEL(data, p);
-      color = ((p[0] & 0xf8) >> 3) << 11 | ((p[1] & 0xfc) >> 2) << 5 | ((p[2] & 0xf8) >> 3);
-      putpixel(j+scr_width-logo_width, i, color);
-    }
+      u8_t p[3];
+      char *data = (char *) &logo_header_data;
+      u16_t color;
+      for(size_t i=0; i<logo_height; i++)
+	for(size_t j=0; j<logo_width; j++) {
+	  LOGO_HEADER_PIXEL(data, p);
+	  color = ((p[0] & 0xf8) >> 3) << 11 | ((p[1] & 0xfc) >> 2) << 5 | ((p[2] & 0xf8) >> 3);
+	  if(p[1]) putpixel(j+scr_width-logo_width, i, color);
+	}
 
-  data = (char *) &corner_header_data;
-  for(size_t i=0; i<corner_height; i++)
-    for(size_t j=0; j<corner_width; j++) {
-      CORNER_HEADER_PIXEL(data, p);
-      color = ((p[0] & 0xf8) >> 3) << 11 | ((p[1] & 0xfc) >> 2) << 5 | ((p[2] & 0xf8) >> 3);
-      putpixel(j, i, color);
-    }
+      data = (char *) &corner_header_data;
+      for(size_t i=0; i<corner_height; i++)
+	for(size_t j=0; j<corner_width; j++) {
+	  CORNER_HEADER_PIXEL(data, p);
+	  color = ((p[0] & 0xf8) >> 3) << 11 | ((p[1] & 0xfc) >> 2) << 5 | ((p[2] & 0xf8) >> 3);
+	  if(p[2]) putpixel(j, i, color);
+	}
 
   _x = X_BORDER;
   _y = Y_BORDER;
@@ -254,7 +254,7 @@ int fbterm::set_videomode(u16_t mode)
 	for(size_t j=0; j<logo_width; j++) {
 	  LOGO_HEADER_PIXEL(data, p);
 	  color = ((p[0] & 0xf8) >> 3) << 11 | ((p[1] & 0xfc) >> 2) << 5 | ((p[2] & 0xf8) >> 3);
-	  if(color) putpixel(j+scr_width-logo_width, i, color);
+	  if(p[1]) putpixel(j+scr_width-logo_width, i, color);
 	}
 
       data = (char *) &corner_header_data;

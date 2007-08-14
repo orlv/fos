@@ -32,7 +32,10 @@ private:
   void out_ch(const char ch);
 
   u16_t *buffer;
+  u16_t *fb;
 
+  void sync();
+  
 public:
    TTY(u16_t width, u16_t height);
   ~TTY();

@@ -13,7 +13,11 @@ TTY::TTY(u16_t width, u16_t height)
 
   bufsize = geom.width * geom.height * 2;
 
-  buffer = (u16_t *) 0x000b8000; //new u16_t[geom.width * geom.height];
+  fb = (u16_t *) 0x000b8000;
+  buffer = new u16_t[bufsize];
+
+  for(size_t i=0; i<bufsize; i++)
+    buffer[i] = fb[i] = 0;
 
   textcolor = GREEN;
   bgcolor = BLACK;
@@ -31,10 +35,10 @@ void TTY::scroll_up()
 {
   off_t i;
   for (i = 0; i < geom.width * (geom.height - 1); i++) {
-    buffer[i] = buffer[i + geom.width];
+    fb[i] = buffer[i] = buffer[i + geom.width];
   }
   for (; i < geom.width * geom.height; i++) {
-    buffer[i] = 0;
+    fb[i] = buffer[i] = 0;
   }
 }
 
@@ -59,7 +63,7 @@ void TTY::out_ch(const char ch)
 	scroll_up();
 	offs -= geom.width;
       }
-      buffer[offs - 1] = ch | color;
+      fb[offs - 1] = buffer[offs - 1] = ch | color;
     }
   }
 }
@@ -70,6 +74,7 @@ size_t TTY::write(off_t offset, const void *buf, size_t count)
   for (size_t i = 0; i < count; i++)
     out_ch(((const char *)buf)[i]);
   mutex.unlock();
+  sync();
   return count;
 }
 
@@ -81,12 +86,12 @@ size_t TTY::read(off_t offset, void *buf, size_t count)
   char ch;
   size_t i, j;
   mutex.lock();
-  for(i=offset, j=0; (i < (offset + count)) && (i < offs) ; i++){
+  for (i=offset, j=0; (i < (offset + count)) && (i < offs) ; i++) {
     ch = buffer[i] & 0xff;
-    if(ch){
+    if(ch) {
       ((char *)buf)[j] = ch;
       j++;
-    } else if(!((i+1)%geom.width)){
+    } else if(!((i+1)%geom.width)) {
       ((char *)buf)[j] = '\n';
       j++;
     }
@@ -105,4 +110,10 @@ void TTY::set_bg_color(u8_t color)
 {
   bgcolor = color;
   this->color = (textcolor << 8) | (bgcolor << 16);
+}
+
+void TTY::sync()
+{
+  for(size_t i=0; i<bufsize; i++)
+    fb[i] = buffer[i];
 }

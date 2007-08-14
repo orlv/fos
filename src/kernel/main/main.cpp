@@ -67,17 +67,20 @@ asmlinkage void init()
   setup_idt();
   hal->sti();
 
-  //VGA *con = new VGA;
   TTY *tty1 = new TTY(80, 25);
-
-  //tty1->stdout = con;
   tty1->set_text_color(WHITE);
-
   stdout = tty1;
 
   out_banner();
+
   printk("Memory size: %d Kb, free %dK (%dK high/%dK low)\n", hal->pages_cnt*4, hal->free_pages.read()*4 + hal->free_lowpages.read()*4, hal->free_pages.read()*4, hal->free_lowpages.read()*4);
 
+#if 0
+  char *buf = new char[2000];
+  stdout->read(0, buf, 2000);
+  printk("[%s]", buf);
+  while(1);
+#endif
   hal->procman = new TProcMan;
 
   SysTimer = new Timer;

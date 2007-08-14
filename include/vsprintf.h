@@ -7,15 +7,9 @@
 #define _VSPRINTF_H
 
 #include <stdarg.h>
+#include <types.h>
 
-#ifdef __cplusplus
-extern "C"
-#endif
-int vsprintf(char *buf, const char *fmt, va_list args);
-
-#ifdef __cplusplus
-extern "C"
-#endif
-int sprintf(char *str, const char *fmt, ...);
+asmlinkage int vsprintf(char *buf, const char *fmt, va_list args);
+asmlinkage int sprintf(char *str, const char *fmt, ...);
 
 #endif

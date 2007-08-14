@@ -20,19 +20,19 @@ CXXFLAGS	= -DiKERNEL $(DEBUG) -Wall -O3 -I$(INCLUDE) -nostdinc -nostdinc++ -fno-
 LDFLAGS		= -nostdlib -static
 
 .s.o:
-	@echo "Compiling $<"
+	@$(ECHO) "Compiling $<"
 	@$(AS) $(ASFLAGS) -c -o $*.o $<
 
 .S.o:
-	@echo "Compiling $<"
+	@$(ECHO) "Compiling $<"
 	@$(AS) $(CFLAGS) -c -o $*.o $<
 
 .c.o:
-	@echo "Compiling $<"
+	@$(ECHO) "Compiling $<"
 	@$(CC) $(CFLAGS) -c -o $*.o $<
 
 .cpp.o:
-	@echo "Compiling $<"
+	@$(ECHO) "Compiling $<"
 	@$(C++) $(CXXFLAGS) -c -o $*.o $<
 
 #-----------------------------------------------------------------------------#
@@ -69,8 +69,8 @@ OBJECTS =	main/boot/setup.o		\
 #-----------------------------------------------------------------------------#
 
 all:    $(OBJECTS)
-	@echo Kernel objects OK
-	@echo Linking kernel image \($(SYSTEM_ROOT)/kernel\)
+	@$(ECHO) Kernel objects OK
+	@$(ECHO) Linking kernel image \($(SYSTEM_ROOT)/kernel\)
 	@$(LD) $(LDFLAGS) -o $(KERNEL_PATHNAME) $(OBJECTS) -Ttext=0x100000 --oformat=elf32-i386 --entry=_start
 
 strip:

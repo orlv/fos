@@ -8,27 +8,27 @@ include config.iso.mk
 
 all:	version build_kernel build_user
 	@rm -f `find . -name \*~`
-	@expr `cat .build.next` + 1 | xargs /bin/echo -n > .build.next.tmp
+	@expr `cat .build.next` + 1 | xargs $(ECHO) -n > .build.next.tmp
 	@mv .build.next.tmp .build.next
-	@/bin/echo \ System Complete!
-	@/bin/echo \ Run \"make install\" to build iso image.
-	@/bin/echo \#------------------------------------------------------------------------------
+	@$(ECHO) \ System Complete!
+	@$(ECHO) \ Run \"make install\" to build iso image.
+	@$(ECHO) \#------------------------------------------------------------------------------
 
 help:
-	@/bin/echo " "
-	@/bin/echo "\"make all\" 		- compile"
-	@/bin/echo "\"make install\"		- install"
-	@/bin/echo "\"make clean\"		- remove all *.o and image files"
-	@/bin/echo " "
+	@$(ECHO) " "
+	@$(ECHO) "\"make all\" 		- compile"
+	@$(ECHO) "\"make install\"		- install"
+	@$(ECHO) "\"make clean\"		- remove all *.o and image files"
+	@$(ECHO) " "
 
 version:
 	@rm -f kernel/lib/version.o
 	@cat .build.next > BUILD
-	@/bin/echo " "
-	@/bin/echo "FOS Version `cat VERSION`. Build `cat BUILD`."
-	@/bin/echo "Copyright (C) 2004-2007 Oleg Fedorov"
-	@/bin/echo " "
-	@/bin/echo -e "/* \n\
+	@$(ECHO) " "
+	@$(ECHO) "FOS Version `cat VERSION`. Build `cat BUILD`."
+	@$(ECHO) "Copyright (C) 2004-2007 Oleg Fedorov"
+	@$(ECHO) " "
+	@$(ECHO) "/* \n\
     include/fos/version.h \n\
     Automatically generated - do not modify \n\
     Copyright (C) 2004-2007 Oleg Fedorov \n\
@@ -39,15 +39,15 @@ version:
 
 
 build_kernel:
-	@/bin/echo \#--------------------------------- Building kernel ----------------------------
+	@$(ECHO) \#--------------------------------- Building kernel ----------------------------
 	@$(MAKE) -s -C kernel
-	@/bin/echo \#------------------------------------------------------------------------------
-	@/bin/echo 
+	@$(ECHO) \#------------------------------------------------------------------------------
+	@$(ECHO) 
 
 build_user:
-	@/bin/echo \#---------------------- Building usermode programs ----------------------------
+	@$(ECHO) \#---------------------- Building usermode programs ----------------------------
 	@$(MAKE) -s -C usermode
-	@/bin/echo \#------------------------------------------------------------------------------
+	@$(ECHO) \#------------------------------------------------------------------------------
 
 #--------------------------------- Clean -------------------------------------
 
@@ -62,23 +62,23 @@ clean: clean_kernel clean_user
 #--------------------------------- Install -----------------------------------
 
 grub_menu:
-	@/bin/echo "# GRUB Config: generated automatically - do not edit!" > $(GRUB_MENU)
-	@/bin/echo "timeout $(GRUB_TIMEOUT)" >> $(GRUB_MENU)
-	@/bin/echo "default 0" >> $(GRUB_MENU)
-	@/bin/echo "hiddenmenu" >> $(GRUB_MENU)
-	@/bin/echo "title $(GRUB_TITLE) (VERSION `cat VERSION`, BUILD `cat BUILD`)" >> $(GRUB_MENU)
-	@/bin/echo "	root($(GRUB_ROOT))" >> $(GRUB_MENU)
-	@/bin/echo "	kernel $(GRUB_KERNEL)" >> $(GRUB_MENU)
-	@/bin/echo $(GRUB_MODULES) | sed 's/ /\n/g' | sed 's/\/boot/\tmodule \/boot/g'  >> $(GRUB_MENU)
+	@$(ECHO) "# GRUB Config: generated automatically - do not edit!" > $(GRUB_MENU)
+	@$(ECHO) "timeout $(GRUB_TIMEOUT)" >> $(GRUB_MENU)
+	@$(ECHO) "default 0" >> $(GRUB_MENU)
+	@$(ECHO) "hiddenmenu" >> $(GRUB_MENU)
+	@$(ECHO) "title $(GRUB_TITLE) (VERSION `cat VERSION`, BUILD `cat BUILD`)" >> $(GRUB_MENU)
+	@$(ECHO) "	root($(GRUB_ROOT))" >> $(GRUB_MENU)
+	@$(ECHO) "	kernel $(GRUB_KERNEL)" >> $(GRUB_MENU)
+	@$(ECHO) $(GRUB_MODULES) | sed 's/ /\n/g' | sed 's/\/boot/\tmodule \/boot/g'  >> $(GRUB_MENU)
 
 grub_tftp_menu:
-	@/bin/echo "# GRUB Config: generated automatically - do not edit!" > $(GRUB_TFTP_MENU)
-	@/bin/echo "timeout 1" >> $(GRUB_TFTP_MENU)
-	@/bin/echo "default 0" >> $(GRUB_TFTP_MENU)
-	@/bin/echo "title $(GRUB_TITLE) (VERSION `cat VERSION`, BUILD `cat BUILD`)" >> $(GRUB_TFTP_MENU)
-	@/bin/echo "	root	(nd)" >> $(GRUB_TFTP_MENU)
-	@/bin/echo "	kernel $(GRUB_KERNEL)" >> $(GRUB_TFTP_MENU)
-	@/bin/echo $(GRUB_MODULES) | sed 's/ /\n/g' | sed 's/\/boot/\tmodule \/boot/g'  >> $(GRUB_TFTP_MENU)
+	@$(ECHO) "# GRUB Config: generated automatically - do not edit!" > $(GRUB_TFTP_MENU)
+	@$(ECHO) "timeout 1" >> $(GRUB_TFTP_MENU)
+	@$(ECHO) "default 0" >> $(GRUB_TFTP_MENU)
+	@$(ECHO) "title $(GRUB_TITLE) (VERSION `cat VERSION`, BUILD `cat BUILD`)" >> $(GRUB_TFTP_MENU)
+	@$(ECHO) "	root	(nd)" >> $(GRUB_TFTP_MENU)
+	@$(ECHO) "	kernel $(GRUB_KERNEL)" >> $(GRUB_TFTP_MENU)
+	@$(ECHO) $(GRUB_MODULES) | sed 's/ /\n/g' | sed 's/\/boot/\tmodule \/boot/g'  >> $(GRUB_TFTP_MENU)
 
 install: grub_menu grub_tftp_menu iso
 

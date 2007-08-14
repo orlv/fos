@@ -1,5 +1,8 @@
 #!/bin/sh
 
+MAKE="make"
+ECHO="/bin/echo -e"
+
 TOPDIR=`pwd`/..
 
 echo "Generating config.mk"
@@ -15,7 +18,8 @@ KERNEL_PATHNAME	= $TOPDIR/boot/fos
 INCLUDE		= $TOPDIR/include
 LIB		= $TOPDIR/lib
 
-MAKE            = make
+MAKE            = $MAKE
+ECHO            = $ECHO
 
 # -- Modules ------------------------------------------------------------------
 GRUB_MODULES =	/boot/modules/test.txt		\\
@@ -54,7 +58,8 @@ C++ = gcc
 AS = gcc
 LD = ld
 AR = ar
-MAKE = make
+MAKE = $MAKE
+ECHO = $ECHO
 #----------------------------------------------------------------------------#
 
 SYSTEM_NAME     = FOS
@@ -102,7 +107,8 @@ C++ = gcc
 AS = gcc
 LD = ld
 AR = ar
-MAKE = make
+MAKE = $MAKE
+ECHO = $ECHO
 #----------------------------------------------------------------------------#
 
 SYSTEM_NAME     = FOS

@@ -1,10 +1,12 @@
 #!/bin/bash
 
-MAKE="make"
-
 if uname | grep BSD
-then ECHO="/bin/echo";
-else ECHO="/bin/echo -e";
+then
+    ECHO="/bin/echo";
+    MAKE="gmake"
+else
+    ECHO="/bin/echo -e";
+    MAKE="make"
 fi
 
 TOPDIR=`pwd`/..

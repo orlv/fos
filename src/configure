@@ -1,7 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 
 MAKE="make"
-ECHO="/bin/echo -e"
+
+if uname | grep BSD
+then ECHO="/bin/echo";
+else ECHO="/bin/echo -e";
+fi
 
 TOPDIR=`pwd`/..
 

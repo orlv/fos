@@ -28,14 +28,14 @@ version:
 	@$(ECHO) "FOS Version `cat VERSION`. Build `cat BUILD`."
 	@$(ECHO) "Copyright (C) 2004-2007 Oleg Fedorov"
 	@$(ECHO) " "
-	@$(ECHO) "/* \n\
-    include/fos/version.h \n\
-    Automatically generated - do not modify \n\
-    Copyright (C) 2004-2007 Oleg Fedorov \n\
-*/ \n\
-\n\
-#define VERSION	\"`cat VERSION`\"\n\
-#define BUILD	`cat BUILD`" > ../include/fos/version.h
+	@$(ECHO) "/* " > ../include/fos/version.h
+	@$(ECHO) "include/fos/version.h" >> ../include/fos/version.h
+	@$(ECHO) "Automatically generated - do not modify" >> ../include/fos/version.h
+	@$(ECHO) "Copyright (C) 2004-2007 Oleg Fedorov" >> ../include/fos/version.h
+	@$(ECHO) "*/" >> ../include/fos/version.h
+	@$(ECHO) " " >> ../include/fos/version.h
+	@$(ECHO) "#define VERSION	\"`cat VERSION`\"" >> ../include/fos/version.h
+	@$(ECHO) "#define BUILD	`cat BUILD`" >> ../include/fos/version.h
 
 
 build_kernel:

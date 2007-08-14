@@ -12,13 +12,11 @@
 #include <fos/page.h>
 
 class Pager {
- private:
-  u16_t flags;
-
  public:
-  Pager(u32_t pagedir);
+  Pager(u32_t pagedir, u16_t flags);
   ~Pager();
   u32_t *pagedir; /* каталог страниц */
+  u16_t flags;
 
   u32_t mount_page(register u32_t phys_page, register u32_t log_page);
   u32_t umount_page(register u32_t log_page);

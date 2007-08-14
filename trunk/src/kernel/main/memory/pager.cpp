@@ -5,14 +5,11 @@
 
 #include <fos/pager.h>
 #include <fos/printk.h>
-//#include <fos/mm.h>
-//#include <fos/process.h>
-//#include <fos/hal.h>
-//#include <fos/mmu.h>
 
-Pager::Pager(u32_t pagedir)
+Pager::Pager(u32_t pagedir, u16_t flags)
 {
   this->pagedir = (u32_t *) pagedir;
+  this->flags = flags;
 }
 
 Pager::~Pager()

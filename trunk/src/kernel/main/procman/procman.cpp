@@ -312,12 +312,12 @@ tid_t TProcMan::exec(register void *image, const string name)
 {
   TProcess *process = new TProcess();
 
-  process->memory = new Memory(USER_MEM_BASE, USER_MEM_SIZE, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS|MMU_PAGE_USER_ACCESSABLE);
+  process->memory = new Memory(USER_MEM_BASE, USER_MEM_SIZE);
   process->name = new char[strlen(name) + 1];
   strcpy(process->name, name);
 
   /* создаём каталог страниц процесса */
-  process->memory->pager = new Pager(OFFSET(kmalloc(PAGE_SIZE)));
+  process->memory->pager = new Pager(OFFSET(kmalloc(PAGE_SIZE)), MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS|MMU_PAGE_USER_ACCESSABLE);
   /* скопируем указатели на таблицы страниц ядра (страницы, расположенные ниже KERNEL_MEM_LIMIT) */
   for(u32_t i=0; i <= PAGE(KERNEL_MEM_LIMIT)/1024; i++){
     process->memory->pager->pagedir[i] = hal->kmem->pager->pagedir[i];

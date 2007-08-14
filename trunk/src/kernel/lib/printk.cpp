@@ -10,7 +10,7 @@
 #include <stdarg.h>
 #include <vsprintf.h>
 
-int sprintf(char *str, const char *fmt, ...)
+asmlinkage int sprintf(char *str, const char *fmt, ...)
 {
   va_list args;
   va_start(args, fmt);
@@ -19,17 +19,16 @@ int sprintf(char *str, const char *fmt, ...)
   return i;
 }
 
-extern "C" int printk(const char *fmt, ...)
+asmlinkage int printk(const char *fmt, ...)
 {
   extern TTY *stdout;
   int i = 0;
-  if (stdout){
+  if (stdout) {
     va_list args;
     va_start(args, fmt);
     char *printbuf = new char[2000];
     i = vsprintf(printbuf, fmt, args);
     va_end(args);
-
     hal->mt_disable();
     stdout->write(0, printbuf, i);
     hal->mt_enable();

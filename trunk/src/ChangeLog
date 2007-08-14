@@ -1,3 +1,9 @@
+Tue Aug 14 22:09:53 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 17500 (Version 0.0.43.9)
+	- Изменена структура каталогов, расположение заголовочных файлов
+	- Немного упрощена система управления страницами в ядре
+	- Выкинут некторый ненужный код из ядра
+
 Mon Jul 23 20:00:16 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
 Build 17396 (Version 0.0.43.7)
 	- Добавлены функции stat()/fstat(), доработаны namer и modulesfs

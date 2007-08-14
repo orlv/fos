@@ -12,10 +12,7 @@
 #include <multiboot.h>
 #include <string.h>
 
-/*
-#include <drivers/char/tty/tty.h>
-#include <drivers/block/vga/vga.h>
-*/
+//#include <fos/drivers/char/tty/tty.h>
 
 void put_page(u32_t page)
 {
@@ -109,17 +106,7 @@ void init_memory()
   kmem_block.size = 0;
   
   free((void *)(kheap+1));
-  /* --  --  --  -- */
 
-  /*  VGA *con = new VGA;
-  TTY *tty1 = new TTY(80, 25);
-
-  tty1->stdout = con;
-  tty1->set_text_color(WHITE);
-  extern TTY *stdout;
-  stdout = tty1;*/
-  //printk("dd");
-  //while(1);
   /* ------------  Тут уже можно использовать оператор new  ------------ */
   hal = new HAL(__mbi);
   hal->pages_cnt = pages_cnt;
@@ -131,7 +118,12 @@ void init_memory()
     put_lowpage(i);
   }
 
-  //  printk("heap size = 0x%X (0x%X)\n", heap_size, heap_size / sizeof(HeapMemBlock));
+  /* --  --  --  -- */
+  /*  TTY *tty1 = new TTY(80, 25);
+  tty1->set_text_color(WHITE);
+  extern TTY *stdout;
+  stdout = tty1;*/
+  //printk("heap size = 0x%X (0x%X)\n", heap_size, heap_size / sizeof(HeapMemBlock));
   
   /*
     Заполним пул свободных страниц страницами, лежащими ниже KERNEL_MEM_LIMIT
@@ -144,8 +136,8 @@ void init_memory()
     }
   }
 
-  hal->kmem = new Memory(0, KERNEL_MEM_LIMIT, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS);
-  hal->kmem->pager = new Pager(get_page() * PAGE_SIZE); /* каталог страниц ядра */
+  hal->kmem = new Memory(0, KERNEL_MEM_LIMIT);
+  hal->kmem->pager = new Pager(get_page() * PAGE_SIZE, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS); /* каталог страниц ядра */
   kmem_set_log_addr(PAGE(OFFSET(hal->kmem->pager->pagedir)), PAGE(OFFSET(hal->kmem->pager->pagedir)));
 
   /* Создадим таблицы страниц для всей памяти, входящей в KERNEL_MEM_LIMIT (32 каталога для 128 мегабайт) */
@@ -173,7 +165,6 @@ void init_memory()
   }
 
   enable_paging(hal->kmem->pager->pagedir);
-
   heap_create_reserved_block();
 }
 

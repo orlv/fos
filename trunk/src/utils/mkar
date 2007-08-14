@@ -5,11 +5,11 @@ NAME=fos-`cat fos/src/VERSION`-`cat fos/src/BUILD`
 
 if [ ! -x arch/$NAME ]; then
     mkdir arch/$NAME
-    tar cvj --exclude="fos/tmp" --exclude="fos/iso/*" --exclude=".svn"  --exclude="lost+found" -f $NAME-src.tar.bz2 fos/
+    tar cvj --exclude="fos/tmp" --exclude=".svn"  --exclude="lost+found" -f $NAME-src.tar.bz2 fos/
     mv $NAME-src.tar.bz2 arch/$NAME/
-    tar cvj --exclude="fos/tmp" --exclude="fos/iso/*" --exclude="lost+found" -f $NAME-src-svn.tar.bz2 fos/
+    tar cvj --exclude="fos/tmp" --exclude="lost+found" -f $NAME-src-svn.tar.bz2 fos/
     mv $NAME-src-svn.tar.bz2 arch/$NAME/
-    cp ~/fos/iso/FOS.iso.bz2 arch/$NAME/$NAME.iso.bz2
+    cp ~/fos/tmp/iso/FOS-current.iso.bz2 arch/$NAME/$NAME.iso.bz2
     echo Archive $NAME was created.
 else
     echo Archive already exist.

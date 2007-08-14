@@ -117,13 +117,13 @@ class Memory {
  private:
   List<memblock *> * volatile UsedMem;
   List<memblock *> * volatile FreeMem;
-  u16_t flags;
+  //u16_t flags;
 
   void *mem_alloc(register u32_t *phys_pages, register size_t pages_cnt);
   void *do_mmap(register u32_t *phys_pages, register void *log_address, register size_t pages_cnt);
 
  public:
-  Memory(offs_t base, size_t size, u16_t flags);
+  Memory(offs_t base, size_t size);
   ~Memory();
 
   off_t mem_base;

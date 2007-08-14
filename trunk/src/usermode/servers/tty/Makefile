@@ -4,7 +4,6 @@
 
 include ../config.mk
 
-INSTALLDIR	= 	$(TOPDIR)/modules
 OUTPUT		=	tty
 
 OBJECTS		=	main.o		\
@@ -15,7 +14,7 @@ LDLIBS		=	-lcpp -lc -lfos
 
 all:	$(OBJECTS)
 	@echo \ Linking $(OUTPUT)
-	@$(LD) $(LDFLAGS) -o $(OUTPUT) ../../../lib/crt0.o $(OBJECTS) $(LDLIBS) --entry=_start --oformat=elf32-i386  --Ttext=$(USER_MEM_BASE)
+	@$(LD) $(LDFLAGS) -o $(OUTPUT) $(LIB)/crt0.o $(OBJECTS) $(LDLIBS) --entry=_start --oformat=elf32-i386  --Ttext=$(USER_MEM_BASE)
 
 install:
 	cp $(OUTPUT) $(INSTALLDIR)/$(OUTPUT)

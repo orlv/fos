@@ -2,37 +2,39 @@
 # Copyright (C) 2006-2007 Oleg Fedorov
 # -----------------------------------------------------------------------------
 
+include config.mk
+
 all:
 	@echo ---------------------------------\> Building namer
-	make -s -C namer
+	$(MAKE) -s -C namer
 	@echo ---------------------------------\> Building keyboard
-	make -s -C keyboard
+	$(MAKE) -s -C keyboard
 	@echo ---------------------------------\> Building floppy
-	make -s -C floppy
+	$(MAKE) -s -C floppy
 	@echo ---------------------------------\> Building fbtty
-#	make -s -C tty
-	make -s -C fbtty
+#	$(MAKE) -s -C tty
+	$(MAKE) -s -C fbtty
 
 
 install:
-	make -s -C namer install
-#	make -s -C tty install
-	make -s -C fbtty install
-	make -s -C keyboard install
-	make -s -C floppy install
+	$(MAKE) -s -C namer install
+#	$(MAKE) -s -C tty install
+	$(MAKE) -s -C fbtty install
+	$(MAKE) -s -C keyboard install
+	$(MAKE) -s -C floppy install
 
 uninstall:
-	make -s -C namer uninstall
-#	make -s -C tty uninstall
-	make -s -C fbtty uninstall
-	make -s -C keyboard uninstall
-	make -s -C floppy uninstall
+	$(MAKE) -s -C namer uninstall
+#	$(MAKE) -s -C tty uninstall
+	$(MAKE) -s -C fbtty uninstall
+	$(MAKE) -s -C keyboard uninstall
+	$(MAKE) -s -C floppy uninstall
 
 clean:
-	make -s -C namer clean
-#	make -s -C tty clean
-	make -s -C fbtty clean
-	make -s -C keyboard clean
-	make -s -C floppy clean
+	$(MAKE) -s -C namer clean
+#	$(MAKE) -s -C tty clean
+	$(MAKE) -s -C fbtty clean
+	$(MAKE) -s -C keyboard clean
+	$(MAKE) -s -C floppy clean
 
 # -----------------------------------------------------------------------------

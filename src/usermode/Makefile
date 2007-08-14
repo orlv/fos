@@ -2,24 +2,26 @@
 # Copyright (C) 2006-2007 Oleg Fedorov
 # -----------------------------------------------------------------------------
 
+include config.mk
+
 all:
-	@echo ---------------------------------\> Building crt0
+	@$(ECHO) ---------------------------------\> Building crt0
 	$(MAKE) -s -C crt0 all install
-	@echo ---------------------------------\> Building libc
+	@$(ECHO) ---------------------------------\> Building libc
 	$(MAKE) -s -C libc all install
-	@echo ---------------------------------\> Building libcpp
+	@$(ECHO) ---------------------------------\> Building libcpp
 	$(MAKE) -s -C libcpp all install
-	@echo ---------------------------------\> Building libfos
+	@$(ECHO) ---------------------------------\> Building libfos
 	$(MAKE) -s -C libfos all install
-	@echo ---------------------------------\> Building init
+	@$(ECHO) ---------------------------------\> Building init
 	$(MAKE) -s -C init all install
-	@echo ---------------------------------\> Building shell
+	@$(ECHO) ---------------------------------\> Building shell
 	$(MAKE) -s -C shell all install
-	@echo ---------------------------------\> Building test
+	@$(ECHO) ---------------------------------\> Building test
 	$(MAKE) -s -C test all install
-	@echo ---------------------------------\> Building int16b
+	@$(ECHO) ---------------------------------\> Building int16b
 	$(MAKE) -s -C int16b all install
-	@echo ---------------------------------\> Building servers
+	@$(ECHO) ---------------------------------\> Building servers
 	$(MAKE) -s -C servers all install
 
 install:

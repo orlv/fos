@@ -5,13 +5,13 @@
 include config.mk
 
 all:
-	@echo ---------------------------------\> Building namer
+	@$(ECHO) ---------------------------------\> Building namer
 	$(MAKE) -s -C namer
-	@echo ---------------------------------\> Building keyboard
+	@$(ECHO) ---------------------------------\> Building keyboard
 	$(MAKE) -s -C keyboard
-	@echo ---------------------------------\> Building floppy
+	@$(ECHO) ---------------------------------\> Building floppy
 	$(MAKE) -s -C floppy
-	@echo ---------------------------------\> Building fbtty
+	@$(ECHO) ---------------------------------\> Building fbtty
 #	$(MAKE) -s -C tty
 	$(MAKE) -s -C fbtty
 

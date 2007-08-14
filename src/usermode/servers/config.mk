@@ -7,6 +7,7 @@ AS = gcc
 LD = ld
 AR = ar
 MAKE = make
+ECHO = /bin/echo -e
 #----------------------------------------------------------------------------#
 
 SYSTEM_NAME     = FOS

@@ -9,6 +9,8 @@ KERNEL_PATHNAME	= /home/oleg/fos/src/../boot/fos
 INCLUDE		= /home/oleg/fos/src/../include
 LIB		= /home/oleg/fos/src/../lib
 
+MAKE            = make
+
 # -- Modules ------------------------------------------------------------------
 GRUB_MODULES =	/boot/modules/test.txt		\
 		/boot/modules/namer		\

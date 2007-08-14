@@ -4,5 +4,5 @@
     Copyright (C) 2004-2007 Oleg Fedorov 
 */ 
 
-#define VERSION	"0.0.43.8"
-#define BUILD	17500
+#define VERSION	"0.0.43.9"
+#define BUILD	17501

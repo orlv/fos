@@ -40,22 +40,22 @@ version:
 
 build_kernel:
 	@/bin/echo \#--------------------------------- Building kernel ----------------------------
-	@make -s -C kernel
+	@$(MAKE) -s -C kernel
 	@/bin/echo \#------------------------------------------------------------------------------
 	@/bin/echo 
 
 build_user:
 	@/bin/echo \#---------------------- Building usermode programs ----------------------------
-	@make -s -C usermode
+	@$(MAKE) -s -C usermode
 	@/bin/echo \#------------------------------------------------------------------------------
 
 #--------------------------------- Clean -------------------------------------
 
 clean_kernel:
-	@make -C kernel clean
+	@$(MAKE) -C kernel clean
 
 clean_user:
-	@make -C usermode clean uninstall
+	@$(MAKE) -C usermode clean uninstall
 
 clean: clean_kernel clean_user
 

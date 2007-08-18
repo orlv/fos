@@ -61,18 +61,18 @@ OBJECTS +=	drivers/vesafb.o		\
 		drivers/pic.o			\
 		drivers/fs/modulefs/modulefs.o
 
-OBJECTS +=	lib/close.o			\
-		lib/lseek.o			\
-		lib/open.o			\
-		lib/read.o			\
-		lib/write.o			\
-		lib/sprintf.o			\
-		lib/vsprintf.o			\
-		lib/printk.o			\
-		lib/stat.o			\
-		lib/fstat.o			\
-		lib/version.o			\
-		lib/tmutex.o
+OBJECTS +=	klibc/close.o			\
+		klibc/lseek.o			\
+		klibc/open.o			\
+		klibc/read.o			\
+		klibc/write.o			\
+		klibc/sprintf.o			\
+		klibc/vsprintf.o		\
+		klibc/printk.o			\
+		klibc/stat.o			\
+		klibc/fstat.o			\
+		klibc/version.o			\
+		klibc/tmutex.o
 
 OBJECTS +=	klibcpp/purestub.o
 

@@ -7,7 +7,6 @@
 #include <string.h>
 #include <sys/stat.h>
 
-
 int stat(const char *path, struct stat *buf)
 {
   size_t len = strlen(path);

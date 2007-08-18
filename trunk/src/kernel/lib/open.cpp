@@ -7,7 +7,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-asmlinkage int open(const char *pathname, int flags)
+int open(const char *pathname, int flags)
 {
   volatile struct message msg;
   msg.a0 = FS_CMD_ACCESS;

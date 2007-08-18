@@ -9,7 +9,7 @@
   при возникновении указанного прерывания данному потоку
   будет приходить сообщение
 */
-res_t interrupt_attach(u8_t n)
+asmlinkage res_t interrupt_attach(u8_t n)
 {
   struct message msg;
   msg.a0 = PROCMAN_CMD_INTERRUPT_ATTACH;

@@ -7,7 +7,7 @@
 #include <fos/namer.h>
 #include <string.h>
 
-int resmgr_attach(const char *pathname)
+asmlinkage int resmgr_attach(const char *pathname)
 {
   if(!pathname)
     return 0;

@@ -5,7 +5,7 @@
 #include <fos/message.h>
 #include <fos/fs.h>
 
-asmlinkage ssize_t read(int fildes, void *buf, size_t nbyte)
+ssize_t read(int fildes, void *buf, size_t nbyte)
 {
   fd_t fd = (fd_t) fildes;
   if(!fildes || fildes == -1 || !fd->thread)

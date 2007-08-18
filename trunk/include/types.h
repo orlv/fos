@@ -38,6 +38,14 @@ typedef signed long s32_t;
 #define asmlinkage
 #endif
 
+#ifdef iKERNEL
+#define userlinkage
+#define kregister register
+#else
+#define userlinkage asmlinkage
+#define kregister
+#endif
+
 typedef u32_t mode_t;
 typedef u32_t uid_t;
 typedef u32_t gid_t;
@@ -52,5 +60,6 @@ typedef signed long res_t;
 typedef u32_t pid_t;
 typedef u32_t tid_t; /* Thread ID */
 typedef tid_t sid_t; /* Server ID (пока что равняется Thread ID) */
+
 
 #endif

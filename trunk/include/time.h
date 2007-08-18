@@ -22,6 +22,6 @@ struct tm {
 
 typedef u32_t time_t;
 
-struct tm *gmtime(const time_t * timep);
+userlinkage struct tm *gmtime(const time_t * timep);
 
 #endif

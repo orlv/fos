@@ -8,11 +8,10 @@
 
 #include <types.h>
 
-asmlinkage void exit(int status);
+userlinkage void exit(int status);
 
-asmlinkage void *malloc(size_t size);
-asmlinkage void free(void *ptr);
-asmlinkage void *realloc(void *ptr, size_t size);
-
+userlinkage void *malloc(size_t size);
+userlinkage void free(void *ptr);
+userlinkage void *realloc(void *ptr, size_t size);
 
 #endif

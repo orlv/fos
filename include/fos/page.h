@@ -8,6 +8,10 @@
 
 #include <types.h>
 
+#ifdef iKERNEL
+#include <c++/atomic.h>
+#endif
+
 #define PAGE_SIZE 0x1000
 
 asmlinkage void * kmemmap(offs_t ptr, size_t size);
@@ -19,7 +23,7 @@ asmlinkage int kfree(off_t ptr);
 
 #ifdef iKERNEL
 struct page {
-  atomic_t mapcount; /* общее количество использований страницы */
+  atomic_t mapcount;          /* общее количество использований страницы */
   volatile u32_t kernel_map;  /* на какой логический адрес в области ядра смонтировано (если смонтировано) */
 };
 

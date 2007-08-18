@@ -1,5 +1,5 @@
 /*
-    kernel/main/version.cpp
+    kernel/main/version.c
     Copyright (C) 2005 Oleg Fedorov
 */
 

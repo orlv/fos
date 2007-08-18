@@ -3,6 +3,6 @@
 
 #include <types.h>
 
-asmlinkage int open(const char *pathname, int flags);
+userlinkage int open(const char *pathname, int flags);
 
 #endif

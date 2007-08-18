@@ -11,6 +11,7 @@
 #include <c++/stack.h>
 #include <multiboot.h>
 #include <string.h>
+#include <stdlib.h>
 
 //#include <fos/drivers/char/tty/tty.h>
 
@@ -55,7 +56,7 @@ u32_t get_lowpage()
   }
 }
 
-void free(register void *ptr);
+//void free(register void *ptr);
 
 void init_memory()
 {
@@ -168,7 +169,6 @@ void init_memory()
   heap_create_reserved_block();
 }
 
-
 void *kmalloc(register size_t size)
 {
   void *ptr;
@@ -187,4 +187,3 @@ void kfree(register void *ptr)
   hal->kmem->mem_free(ptr);
   hal->mt_enable();
 }
-

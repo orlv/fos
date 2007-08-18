@@ -31,7 +31,7 @@ struct stat {
   time_t    st_ctime;   /* time of last status change */
 };
 
-asmlinkage int stat(const char *path, struct stat *buf);
-asmlinkage int fstat(int fildes, struct stat *buf);
+userlinkage int stat(const char *path, struct stat *buf);
+userlinkage int fstat(int fildes, struct stat *buf);
 
 #endif

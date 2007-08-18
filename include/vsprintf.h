@@ -6,10 +6,10 @@
 #ifndef _VSPRINTF_H
 #define _VSPRINTF_H
 
-#include <stdarg.h>
 #include <types.h>
+#include <stdarg.h>
 
-asmlinkage int vsprintf(char *buf, const char *fmt, va_list args);
-asmlinkage int sprintf(char *str, const char *fmt, ...);
+userlinkage int vsprintf(char *buf, const char *fmt, va_list args);
+userlinkage int sprintf(char *str, const char *fmt, ...);
 
 #endif

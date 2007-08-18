@@ -9,7 +9,7 @@
 #include <stdarg.h>
 #include <vsprintf.h>
 
-asmlinkage int printk(const char *fmt, ...)
+int printk(const char *fmt, ...)
 {
   extern TTY *stdout;
   int i = 0;

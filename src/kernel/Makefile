@@ -71,9 +71,13 @@ OBJECTS +=	lib/close.o			\
 		lib/printk.o			\
 		lib/stat.o			\
 		lib/fstat.o			\
-		klibcpp/purestub.o			\
 		lib/version.o			\
 		lib/tmutex.o
+
+OBJECTS +=	klibcpp/purestub.o
+
+OBJECTS +=	klibfos/intattach.o		\
+		klibfos/resmgrattach.o
 
 #-----------------------------------------------------------------------------#
 

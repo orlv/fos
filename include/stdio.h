@@ -8,14 +8,7 @@
 
 #include <types.h>
 
-#ifdef __cplusplus
-extern "C"
-#endif
-int printf(const char *fmt, ...);
-
-#ifdef __cplusplus
-extern "C"
-#endif
-int sprintf(char *str, const char *fmt, ...);
+userlinkage int printf(const char *fmt, ...);
+userlinkage int sprintf(char *str, const char *fmt, ...);
 
 #endif

@@ -91,7 +91,7 @@ static inline char *number(char *str, int num, int base, int size, int precision
   return str;
 }
 
-asmlinkage int vsprintf(char *buf, const char *fmt, va_list args)
+int vsprintf(char *buf, const char *fmt, va_list args)
 {
   int len;
   int i;

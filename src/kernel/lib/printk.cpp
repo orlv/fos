@@ -3,21 +3,11 @@
   Copyright (C) 2006 Oleg Fedorov
 */
 
-
 #include <fos/printk.h>
 #include <fos/drivers/char/tty/tty.h>
 #include <fos/hal.h>
 #include <stdarg.h>
 #include <vsprintf.h>
-
-asmlinkage int sprintf(char *str, const char *fmt, ...)
-{
-  va_list args;
-  va_start(args, fmt);
-  int i = vsprintf(str, fmt, args);
-  va_end(args);
-  return i;
-}
 
 asmlinkage int printk(const char *fmt, ...)
 {

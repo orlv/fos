@@ -51,20 +51,30 @@ OBJECTS =	main/boot/setup.o		\
 		main/memory/pager.o		\
 		main/gdt.o			\
 		main/idt.o			\
-		main/main.o			\
-		lib/vsprintf.o			\
-		lib/printk.o			\
-		lib/pure.o			\
-		lib/version.o			\
-		lib/tmutex.o			\
-		lib/fs.o			\
 		main/syscall.o  		\
-		drivers/vesafb.o		\
+		main/main.o
+
+OBJECTS +=	drivers/vesafb.o		\
 		drivers/char/tty/tty.o		\
 		drivers/char/timer/timer.o	\
 		drivers/char/cmos/cmos.o	\
 		drivers/pic.o			\
 		drivers/fs/modulefs/modulefs.o
+
+OBJECTS +=	lib/close.o			\
+		lib/exit.o			\
+		lib/lseek.o			\
+		lib/open.o			\
+		lib/read.o			\
+		lib/write.o			\
+		lib/sprintf.o			\
+		lib/vsprintf.o			\
+		lib/printk.o			\
+		lib/stat.o			\
+		lib/fstat.o			\
+		lib/purestub.o			\
+		lib/version.o			\
+		lib/tmutex.o
 
 #-----------------------------------------------------------------------------#
 

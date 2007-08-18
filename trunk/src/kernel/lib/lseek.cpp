@@ -5,7 +5,7 @@
 #include <fos/fs.h>
 #include <unistd.h>
 
-off_t lseek(int fildes, off_t offset, int whence)
+asmlinkage off_t lseek(int fildes, off_t offset, int whence)
 {
   fd_t fd = (fd_t) fildes;
   if(!fildes || fildes == -1 || !fd->thread)

@@ -62,7 +62,6 @@ OBJECTS +=	drivers/vesafb.o		\
 		drivers/fs/modulefs/modulefs.o
 
 OBJECTS +=	lib/close.o			\
-		lib/exit.o			\
 		lib/lseek.o			\
 		lib/open.o			\
 		lib/read.o			\
@@ -72,7 +71,7 @@ OBJECTS +=	lib/close.o			\
 		lib/printk.o			\
 		lib/stat.o			\
 		lib/fstat.o			\
-		lib/purestub.o			\
+		klibcpp/purestub.o			\
 		lib/version.o			\
 		lib/tmutex.o
 

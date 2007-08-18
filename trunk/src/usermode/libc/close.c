@@ -2,7 +2,6 @@
   Copyright (C) 2007 Oleg Fedorov
  */
 
-#include <fos/message.h>
 #include <fos/fs.h>
 #include <stdlib.h>
 

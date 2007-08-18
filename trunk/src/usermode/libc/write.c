@@ -5,7 +5,7 @@
 #include <fos/message.h>
 #include <fos/fs.h>
 
-ssize_t write(int fildes, const void *buf, size_t nbyte)
+asmlinkage ssize_t write(int fildes, const void *buf, size_t nbyte)
 {
   fd_t fd = (fd_t) fildes;  
   if(!fildes || fildes == -1 || !fd->thread)

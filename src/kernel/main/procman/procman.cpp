@@ -23,6 +23,7 @@
 void sched_srv();
 void grub_modulefs_srv();
 void vesafb_srv();
+void mm_srv();
 
 #define FOS_MAX_ELF_SECTION_SIZE 0x100000 
 
@@ -100,57 +101,6 @@ tid_t execute(char *pathname)
     delete elf_image;
   }
   return result;
-}
-
-void mm_srv()
-{
-  Thread *thread;
-  struct message *msg = new message;
-  msg->tid = 0;
-  while (1) {
-    msg->recv_size = 0;
-    msg->tid = _MSG_SENDER_ANY;
-
-    receive(msg);
-
-    switch(msg->a0){
-    case MM_CMD_MEM_ALLOC:
-      //printk("mm: allocating 0x%X bytes of memory\n", msg->a1);
-      thread = hal->procman->get_thread_by_tid(msg->tid);
-      if(!msg->a2)
-	msg->a0 = (u32_t) thread->process->memory->mem_alloc(msg->a1);
-      else
-	msg->a0 = get_lowpage() * PAGE_SIZE;
-      msg->send_size = 0;
-      reply(msg);
-      break;
-
-    case MM_CMD_MEM_MAP:
-      //printk("mm: mapping 0x%X bytes of memory to 0x%X\n", msg->a2, msg->a1);
-      thread = hal->procman->get_thread_by_tid(msg->tid);
-      msg->a0 = (u32_t) thread->process->memory->mem_alloc_phys(msg->a1, msg->a2);
-      msg->send_size = 0;
-      reply(msg);
-      break;
-
-    case MM_CMD_MEM_FREE:
-      //printk("mm: freeing 0x%X\n", msg->a1);
-      thread = hal->procman->get_thread_by_tid(msg->tid);
-      if(msg->a1 > USER_MEM_BASE){
-	msg->a0 = 1;
-	thread->process->memory->mem_free((void *)msg->a1);
-      } else
-	msg->a0 = -1;
-      msg->send_size = 0;
-      reply(msg);
-      break;
-      
-    default:
-      msg->a0 = RES_FAULT;
-      msg->send_size = 0;
-      reply(msg);
-    }
-  }
 }
 
 void procman_srv()

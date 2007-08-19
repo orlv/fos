@@ -56,8 +56,6 @@ u32_t get_lowpage()
   }
 }
 
-//void free(register void *ptr);
-
 void init_memory()
 {
   extern multiboot_info_t *__mbi;

@@ -84,7 +84,10 @@ OBJECTS +=	klibfos/intattach.o		\
 all:    $(OBJECTS)
 	@$(ECHO) Kernel objects OK
 	@$(ECHO) Linking kernel image \($(SYSTEM_ROOT)/kernel\)
-	@$(LD) $(LDFLAGS) -o $(KERNEL_PATHNAME) $(OBJECTS) -Ttext=0x100000 --oformat=elf32-i386 --entry=_start
+	@$(LD) $(LDFLAGS) -o fos  $(OBJECTS) -Ttext=0x100000 --oformat=elf32-i386 --entry=_start
+
+install:
+	cp fos $(KERNEL_PATHNAME)
 
 strip:
 	@strip $(KERNEL_PATHNAME)

@@ -8,7 +8,7 @@ INSTALLDIR	=	$(LIB)
 OUTPUT		=	crt0.o
 OBJECTS		=	crt0.o
 
-all:		$(OBJECTS)
+all:		$(OBJECTS) install
 
 install:
 	cp $(OUTPUT) $(INSTALLDIR)/$(OUTPUT)

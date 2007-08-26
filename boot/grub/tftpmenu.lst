@@ -1,7 +1,7 @@
 # GRUB Config: generated automatically - do not edit!
 timeout 1
 default 0
-title FOS - FOS is Operating System (VERSION 0.0.43.9, BUILD 17521)
+title FOS - FOS is Operating System (VERSION 0.0.43.9, BUILD 17528)
 	root	(nd)
 	kernel /boot/fos
 	module /boot/modules/test.txt

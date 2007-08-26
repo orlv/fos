@@ -40,13 +40,13 @@ version:
 
 build_kernel:
 	@$(ECHO) \#--------------------------------- Building kernel ----------------------------
-	@$(MAKE) -s -C kernel
+	@$(MAKE) -s -C kernel all
 	@$(ECHO) \#------------------------------------------------------------------------------
 	@$(ECHO) 
 
 build_user:
 	@$(ECHO) \#---------------------- Building usermode programs ----------------------------
-	@$(MAKE) -s -C usermode
+	@$(MAKE) -s -C usermode all
 	@$(ECHO) \#------------------------------------------------------------------------------
 
 #--------------------------------- Clean -------------------------------------
@@ -60,6 +60,17 @@ clean_user:
 clean: clean_kernel clean_user
 
 #--------------------------------- Install -----------------------------------
+
+install_kernel:
+	@$(ECHO) \#--------------------------------- Install kernel -----------------------------
+	@$(MAKE) -s -C kernel install
+	@$(ECHO) \#------------------------------------------------------------------------------
+	@$(ECHO) 
+
+install_user:
+	@$(ECHO) \#---------------------- Install usermode programs -----------------------------
+	@$(MAKE) -s -C usermode install
+	@$(ECHO) \#------------------------------------------------------------------------------
 
 grub_menu:
 	@$(ECHO) "# GRUB Config: generated automatically - do not edit!" > $(GRUB_MENU)
@@ -80,6 +91,6 @@ grub_tftp_menu:
 	@$(ECHO) "	kernel $(GRUB_KERNEL)" >> $(GRUB_TFTP_MENU)
 	@$(ECHO) $(GRUB_MODULES) | awk 'BEGIN {RS = " "} {a = "\tmodule "$$0; print a}' >> $(GRUB_TFTP_MENU)
 
-install: grub_menu grub_tftp_menu iso
+install: install_kernel install_user grub_menu grub_tftp_menu iso
 
 #-----------------------------------------------------------------------------

@@ -69,7 +69,7 @@ grub_menu:
 	@$(ECHO) "title $(GRUB_TITLE) (VERSION `cat VERSION`, BUILD `cat BUILD`)" >> $(GRUB_MENU)
 	@$(ECHO) "	root($(GRUB_ROOT))" >> $(GRUB_MENU)
 	@$(ECHO) "	kernel $(GRUB_KERNEL)" >> $(GRUB_MENU)
-	@$(ECHO) $(GRUB_MODULES) | sed 's/ /\n/g' | sed 's/\/boot/\tmodule \/boot/g'  >> $(GRUB_MENU)
+	@$(ECHO) $(GRUB_MODULES) | awk 'BEGIN {RS = " "} {a = "\tmodule "$$0; print a}' >> $(GRUB_MENU)
 
 grub_tftp_menu:
 	@$(ECHO) "# GRUB Config: generated automatically - do not edit!" > $(GRUB_TFTP_MENU)
@@ -78,7 +78,7 @@ grub_tftp_menu:
 	@$(ECHO) "title $(GRUB_TITLE) (VERSION `cat VERSION`, BUILD `cat BUILD`)" >> $(GRUB_TFTP_MENU)
 	@$(ECHO) "	root	(nd)" >> $(GRUB_TFTP_MENU)
 	@$(ECHO) "	kernel $(GRUB_KERNEL)" >> $(GRUB_TFTP_MENU)
-	@$(ECHO) $(GRUB_MODULES) | sed 's/ /\n/g' | sed 's/\/boot/\tmodule \/boot/g'  >> $(GRUB_TFTP_MENU)
+	@$(ECHO) $(GRUB_MODULES) | awk 'BEGIN {RS = " "} {a = "\tmodule "$$0; print a}' >> $(GRUB_TFTP_MENU)
 
 install: grub_menu grub_tftp_menu iso
 

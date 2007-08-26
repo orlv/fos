@@ -22,6 +22,7 @@ OBJECTS		=	close.o		\
 
 all:	$(OBJECTS)
 	$(AR) rcs $(OUTPUT) $(OBJECTS)
+	cp $(OUTPUT) $(INSTALLDIR)/$(OUTPUT)
 
 install:
 	cp $(OUTPUT) $(INSTALLDIR)/$(OUTPUT)

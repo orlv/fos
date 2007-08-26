@@ -12,6 +12,7 @@ OBJECTS		=	tmutex.o	\
 
 all:	$(OBJECTS)
 	$(AR) rc $(OUTPUT) $(OBJECTS)
+	cp $(OUTPUT) $(INSTALLDIR)/$(OUTPUT)
 
 install:
 	cp $(OUTPUT) $(INSTALLDIR)/$(OUTPUT)

@@ -75,7 +75,8 @@ BINDIR		= $TOPDIR/boot/modules
 INSTALLDIR	= $TOPDIR/boot/modules
 INCLUDE		= $TOPDIR/include
 LIB		= $TOPDIR/lib
-FLAGS		= -Wall -nostdlib -nostdinc -I\$(INCLUDE) -fno-stack-protector -O3
+#DEBUG		= -g
+FLAGS		= -Wall -nostdlib -nostdinc -I\$(INCLUDE) -fno-stack-protector -O3 $DEBUG
 
 ASFLAGS		= \$(FLAGS)
 CFLAGS		= \$(FLAGS) -ffreestanding -fno-leading-underscore
@@ -124,7 +125,8 @@ BINDIR		= $TOPDIR/boot/modules
 INSTALLDIR	= $TOPDIR/boot/modules
 INCLUDE		= $TOPDIR/include
 LIB		= $TOPDIR/lib
-FLAGS		= -Wall -nostdlib -nostdinc -I\$(INCLUDE) -fno-stack-protector -O3
+#DEBUG		= -g
+FLAGS		= -Wall -nostdlib -nostdinc -I\$(INCLUDE) -fno-stack-protector -O3 $DEBUG
 
 ASFLAGS		= \$(FLAGS)
 CFLAGS		= \$(FLAGS) -ffreestanding -fno-leading-underscore

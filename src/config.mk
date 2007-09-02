@@ -21,6 +21,7 @@ GRUB_MODULES =	/boot/modules/test.txt		\
 		/boot/modules/tty		\
 		/boot/modules/keyboard		\
 		/boot/modules/floppy		\
+		/boot/modules/speaker		\
 		/boot/modules/test		\
 		/boot/modules/font.psf
 

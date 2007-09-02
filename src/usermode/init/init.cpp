@@ -17,6 +17,7 @@ asmlinkage int main()
   printf("Init started! If you see this text - all work fine.\n");
   exec("/mnt/modules/keyboard");
   exec("/mnt/modules/shell");
-  //exec("floppy");
+  exec("/mnt/modules/speaker");
+  //exec("/mnt/modules/floppy");
   return 0;
 }

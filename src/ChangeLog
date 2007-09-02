@@ -1,3 +1,8 @@
+Sun Sep  2 13:18:57 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 17533 (Version 0.0.43.10)
+	- Доработаны сборочные скрипты
+	- Добавлен драйвер спикера
+
 Tue Aug 14 22:09:53 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
 Build 17500 (Version 0.0.43.9)
 	- Изменена структура каталогов, расположение заголовочных файлов

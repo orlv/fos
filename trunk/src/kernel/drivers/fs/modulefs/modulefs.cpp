@@ -7,6 +7,7 @@
 #include <fos/printk.h>
 #include <fos/mm.h>
 #include <fos/procman.h>
+#include <fos/fos.h>
 #include <sys/stat.h>
 #include <string.h>
 

@@ -51,9 +51,8 @@ static inline void unmask_interrupt(u32_t int_num)
   sys_call(_FOS_UNMASK_INTERRUPT, int_num);
 }
 
-//asmlinkage tid_t resolve(char *name);
 asmlinkage u32_t kill(tid_t tid);
-asmlinkage tid_t exec(const char * filename);
+asmlinkage tid_t exec(const char * filename, const char * args);
 
 asmlinkage tid_t thread_create(off_t eip);
 

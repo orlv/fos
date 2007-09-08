@@ -8,6 +8,7 @@
 #include <fos/fs.h>
 #include <fos/printk.h>
 #include <fos/hal.h>
+#include <fos/fos.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>

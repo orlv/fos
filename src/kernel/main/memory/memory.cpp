@@ -103,7 +103,11 @@ Memory::~Memory()
 
 void *Memory::mem_alloc(register size_t size)
 {
-  size_t pages_cnt = ((size + MM_MINALLOC - 1) / MM_MINALLOC);
+  size_t pages_cnt = size - (size % MM_MINALLOC);
+  if (size % MM_MINALLOC)
+    pages_cnt += MM_MINALLOC;
+  pages_cnt /= PAGE_SIZE;
+
   u32_t *phys_pages = new u32_t[pages_cnt];
   for(size_t i = 0; i < pages_cnt; i++){
     phys_pages[i] = get_page();
@@ -123,7 +127,11 @@ void *Memory::mem_alloc(register size_t size)
 
 void *Memory::mem_alloc_phys(register u32_t phys_address, register size_t size)
 {
-  size_t pages_cnt = ((size + MM_MINALLOC - 1) / MM_MINALLOC);
+  size_t pages_cnt = size - (size % MM_MINALLOC);
+  if (size % MM_MINALLOC)
+    pages_cnt += MM_MINALLOC;
+  pages_cnt /= PAGE_SIZE;
+
   u32_t *phys_pages = new u32_t[pages_cnt];
   u32_t phys_page = PAGE(phys_address);
 
@@ -134,6 +142,33 @@ void *Memory::mem_alloc_phys(register u32_t phys_address, register size_t size)
 
   void *ptr = mem_alloc(phys_pages, pages_cnt);
 
+  if(!ptr){
+    for(size_t i = 0; i < pages_cnt; i++){
+      put_page(phys_pages[i]);
+    }
+  }
+
+  delete phys_pages;
+  return ptr;
+}
+
+/* смонтировать набор физических страниц, выданных kmalloc() в любую область памяти */
+void *Memory::kmem_alloc(register void *kmem_address, register size_t size)
+{
+  size_t pages_cnt = size - (size % MM_MINALLOC);
+  if (size % MM_MINALLOC)
+    pages_cnt += MM_MINALLOC;
+  pages_cnt /= PAGE_SIZE;
+
+  u32_t *phys_pages = new u32_t[pages_cnt];
+  u32_t kmem_page = PAGE((u32_t) kmem_address);
+  for(size_t i = 0; i < pages_cnt; i++){
+    phys_pages[i] = PAGE((u32_t)kmem_phys_addr(kmem_page));
+    kmem_page++;
+  }
+
+  void *ptr = this->mem_alloc(phys_pages, pages_cnt);
+  
   if(!ptr){
     for(size_t i = 0; i < pages_cnt; i++){
       put_page(phys_pages[i]);
@@ -189,7 +224,11 @@ void *Memory::mem_alloc(register u32_t *phys_pages, register size_t pages_cnt)
 /* выделить набор физических страниц и смонтировать в конкретное место */
 void *Memory::mmap(register size_t size, register void *log_address)
 {
-  size_t pages_cnt = ((size + MM_MINALLOC - 1) / MM_MINALLOC);
+  size_t pages_cnt = size - (size % MM_MINALLOC);
+  if (size % MM_MINALLOC)
+    pages_cnt += MM_MINALLOC;
+  pages_cnt /= PAGE_SIZE;
+
   u32_t *phys_pages = new u32_t[pages_cnt];
 
   for(size_t i = 0; i < pages_cnt; i++){
@@ -211,7 +250,11 @@ void *Memory::mmap(register size_t size, register void *log_address)
 /* смонтировать набор физических страниц, выданных kmalloc() в конкретную область памяти */
 void *Memory::kmmap(register void *kmem_address, register void *log_address, register size_t size)
 {
-  size_t pages_cnt = ((size + MM_MINALLOC - 1) / MM_MINALLOC);
+  size_t pages_cnt = size - (size % MM_MINALLOC);
+  if (size % MM_MINALLOC)
+    pages_cnt += MM_MINALLOC;
+  pages_cnt /= PAGE_SIZE;
+
   u32_t *phys_pages = new u32_t[pages_cnt];
   u32_t kmem_page = PAGE((u32_t) kmem_address);
   for(size_t i = 0; i < pages_cnt; i++){
@@ -234,7 +277,11 @@ void *Memory::kmmap(register void *kmem_address, register void *log_address, reg
 /* смонтировать набор физических страниц в конкретную область памяти */
 void *Memory::mmap(register void *phys_address, register void *log_address, register size_t size)
 {
-  size_t pages_cnt = ((size + MM_MINALLOC - 1) / MM_MINALLOC);
+  size_t pages_cnt = size - (size % MM_MINALLOC);
+  if (size % MM_MINALLOC)
+    pages_cnt += MM_MINALLOC;
+  pages_cnt /= PAGE_SIZE;
+
   u32_t *phys_pages = new u32_t[pages_cnt];
   u32_t phys_page = PAGE((u32_t) phys_address);
 
@@ -307,7 +354,7 @@ void *Memory::do_mmap(register u32_t *phys_pages, register void *log_address, re
 
 void Memory::mem_free(register void *ptr, register size_t size)
 {
-  size = ((size + MM_MINALLOC - 1) / MM_MINALLOC) * MM_MINALLOC;
+  size = ((size + PAGE_SIZE - 1) / PAGE_SIZE) * PAGE_SIZE;
   u32_t vptr = (u32_t) ptr;
 
   __mt_disable();  

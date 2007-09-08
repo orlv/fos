@@ -13,11 +13,12 @@ asmlinkage int main()
     sched_yield();
   }
 
-  while(!exec("/mnt/modules/tty"));
+  while(!exec("/mnt/modules/tty", NULL));
   printf("Init started! If you see this text - all work fine.\n");
-  exec("/mnt/modules/keyboard");
-  exec("/mnt/modules/shell");
-  exec("/mnt/modules/speaker");
+  exec("/mnt/modules/keyboard", NULL);
+  exec("/mnt/modules/shell", NULL);
+  exec("/mnt/modules/speaker", NULL);
+  exec("/mnt/modules/test", "arg1 arg2 arg3");
   //exec("/mnt/modules/floppy");
   return 0;
 }

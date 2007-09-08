@@ -36,7 +36,7 @@ void eval(const char *command)
       write(tty, buf, len);
       delete buf;
     } else {
-      tid_t tid = exec(command);
+      tid_t tid = exec(command, NULL);
       if(!tid)
 	printf("shell: %s: command not found\n", command);
       else

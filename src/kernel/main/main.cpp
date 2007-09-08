@@ -35,20 +35,6 @@ void out_banner()
 	 version, build, compile_date, compile_time);
 }
 
-asmlinkage tid_t exec(const char * filename)
-{
-  size_t len = strlen(filename);
-  if(len+1 > MAX_PATH_LEN)
-    return 0;
-  message msg;
-  msg.a0 = PROCMAN_CMD_EXEC;
-  msg.send_buf = filename;
-  msg.send_size = len + 1;
-  msg.recv_size = 0;
-  msg.tid = SYSTID_PROCMAN;
-  return send(&msg);
-}
-
 asmlinkage void init()
 {
   init_memory();

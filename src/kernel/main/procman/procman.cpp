@@ -9,6 +9,7 @@
 #include <fos/printk.h>
 #include <fos/fos.h>
 #include <fos/hal.h>
+#include <fos/limits.h>
 #include <string.h>
 
 #include <fos/drivers/fs/modulefs/modulefs.h>
@@ -64,7 +65,7 @@ int check_ELF_image(register void *image, register size_t image_size)
   return 0;
 }
 
-tid_t execute_module(char *pathname)
+tid_t execute_module(char *pathname, char *args)
 {
   printk("procman: executing module %s\n", pathname);
 
@@ -77,17 +78,21 @@ tid_t execute_module(char *pathname)
     char *elf_image = new char[size];
     initrb->read(fd, 0, elf_image, size);
     if(!check_ELF_image(elf_image, size))
-      result = hal->procman->exec(elf_image, pathname);
+      result = hal->procman->exec(elf_image, pathname, args);
     delete elf_image;
   }
   return result;
 }
 
-tid_t execute(char *pathname)
+tid_t execute(char *pathname, char *args)
 {
   tid_t result = 0;
-  
-  printk("procman: executing %s\n", pathname);
+
+  if(args)
+    printk("procman: executing %s with args %s\n", pathname, args);
+  else
+    printk("procman: executing %s with no args\n", pathname);
+
   int fd = open(pathname, 0);
 
   if (fd != -1) {
@@ -96,7 +101,7 @@ tid_t execute(char *pathname)
     char *elf_image = new char[statbuf->st_size];
     read(fd, elf_image, statbuf->st_size);
     if(!check_ELF_image(elf_image, statbuf->st_size))
-      result = hal->procman->exec(elf_image, pathname);
+      result = hal->procman->exec(elf_image, pathname, args);
     delete statbuf;
     delete elf_image;
   }
@@ -105,7 +110,7 @@ tid_t execute(char *pathname)
 
 void procman_srv()
 {
-  hal->tid_namer = execute_module("namer");
+  hal->tid_namer = execute_module("namer", NULL);
 
   Thread *thread;
   char *kmesg;
@@ -113,14 +118,17 @@ void procman_srv()
 
   struct message *msg = new message;
   msg->tid = 0;
-  char *pathname = new char[MAX_PATH_LEN];
+  char *data = new char[MAX_PATH_LEN + ARG_MAX];
+  char *pathname = data;
+  char *args;
+  size_t path_len;
 
-  execute_module("init");
+  execute_module("init", NULL);
 
   while (1) {
     //asm("incb 0xb8000+154\n" "movb $0x2f,0xb8000+155 ");
-    msg->recv_size = MAX_PATH_LEN;
-    msg->recv_buf = pathname;
+    msg->recv_size = MAX_PATH_LEN + ARG_MAX;
+    msg->recv_buf = data;
     msg->tid = _MSG_SENDER_ANY;
 
     receive(msg);
@@ -128,7 +136,13 @@ void procman_srv()
 
     switch(msg->a0){
     case PROCMAN_CMD_EXEC:
-      msg->a0 = execute(pathname);
+      path_len = strlen(pathname) + 1;
+      if(path_len < msg->recv_size)
+	args = &data[path_len];
+      else
+	args = 0;
+
+      msg->a0 = execute(pathname, args);
       msg->send_size = 0;
       reply(msg);
       break;
@@ -258,7 +272,7 @@ TProcMan::TProcMan()
   reg_thread(thread);
 }
 
-tid_t TProcMan::exec(register void *image, const string name)
+tid_t TProcMan::exec(register void *image, const string name, const string args)
 {
   TProcess *process = new TProcess();
 
@@ -275,6 +289,16 @@ tid_t TProcMan::exec(register void *image, const string name)
 
   off_t eip = process->LoadELF(image);
   Thread *thread = process->thread_create(eip, FLAG_TSK_READY, kmalloc(STACK_SIZE), process->memory->mem_alloc(STACK_SIZE));
+
+  if(args) {
+    printk("args=%s\n", args);
+    size_t len = strlen(args);
+    char *args_buf = (char *) kmalloc(len);
+    memcpy(args_buf, args, len);
+    thread->tss->eax = (u32_t)process->memory->kmem_alloc(args_buf, len);
+    kfree(args_buf, len);
+  }
+  
   reg_thread(thread);
   return TID(thread);
 }

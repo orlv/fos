@@ -45,7 +45,7 @@ public:
   void reg_thread(register Thread *thread);
   void unreg_thread(register List<Thread *> *thread);
 
-  u32_t exec(register void *image, const string name);
+  u32_t exec(register void *image, const string name, const string args);
   void scheduler();
   List<Thread *> *do_kill(List<Thread *> *thread);
   res_t kill(register tid_t tid, u16_t flag);
@@ -67,20 +67,17 @@ static inline Thread * THREAD(tid_t tid)
 #endif /* iKERNEL */
 
 
-asmlinkage u32_t kill(tid_t tid);
-asmlinkage tid_t exec(const char * filename);
+//asmlinkage u32_t kill(tid_t tid);
+//asmlinkage tid_t exec(const char * filename, const char * args);
 
-asmlinkage void * kmemmap(offs_t ptr, size_t size);
+//asmlinkage void * kmemmap(offs_t ptr, size_t size);
 
 #define MEM_FLAG_LOWPAGE 1
 
-//asmlinkage void * kmalloc(size_t size, u32_t flags);
-//asmlinkage int kfree(off_t ptr, size_t size);
+//asmlinkage tid_t thread_create(off_t eip);
 
-asmlinkage tid_t thread_create(off_t eip);
+//asmlinkage int resmgr_attach(const char *pathname);
 
-asmlinkage int resmgr_attach(const char *pathname);
-
-asmlinkage size_t dmesg(char *buf, size_t count);
+//asmlinkage size_t dmesg(char *buf, size_t count);
 
 #endif

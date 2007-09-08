@@ -5,11 +5,12 @@
 #include <fos/message.h>
 #include <fos/procman.h>
 
-int kfree(off_t ptr)
+int kfree(off_t ptr, size_t size)
 {
   struct message msg;
   msg.a0 = MM_CMD_MEM_FREE;
   msg.a1 = ptr;
+  msg.a2 = size;
   msg.send_size = 0;
   msg.recv_size = 0;
   msg.tid = SYSTID_MM;

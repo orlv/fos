@@ -1,3 +1,7 @@
+Sat Sep  8 13:18:06 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 17581 (Version 0.0.43.11)
+	- Убраны списки выделенной памяти
+
 Sun Sep  2 13:18:57 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
 Build 17533 (Version 0.0.43.10)
 	- Доработаны сборочные скрипты

@@ -41,6 +41,8 @@ static inline u32_t check_page(register u32_t log_page, register u32_t * pagedir
   return (page);
 }
 
+#warning узкое место: необходимо переписать!
+/* проверяет, все ли страницы из последовательности смонтированы */
 static inline u32_t check_pages(register u32_t log_page, register u32_t * pagedir, register size_t count)
 {
   while(count) {

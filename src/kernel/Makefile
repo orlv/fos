@@ -52,7 +52,8 @@ OBJECTS =	main/boot/setup.o		\
 		main/gdt.o			\
 		main/idt.o			\
 		main/syscall.o  		\
-		main/main.o
+		main/main.o			\
+		main/version.o
 
 OBJECTS +=	drivers/vesafb.o		\
 		drivers/char/tty/tty.o		\
@@ -71,7 +72,6 @@ OBJECTS +=	klibc/close.o			\
 		klibc/printk.o			\
 		klibc/stat.o			\
 		klibc/fstat.o			\
-		klibc/version.o			\
 		klibc/tmutex.o
 
 OBJECTS +=	klibcpp/purestub.o

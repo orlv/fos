@@ -50,8 +50,8 @@ Thread::~Thread()
   }
   delete received_messages;
   
-  kfree((void *)stack_pl0);
-  kfree((void *)tss);
+  kfree((void *)stack_pl0, STACK_SIZE);
+  kfree((void *)tss, sizeof(TSS));
 }
 
 void Thread::set_tss(register off_t eip,

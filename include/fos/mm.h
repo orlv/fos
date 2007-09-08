@@ -115,7 +115,7 @@ void * heap_create_reserved_block();
 
 class Memory {
  private:
-  List<memblock *> * volatile UsedMem;
+  //List<memblock *> * volatile UsedMem;
   List<memblock *> * volatile FreeMem;
   //u16_t flags;
 
@@ -134,11 +134,12 @@ class Memory {
   void *mmap(register size_t size, register void *log_address);
   void *mmap(register void *phys_address, register void *log_address, register size_t size);
   void *kmmap(register void *kmem_address, register void *log_address, register size_t size);
-  void mem_free(register void *ptr);
+  //void mem_free(register void *ptr);
+  void mem_free(register void *ptr, register size_t size);
 };
 
 void * kmalloc(register size_t size);
-void  kfree(register void *ptr);
+void  kfree(register void *ptr, register size_t size);
 
 void init_memory();
 

@@ -22,7 +22,7 @@ help:
 	@$(ECHO) " "
 
 version:
-	@rm -f kernel/lib/version.o
+	@rm -f kernel/main/version.o
 	@cat .build.next > BUILD
 	@$(ECHO) " "
 	@$(ECHO) "FOS Version `cat VERSION`. Build `cat BUILD`."

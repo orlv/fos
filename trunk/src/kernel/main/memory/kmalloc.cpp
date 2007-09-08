@@ -179,9 +179,9 @@ void *kmalloc(register size_t size)
   return ptr;
 }
 
-void kfree(register void *ptr)
+void kfree(register void *ptr, size_t size)
 {
   hal->mt_disable();
-  hal->kmem->mem_free(ptr);
+  hal->kmem->mem_free(ptr, size);
   hal->mt_enable();
 }

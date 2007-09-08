@@ -25,12 +25,12 @@ Pager::~Pager()
       }
 #endif
       put_page(PAGE(pagetable));
-      kfree((void *)pagetable);
+      kfree((void *)pagetable, PAGE_SIZE);
     }
   }
 
   put_page(PAGE(OFFSET(pagedir)));
-  kfree(pagedir);
+  kfree(pagedir, PAGE_SIZE);
 }
 
 u32_t Pager::mount_page(register u32_t phys_page, register u32_t log_page)

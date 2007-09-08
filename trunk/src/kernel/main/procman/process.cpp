@@ -59,7 +59,8 @@ u32_t TProcess::LoadELF(register void *image)
 	добавлять их в пул свободных страниц - он проверяет количество использований
 	каждой страницы. Страницы освободятся только при отсоединении их от области процесса.
        */
-      object = (u32_t *) kmalloc(p->p_memsz + (p->p_vaddr % PAGE_SIZE));
+      size_t o_size = p->p_memsz + (p->p_vaddr % PAGE_SIZE);
+      object = (u32_t *) kmalloc(o_size);
 
       if (p->p_filesz > 0) {
 	memcpy((u32_t *) ((u32_t)object + (p->p_vaddr % PAGE_SIZE)), (u32_t *) ((u32_t) image + p->p_offset), p->p_filesz);
@@ -67,7 +68,7 @@ u32_t TProcess::LoadELF(register void *image)
 
       /* Монтируем секцию в адресное пространство процесса */
       memory->kmmap(object, (u32_t *) (p->p_vaddr & 0xfffff000), p->p_memsz + (p->p_vaddr % PAGE_SIZE));
-      kfree(object); /* освобождаем память ядра от ненужных тут страниц */
+      kfree(object, o_size); /* освобождаем память ядра от ненужных тут страниц */
     }
   }
   /* Возвращаем указатель на точку входа */

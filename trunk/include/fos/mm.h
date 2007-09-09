@@ -127,6 +127,7 @@ class Memory {
   ~Memory();
 
   off_t mem_base;
+  size_t mem_size;
   class Pager *pager;
   
   void *mem_alloc(register size_t size);

@@ -14,9 +14,9 @@
 #define FBTTY_LOAD_FONT (BASE_CMD_N + 1)
 #define FBTTY_PUT_CH (BASE_CMD_N + 2)
 
-void eval(const char *command)
+void eval(char *command)
 {
-  if(strlen(command)) {
+  if(command && *command) {
     if(!strcmp((const char *) command, "help"))
       printf("FOS - FOS is Operating System\n"	\
 	     "Available next builtin commands:\n"	\
@@ -36,7 +36,20 @@ void eval(const char *command)
       write(tty, buf, len);
       delete buf;
     } else {
-      tid_t tid = exec(command, NULL);
+      size_t len = strlen(command);
+      printf("len=%d \n", len);
+      char *args = 0;
+      for(size_t i=0; i<len; i++)
+	if(command[i] == ' ') {
+	  while(command[i] == ' ' && i<len){
+	    command[i] = 0;
+	    i++;
+	  }
+	  if(i<len && command[i])
+	    args = &command[i];
+	  break;
+	}
+      tid_t tid = exec(command, args);
       if(!tid)
 	printf("shell: %s: command not found\n", command);
       else

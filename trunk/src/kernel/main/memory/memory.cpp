@@ -9,7 +9,6 @@
 #include <fos/hal.h>
 #include <fos/pager.h>
 
-
 void mm_srv()
 {
   Thread *thread;
@@ -71,24 +70,13 @@ Memory::Memory(offs_t base, size_t size)
   FreeMem = new List<memblock *>(block);
 
   mem_base = base;
+  mem_size = size;
 }
 
 Memory::~Memory()
 {
   List<memblock *> *curr, *n;
 
-  /* удалим список использованной памяти и освободим выделенные страницы */
-  /*  list_for_each_safe (curr, n, UsedMem) {
-    pager->umap_pages(PAGE(curr->item->vptr), curr->item->size / PAGE_SIZE);
-    delete curr->item;
-    delete curr;
-  }
-
-  delete UsedMem->item;
-  delete UsedMem;*/
-
-#warning добавить освобождение выделенных страниц
-  
   /* удалим список свободной памяти */
   list_for_each_safe (curr, n, FreeMem) {
     delete curr->item;
@@ -97,17 +85,12 @@ Memory::~Memory()
 
   delete FreeMem->item;
   delete FreeMem;
-
   delete pager;
 }
 
 void *Memory::mem_alloc(register size_t size)
 {
-  size_t pages_cnt = size - (size % MM_MINALLOC);
-  if (size % MM_MINALLOC)
-    pages_cnt += MM_MINALLOC;
-  pages_cnt /= PAGE_SIZE;
-
+  size_t pages_cnt = (size + MM_MINALLOC - 1) / MM_MINALLOC;
   u32_t *phys_pages = new u32_t[pages_cnt];
   for(size_t i = 0; i < pages_cnt; i++){
     phys_pages[i] = get_page();
@@ -127,11 +110,7 @@ void *Memory::mem_alloc(register size_t size)
 
 void *Memory::mem_alloc_phys(register u32_t phys_address, register size_t size)
 {
-  size_t pages_cnt = size - (size % MM_MINALLOC);
-  if (size % MM_MINALLOC)
-    pages_cnt += MM_MINALLOC;
-  pages_cnt /= PAGE_SIZE;
-
+  size_t pages_cnt = (size + MM_MINALLOC - 1) / MM_MINALLOC;
   u32_t *phys_pages = new u32_t[pages_cnt];
   u32_t phys_page = PAGE(phys_address);
 
@@ -155,10 +134,7 @@ void *Memory::mem_alloc_phys(register u32_t phys_address, register size_t size)
 /* смонтировать набор физических страниц, выданных kmalloc() в любую область памяти */
 void *Memory::kmem_alloc(register void *kmem_address, register size_t size)
 {
-  size_t pages_cnt = size - (size % MM_MINALLOC);
-  if (size % MM_MINALLOC)
-    pages_cnt += MM_MINALLOC;
-  pages_cnt /= PAGE_SIZE;
+  size_t pages_cnt = (size + MM_MINALLOC - 1) / MM_MINALLOC;
 
   u32_t *phys_pages = new u32_t[pages_cnt];
   u32_t kmem_page = PAGE((u32_t) kmem_address);
@@ -224,11 +200,7 @@ void *Memory::mem_alloc(register u32_t *phys_pages, register size_t pages_cnt)
 /* выделить набор физических страниц и смонтировать в конкретное место */
 void *Memory::mmap(register size_t size, register void *log_address)
 {
-  size_t pages_cnt = size - (size % MM_MINALLOC);
-  if (size % MM_MINALLOC)
-    pages_cnt += MM_MINALLOC;
-  pages_cnt /= PAGE_SIZE;
-
+  size_t pages_cnt = (size + MM_MINALLOC - 1) / MM_MINALLOC;
   u32_t *phys_pages = new u32_t[pages_cnt];
 
   for(size_t i = 0; i < pages_cnt; i++){
@@ -250,11 +222,7 @@ void *Memory::mmap(register size_t size, register void *log_address)
 /* смонтировать набор физических страниц, выданных kmalloc() в конкретную область памяти */
 void *Memory::kmmap(register void *kmem_address, register void *log_address, register size_t size)
 {
-  size_t pages_cnt = size - (size % MM_MINALLOC);
-  if (size % MM_MINALLOC)
-    pages_cnt += MM_MINALLOC;
-  pages_cnt /= PAGE_SIZE;
-
+  size_t pages_cnt = (size + MM_MINALLOC - 1) / MM_MINALLOC;
   u32_t *phys_pages = new u32_t[pages_cnt];
   u32_t kmem_page = PAGE((u32_t) kmem_address);
   for(size_t i = 0; i < pages_cnt; i++){
@@ -277,11 +245,7 @@ void *Memory::kmmap(register void *kmem_address, register void *log_address, reg
 /* смонтировать набор физических страниц в конкретную область памяти */
 void *Memory::mmap(register void *phys_address, register void *log_address, register size_t size)
 {
-  size_t pages_cnt = size - (size % MM_MINALLOC);
-  if (size % MM_MINALLOC)
-    pages_cnt += MM_MINALLOC;
-  pages_cnt /= PAGE_SIZE;
-
+  size_t pages_cnt = (size + MM_MINALLOC - 1) / MM_MINALLOC;
   u32_t *phys_pages = new u32_t[pages_cnt];
   u32_t phys_page = PAGE((u32_t) phys_address);
 
@@ -354,7 +318,7 @@ void *Memory::do_mmap(register u32_t *phys_pages, register void *log_address, re
 
 void Memory::mem_free(register void *ptr, register size_t size)
 {
-  size = ((size + PAGE_SIZE - 1) / PAGE_SIZE) * PAGE_SIZE;
+  size = ((size + MM_MINALLOC - 1) / MM_MINALLOC) * PAGE_SIZE;
   u32_t vptr = (u32_t) ptr;
 
   __mt_disable();  

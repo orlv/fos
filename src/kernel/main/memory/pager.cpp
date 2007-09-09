@@ -16,17 +16,18 @@ Pager::~Pager()
 {
   /* освободим таблицы страниц и каталог страниц */
   for (u32_t i = USER_MEM_BASE/1024; i < 1024; i++) {
-    if(pagedir[i]) {
-      u32_t pagetable = kmem_log_addr(PAGE(pagedir[i])) * PAGE_SIZE;
-#if 0
-      for(u32_t j=0; j<1024; j++) {
-	if(((u32_t *)pagetable)[j])
-	  put_page(PAGE(((u32_t *)pagetable)[j]));
-      }
-#endif
-      put_page(PAGE(pagetable));
-      kfree((void *)pagetable, PAGE_SIZE);
+    if(!pagedir[i])
+      continue;
+
+    u32_t *pagetable = (u32_t *) (kmem_log_addr(PAGE(pagedir[i])) * PAGE_SIZE);
+
+    for(u32_t j=0; j<1024; j++) {
+      if(pagetable[j])
+	put_page(PAGE(pagetable[j]));
     }
+
+    put_page(PAGE(OFFSET(pagetable)));
+    kfree(pagetable, PAGE_SIZE);
   }
 
   put_page(PAGE(OFFSET(pagedir)));

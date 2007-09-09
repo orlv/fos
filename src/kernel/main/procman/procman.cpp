@@ -87,12 +87,12 @@ tid_t execute_module(char *pathname, char *args)
 tid_t execute(char *pathname, char *args)
 {
   tid_t result = 0;
-
+#if 1
   if(args)
-    printk("procman: executing %s with args %s\n", pathname, args);
+    printk("procman: executing %s with args [%s]\n", pathname, args);
   else
     printk("procman: executing %s with no args\n", pathname);
-
+#endif
   int fd = open(pathname, 0);
 
   if (fd != -1) {
@@ -110,7 +110,7 @@ tid_t execute(char *pathname, char *args)
 
 void procman_srv()
 {
-  hal->tid_namer = execute_module("namer", NULL);
+  hal->tid_namer = execute_module("namer", "namer");
 
   Thread *thread;
   char *kmesg;
@@ -119,11 +119,11 @@ void procman_srv()
   struct message *msg = new message;
   msg->tid = 0;
   char *data = new char[MAX_PATH_LEN + ARG_MAX];
-  char *pathname = data;
-  char *args;
+  char *pathname = new char[MAX_PATH_LEN];
+  char *p;
   size_t path_len;
 
-  execute_module("init", NULL);
+  execute_module("init", "init");
 
   while (1) {
     //asm("incb 0xb8000+154\n" "movb $0x2f,0xb8000+155 ");
@@ -136,13 +136,15 @@ void procman_srv()
 
     switch(msg->a0){
     case PROCMAN_CMD_EXEC:
-      path_len = strlen(pathname) + 1;
-      if(path_len < msg->recv_size)
-	args = &data[path_len];
-      else
-	args = 0;
+      path_len = strlen(data);
+      if(path_len+1 < msg->recv_size) {
+	p = pathname;
+	strcpy(p, data);
+	data[path_len] = ' ';
+      } else
+	p = data;
 
-      msg->a0 = execute(pathname, args);
+      msg->a0 = execute(p, data);
       msg->send_size = 0;
       reply(msg);
       break;
@@ -291,7 +293,6 @@ tid_t TProcMan::exec(register void *image, const string name, const string args)
   Thread *thread = process->thread_create(eip, FLAG_TSK_READY, kmalloc(STACK_SIZE), process->memory->mem_alloc(STACK_SIZE));
 
   if(args) {
-    printk("args=%s\n", args);
     size_t len = strlen(args);
     char *args_buf = (char *) kmalloc(len);
     memcpy(args_buf, args, len);

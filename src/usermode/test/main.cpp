@@ -3,9 +3,12 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-asmlinkage int main()
+asmlinkage int main(int argc, char ** argv)
 {
-  printf("test!\n");
+  printf("argc=%d\n", argc);
+  for(int i=0; i<argc; i++)
+    printf("arg%d = [%s]\n", i, argv[i]);
+  printf("test done!\n");
   return 0;
 }
 

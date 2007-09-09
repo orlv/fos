@@ -6,8 +6,8 @@
 
 include config.mk
 
-SERVERS = namer keyboard floppy tty speaker
-#SERVERS += fbtty
+SERVERS = namer keyboard floppy fbtty speaker
+#SERVERS += tty
 
 all: 
 	@$(foreach server,$(SERVERS),\

@@ -1,4 +1,5 @@
 # -----------------------------------------------------------------------------
+# Automatically generated, do not edit!
 # Copyright (C) 2007 Oleg Fedorov
 # -----------------------------------------------------------------------------
 SYSTEM_NAME     = FOS
@@ -21,9 +22,10 @@ GRUB_MODULES =	/boot/modules/test.txt		\
 		/boot/modules/tty		\
 		/boot/modules/keyboard		\
 		/boot/modules/floppy		\
-		/boot/modules/speaker		\
 		/boot/modules/test		\
-		/boot/modules/font.psf
+		/boot/modules/font.psf		\
+		/boot/modules/fjvm		\
+		/boot/modules/classpath.jar
 
 
 GRUB_MENU    = /home/oleg/fos/src/../boot/grub/menu.lst

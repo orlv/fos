@@ -14,6 +14,7 @@ TOPDIR=`pwd`/..
 echo "Generating config.mk"
 cat > config.mk <<EOF
 # -----------------------------------------------------------------------------
+# Automatically generated, do not edit!
 # Copyright (C) 2007 Oleg Fedorov
 # -----------------------------------------------------------------------------
 SYSTEM_NAME     = FOS
@@ -37,7 +38,9 @@ GRUB_MODULES =	/boot/modules/test.txt		\\
 		/boot/modules/keyboard		\\
 		/boot/modules/floppy		\\
 		/boot/modules/test		\\
-		/boot/modules/font.psf
+		/boot/modules/font.psf		\\
+		/boot/modules/fjvm		\\
+		/boot/modules/classpath.jar
 
 
 GRUB_MENU    = $TOPDIR/boot/grub/menu.lst
@@ -57,6 +60,7 @@ echo "Generating usermode/config.mk"
 
 cat > usermode/config.mk <<EOF
 # -----------------------------------------------------------------------------
+# Automatically generated, do not edit!
 # Copyright (C) 2007 Oleg Fedorov
 # -----------------------------------------------------------------------------
 CC = gcc
@@ -107,6 +111,7 @@ EOF
 echo "Generating usermode/servers/config.mk"
 cat > usermode/servers/config.mk <<EOF
 # -----------------------------------------------------------------------------
+# Automatically generated, do not edit!
 # Copyright (C) 2007 Oleg Fedorov
 # -----------------------------------------------------------------------------
 CC = gcc

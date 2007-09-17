@@ -2,7 +2,7 @@
 timeout 0
 default 0
 hiddenmenu
-title FOS - FOS is Operating System (VERSION 0.0.43.12, BUILD 17716)
+title FOS - FOS is Operating System (VERSION 0.0.43.12, BUILD 17722)
 	root(cd0)
 	kernel /boot/fos
 	module /boot/modules/test.txt
@@ -13,7 +13,8 @@ title FOS - FOS is Operating System (VERSION 0.0.43.12, BUILD 17716)
 	module /boot/modules/tty
 	module /boot/modules/keyboard
 	module /boot/modules/floppy
-	module /boot/modules/speaker
 	module /boot/modules/test
 	module /boot/modules/font.psf
+	module /boot/modules/fjvm
+	module /boot/modules/classpath.jar
 

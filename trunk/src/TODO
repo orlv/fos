@@ -6,7 +6,9 @@
 - Видеодрайвера (Wed Jun 27 23:49:02 2007) 
 - ANSI TTY
 - uid/gid
-
+- каналы (pipe)
+- таблицы трансляции ввода/вывода
+- переменные окружения (ENVP), environ, getenv(), putenv(), setenv(), unsetenv()
 
 Системные вызовы:
 - InterruptDisable()   /* cli() */

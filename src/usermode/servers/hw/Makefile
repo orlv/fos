@@ -1,34 +1,31 @@
 # -----------------------------------------------------------------------------
-# Copyright (C) 2006-2007 Oleg Fedorov
-# Modified by:
-#	Michael Zhilin 23-08-2007
+# Copyright (C) 2006-2007 Michael Zhilin
 # -----------------------------------------------------------------------------
 
-include config.mk
+include ../config.mk
 
-SERVERS = namer keyboard floppy fbtty tty speaker hw
-#SERVERS += tty
+HW_SERVERS = pci ata
 
 all: 
-	@$(foreach server,$(SERVERS),\
+	@$(foreach server,$(HW_SERVERS),\
 		$(ECHO) ---------------------------------\> Building $(server);\
 		$(MAKE) -s -C $(server);\
 	)
 
 install:
-	@$(foreach server,$(SERVERS),\
+	@$(foreach server,$(HW_SERVERS),\
 		$(ECHO) ---------------------------------\> Install $(server);\
 		$(MAKE) -s -C $(server) install;\
 	)
 
 uninstall:
-	@$(foreach server,$(SERVERS),\
+	@$(foreach server,$(HW_SERVERS),\
 		$(ECHO) ---------------------------------\> Uninstall $(server);\
 		$(MAKE) -s -C $(server) uninstall;\
 	)
 
 clean:
-	@$(foreach server,$(SERVERS),\
+	@$(foreach server,$(HW_SERVERS),\
 		$(ECHO) ---------------------------------\> Cleaning $(server);\
 		$(MAKE) -s -C $(server) clean;\
 	)

@@ -2,7 +2,7 @@
 #	Copyright (C) 2007 Oleg Fedorov; Michael Zhilin
 #----------------------------------------------------------------------------#
 
-include ../config.mk
+include ../../config.mk
 
 OUTPUT		=	pci_server
 OBJECTS		=	pci.o pci_private.o pci_server.o pci_tools.o

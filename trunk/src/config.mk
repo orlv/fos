@@ -24,8 +24,7 @@ GRUB_MODULES =	/boot/modules/test.txt		\
 		/boot/modules/floppy		\
 		/boot/modules/test		\
 		/boot/modules/font.psf		\
-		/boot/modules/fjvm		\
-		/boot/modules/classpath.jar
+		/boot/modules/pci_server
 
 
 GRUB_MENU    = /home/oleg/fos/src/../boot/grub/menu.lst

@@ -13,7 +13,7 @@ asmlinkage int main()
     sched_yield();
   }
 
-  while(!exec("/mnt/modules/tty", NULL));
+  while(!exec("/mnt/modules/fbtty", NULL));
   printf("Init started! If you see this text - all work fine.\n");
   exec("/mnt/modules/keyboard", NULL);
   exec("/mnt/modules/shell", NULL);

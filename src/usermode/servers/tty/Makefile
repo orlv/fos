@@ -10,7 +10,7 @@ OBJECTS		=	main.o		\
 			vga.o		\
 			tty.o
 
-LDLIBS		=	-lcpp -lc -lfos
+LDLIBS		=	-\( -lcpp -lc -lfos -\)
 
 all:	$(OBJECTS)
 	@echo \ Linking $(OUTPUT)

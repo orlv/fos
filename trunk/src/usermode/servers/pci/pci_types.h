@@ -42,6 +42,6 @@ MAP_ITEM_DEF(uint, t_dev_info_ptr*, t_base_class_info_ptr)
  */
 
 MAP_ITEM_DEF(uint, t_pci_dev_info*, t_pci_device_by_dev_id)
-MAP_ITEM_DEF(uint, t_pci_device_by_dev_id*, t_pci_device_by_dev_id)
+MAP_ITEM_DEF(uint, t_pci_device_by_dev_id*, t_pci_device_by_dev_vnd_id)
 
 #endif 

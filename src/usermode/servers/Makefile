@@ -6,7 +6,7 @@
 
 include config.mk
 
-SERVERS = namer keyboard floppy fbtty speaker
+SERVERS = namer keyboard floppy fbtty speaker pci
 #SERVERS += tty
 
 all: 

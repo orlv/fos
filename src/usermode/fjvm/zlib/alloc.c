@@ -1,3 +1,0 @@
-/*
-	Memory allocation routines for zLib in uOS kernel
-*/

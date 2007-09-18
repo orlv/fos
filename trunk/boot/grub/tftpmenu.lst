@@ -1,7 +1,7 @@
 # GRUB Config: generated automatically - do not edit!
 timeout 1
 default 0
-title FOS - FOS is Operating System (VERSION 0.0.43.12, BUILD 17722)
+title FOS - FOS is Operating System (VERSION 0.0.43.12, BUILD 17729)
 	root	(nd)
 	kernel /boot/fos
 	module /boot/modules/test.txt
@@ -10,10 +10,10 @@ title FOS - FOS is Operating System (VERSION 0.0.43.12, BUILD 17722)
 	module /boot/modules/int16b
 	module /boot/modules/shell
 	module /boot/modules/tty
+	module /boot/modules/fbtty
 	module /boot/modules/keyboard
 	module /boot/modules/floppy
 	module /boot/modules/test
 	module /boot/modules/font.psf
-	module /boot/modules/fjvm
-	module /boot/modules/classpath.jar
+	module /boot/modules/pci_server
 

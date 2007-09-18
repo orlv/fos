@@ -4,12 +4,12 @@
 
 include ../config.mk
 
-OUTPUT		=	tty
+OUTPUT		=	fbtty
 
 OBJECTS		=	fbtty.o		\
 			fbterm.o
 
-LDLIBS		=	-lcpp -lc -lfos
+LDLIBS		=	-\( -lcpp -lc -lfos -\)
 
 all:	$(OBJECTS)
 	@echo \ Linking $(OUTPUT)

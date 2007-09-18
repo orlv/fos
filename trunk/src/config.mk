@@ -20,6 +20,7 @@ GRUB_MODULES =	/boot/modules/test.txt		\
 		/boot/modules/int16b		\
 		/boot/modules/shell		\
 		/boot/modules/tty		\
+		/boot/modules/fbtty		\
 		/boot/modules/keyboard		\
 		/boot/modules/floppy		\
 		/boot/modules/test		\

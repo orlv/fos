@@ -6,7 +6,7 @@ include ../config.mk
 
 OUTPUT		=	pci_server
 OBJECTS		=	pci.o pci_private.o pci_server.o pci_tools.o
-LDLIBS		=	-lcpp -lc -lfos
+LDLIBS		=	-\( -lcpp -lc -lfos -\)
 
 all:	$(OBJECTS)
 	@echo \ Linking $(OUTPUT)

@@ -19,6 +19,7 @@ asmlinkage int main()
   exec("/mnt/modules/shell", NULL);
   exec("/mnt/modules/speaker", NULL);
   exec("/mnt/modules/test", "arg1 arg2 arg3");
+  exec("/mnt/modules/pci_server");
   //exec("/mnt/modules/floppy");
   return 0;
 }

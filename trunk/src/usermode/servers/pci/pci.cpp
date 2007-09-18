@@ -79,10 +79,11 @@ void scan_pci(){
 
 		class_name = get_name_by_class(dev_info->class_id);
 
-		printf("Device found: %x (%s) Vendor: %x\n",
+		printf("Device found: %x (%s) Vendor: %x Slot: %x\n",
 			dev_info->device_id,
 			class_name,
-			dev_info->vendor_id);
+			dev_info->vendor_id,
+			dev_id);
 
 		if(((dev_info->class_id >> 16) & 0x0FF) == BASE_CLASS_BRIDGE){
 			uint func_id;
@@ -98,10 +99,12 @@ void scan_pci(){
 
 				sub_dev_class_name = get_name_by_class(sub_dev_info->class_id);
 
-				printf("Device found: %x (%s) Vendor: %x\n",
+				printf("Device found: %x (%s) Vendor: %x Slot: %x Function: %x\n",
 					sub_dev_info->device_id,
 					sub_dev_class_name,
-					sub_dev_info->vendor_id);
+					sub_dev_info->vendor_id,
+					dev_id,
+					func_id);
 				delete sub_dev_info;
 			}
 

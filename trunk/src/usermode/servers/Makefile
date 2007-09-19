@@ -11,25 +11,25 @@ SERVERS = namer keyboard floppy fbtty tty speaker hw
 
 all: 
 	@$(foreach server,$(SERVERS),\
-		$(ECHO) ---------------------------------\> Building $(server);\
+		$(YELLOW) $(ECHO) ---------------------------------\> Building $(server) ; $(GREY)\
 		$(MAKE) -s -C $(server);\
 	)
 
 install:
 	@$(foreach server,$(SERVERS),\
-		$(ECHO) ---------------------------------\> Install $(server);\
+		$(YELLOW) $(ECHO) ---------------------------------\> Install $(server) ; $(GREY)\
 		$(MAKE) -s -C $(server) install;\
 	)
 
 uninstall:
 	@$(foreach server,$(SERVERS),\
-		$(ECHO) ---------------------------------\> Uninstall $(server);\
+		$(YELLOW) $(ECHO) ---------------------------------\> Uninstall $(server) ; $(GREY)\
 		$(MAKE) -s -C $(server) uninstall;\
 	)
 
 clean:
 	@$(foreach server,$(SERVERS),\
-		$(ECHO) ---------------------------------\> Cleaning $(server);\
+		$(YELLOW) $(ECHO) ---------------------------------\> Cleaning $(server) ; $(GREY)\
 		$(MAKE) -s -C $(server) clean;\
 	)
 

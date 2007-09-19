@@ -2,14 +2,27 @@
 
 if uname | grep BSD
 then
-    ECHO="/bin/echo";
-    MAKE="gmake"
+	ECHO="/bin/echo";
+	MAKE="gmake"
+
+	## ansi colors:
+	GREEN=
+	YELLOW=
+	RED=
+	GREY=
 else
-    ECHO="/bin/echo -e";
-    MAKE="make"
+	ECHO="/bin/echo -e";
+	MAKE="make"
+
+	## ansi colors:
+	GREEN="/bin/echo -en \"\033[0;32;40m\" ;"
+	YELLOW="/bin/echo -en \"\033[1;33;40m\" ;" 
+	RED="/bin/echo -en \"\033[0;38;40m\" ;"
+	GREY="/bin/echo -en \"\033[1;37;40m\" ;" 
 fi
 
 TOPDIR=`pwd`/..
+
 
 echo "Generating config.mk"
 cat > config.mk <<EOF
@@ -25,8 +38,14 @@ KERNEL_PATHNAME	= $TOPDIR/boot/fos
 INCLUDE		= $TOPDIR/include
 LIB		= $TOPDIR/lib
 
-MAKE            = $MAKE
-ECHO            = $ECHO
+MAKE		= $MAKE
+ECHO		= $ECHO
+
+# output coloring:
+GREEN		= $GREEN
+YELLOW		= $YELLOW
+RED		= $RED
+GREY		= $GREY
 
 # -- Modules ------------------------------------------------------------------
 GRUB_MODULES =	/boot/modules/test.txt		\\
@@ -70,6 +89,13 @@ LD = ld
 AR = ar
 MAKE = $MAKE
 ECHO = $ECHO
+
+# output coloring:
+GREEN		= $GREEN
+YELLOW		= $YELLOW
+RED		= $RED
+GREY		= $GREY
+
 #----------------------------------------------------------------------------#
 
 SYSTEM_NAME     = FOS
@@ -121,6 +147,13 @@ LD = ld
 AR = ar
 MAKE = $MAKE
 ECHO = $ECHO
+
+# output coloring:
+GREEN		= $GREEN
+YELLOW		= $YELLOW
+RED		= $RED
+GREY		= $GREY
+
 #----------------------------------------------------------------------------#
 
 SYSTEM_NAME     = FOS

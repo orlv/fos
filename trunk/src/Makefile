@@ -10,9 +10,9 @@ all:	version build_kernel build_user
 	@rm -f `find . -name \*~`
 	@expr `cat .build.next` + 1 | xargs $(ECHO) -n > .build.next.tmp
 	@mv .build.next.tmp .build.next
-	@$(ECHO) \ System Complete!
+	@$(GREEN) $(ECHO) \ System Complete!
 	@$(ECHO) \ Run \"make install\" to build iso image.
-	@$(ECHO) \#------------------------------------------------------------------------------
+	@$(YELLOW) $(ECHO) \#------------------------------------------------------------------------------ ; $(GREY)
 
 help:
 	@$(ECHO) " "
@@ -25,7 +25,7 @@ version:
 	@rm -f kernel/main/version.o
 	@cat .build.next > BUILD
 	@$(ECHO) " "
-	@$(ECHO) "FOS Version `cat VERSION`. Build `cat BUILD`."
+	@$(RED) $(ECHO) "FOS Version `cat VERSION`. Build `cat BUILD`." ; $(GREY)
 	@$(ECHO) "Copyright (C) 2004-2007 Oleg Fedorov"
 	@$(ECHO) " "
 	@$(ECHO) "/* " > ../include/fos/version.h
@@ -39,15 +39,16 @@ version:
 
 
 build_kernel:
-	@$(ECHO) \#--------------------------------- Building kernel ----------------------------
+	@$(YELLOW) $(ECHO) \#--------------------------------- Building kernel ---------------------------- ; $(GREY)
 	@$(MAKE) -s -C kernel all
-	@$(ECHO) \#------------------------------------------------------------------------------
+	@$(YELLOW) $(ECHO) \#------------------------------------------------------------------------------ ; $(GREY)
 	@$(ECHO) 
 
 build_user:
-	@$(ECHO) \#---------------------- Building usermode programs ----------------------------
+	@$(YELLOW) $(ECHO) \#---------------------- Building usermode programs ---------------------------- ; $(GREY)
 	@$(MAKE) -s -C usermode all
-	@$(ECHO) \#------------------------------------------------------------------------------
+	@$(YELLOW) $(ECHO) \#------------------------------------------------------------------------------ ; $(GREY)
+
 
 #--------------------------------- Clean -------------------------------------
 
@@ -62,15 +63,15 @@ clean: clean_kernel clean_user
 #--------------------------------- Install -----------------------------------
 
 install_kernel:
-	@$(ECHO) \#--------------------------------- Install kernel -----------------------------
+	@$(YELLOW) $(ECHO) \#--------------------------------- Install kernel ----------------------------- ; $(GREY)
 	@$(MAKE) -s -C kernel install
-	@$(ECHO) \#------------------------------------------------------------------------------
+	@$$(YELLOW) (ECHO) \#------------------------------------------------------------------------------ ; $(GREY)
 	@$(ECHO) 
 
 install_user:
-	@$(ECHO) \#---------------------- Install usermode programs -----------------------------
+	@$(YELLOW) $(ECHO) \#---------------------- Install usermode programs ----------------------------- ; $(GREY)
 	@$(MAKE) -s -C usermode install
-	@$(ECHO) \#------------------------------------------------------------------------------
+	@$(YELLOW) $(ECHO) \#------------------------------------------------------------------------------ ; $(GREY)
 
 grub_menu:
 	@$(ECHO) "# GRUB Config: generated automatically - do not edit!" > $(GRUB_MENU)

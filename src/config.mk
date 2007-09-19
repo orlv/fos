@@ -10,8 +10,14 @@ KERNEL_PATHNAME	= /home/oleg/fos/src/../boot/fos
 INCLUDE		= /home/oleg/fos/src/../include
 LIB		= /home/oleg/fos/src/../lib
 
-MAKE            = make
-ECHO            = /bin/echo -e
+MAKE		= make
+ECHO		= /bin/echo -e
+
+# output coloring:
+GREEN		= /bin/echo -en "\033[0;32;40m" ;
+YELLOW		= /bin/echo -en "\033[1;33;40m" ;
+RED		= /bin/echo -en "\033[0;38;40m" ;
+GREY		= /bin/echo -en "\033[1;37;40m" ;
 
 # -- Modules ------------------------------------------------------------------
 GRUB_MODULES =	/boot/modules/test.txt		\

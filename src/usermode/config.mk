@@ -9,6 +9,13 @@ LD = ld
 AR = ar
 MAKE = make
 ECHO = /bin/echo -e
+
+# output coloring:
+GREEN		= /bin/echo -en "\033[0;32;40m" ;
+YELLOW		= /bin/echo -en "\033[1;33;40m" ;
+RED		= /bin/echo -en "\033[0;38;40m" ;
+GREY		= /bin/echo -en "\033[1;37;40m" ;
+
 #----------------------------------------------------------------------------#
 
 SYSTEM_NAME     = FOS

@@ -198,17 +198,18 @@ void *VMM::mmap(register off_t start, register size_t lenght, register int flags
     lenght += MM_MINALLOC - lenght%MM_MINALLOC;
 
   if(start%MM_MINALLOC)
-    if((flags & MAP_FIXED))
+    if((flags & MAP_FIXED)) {
+      printk("VMM: error allocating not-aligned fixed region 0x%X\n", start);
       return 0;
-    else
+    } else
       start += MM_MINALLOC - start%MM_MINALLOC;
   
   if(!start && !(flags & MAP_FIXED)) { /* если start не указан (и нет флага MAP_FIXED) - выделяем в любом свободном месте */
     start = alloc_free_area(lenght);
-    if(!lenght) return 0; 
+    if(!lenght) return 0;
   } else {
     /* проверяем доступность блока памяти */
-    if((start + lenght > mem_base + mem_size) || (start + lenght < start)) {
+    if(start && ((start + lenght > mem_base + mem_size) || (start + lenght < start) || (start < mem_base))) {
       printk("VMM: overflow [start=0x%X, lenght=0x%X]\n", start, lenght);
       return 0;
     }
@@ -246,11 +247,14 @@ void *VMM::mmap(register off_t start, register size_t lenght, register int flags
 
 int VMM::munmap(register off_t start, register size_t lenght)
 {
+  if((start < mem_base) || (start + lenght > mem_base + mem_size))
+    return 0;
   lenght = ((lenght + MM_MINALLOC - 1) / MM_MINALLOC) * PAGE_SIZE;
   u32_t vptr = start;
 
   __mt_disable();  
   /* проверим, смонтированы ли страницы */
+  #warning данный код следует оптимизировать
   if(!check_pages(PAGE(vptr), pager->pagedir, PAGE(lenght))) {
     __mt_enable();
     printk("Trying to delete non-allocated page(s)!\n");

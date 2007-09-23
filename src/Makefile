@@ -65,7 +65,7 @@ clean: clean_kernel clean_user
 install_kernel:
 	@$(YELLOW) $(ECHO) \#--------------------------------- Install kernel ----------------------------- ; $(GREY)
 	@$(MAKE) -s -C kernel install
-	@$$(YELLOW) (ECHO) \#------------------------------------------------------------------------------ ; $(GREY)
+	@$(YELLOW) $(ECHO) \#------------------------------------------------------------------------------ ; $(GREY)
 	@$(ECHO) 
 
 install_user:

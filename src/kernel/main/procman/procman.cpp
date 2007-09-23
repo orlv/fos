@@ -182,7 +182,7 @@ void procman_srv()
 
     case PROCMAN_CMD_CREATE_THREAD:
       thread = hal->procman->get_thread_by_tid(msg->tid);
-      thread = thread->process->thread_create(msg->a1, FLAG_TSK_READY, kmalloc(PAGE_SIZE), thread->process->memory->mem_alloc(PAGE_SIZE));
+      thread = thread->process->thread_create(msg->a1, FLAG_TSK_READY, kmalloc(PAGE_SIZE), thread->process->memory->mmap(0, PAGE_SIZE, 0, 0, 0));
       hal->procman->reg_thread(thread);
       msg->a0 = (u32_t) thread;
       msg->send_size = 0;
@@ -278,7 +278,7 @@ tid_t TProcMan::exec(register void *image, const string name, const string args)
 {
   TProcess *process = new TProcess();
 
-  process->memory = new Memory(USER_MEM_BASE, USER_MEM_SIZE);
+  process->memory = new VMM(USER_MEM_BASE, USER_MEM_SIZE);
   process->name = new char[strlen(name) + 1];
   strcpy(process->name, name);
 
@@ -290,13 +290,13 @@ tid_t TProcMan::exec(register void *image, const string name, const string args)
   }
 
   off_t eip = process->LoadELF(image);
-  Thread *thread = process->thread_create(eip, FLAG_TSK_READY, kmalloc(STACK_SIZE), process->memory->mem_alloc(STACK_SIZE));
+  Thread *thread = process->thread_create(eip, FLAG_TSK_READY, kmalloc(STACK_SIZE), process->memory->mmap(0, STACK_SIZE, 0, 0, 0));
 
   if(args) {
     size_t len = strlen(args);
     char *args_buf = (char *) kmalloc(len);
     memcpy(args_buf, args, len);
-    thread->tss->eax = (u32_t)process->memory->kmem_alloc(args_buf, len);
+    thread->tss->eax = (u32_t)process->memory->mmap(0, len, 0, (off_t)args_buf, hal->kmem);
     kfree(args_buf, len);
   }
   

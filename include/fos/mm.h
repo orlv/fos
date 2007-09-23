@@ -113,23 +113,11 @@ struct memblock {
 void * realloc(register void *ptr, register size_t size);
 void * heap_create_reserved_block();
 
-class Memory {
- private:
-  //List<memblock *> * volatile UsedMem;
-  List<memblock *> * volatile FreeMem;
-  //u16_t flags;
-
-  void *mem_alloc(register u32_t *phys_pages, register size_t pages_cnt);
-  void *do_mmap(register u32_t *phys_pages, register void *log_address, register size_t pages_cnt);
-
- public:
-  Memory(offs_t base, size_t size);
-  ~Memory();
-
-  off_t mem_base;
-  size_t mem_size;
+#if 0
+class VMM {
   class Pager *pager;
-  
+  class VMA *vma; /* --> надо преобразовать это поле в список vma! */
+
   void *mem_alloc(register size_t size);
   void *mem_alloc_phys(register u32_t phys_address, register size_t size);
   void *kmem_alloc(register void *kmem_address, register size_t size);
@@ -137,6 +125,82 @@ class Memory {
   void *mmap(register void *phys_address, register void *log_address, register size_t size);
   void *kmmap(register void *kmem_address, register void *log_address, register size_t size);
   void mem_free(register void *ptr, register size_t size);
+
+};
+
+class VM_region {
+  offs_t vptr; /* адрес начала региона [на какой адрес в памяти процесса смонтировано] */
+  size_t size; /* размер региона */
+};
+
+class VMA {
+ private:
+  List<class VM_region *> * volatile FreeMem;
+ public:
+  VMA(off_t vm_start, off_t vm_end);
+  ~VMA();
+
+  off_t vm_start;
+  off_t vm_end;
+  u32_t vm_flags;
+
+  VM_region * find_region(off_t addr); /* ищет регион, в котором лежит данный адрес,
+					  в случае неудачи возвращает предыдущий регион */
+  VM_region * create_region(off_t addr, size_t size); /* создает регион указанного размера */
+  void remove_region(off_t addr, size_t size); /* освобождает указаную область памяти */
+  
+};
+#endif
+
+/* Protection bits */
+//#define PROT_READ  0x1 /* page can be read */
+//#define PROT_WRITE 0x2 /* page can be written */
+//#define PROT_EXEC  0x4 /* page can be executed */
+//#define PROT_SEM   0x8 /* page may be used for atomic ops */
+//#define PROT_NONE  0x0 /* page can not be accessed */
+
+/* Mapping flags */
+//#define MAP_SHARED      0x01            /* Share changes */
+//#define MAP_PRIVATE     0x02            /* Changes are private */
+//#define MAP_TYPE        0x0f            /* Mask for type of mapping */
+#define MAP_FIXED       0x10            /* Interpret addr exactly */
+//#define MAP_ANONYMOUS   0x20            /* don't use a file */
+
+class VMM {
+ private:
+  //List<memblock *> * volatile UsedMem;
+  List<memblock *> * volatile FreeMem;
+  //u16_t flags;
+
+  //void *mem_alloc(register u32_t *phys_pages, register size_t pages_cnt);
+  //  void *do_mmap(register u32_t *phys_pages, register void *log_address, register size_t pages_cnt);
+  off_t alloc_free_area(register size_t &lenght);
+  off_t cut_free_area(register off_t start, register size_t &lenght);
+ public:
+  VMM(offs_t base, size_t size);
+  ~VMM();
+
+  off_t mem_base;
+  size_t mem_size;
+  class Pager *pager;
+
+  //  void *mem_alloc(register size_t size);
+  //void *mem_alloc_phys(register u32_t phys_address, register size_t size);
+  //void *kmem_alloc(register void *kmem_address, register size_t size);
+  //  void *mmap(register size_t size, register void *log_address); ->   void *mmap(register void *start, register size_t lenght, register int flags);
+  //void *mmap(register void *phys_address, register void *log_address, register size_t size);
+  //  void *kmmap(register void *kmem_address, register void *log_address, register size_t size);
+
+  /* смонтировать страницы из другого адресного пространства */
+  //void *mremap(VMM *from, void *from_start, void *to_start, size_t lenght, int flags);
+  
+  void *find_free_area(register size_t lenght);
+  /* если start=0 -- ищем с find_free_area() память и мапим */
+  void *mmap(register off_t start, register size_t lenght, register int flags, off_t from_start, VMM *vm_from);
+
+  /* отсоединить страницы от данного адресного пространства
+     (если станицы смонтированы также в другом месте - они там останутся) */
+  int munmap(register off_t start, register size_t lenght);
 };
 
 void * kmalloc(register size_t size);

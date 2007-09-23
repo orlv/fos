@@ -57,7 +57,7 @@ class HAL {
   PIC *pic;
   Thread ** user_int_handler;
 
-  Memory *kmem;
+  VMM *kmem;
 
   page *phys_page;        /* массив информации о страницах */
   size_t pages_cnt;       /* общее количество страниц в системе */

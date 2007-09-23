@@ -15,8 +15,8 @@ include ../config.mk
 #DEBUG =-g
 
 ASFLAGS		= -DiKERNEL $(DEBUG) -Wall -nostdlib -nostdinc -I$(INCLUDE)
-CFLAGS		= -DiKERNEL $(DEBUG) -Wall -O3 -I$(INCLUDE) -nostdinc -ffreestanding -fno-stack-protector 
-CXXFLAGS	= -DiKERNEL $(DEBUG) -Wall -O3 -I$(INCLUDE) -nostdinc -nostdinc++ -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin -fno-stack-protector -mregparm=3
+CFLAGS		= -DiKERNEL $(DEBUG) -Wall -O0 -I$(INCLUDE) -nostdinc -ffreestanding -fno-stack-protector 
+CXXFLAGS	= -DiKERNEL $(DEBUG) -Wall -O0 -I$(INCLUDE) -nostdinc -nostdinc++ -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin -fno-stack-protector -mregparm=3
 LDFLAGS		= -nostdlib -static
 
 .s.o:
@@ -97,5 +97,6 @@ strip:
 clean:
 	@rm -f $(OBJECTS)
 	@rm -f $(KERNEL_PATHNAME)
+	@rm -f fos
 
 #-----------------------------------------------------------------------------#

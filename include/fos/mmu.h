@@ -17,9 +17,15 @@
 #define clear_page(page) memset((void *)(page*PAGE_SIZE), 0, PAGE_SIZE)
 
 #ifdef iKERNEL
-static inline u32_t * pagetable_addr(u32_t n, u32_t *pagedir)
+static inline u32_t * pagetable_addr(register u32_t n, register u32_t *pagedir)
 {
   return (u32_t *)((pagedir)[n/1024] & 0xfffff000);
+}
+
+static inline u32_t * phys_addr_from(register u32_t n, register u32_t *pagedir)
+{
+  u32_t *pagetable = pagetable_addr(n, pagedir);
+  return (u32_t *) (pagetable[n & 0x3ff] & 0xfffff000);
 }
 
 /* если страница выдана kmalloc() - возвратит её физический адрес */

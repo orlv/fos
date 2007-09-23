@@ -9,6 +9,17 @@
 #include <fos/hal.h>
 #include <fos/pager.h>
 
+/*
+  требования к работе mmap:
+
+  - если запрашиваемый создаваемый регион:
+  а) выходит за пределы физической памяти -- возвращается ошибка
+  б) пересекается с существующим регионом -- регион создается в любом свободном месте адресного пространства
+
+  - округление желаемого адреса начала региона (align PAGE_SIZE) производится в большую сторону (т.е. 0x1001 к 0x2000)
+  
+ */
+
 void mm_srv()
 {
   Thread *thread;
@@ -25,7 +36,7 @@ void mm_srv()
       //printk("mm: allocating 0x%X bytes of memory\n", msg->a1);
       thread = hal->procman->get_thread_by_tid(msg->tid);
       if(!msg->a2)
-	msg->a0 = (u32_t) thread->process->memory->mem_alloc(msg->a1);
+	msg->a0 = (u32_t) thread->process->memory->mmap(0, msg->a1, 0, 0, 0); //mem_alloc(msg->a1);
       else
 	msg->a0 = get_lowpage() * PAGE_SIZE;
       msg->send_size = 0;
@@ -35,7 +46,7 @@ void mm_srv()
     case MM_CMD_MEM_MAP:
       //printk("mm: mapping 0x%X bytes of memory to 0x%X\n", msg->a2, msg->a1);
       thread = hal->procman->get_thread_by_tid(msg->tid);
-      msg->a0 = (u32_t) thread->process->memory->mem_alloc_phys(msg->a1, msg->a2);
+      msg->a0 = (u32_t) thread->process->memory->mmap(0, msg->a2, 0, msg->a1, 0);//mem_alloc_phys(msg->a1, msg->a2);
       msg->send_size = 0;
       reply(msg);
       break;
@@ -45,7 +56,7 @@ void mm_srv()
       thread = hal->procman->get_thread_by_tid(msg->tid);
       if(msg->a1 > USER_MEM_BASE){
 	msg->a0 = 1;
-	thread->process->memory->mem_free((void *)msg->a1, msg->a2);
+	thread->process->memory->munmap(msg->a1, msg->a2); //mem_free((void *)msg->a1, msg->a2);
       } else
 	msg->a0 = -1;
       msg->send_size = 0;
@@ -60,7 +71,7 @@ void mm_srv()
   }
 }
 
-Memory::Memory(offs_t base, size_t size)
+VMM::VMM(offs_t base, size_t size)
 {
   memblock *block = new memblock;
 
@@ -73,7 +84,7 @@ Memory::Memory(offs_t base, size_t size)
   mem_size = size;
 }
 
-Memory::~Memory()
+VMM::~VMM()
 {
   List<memblock *> *curr, *n;
 
@@ -88,278 +99,195 @@ Memory::~Memory()
   delete pager;
 }
 
-void *Memory::mem_alloc(register size_t size)
-{
-  size_t pages_cnt = (size + MM_MINALLOC - 1) / MM_MINALLOC;
-  u32_t *phys_pages = new u32_t[pages_cnt];
-  for(size_t i = 0; i < pages_cnt; i++){
-    phys_pages[i] = get_page();
-  }
-
-  void *ptr =  this->mem_alloc(phys_pages, pages_cnt);
-
-  if(!ptr){
-    for(size_t i = 0; i < pages_cnt; i++){
-      put_page(phys_pages[i]);
-    }
-  }
-
-  delete phys_pages;
-  return ptr;
-}
-
-void *Memory::mem_alloc_phys(register u32_t phys_address, register size_t size)
-{
-  size_t pages_cnt = (size + MM_MINALLOC - 1) / MM_MINALLOC;
-  u32_t *phys_pages = new u32_t[pages_cnt];
-  u32_t phys_page = PAGE(phys_address);
-
-  for(size_t i = 0; i < pages_cnt; i++){
-    phys_pages[i] = phys_page;
-    phys_page++;
-  }
-
-  void *ptr = mem_alloc(phys_pages, pages_cnt);
-
-  if(!ptr){
-    for(size_t i = 0; i < pages_cnt; i++){
-      put_page(phys_pages[i]);
-    }
-  }
-
-  delete phys_pages;
-  return ptr;
-}
-
-/* смонтировать набор физических страниц, выданных kmalloc() в любую область памяти */
-void *Memory::kmem_alloc(register void *kmem_address, register size_t size)
-{
-  size_t pages_cnt = (size + MM_MINALLOC - 1) / MM_MINALLOC;
-
-  u32_t *phys_pages = new u32_t[pages_cnt];
-  u32_t kmem_page = PAGE((u32_t) kmem_address);
-  for(size_t i = 0; i < pages_cnt; i++){
-    phys_pages[i] = PAGE((u32_t)kmem_phys_addr(kmem_page));
-    kmem_page++;
-  }
-
-  void *ptr = this->mem_alloc(phys_pages, pages_cnt);
-  
-  if(!ptr){
-    for(size_t i = 0; i < pages_cnt; i++){
-      put_page(phys_pages[i]);
-    }
-  }
-
-  delete phys_pages;
-  return ptr;
-}
-
-/* смонтировать набор физических страниц в любое свободное место */
-void *Memory::mem_alloc(register u32_t *phys_pages, register size_t pages_cnt)
+off_t VMM::alloc_free_area(register size_t &lenght)
 {
   memblock *p;
-  size_t size = pages_cnt * PAGE_SIZE;
-
   __mt_disable();
   List<memblock *> *curr  = FreeMem;
-
   /* ищем свободный блок подходящего размера */
   while(1){
     p = curr->item;
-    if (p->size >= size) {
+    if (p->size >= lenght)
       break;
-    }
     curr = curr->next;
     if(curr == FreeMem){
-      printk("TaskMem: can't allocate %d bytes of memory!\n", size);
+      __mt_enable();
+      printk("VMM: can't allocate %d bytes of memory!\n", lenght);
+      lenght = 0;
       return 0;
     }
   }
 
-  u32_t vptr = p->vptr;
+  off_t vptr = p->vptr;
 
-  if (p->size > size) {	/* используем только часть блока */
-    p->vptr += size;	/* скорректируем указатель на начало блока */
-    p->size -= size;	/* вычтем выделяемый размер */
-  } else {			/* (p->size == block->size) */
-    /* при выделении используем весь блок (запись о нём удаляется из списка свободных блоков) */
+  if (p->size > lenght) {  /* используем только часть блока */
+    p->vptr += lenght;	   /* скорректируем указатель на начало блока */
+    p->size -= lenght;
+  } else {                 /* (p->size == lenght) */
+    /* при выделении используем весь блок */
     if(curr == FreeMem)
       FreeMem = curr->next;
     delete curr->item;
     delete curr;
   }
 
-  pager->map_pages(phys_pages, PAGE(vptr), pages_cnt);
-    
   __mt_enable();
-
-  return (void *)vptr;
+  return vptr;
 }
 
-/* выделить набор физических страниц и смонтировать в конкретное место */
-void *Memory::mmap(register size_t size, register void *log_address)
-{
-  size_t pages_cnt = (size + MM_MINALLOC - 1) / MM_MINALLOC;
-  u32_t *phys_pages = new u32_t[pages_cnt];
-
-  for(size_t i = 0; i < pages_cnt; i++){
-    phys_pages[i] = get_page() * PAGE_SIZE;
-  }
-
-  void *ptr = do_mmap(phys_pages, log_address, pages_cnt);
-
-  if(!ptr){
-    for(size_t i = 0; i < pages_cnt; i++){
-      put_page(phys_pages[i]);
-    }
-  }
-
-  delete phys_pages;
-  return ptr;
-}
-
-/* смонтировать набор физических страниц, выданных kmalloc() в конкретную область памяти */
-void *Memory::kmmap(register void *kmem_address, register void *log_address, register size_t size)
-{
-  size_t pages_cnt = (size + MM_MINALLOC - 1) / MM_MINALLOC;
-  u32_t *phys_pages = new u32_t[pages_cnt];
-  u32_t kmem_page = PAGE((u32_t) kmem_address);
-  for(size_t i = 0; i < pages_cnt; i++){
-    phys_pages[i] = PAGE((u32_t)kmem_phys_addr(kmem_page));
-    kmem_page++;
-  }
-
-  void *ptr = do_mmap(phys_pages, log_address, pages_cnt);
-  
-  if(!ptr){
-    for(size_t i = 0; i < pages_cnt; i++){
-      put_page(phys_pages[i]);
-    }
-  }
-
-  delete phys_pages;
-  return ptr;
-}
-
-/* смонтировать набор физических страниц в конкретную область памяти */
-void *Memory::mmap(register void *phys_address, register void *log_address, register size_t size)
-{
-  size_t pages_cnt = (size + MM_MINALLOC - 1) / MM_MINALLOC;
-  u32_t *phys_pages = new u32_t[pages_cnt];
-  u32_t phys_page = PAGE((u32_t) phys_address);
-
-  for(size_t i = 0; i < pages_cnt; i++){
-    phys_pages[i] = phys_page;
-    phys_page++;
-  }
-
-  void *ptr = do_mmap(phys_pages, log_address, pages_cnt);
-
-  if(!ptr && phys_address){
-    for(size_t i = 0; i < pages_cnt; i++){
-      put_page(phys_pages[i]);
-    }
-  }
-  
-  delete phys_pages;
-  return ptr;
-}
-
-/* смонтировать набор физических страниц в конкретную область памяти */
-void *Memory::do_mmap(register u32_t *phys_pages, register void *log_address, register size_t pages_cnt)
+/* вырезает из списка свободных блоков указанную область */
+off_t VMM::cut_free_area(off_t start, size_t &lenght)
 {
   memblock *p;
-  size_t size = pages_cnt * PAGE_SIZE;
-  u32_t vptr = (u32_t) log_address;
-
   __mt_disable();
   List<memblock *> *curr = FreeMem;
-  
+  /* поиск необходимого блока */
   while(1) {
     p = curr->item;
-    if ((p->vptr <= vptr) && (p->vptr + p->size >= vptr + size)) {
+    //printk("vptr=0x%X, size=0x%X\n", p->vptr, p->size);
+    if ((p->vptr <= start) && (p->vptr + p->size >= start + lenght)) {
       break;
     }
     curr = curr->next;
-    if ((curr == FreeMem) || (p->vptr >= vptr)) {
+    if ((curr == FreeMem) || (p->vptr >= start)) {
       __mt_enable();
-      printk("TaskMem: can't map %d bytes to 0x%X!\n", size, log_address);
+      printk("VMM: can't alloc %d bytes starting from 0x%X!\n", lenght, start);
+      lenght = 0;
       return 0;
     }
   }
 
-  if (p->vptr == vptr) {
-    if (p->size == size) {
+  /* проверка, выделять весь блок, или только часть */
+  if (p->vptr == start) {
+    if (p->size == lenght) {
       if(curr == FreeMem)
 	FreeMem = curr->next;
       delete curr->item;
       delete curr;
     } else {
-      p->vptr += size;
-      p->size -= size;
+      p->vptr += lenght;
+      p->size -= lenght;
     }
   } else {
-    if (p->vptr + p->size > vptr + size) {
+    if (p->vptr + p->size > start + lenght) {
       memblock *b = new memblock;
-      b->vptr = vptr + size;
-      b->size = p->size - size - (vptr - p->vptr);
+      b->vptr = start + lenght;
+      b->size = p->size - lenght - (start - p->vptr);
       curr->add(b);
+      //printk("*bvptr=0x%X, bsize=0x%X\n", b->vptr, b->size);
     }
-    p->size = vptr - p->vptr;
+    p->size = start - p->vptr;
   }
-
-  pager->map_pages(phys_pages, PAGE(vptr), pages_cnt);
-
+  //printk("*vptr=0x%X, size=0x%X\n", p->vptr, p->size);
   __mt_enable();
-
-  return (void *) vptr;
+  return start;
 }
 
-void Memory::mem_free(register void *ptr, register size_t size)
+/*
+  from_start:
+
+  а) если vm_from=0, используется, как первая страница последовательности физ. страниц
+  б) если vm_from='адресное пространство', определяем из него последовательность физ. страниц
+ */
+void *VMM::mmap(register off_t start, register size_t lenght, register int flags, off_t from_start, VMM *vm_from)
 {
-  size = ((size + MM_MINALLOC - 1) / MM_MINALLOC) * PAGE_SIZE;
-  u32_t vptr = (u32_t) ptr;
+  //printk("start=0x%X, lenght=0x%X, flags=0x%X, from_start=0x%X, vm_from=0x%X\n", start, lenght, flags, from_start, vm_from);
+  if(!lenght) return 0;
+  /* проверки выравнивания */
+  if(lenght%MM_MINALLOC)
+    lenght += MM_MINALLOC - lenght%MM_MINALLOC;
+
+  if(start%MM_MINALLOC)
+    if((flags & MAP_FIXED))
+      return 0;
+    else
+      start += MM_MINALLOC - start%MM_MINALLOC;
+  
+  if(!start && !(flags & MAP_FIXED)) { /* если start не указан (и нет флага MAP_FIXED) - выделяем в любом свободном месте */
+    start = alloc_free_area(lenght);
+    if(!lenght) return 0; 
+  } else {
+    /* проверяем доступность блока памяти */
+    if((start + lenght > mem_base + mem_size) || (start + lenght < start)) {
+      printk("VMM: overflow [start=0x%X, lenght=0x%X]\n", start, lenght);
+      return 0;
+    }
+    size_t l = lenght;
+    start = cut_free_area(start, l);
+    if(!l)
+      if((flags & MAP_FIXED))
+	return 0;
+      else {
+	start = alloc_free_area(lenght);
+	if(!lenght) return 0;
+      }
+  }
+
+  /* если мы здесь - значит область для маппинга успешно найдена, можно мапить */
+  if(from_start || (flags & MAP_FIXED))
+    if(vm_from) { /* монтируем конкретные физ. стр. из другого адр. пр-ва */
+      u32_t *pagedir = vm_from->pager->pagedir;
+      for(u32_t vpage = PAGE(start), ppage = PAGE(from_start), end = vpage + PAGE(lenght);
+	  vpage < end; vpage++, ppage++)
+	pager->mount_page(PAGE(OFFSET(phys_addr_from(ppage, pagedir))), vpage);
+    } else { /* монтируем последовательность физ. страниц, начиная с адреса phys_start */
+      for(u32_t vpage = PAGE(start), ppage = PAGE(from_start), end = vpage + PAGE(lenght);
+	  vpage < end; vpage++, ppage++){
+	//printk("ppage=0x%X, vpage=0x%X\n", ppage, vpage);
+	pager->mount_page(ppage, vpage);}
+    }
+  else { /* выделяем и монтируем любые свободные физические страницы */
+    for(u32_t vpage = PAGE(start), end = vpage + PAGE(lenght); vpage < end; vpage++)
+      pager->mount_page(get_page(), vpage);
+  }
+
+  return ADDRESS(start);
+}
+
+int VMM::munmap(register off_t start, register size_t lenght)
+{
+  lenght = ((lenght + MM_MINALLOC - 1) / MM_MINALLOC) * PAGE_SIZE;
+  u32_t vptr = start;
 
   __mt_disable();  
   /* проверим, смонтированы ли страницы */
-  if(!check_pages(PAGE(vptr), pager->pagedir, PAGE(size))) {
+  if(!check_pages(PAGE(vptr), pager->pagedir, PAGE(lenght))) {
     __mt_enable();
     printk("Trying to delete non-allocated page(s)!\n");
-    return;
+    return 0;
   }
    
-  //printk("Memory: freeing 0x%X bytes, starting (virtual) 0x%X\n", size, ptr);
-  pager->umap_pages(PAGE(vptr), PAGE(size));
+  //printk("VMM: freeing 0x%X bytes, starting (virtual) 0x%X\n", lenght, start);
+  pager->umap_pages(PAGE(vptr), PAGE(lenght));
 
   List<memblock *> *curr = FreeMem;
   memblock *c;
   memblock *next;
 
   /* ищем, куда добавить блок */
-  if(FreeMem->item->vptr > vptr + size) {
+  if(FreeMem->item->vptr > vptr + lenght) {
     memblock *p = new memblock;
     p->vptr = vptr;
-    p->size = size;
+    p->size = lenght;
     FreeMem = FreeMem->add_tail(p);
     c = FreeMem->item;
     __mt_enable();
-    return;
+    return lenght;
   }
 
   do{
     c = curr->item;
     /* слить с верхним соседом */
-    if (c->vptr == vptr + size) {
+    if (c->vptr == vptr + lenght) {
       c->vptr = vptr;
-      c->size += size;
+      c->size += lenght;
       __mt_enable();
-      return;
+      return lenght;
     }
     
     /* слить с нижним соседом */
     if (c->vptr + c->size == vptr) {
-      c->size += size;
+      c->size += lenght;
 
       next = curr->next->item;
       /* и нижнего с верхним соседом */
@@ -369,18 +297,18 @@ void Memory::mem_free(register void *ptr, register size_t size)
 	delete curr->next;
       }
       __mt_enable();
-      return;
+      return lenght;
     }while (curr != FreeMem);
 
     next = curr->next->item;
     /* разместить между нижним и верхним соседями */
-    if ((c->vptr + c->size < vptr) && ((curr->next == FreeMem) ||  (next->vptr > vptr + size))) {
+    if ((c->vptr + c->size < vptr) && ((curr->next == FreeMem) ||  (next->vptr > vptr + lenght))) {
       memblock *p = new memblock;
       p->vptr = vptr;
-      p->size = size;
+      p->size = lenght;
       curr->add(p);
       __mt_enable();
-      return;
+      return lenght;
     }
     
     curr = curr->next;
@@ -388,8 +316,8 @@ void Memory::mem_free(register void *ptr, register size_t size)
 
   memblock *p = new memblock;
   p->vptr = vptr;
-  p->size = size;
+  p->size = lenght;
   curr->add_tail(p);
   __mt_enable();
+  return lenght;
 }
-

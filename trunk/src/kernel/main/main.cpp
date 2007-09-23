@@ -53,9 +53,9 @@ asmlinkage void init()
   setup_idt();
   hal->sti();
 
-  TTY *tty1 = new TTY(80, 25);
+  /*  TTY *tty1 = new TTY(80, 25);
   tty1->set_text_color(WHITE);
-  stdout = tty1;
+  stdout = tty1;*/
 
   out_banner();
 

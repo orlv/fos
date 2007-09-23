@@ -1,3 +1,7 @@
+Sun Sep 23 15:10:19 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 17830 (Version 0.0.44.1)
+	- Переписана система управления памятью
+
 Sun Sep  9 04:15:43 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
 Build 17715 (Version 0.0.43.12)
 	- Добавлена передача аргументов программы (int main(int argc, char ** argv))

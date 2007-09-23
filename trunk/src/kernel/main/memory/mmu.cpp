@@ -54,7 +54,7 @@ u32_t map_page(register u32_t phys_page, register u32_t log_page, register u32_t
   __mt_disable();
   u32_t *pagetable = pagetable_addr(log_page, pagedir);
   /* Если pagetable не существует - создаём её */
-  //  printk("p=[0x%X], l=[0x%X], pd=[0x%X], pt=[0x%X]\n", phys_page, log_page, pagedir, pagetable);
+  //printk("p=[0x%X], l=[0x%X], pd=[0x%X], pt=[0x%X]\n", phys_page, log_page, pagedir, pagetable);
   if (!pagetable) {
     /* в pagedir ядра все таблицы уже смонтированы, так что можно не беспокоиться
        по поводу обращения в эту часть кода внутри kmalloc() */
@@ -62,18 +62,18 @@ u32_t map_page(register u32_t phys_page, register u32_t log_page, register u32_t
     pagetable = (u32_t *) kmalloc(PAGE_SIZE); /* таблица страниц должна быть доступна из любого адресного
 						 пространства - поэтому используем kmalloc() (не забываем,
 						 что kmalloc() возвращает логический адрес) */
-    //    printk("+pt_log=[0x%X] ", pagetable);
+    //printk("+pt_log=[0x%X] ", pagetable);
     pagedir[log_page / 0x400] = (u32_t)kmem_phys_addr(PAGE((u32_t) pagetable)) | flags;
-    //    printk("pt_ph(0x%X) ", pagedir[log_page / 0x400]);
+    //printk("pt_ph(0x%X) ", pagedir[log_page / 0x400]);
   } else {
     /* выясним, по какому адресу таблица смонтирована в памяти ядра */
     pagetable = (u32_t *)(kmem_log_addr(PAGE(OFFSET(pagetable))) * PAGE_SIZE);
-    //    printk("pt_log=[0x%X]\n", pagetable);
+    //printk("pt_log=[0x%X]\n", pagetable);
   }
   pagetable[log_page & 0x3ff] = (phys_page * PAGE_SIZE) | flags;
   flush_tlb_single(log_page*PAGE_SIZE);
   __mt_enable();  
-  //  printk("{0x%X} \n", pagetable[log_page & 0x3ff]);
+  //printk("{0x%X} \n", pagetable[log_page & 0x3ff]);
   return ((unsigned long)pagetable);
 }
 

@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <fos/page.h>
 #include <string.h>
+#include <sys/mman.h>
 
 #define MM_MINALLOC getpagesize() /* размер выделяемой единицы */
 
@@ -68,7 +69,7 @@ struct HeapMemBlock * morecore(unsigned int nu)
     nu = 1;
   else if (nu % NALLOC)
     nu = nu / NALLOC + 1;
-  cp = (char *)kmalloc(nu * PAGE_SIZE, 0);
+  cp = (char *)kmmap(0, nu * PAGE_SIZE, 0, 0);
   if (!cp) /* больше памяти нет */
     return NULL;
   up = (struct HeapMemBlock *)cp;

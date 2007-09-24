@@ -21,7 +21,7 @@ TTY::TTY(u16_t width, u16_t height)
 
   textcolor = GREEN;
   bgcolor = BLACK;
-  color = (textcolor << 8) | (bgcolor << 16);
+  color = (textcolor << 8) | (bgcolor << 12);
 
   offs = 0;
 }

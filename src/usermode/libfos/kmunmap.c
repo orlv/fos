@@ -5,17 +5,17 @@
 #include <fos/message.h>
 #include <fos/procman.h>
 
-void * kmemmap(offs_t ptr, size_t size)
+int kmunmap(off_t start, size_t lenght)
 {
   struct message msg;
-  msg.a0 = MM_CMD_MEM_MAP;
-  msg.a1 = ptr;
-  msg.a2 = size;
+  msg.a0 = MM_CMD_MUNMAP;
+  msg.a1 = start;
+  msg.a2 = lenght;
   msg.send_size = 0;
   msg.recv_size = 0;
   msg.tid = SYSTID_MM;
   if(send(&msg) == RES_SUCCESS)
-    return (void *) msg.a0;
+    return msg.a0;
   else
     return 0;
 }

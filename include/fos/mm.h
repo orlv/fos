@@ -18,11 +18,11 @@
                | ------------------------------ KERNEL_MEM_BASE (1Mb)
                |     Kernel
                |     Modules
-               | ------------------------------ low_freemem_start
+               | ------------------------------ freemem_start_DMA16
                |
 Разделяемая    |     Free Memory  
 память,        /  
-присутствует  <  ------------------------------ 16Mb
+присутствует  <  ------------------------------ 16Mb (DMA16)
 в каждом       \ 
 адресном       |    Kernel Heap
 пространстве   |
@@ -71,7 +71,7 @@
 
 #define MIN_FREE_MEMORY       0x0100000 /* 64 Кб  */
 #define KERNEL_MIN_HEAP_SIZE  0x0050000 /* 64 Кб  */
-#define LOWMEM_SIZE           0x1000000 /* 16 Мб  */
+#define DMA16_MEM_SIZE           0x1000000 /* 16 Мб  */
 
 
 #define HEAP_RESERVED_BLOCK_SIZE 0x1000
@@ -106,51 +106,12 @@ static inline void * ADDRESS(u32_t offset)
 
 struct memblock {
   offs_t vptr; /* на какой адрес в памяти процесса смонтировано */
-  //u32_t *phys_pages; /* массив номеров физических страниц, использованных в блоке */
   size_t size; /* размер блока */
 };
 
 void * realloc(register void *ptr, register size_t size);
 void * heap_create_reserved_block();
 
-#if 0
-class VMM {
-  class Pager *pager;
-  class VMA *vma; /* --> надо преобразовать это поле в список vma! */
-
-  void *mem_alloc(register size_t size);
-  void *mem_alloc_phys(register u32_t phys_address, register size_t size);
-  void *kmem_alloc(register void *kmem_address, register size_t size);
-  void *mmap(register size_t size, register void *log_address);
-  void *mmap(register void *phys_address, register void *log_address, register size_t size);
-  void *kmmap(register void *kmem_address, register void *log_address, register size_t size);
-  void mem_free(register void *ptr, register size_t size);
-
-};
-
-class VM_region {
-  offs_t vptr; /* адрес начала региона [на какой адрес в памяти процесса смонтировано] */
-  size_t size; /* размер региона */
-};
-
-class VMA {
- private:
-  List<class VM_region *> * volatile FreeMem;
- public:
-  VMA(off_t vm_start, off_t vm_end);
-  ~VMA();
-
-  off_t vm_start;
-  off_t vm_end;
-  u32_t vm_flags;
-
-  VM_region * find_region(off_t addr); /* ищет регион, в котором лежит данный адрес,
-					  в случае неудачи возвращает предыдущий регион */
-  VM_region * create_region(off_t addr, size_t size); /* создает регион указанного размера */
-  void remove_region(off_t addr, size_t size); /* освобождает указаную область памяти */
-  
-};
-#endif
 
 /* Protection bits */
 //#define PROT_READ  0x1 /* page can be read */
@@ -165,6 +126,9 @@ class VMA {
 //#define MAP_TYPE        0x0f            /* Mask for type of mapping */
 #define MAP_FIXED       0x10            /* Interpret addr exactly */
 //#define MAP_ANONYMOUS   0x20            /* don't use a file */
+#define MAP_DMA16       0x40              /* allocate memory from DMA16 area or return error */
+
+#ifdef iKERNEL
 
 class VMM {
  private:
@@ -184,16 +148,6 @@ class VMM {
   size_t mem_size;
   class Pager *pager;
 
-  //  void *mem_alloc(register size_t size);
-  //void *mem_alloc_phys(register u32_t phys_address, register size_t size);
-  //void *kmem_alloc(register void *kmem_address, register size_t size);
-  //  void *mmap(register size_t size, register void *log_address); ->   void *mmap(register void *start, register size_t lenght, register int flags);
-  //void *mmap(register void *phys_address, register void *log_address, register size_t size);
-  //  void *kmmap(register void *kmem_address, register void *log_address, register size_t size);
-
-  /* смонтировать страницы из другого адресного пространства */
-  //void *mremap(VMM *from, void *from_start, void *to_start, size_t lenght, int flags);
-  
   void *find_free_area(register size_t lenght);
   /* если start=0 -- ищем с find_free_area() память и мапим */
   void *mmap(register off_t start, register size_t lenght, register int flags, off_t from_start, VMM *vm_from);
@@ -207,5 +161,6 @@ void * kmalloc(register size_t size);
 void  kfree(register void *ptr, register size_t size);
 
 void init_memory();
+#endif
 
 #endif

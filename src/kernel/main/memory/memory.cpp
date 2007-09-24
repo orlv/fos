@@ -32,27 +32,16 @@ void mm_srv()
     receive(msg);
 
     switch(msg->a0){
-    case MM_CMD_MEM_ALLOC:
-      //printk("mm: allocating 0x%X bytes of memory\n", msg->a1);
-      thread = hal->procman->get_thread_by_tid(msg->tid);
-      if(!msg->a2)
-	msg->a0 = (u32_t) thread->process->memory->mmap(0, msg->a1, 0, 0, 0); //mem_alloc(msg->a1);
-      else
-	msg->a0 = get_lowpage() * PAGE_SIZE;
-      msg->send_size = 0;
-      reply(msg);
-      break;
-
-    case MM_CMD_MEM_MAP:
+    case MM_CMD_MMAP:
       //printk("mm: mapping 0x%X bytes of memory to 0x%X\n", msg->a2, msg->a1);
       thread = hal->procman->get_thread_by_tid(msg->tid);
-      msg->a0 = (u32_t) thread->process->memory->mmap(0, msg->a2, 0, msg->a1, 0);//mem_alloc_phys(msg->a1, msg->a2);
+      msg->a0 = (u32_t) thread->process->memory->mmap(msg->a1 & ~0xfff, msg->a2, msg->a1 & 0xfff, msg->a3, 0);
       msg->send_size = 0;
       reply(msg);
       break;
 
-    case MM_CMD_MEM_FREE:
-      //printk("mm: freeing 0x%X bytes from 0x%X\n", msg-a2, msg->a1);
+    case MM_CMD_MUNMAP:
+      //printk("mm: unmapping 0x%X bytes from 0x%X\n", msg-a2, msg->a1);
       thread = hal->procman->get_thread_by_tid(msg->tid);
       if(msg->a1 > USER_MEM_BASE){
 	msg->a0 = 1;
@@ -237,9 +226,14 @@ void *VMM::mmap(register off_t start, register size_t lenght, register int flags
 	//printk("ppage=0x%X, vpage=0x%X\n", ppage, vpage);
 	pager->mount_page(ppage, vpage);}
     }
-  else { /* выделяем и монтируем любые свободные физические страницы */
-    for(u32_t vpage = PAGE(start), end = vpage + PAGE(lenght); vpage < end; vpage++)
-      pager->mount_page(get_page(), vpage);
+  else {
+    if(flags & MAP_DMA16) /* выделяем и монтируем страницы и зоны DMA16 */
+      for(u32_t vpage = PAGE(start), end = vpage + PAGE(lenght); vpage < end; vpage++)
+	pager->mount_page(get_page_DMA16(), vpage);
+    else
+      /* выделяем и монтируем любые свободные физические страницы */
+      for(u32_t vpage = PAGE(start), end = vpage + PAGE(lenght); vpage < end; vpage++)
+	pager->mount_page(get_page(), vpage);
   }
 
   return ADDRESS(start);

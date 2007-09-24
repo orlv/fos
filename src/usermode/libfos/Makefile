@@ -8,19 +8,19 @@ INSTALLDIR	=	$(LIB)
 
 OUTPUT		=	libfos.a
 
-OBJECTS		=	message.o	\
-			kill.o		\
-			exec.o		\
-			kmemmap.o	\
-			kmalloc.o	\
-			kfree.o		\
-			thcreate.o	\
-			intattach.o	\
-			intdetach.o	\
-			resmgrattach.o	\
-			dmesg.o		\
-			uptime.o	\
-			alarm.o		\
+OBJECTS		=	message.o		\
+			kill.o			\
+			exec.o			\
+			kmmap.o			\
+			kmunmap.o		\
+			getpagephysaddr.o	\
+			thcreate.o		\
+			intattach.o		\
+			intdetach.o		\
+			resmgrattach.o		\
+			dmesg.o			\
+			uptime.o		\
+			alarm.o			\
 			alarm2.o
 
 all:	$(OBJECTS)

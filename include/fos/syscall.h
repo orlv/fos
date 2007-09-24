@@ -9,22 +9,23 @@
 #include <types.h>
 
 /* основные системные вызовы -- обмен сообщениями */
-#define _FOS_SEND              1
-#define _FOS_RECEIVE           2
-#define _FOS_REPLY             3
-#define _FOS_FORWARD           4
+#define _FOS_SEND                  1
+#define _FOS_RECEIVE               2
+#define _FOS_REPLY                 3
+#define _FOS_FORWARD               4
 
 /*
   следующие функции целесообразнее разместить
   в системных вызовах -- очень существенно сказавается
   на производительности
 */
-#define _FOS_MASK_INTERRUPT    5
-#define _FOS_UNMASK_INTERRUPT  6
-#define _FOS_SCHED_YIELD       7
-#define _FOS_UPTIME            8
-#define _FOS_ALARM             9
-#define _FOS_MYTID             10  /* позволяет потоку узнать свой Thread ID */
+#define _FOS_MASK_INTERRUPT        5
+#define _FOS_UNMASK_INTERRUPT      6
+#define _FOS_SCHED_YIELD           7
+#define _FOS_UPTIME                8
+#define _FOS_ALARM                 9
+#define _FOS_MYTID                 10  /* позволяет потоку узнать свой Thread ID */
+#define _FOS_GET_PAGE_PHYS_ADDR    11  /* возвращает физический адрес страницы   */
 
 static inline u32_t sys_call(volatile u32_t cmd, volatile u32_t arg)
 {

@@ -7,6 +7,7 @@
 #include <string.h>
 #include <fos/message.h>
 #include <fos/fs.h>
+#include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include "fbterm.h"
@@ -211,6 +212,16 @@ int fbterm::set_videomode(u16_t mode)
   message msg;
   int fd = open("/dev/vbe", 0);
   if(fd != -1) {
+    if(lfb && vbeinfo) {
+      lfb_size = vbeinfo->x_resolution * vbeinfo->y_resolution * vbeinfo->bits_per_pixel/8;
+      kmunmap((off_t)lfb, lfb_size);
+    }
+    if(lfb_cache && vbeinfo) {
+      lfb_size = vbeinfo->x_resolution * vbeinfo->y_resolution * vbeinfo->bits_per_pixel/8;
+      kmunmap((off_t)lfb_cache, lfb_size);
+    }
+
+    
     msg.a0 = VBESRV_CMD_SET_MODE;
     msg.a1 = mode;
     msg.send_size = 0;
@@ -234,13 +245,8 @@ int fbterm::set_videomode(u16_t mode)
       scr_width = vbeinfo->x_resolution;
       scr_height = vbeinfo->y_resolution;
 	  
-      if(lfb)
-	kfree((off_t)lfb);
-      if(lfb_cache)
-	kfree((off_t)lfb_cache);
-
-      lfb = (u16_t *)kmemmap(vbeinfo->phys_base_addr, lfb_size);
-      lfb_cache = (u16_t *)kmalloc(lfb_size, 0);
+      lfb = (u16_t *)kmmap(0, lfb_size, 0, vbeinfo->phys_base_addr);
+      lfb_cache = (u16_t *)kmmap(0, lfb_size, 0, 0);
       mode = msg.a1;
 
       //bar(0, 0, scr_width, scr_height, 0xeefe);

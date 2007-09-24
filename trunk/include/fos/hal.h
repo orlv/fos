@@ -63,8 +63,8 @@ class HAL {
   size_t pages_cnt;       /* общее количество страниц в системе */
   Stack<u32_t> *free_page;
   atomic_t free_pages;    /* количество свободных страниц */
-  Stack<u32_t> *free_lowpage;
-  atomic_t free_lowpages; /* количество "нижних" страниц (лежащих ниже 16 Мб) */
+  Stack<u32_t> *free_page_DMA16;
+  atomic_t free_pages_DMA16; /* количество "нижних" страниц (лежащих ниже 16 Мб) */
 
   inline void cli() { asm("cli"); };
   inline void sti() { asm("sti"); };

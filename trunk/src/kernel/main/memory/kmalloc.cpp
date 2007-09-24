@@ -17,13 +17,13 @@
 
 void put_page(u32_t page)
 {
-  if(page >= PAGE(LOWMEM_SIZE)){
+  if(page >= PAGE(DMA16_MEM_SIZE)){
     if(!free_page(page)){ /* если эта страница больше никем не используется */
       hal->free_page->push(page);
       hal->free_pages.inc();
     }
   } else {
-    put_lowpage(page);
+    put_page_DMA16(page);
   }
 }
 
@@ -34,23 +34,23 @@ u32_t get_page()
     hal->free_pages.dec();
     return hal->free_page->pop();
   } else {
-    return get_lowpage();
+    return get_page_DMA16();
   }
 }
 
-void put_lowpage(u32_t page)
+void put_page_DMA16(u32_t page)
 {
   if(!free_page(page)){ /* если эта страница больше никем не используется */
-    hal->free_lowpage->push(page);
-    hal->free_lowpages.inc();
+    hal->free_page_DMA16->push(page);
+    hal->free_pages_DMA16.inc();
   }
 }
 
-u32_t get_lowpage()
+u32_t get_page_DMA16()
 {
-  if(hal->free_lowpages.read()){
-    hal->free_lowpages.dec();
-    return hal->free_lowpage->pop();
+  if(hal->free_pages_DMA16.read()){
+    hal->free_pages_DMA16.dec();
+    return hal->free_page_DMA16->pop();
   } else {
     return 0;
   }
@@ -62,10 +62,10 @@ void init_memory()
 
   size_t memory_size = (__mbi->mem_upper + 1024)*1024;
 
-  offs_t low_freemem_start = ((module_t *) __mbi->mods_addr)[__mbi->mods_count - 1].mod_end;
-  if (low_freemem_start & 0xfff) {
-    low_freemem_start &= 0xfffff000;
-    low_freemem_start += PAGE_SIZE;
+  offs_t freemem_start_DMA16 = ((module_t *) __mbi->mods_addr)[__mbi->mods_count - 1].mod_end;
+  if (freemem_start_DMA16 & 0xfff) {
+    freemem_start_DMA16 &= 0xfffff000;
+    freemem_start_DMA16 += PAGE_SIZE;
   }
 
   u32_t pages_cnt = PAGE(memory_size);
@@ -74,16 +74,16 @@ void init_memory()
 
   offs_t heap_start;
   size_t mmu_data_size = PAGE_SIZE + ((pages_cnt/(PAGE_SIZE/4))*PAGE_SIZE + (pages_cnt%(PAGE_SIZE/4) > 1)); /* каталог страниц + таблицы страниц */
-  if((low_freemem_start + heap_size + mmu_data_size + MIN_FREE_MEMORY) >= memory_size){
+  if((freemem_start_DMA16 + heap_size + mmu_data_size + MIN_FREE_MEMORY) >= memory_size){
     /* Памяти не хватит!! Suxx */
     while(1) asm("incb 0xb8000\n" "movb $0x5f,0xb8000+1");
   }
 
-  if((LOWMEM_SIZE + heap_size) >= memory_size){
+  if((DMA16_MEM_SIZE + heap_size) >= memory_size){
     heap_start = memory_size - heap_size;
     freemem_start = freemem_end = 0;
   } else {
-    heap_start = LOWMEM_SIZE;
+    heap_start = DMA16_MEM_SIZE;
     freemem_start = heap_start + heap_size;
     freemem_end = memory_size;
   }
@@ -112,9 +112,9 @@ void init_memory()
   hal->phys_page = new page[hal->pages_cnt];
 
   /* Создаем пул свободных нижних (<16 Мб) страниц */
-  hal->free_lowpage = new Stack<u32_t>(PAGE(LOWMEM_SIZE)-PAGE(low_freemem_start));
-  for(u32_t i = PAGE(low_freemem_start); (i < PAGE(heap_start)) && (i < PAGE(LOWMEM_SIZE)); i++){
-    put_lowpage(i);
+  hal->free_page_DMA16 = new Stack<u32_t>(PAGE(DMA16_MEM_SIZE)-PAGE(freemem_start_DMA16));
+  for(u32_t i = PAGE(freemem_start_DMA16); (i < PAGE(heap_start)) && (i < PAGE(DMA16_MEM_SIZE)); i++){
+    put_page_DMA16(i);
   }
 
   /* -- Setup console -- */
@@ -156,7 +156,7 @@ void init_memory()
     //mmap(hal->kmem->pager->pagedir, hal->kmem->pager->pagedir, PAGE_SIZE);
 
   /* Смонтируем память от нуля до начала свободной памяти как есть */
-  hal->kmem->mmap(0, low_freemem_start, MAP_FIXED, 0, 0);
+  hal->kmem->mmap(0, freemem_start_DMA16, MAP_FIXED, 0, 0);
     //mmap(0, 0, low_freemem_start);
   //while(1);  
 

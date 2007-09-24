@@ -59,7 +59,7 @@ asmlinkage void init()
 
   out_banner();
 
-  printk("Memory size: %d Kb, free %dK (%dK high/%dK low)\n", hal->pages_cnt*4, hal->free_pages.read()*4 + hal->free_lowpages.read()*4, hal->free_pages.read()*4, hal->free_lowpages.read()*4);
+  printk("Memory size: %d Kb, free %dK (%dK high/%dK low)\n", hal->pages_cnt*4, hal->free_pages.read()*4 + hal->free_pages_DMA16.read()*4, hal->free_pages.read()*4, hal->free_pages_DMA16.read()*4);
 
 #if 0
   char *buf = new char[2000];

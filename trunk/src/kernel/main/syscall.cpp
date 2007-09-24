@@ -597,6 +597,13 @@ SYSCALL_HANDLER(sys_call_handler)
   case _FOS_MYTID:
     result = TID(hal->procman->current_thread);
     break;
+
+  case _FOS_GET_PAGE_PHYS_ADDR:
+    if(arg1 > USER_MEM_BASE)
+      result = OFFSET(phys_addr_from(arg1, hal->procman->current_thread->process->memory->pager->pagedir));
+    else
+      result = 0;
+    break;
     
   default:
     result = RES_FAULT;

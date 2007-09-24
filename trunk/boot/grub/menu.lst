@@ -2,7 +2,7 @@
 timeout 0
 default 0
 hiddenmenu
-title FOS - FOS is Operating System (VERSION 0.0.44.1, BUILD 17835)
+title FOS - FOS is Operating System (VERSION 0.0.44.2, BUILD 17847)
 	root(cd0)
 	kernel /boot/fos
 	module /boot/modules/test.txt
@@ -13,7 +13,6 @@ title FOS - FOS is Operating System (VERSION 0.0.44.1, BUILD 17835)
 	module /boot/modules/tty
 	module /boot/modules/fbtty
 	module /boot/modules/keyboard
-	module /boot/modules/floppy
 	module /boot/modules/test
 	module /boot/modules/font.psf
 	module /boot/modules/pci_server

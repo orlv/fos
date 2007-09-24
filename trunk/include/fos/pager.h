@@ -57,9 +57,9 @@ static inline u32_t check_pages(register u32_t log_page, register u32_t * pagedi
 void put_page(u32_t page);
 u32_t get_page();
 
-/* LowPages - страницы, расположенные ниже 16 Мб */
-void put_lowpage(u32_t page);
-u32_t get_lowpage();
+/* DMA16_Pages - страницы, расположенные ниже 16 Мб */
+void put_page_DMA16(u32_t page);
+u32_t get_page_DMA16();
 
 void enable_paging(u32_t * pagedir);
 

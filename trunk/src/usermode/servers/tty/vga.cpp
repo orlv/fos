@@ -7,6 +7,7 @@
 
 #include <fos/page.h>
 #include <sys/io.h>
+#include <sys/mman.h>
 #include <stdio.h>
 #include "vga.h"
 
@@ -19,7 +20,7 @@ res_t VGA::init()
 {
   offs = 0;
 
-  if (!(fb = (u16_t *) kmemmap(0xb8000, 0x1000)))
+  if (!(fb = (u16_t *) kmmap(0, 0x1000, 0, 0xb8000)))
     return RES_FAULT;
 
   geom.height = 25;

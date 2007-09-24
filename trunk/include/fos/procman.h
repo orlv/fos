@@ -18,9 +18,8 @@
 #define PROCMAN_CMD_INTERRUPT_DETACH (BASE_CMD_N + 6)
 #define PROCMAN_CMD_DMESG            (BASE_CMD_N + 7)
 
-#define MM_CMD_MEM_ALLOC        (BASE_CMD_N + 0)
-#define MM_CMD_MEM_MAP          (BASE_CMD_N + 1)
-#define MM_CMD_MEM_FREE         (BASE_CMD_N + 2)
+#define MM_CMD_MMAP          (BASE_CMD_N + 0)
+#define MM_CMD_MUNMAP        (BASE_CMD_N + 1)
 
 #ifdef iKERNEL
 
@@ -66,18 +65,6 @@ static inline Thread * THREAD(tid_t tid)
 
 #endif /* iKERNEL */
 
-
-//asmlinkage u32_t kill(tid_t tid);
-//asmlinkage tid_t exec(const char * filename, const char * args);
-
-//asmlinkage void * kmemmap(offs_t ptr, size_t size);
-
 #define MEM_FLAG_LOWPAGE 1
-
-//asmlinkage tid_t thread_create(off_t eip);
-
-//asmlinkage int resmgr_attach(const char *pathname);
-
-//asmlinkage size_t dmesg(char *buf, size_t count);
 
 #endif

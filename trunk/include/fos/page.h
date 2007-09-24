@@ -14,12 +14,9 @@
 
 #define PAGE_SIZE 0x1000
 
-asmlinkage void * kmemmap(offs_t ptr, size_t size);
+asmlinkage off_t getpagephysaddr(off_t pageaddr); /* возвращает физический адрес страницы */
 
-#define MEM_FLAG_LOWPAGE 1
-
-asmlinkage void * kmalloc(size_t size, u32_t flags);
-asmlinkage int kfree(off_t ptr);
+//#define MEM_FLAG_LOWPAGE 1
 
 #ifdef iKERNEL
 struct page {

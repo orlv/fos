@@ -14,6 +14,7 @@ void *kmmap(void *start, size_t lenght, int flags, off_t phys_start)
   msg.a3 = phys_start;
   msg.send_size = 0;
   msg.recv_size = 0;
+  msg.flags = 0;
   msg.tid = SYSTID_MM;
   if(send(&msg) == RES_SUCCESS)
     return (void *) msg.a0;

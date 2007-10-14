@@ -38,6 +38,7 @@ tid_t exec(const char * filename, const char * args)
   msg.send_buf = send_data;
   msg.send_size = send_size;
   msg.recv_size = 0;
+  msg.flags = 0;
   msg.tid = SYSTID_PROCMAN;
   res_t res = send(&msg);
 

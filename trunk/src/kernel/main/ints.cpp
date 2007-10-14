@@ -55,9 +55,9 @@ void exception(string str, unsigned int cs,  unsigned int address, unsigned int 
   }
 }
 
-EXCEPTION_HANDLER(divide_error_exception)
+EXCEPTION_HANDLER2(divide_error_exception)
 {
-  exception("[0x00] Divide Error", cs, address, errorcode);
+  exception("[0x00] Divide Error", cs, address, 0);
 }
 
 EXCEPTION_HANDLER(debug_exception)

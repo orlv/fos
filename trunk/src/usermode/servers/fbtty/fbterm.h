@@ -7,6 +7,7 @@
 #define _FBTERM_H
 
 #include <types.h>
+#include <c++/tmutex.h>
 #include "vbe.h"
 
 class fbterm {
@@ -47,7 +48,9 @@ class fbterm {
   void hide_cursor(off_t x, off_t y);
 
   bool stop_out;
-  
+
+  TMutex mutex;
+
  public:
   fbterm();
   void out_ch(unsigned char ch);

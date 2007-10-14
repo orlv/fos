@@ -19,6 +19,7 @@ int fstat(int fildes, struct stat *buf)
   msg.send_size = 0;
   msg.recv_buf = buf;
   msg.recv_size = sizeof(struct stat);
+  msg.flags = 0;
   msg.tid = fd->thread;
 
   if(send((struct message *)&msg) == RES_SUCCESS &&

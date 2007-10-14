@@ -30,8 +30,9 @@ GRUB_MODULES =	/boot/modules/test.txt		\
 		/boot/modules/keyboard		\
 		/boot/modules/test		\
 		/boot/modules/font.psf		\
+		/boot/modules/ext2.img		\
+		/boot/modules/ext2test		\
 		/boot/modules/pci_server
-
 
 GRUB_MENU    = /home/oleg/fos/src/../boot/grub/menu.lst
 GRUB_TFTP_MENU = /home/oleg/fos/src/../boot/grub/tftpmenu.lst

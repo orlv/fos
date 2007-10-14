@@ -21,6 +21,7 @@ int resmgr_attach(const char *pathname)
   msg.send_buf = pathname;
   msg.send_size = len+1;
   msg.recv_size = 0;
+  msg.flags = 0;
   msg.tid = SYSTID_NAMER;
   if(send(&msg) == RES_SUCCESS)
     return msg.a0;

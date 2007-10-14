@@ -34,12 +34,12 @@
 
   message.pid;       // ID получателя
 
-  -Если получателя не существует - сообщение теряется,
+  - Если получателя не существует - сообщение теряется,
    возвращается управление
    
-  -Сообщение копируется в память ядра (msg)
-  -В список сообщений получателя добавляется указатель на msg
-  -Процесс приостанавливается до обработки сообщения о отправки ответа получателем
+  - Сообщение копируется в память ядра (msg)
+  - В список сообщений получателя добавляется указатель на msg
+  - Процесс приостанавливается до обработки сообщения о отправки ответа получателем
 
   ------>>
 
@@ -59,9 +59,9 @@
 
   message.pid;       // Отправитель сообщения
   
-  -Если ни одного сообщения ещё не пришло, блокируемся в ожидании
-  -При получении происходит разблокировка, копируем сообщение в приложение
-  -ОТПРАВИТЕЛЬ ПРИ ЭТОМ ОСТАЁТСЯ ЗАБЛОКИРОВАН. Для его разблокировки необходимо сделать вызов reply()
+  - Если ни одного сообщения ещё не пришло, блокируемся в ожидании
+  - При получении происходит разблокировка, копируем сообщение в приложение
+  - ОТПРАВИТЕЛЬ ПРИ ЭТОМ ОСТАЁТСЯ ЗАБЛОКИРОВАН. Для его разблокировки необходимо сделать вызов reply()
   
   -----------------------------------------------------------------------
   reply(msg);
@@ -70,9 +70,9 @@
   message.send_size; // Размер ответа
   message.pid;       // Получатель ответа
 
-  -Ответ копируется в память ядра
-  -Отправитель разблокируется (и, после, сам копирует (в режиме ядра, естественно) ответ из ядра в приложение)
-  -Возвращается управление, оба процесса продолжают работу
+  - Ответ копируется в память ядра
+  - Отправитель разблокируется (и, после, сам копирует (в режиме ядра, естественно) ответ из ядра в приложение)
+  - Возвращается управление, оба процесса продолжают работу
   
 */
 
@@ -152,9 +152,19 @@ List<kmessage *> *get_message_from(tid_t from)
   }
 }
 
-
 #define MSG_CHK_SENDBUF  1
 #define MSG_CHK_RECVBUF  2
+#define MSG_CHK_FLAGS    4
+
+void kill_message(kmessage *message)
+{
+  message->reply_size = 0;
+  message->size = 0;
+  Thread *thread = message->thread;
+  if(TID(thread) > 0x1000)
+    thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
+}
+
 
 static inline bool check_message(message *message, int flags)
 {
@@ -169,15 +179,16 @@ static inline bool check_message(message *message, int flags)
 
   count = (OFFSET(message)%PAGE_SIZE + sizeof(struct message) + PAGE_SIZE - 1)/PAGE_SIZE;
 
+  /* страницы должны быть присоединены в адресное пространство процесса */
   if(!check_pages(PAGE(OFFSET(message)), pagedir, count)){
     printk("foo #2\n");
     //while(1);
     return 1;
   }
 
+  /* проверим присутствие страниц буфера */
   if((flags & MSG_CHK_RECVBUF) && message->recv_size) {
     count = (OFFSET(message->recv_buf)%PAGE_SIZE + message->recv_size + PAGE_SIZE - 1)/PAGE_SIZE;
-    
     if(!check_pages(PAGE(OFFSET(message->recv_buf)), pagedir, count)) {
       printk("recv_buf=0x%X, pd=0x%X, count=0x%X\n", message->recv_buf, pagedir, count);
       //while(1);
@@ -195,27 +206,59 @@ static inline bool check_message(message *message, int flags)
     }
   }
 
+  if(message->flags & MESSAGE_ASYNC) /* процесс не может устанавливать флаг ASYNC */
+    message->flags &= ~MESSAGE_ASYNC; 
+
+  /* если используется разделение или обмен страницами - проверяем выравнивание */
+  if((flags & MSG_CHK_FLAGS) && (message->flags & (MSG_MEM_SEND | MSG_MEM_SHARE)) && (OFFSET(message->send_buf) & 0xfff)) {
+    printk("SHM align failed\n");
+    return 1;
+  }
+
   return 0;
 }
 
-kmessage * get_message(tid_t from)
+kmessage * get_message(tid_t from, u32_t flags)
 {
   kmessage *message;
   List<kmessage *> *entry;
   Thread *current_thread = hal->procman->current_thread;
 
-  if(from)
-    entry = get_message_from(from);
-  else
-    entry = get_message_any();
+  while(1) {
+    if(from)
+      entry = get_message_from(from);
+    else
+      entry = get_message_any();
+    
+    if(!entry) {
+      hal->mt_enable();
+      return 0;
+    }
 
-  if(!entry) {
-    hal->mt_enable();
-    return 0;
+    message = entry->item;
+
+    /* сверяем флаги */
+    if(flags & MSG_MEM_TAKE) {
+      if((message->flags & MSG_MEM_SEND)) break;
+      else {
+	delete entry;
+	kill_message(message);
+	continue;
+      }
+    } else if(flags & MSG_MEM_SHARE) {
+      if((message->flags & MSG_MEM_SHARE)) break;
+      else {
+	delete entry;
+	kill_message(message);
+	continue;
+      }
+    } else if(message->flags & (MSG_MEM_SEND | MSG_MEM_SHARE)) {
+      delete entry;
+      kill_message(message);
+    }
+    break;
   }
 
-  message = entry->item;
-  
   //printk("[0x%X]", message->thread);
   if (!(message->flags & MESSAGE_ASYNC)){ /* перемещаем сообщение в очередь полученных сообщений */
     entry->move_tail(current_thread->received_messages);
@@ -235,20 +278,32 @@ res_t receive(message *message)
     return RES_FAULT;
 
   //printk("receive [%s]\n", hal->procman->current_thread->process->name);
-  kmessage *received_message = get_message(message->tid);
-  if(!received_message)
-    return RES_FAULT;
-  
+  kmessage *received_message = get_message(message->tid, message->flags);
+  if(!received_message) return RES_FAULT;  
+
+  size_t rcv_size = received_message->size;
   message->send_size = received_message->reply_size;
-  
-  if (received_message->size > message->recv_size) /* решаем, сколько байт сообщения копировать */
-    received_message->size = message->recv_size;
+
+  if (rcv_size > message->recv_size) /* решаем, сколько байт сообщения копировать */
+    rcv_size = message->recv_size;
   else
-    message->recv_size = received_message->size;
-  
-  if (received_message->size) { /* копируем сообщение из ядра в память получателя */
-    memcpy(message->recv_buf, received_message->buffer, received_message->size);
-    delete (u32_t *) received_message->buffer; /* переданные данные больше не нужны в ядре, освобождаем память */
+    message->recv_size = rcv_size;
+
+  if (rcv_size) {
+    if(!(received_message->flags & (MSG_MEM_SEND | MSG_MEM_SHARE))) {
+      /* копируем сообщение из ядра в память получателя */
+      memcpy(message->recv_buf, received_message->buffer, rcv_size);
+      delete (u32_t *) received_message->buffer; /* переданные данные больше не нужны в ядре, освобождаем память */
+    } else {
+      rcv_size &= ~0xfff;
+      if(rcv_size) {
+	/* монтируем буфер в свободное место адр. пр-ва сервера */
+	message->recv_buf = hal->procman->current_thread->process->memory->mmap(0, rcv_size, 0, OFFSET(received_message->buffer), received_message->thread->process->memory);
+	
+	if(message->flags & MSG_MEM_SEND) /* демонтируем буфер из памяти клиента */
+	  received_message->thread->process->memory->munmap(OFFSET(received_message->buffer), received_message->size);
+      }
+    }
   }
   
   message->tid = TID(received_message->thread); /* укажем отправителя сообщения */
@@ -264,9 +319,11 @@ res_t receive(message *message)
   return RES_SUCCESS;
 }
 
+#warning Добавить lock страниц буфера при отправке (во избежание освобождения этих станиц другим потоком процесса)
+
 res_t send(message *message)
 {
-  if(check_message(message, MSG_CHK_SENDBUF|MSG_CHK_RECVBUF))
+  if(check_message(message, MSG_CHK_SENDBUF | MSG_CHK_RECVBUF | MSG_CHK_FLAGS))
     return RES_FAULT;
 
   Thread *thread; /* процесс-получатель */
@@ -301,7 +358,6 @@ res_t send(message *message)
     return RES_FAULT;
   }
 
-  //  thread->enter_exit_lock();
   //  hal->mt_enable(); /* #1 */
 
   if(thread->new_messages_count.read() >= MAX_MSG_COUNT){
@@ -321,12 +377,18 @@ res_t send(message *message)
     return RES_FAULT3;
   }
 
-  /* скопируем сообщение в память ядра */
   kmessage *send_message = new kmessage;
+  send_message->flags |= message->flags;
   send_message->size = message->send_size;
+
   if(send_message->size){
-    send_message->buffer = new char[send_message->size];
-    memcpy(send_message->buffer, message->send_buf, send_message->size);
+    if(!(message->flags & (MSG_MEM_SEND | MSG_MEM_SHARE))) {
+      /* скопируем сообщение в память ядра */
+      send_message->buffer = new char[send_message->size];
+      memcpy(send_message->buffer, message->send_buf, send_message->size);
+    } else {
+      send_message->buffer = (void *) message->send_buf;
+    }
   }
 
   send_message->a0 = message->a0;
@@ -352,7 +414,7 @@ res_t send(message *message)
 
   message->send_size = send_message->size;	  /* сколько байт дошло до получателя */
   message->recv_size = send_message->reply_size;  /* сколько байт ответа пришло */
-  message->tid = TID(send_message->thread);       /* ответ на сообщение мог придти не от изначального получателя,
+  message->tid = TID(send_message->thread);       /* ответ на сообщение мог прийти не от изначального получателя,
 						     а от другого процесса (при использовании получателем forward()) */
   message->a0 = send_message->a0;
   message->a1 = send_message->a1;
@@ -600,7 +662,8 @@ SYSCALL_HANDLER(sys_call_handler)
 
   case _FOS_GET_PAGE_PHYS_ADDR:
     if(arg1 > USER_MEM_BASE)
-      result = OFFSET(phys_addr_from(arg1, hal->procman->current_thread->process->memory->pager->pagedir));
+      result = OFFSET(phys_addr_from(arg1, hal->procman->current_thread->process->
+				     memory->pager->pagedir));
     else
       result = 0;
     break;

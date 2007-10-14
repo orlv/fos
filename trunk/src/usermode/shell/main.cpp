@@ -37,7 +37,7 @@ void eval(char *command)
       delete buf;
     } else {
       size_t len = strlen(command);
-      printf("len=%d \n", len);
+      //printf("len=%d \n", len);
       char *args = 0;
       for(size_t i=0; i<len; i++)
 	if(command[i] == ' ') {

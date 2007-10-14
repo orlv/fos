@@ -13,6 +13,7 @@ int kmunmap(off_t start, size_t lenght)
   msg.a2 = lenght;
   msg.send_size = 0;
   msg.recv_size = 0;
+  msg.flags = 0;
   msg.tid = SYSTID_MM;
   if(send(&msg) == RES_SUCCESS)
     return msg.a0;

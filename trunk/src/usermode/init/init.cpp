@@ -17,9 +17,10 @@ asmlinkage int main()
   printf("Init started! If you see this text - all work fine.\n");
   exec("/mnt/modules/keyboard", NULL);
   exec("/mnt/modules/shell", NULL);
-  exec("/mnt/modules/speaker", NULL);
-  exec("/mnt/modules/test", "arg1 arg2 arg3");
-  exec("/mnt/modules/pci_server", NULL);
+  //exec("/mnt/modules/speaker", NULL);
+  //exec("/mnt/modules/test", NULL);
+  //exec("/mnt/modules/pci_server", NULL);
+  //exec("/mnt/modules/ext2test", "/mnt/modules/ext2.img");
   //exec("/mnt/modules/floppy");
   return 0;
 }

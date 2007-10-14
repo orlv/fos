@@ -12,6 +12,7 @@ res_t interrupt_detach(u8_t n)
   msg.a1 = n;
   msg.send_size = 0;
   msg.recv_size = 0;
+  msg.flags = 0;
   msg.tid = SYSTID_PROCMAN;
   if(send(&msg) == RES_SUCCESS)
     return msg.a0;

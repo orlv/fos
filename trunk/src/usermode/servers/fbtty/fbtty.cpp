@@ -13,9 +13,38 @@
 #define FBTTY_LOAD_FONT (BASE_CMD_N + 1)
 #define FBTTY_PUT_CH (BASE_CMD_N + 2)
 
-fbterm *fb=0;
+fbterm * volatile fb=0;
 
 #define RECV_BUF_SIZE 2048
+
+void fb_shma_thread()
+{
+  struct message *msg = new message;
+  resmgr_attach("/dev/suxx");
+
+  char *str = new char[PAGE_SIZE];
+
+  while(1) {
+    msg->tid = _MSG_SENDER_ANY;
+    msg->flags = 0;
+    msg->recv_size = PAGE_SIZE;
+    msg->recv_buf = str;
+    receive(msg);
+
+    //fb->write(0, str, sprintf(str, "rcvd %d\n", msg->a0));  
+    switch(msg->a0){
+    case 666:
+      msg->a0 = fb->write(0, "msg_666 rcvd", 12);
+      msg->a2 = NO_ERR;
+      break;
+
+    default:
+      fb->write(0, "unknown msg rcvd", 16);
+      msg->a0 = 0;
+      msg->a2 = ERR_UNKNOWN_CMD;
+    }
+  }
+}     
 
 asmlinkage int main()
 {
@@ -34,9 +63,11 @@ asmlinkage int main()
   size_t len = dmesg(buffer, RECV_BUF_SIZE);
   fb->write(0, buffer, len);
 
-  
+  thread_create((off_t) &fb_shma_thread);
+
   while (1) {
     msg.tid = _MSG_SENDER_ANY;
+    msg.flags = 0;
     msg.recv_size = RECV_BUF_SIZE;
     msg.recv_buf = buffer;
     receive(&msg);
@@ -62,6 +93,11 @@ asmlinkage int main()
 
     case FS_CMD_WRITE:
       msg.a0 = fb->write(0 /*msg.a2*/, buffer, msg.recv_size);
+      msg.a2 = NO_ERR;
+      break;
+
+    case 666:
+      msg.a0 = fb->write(0, "msg_666 rcvd", 12);
       msg.a2 = NO_ERR;
       break;
       

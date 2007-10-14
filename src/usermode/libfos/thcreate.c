@@ -12,6 +12,7 @@ asmlinkage tid_t thread_create(off_t eip)
   msg.a1 = eip;
   msg.send_size = 0;
   msg.recv_size = 0;
+  msg.flags = 0;
   msg.tid = SYSTID_PROCMAN;
   if(send(&msg) == RES_SUCCESS)
     return (tid_t) msg.a0;

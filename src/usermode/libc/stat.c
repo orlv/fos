@@ -20,6 +20,7 @@ int stat(const char *path, struct stat *buf)
   msg.send_size = len+1;
   msg.recv_buf = buf;
   msg.recv_size = sizeof(struct stat);
+  msg.flags = 0;
   msg.tid = SYSTID_NAMER;
 
   if(send((struct message *)&msg) == RES_SUCCESS &&

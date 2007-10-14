@@ -26,7 +26,7 @@ INSTALLDIR	= /home/oleg/fos/src/../boot/modules
 INCLUDE		= /home/oleg/fos/src/../include
 LIB		= /home/oleg/fos/src/../lib
 #DEBUG		= -g
-FLAGS		= -Wall -nostdlib -nostdinc -I$(INCLUDE) -fno-stack-protector -O3 
+FLAGS		= -Wall -nostdlib -nostdinc -I$(INCLUDE) -fno-stack-protector -O2
 
 ASFLAGS		= $(FLAGS)
 CFLAGS		= $(FLAGS) -ffreestanding -fno-leading-underscore

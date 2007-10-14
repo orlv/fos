@@ -11,6 +11,7 @@ void exit(int status)
   msg.a0 = PROCMAN_CMD_EXIT;
   msg.send_size = 0;
   msg.recv_size = 0;
+  msg.flags = 0;
   msg.tid = SYSTID_PROCMAN;
   send(&msg);
   while(1);

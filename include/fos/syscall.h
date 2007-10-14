@@ -27,6 +27,7 @@
 #define _FOS_MYTID                 10  /* позволяет потоку узнать свой Thread ID */
 #define _FOS_GET_PAGE_PHYS_ADDR    11  /* возвращает физический адрес страницы   */
 
+
 static inline u32_t sys_call(volatile u32_t cmd, volatile u32_t arg)
 {
   u32_t result;
@@ -40,6 +41,5 @@ static inline u32_t sys_call2(volatile u32_t cmd, volatile u32_t arg1, volatile 
   __asm__ __volatile__ ("int $0x30":"=a"(result):"b"(cmd), "c"(arg1), "d"(arg2));
   return result;
 }
-
 
 #endif

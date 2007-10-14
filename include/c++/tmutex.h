@@ -13,7 +13,7 @@
 class TMutex
 {
  private:
-  u8_t FLockItem;
+  volatile u8_t FLockItem;
 
  public:
   TMutex(void);

@@ -20,6 +20,16 @@
 
 #define MAX_MSG_COUNT 32
 
+
+#define MESSAGE_ASYNC 1
+
+#define MSG_MEM_SEND  2 /* отделить страницу от адресного пространства, и присоединить к получателю */
+
+#define MSG_MEM_SHARE 4 /* клиент: присоединить страницу в адр. пр-во получателя
+			   или сервер: разрешение на присоединение разделяемой страницы */
+
+#define MSG_MEM_TAKE  2 /* готовность получить страницу памяти */
+
 struct message {
   const void * send_buf;
   size_t send_size;
@@ -28,7 +38,8 @@ struct message {
   size_t recv_size;
 
   tid_t  tid;
-
+  u32_t  flags;
+  
   u32_t  a0;
   u32_t  a1;
   u32_t  a2;
@@ -49,8 +60,6 @@ struct kmessage {
   u32_t  a2;
   u32_t  a3;
 };
-
-#define MESSAGE_ASYNC 1
 
 #endif
 

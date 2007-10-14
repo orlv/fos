@@ -194,6 +194,7 @@ size_t fbterm::write(off_t offset, const void *buf, size_t count)
   //hide_cursor(_x, _y);
   //stop_out = 1;
   //sync();
+  mutex.lock();
   for(size_t i = 0; i < count; i++){
     out_ch(((const char *)buf)[i]);
   }
@@ -203,6 +204,7 @@ size_t fbterm::write(off_t offset, const void *buf, size_t count)
 
   show_cursor(_x, _y);
   //  stop_out = 0;
+  mutex.unlock();
   return count;
 }
 

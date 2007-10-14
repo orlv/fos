@@ -24,6 +24,7 @@ ssize_t write(int fildes, const void *buf, size_t nbyte)
     msg.recv_size = 0;
     msg.a1 = fd->inode;
     msg.a2 = fd->offset;
+    msg.flags = 0;
     msg.tid = fd->thread;
 
     msg.send_buf = &((char *)buf)[offset];

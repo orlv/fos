@@ -24,6 +24,7 @@ ssize_t read(int fildes, void *buf, size_t nbyte)
     msg.send_size = 0;
     msg.a1 = fd->inode;
     msg.a2 = fd->offset;
+    msg.flags = 0;
     msg.tid = fd->thread;
 
     msg.recv_buf = &((char *)buf)[offset];

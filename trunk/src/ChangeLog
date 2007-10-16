@@ -1,3 +1,8 @@
+Tue Oct 16 22:39:36 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
+Build 18023 (Version 0.0.45.1)
+	- Реализована разделяемая память
+	- Исправлены некоторые ошибки
+
 Tue Sep 25 01:05:24 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
 Build 17846 (Version 0.0.44.2)
 	- Добавлен системный вызов, позволяющий узнать физический адрес страницы

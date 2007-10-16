@@ -30,6 +30,7 @@
 
 #define MSG_MEM_TAKE  2 /* готовность получить страницу памяти */
 
+
 struct message {
   const void * send_buf;
   size_t send_size;

@@ -68,7 +68,6 @@ u32_t TProcess::LoadELF(register void *image)
 
       /* Монтируем секцию в адресное пространство процесса */
       memory->mmap(p->p_vaddr & 0xfffff000, p->p_memsz + (p->p_vaddr % PAGE_SIZE), MAP_FIXED, (off_t)object, hal->kmem);
-	//kmmap(object, (u32_t *) (p->p_vaddr & 0xfffff000), p->p_memsz + (p->p_vaddr % PAGE_SIZE));
       kfree(object, o_size); /* освобождаем память ядра от ненужных тут страниц */
     }
   }

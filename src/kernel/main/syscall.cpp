@@ -187,7 +187,7 @@ static inline bool check_message(message *message, int flags)
   }
 
   /* проверим присутствие страниц буфера */
-  if((flags & MSG_CHK_RECVBUF) && message->recv_size) {
+  if((flags & MSG_CHK_RECVBUF) && message->recv_size && !(message->flags & (MSG_MEM_SEND | MSG_MEM_SHARE))) {
     count = (OFFSET(message->recv_buf)%PAGE_SIZE + message->recv_size + PAGE_SIZE - 1)/PAGE_SIZE;
     if(!check_pages(PAGE(OFFSET(message->recv_buf)), pagedir, count)) {
       printk("recv_buf=0x%X, pd=0x%X, count=0x%X\n", message->recv_buf, pagedir, count);
@@ -209,7 +209,7 @@ static inline bool check_message(message *message, int flags)
   if(message->flags & MESSAGE_ASYNC) /* процесс не может устанавливать флаг ASYNC */
     message->flags &= ~MESSAGE_ASYNC; 
 
-  /* если используется разделение или обмен страницами - проверяем выравнивание */
+  /* если используется разделение или передача разделяемых страниц - проверяем выравнивание */
   if((flags & MSG_CHK_FLAGS) && (message->flags & (MSG_MEM_SEND | MSG_MEM_SHARE)) && (OFFSET(message->send_buf) & 0xfff)) {
     printk("SHM align failed\n");
     return 1;
@@ -224,41 +224,58 @@ kmessage * get_message(tid_t from, u32_t flags)
   List<kmessage *> *entry;
   Thread *current_thread = hal->procman->current_thread;
 
-  while(1) {
-    if(from)
-      entry = get_message_from(from);
-    else
-      entry = get_message_any();
-    
-    if(!entry) {
-      hal->mt_enable();
-      return 0;
-    }
-
-    message = entry->item;
-
-    /* сверяем флаги */
-    if(flags & MSG_MEM_TAKE) {
-      if((message->flags & MSG_MEM_SEND)) break;
-      else {
-	delete entry;
-	kill_message(message);
-	continue;
-      }
-    } else if(flags & MSG_MEM_SHARE) {
-      if((message->flags & MSG_MEM_SHARE)) break;
-      else {
-	delete entry;
-	kill_message(message);
-	continue;
-      }
-    } else if(message->flags & (MSG_MEM_SEND | MSG_MEM_SHARE)) {
-      delete entry;
-      kill_message(message);
-    }
-    break;
+  //  while(1) {
+  if(from)
+    entry = get_message_from(from);
+  else
+    entry = get_message_any();
+  
+  if(!entry) {
+    hal->mt_enable();
+    return 0;
   }
 
+  message = entry->item;
+
+#if 0 /* вариант проверки флагов с удалением неподходящих сообщений */
+  if((flags & MSG_MEM_TAKE)) {
+    if((message->flags & MSG_MEM_SEND)) break;
+    else {
+      delete entry;
+      kill_message(message);
+      continue;
+    }
+  } else if(flags & MSG_MEM_SHARE) {
+    if((message->flags & MSG_MEM_SHARE)) break;
+    else {
+      delete entry;
+      kill_message(message);
+      continue;
+    }
+  } else if(message->flags & (MSG_MEM_SEND | MSG_MEM_SHARE)) {
+    delete entry;
+    kill_message(message);
+  }
+#endif
+  
+  /* сверяем флаги */
+  if(flags & MSG_MEM_TAKE) {
+    if(!(message->flags & MSG_MEM_SEND)){
+      //printk("trunk1\n");
+      message->size = 0; /* при несовпадении флагов не передаем буфер, передаем только аргументы */
+    }
+  } else if(flags & MSG_MEM_SHARE) {
+    if(!(message->flags & MSG_MEM_SHARE)){
+      //printk("trunk2\n");
+      message->size = 0;
+    }
+  } else if((message->flags & (MSG_MEM_SEND | MSG_MEM_SHARE))) {
+    //printk("trunk3\n");
+    message->size = 0;
+  }
+  //break;
+  //}
+  
   //printk("[0x%X]", message->thread);
   if (!(message->flags & MESSAGE_ASYNC)){ /* перемещаем сообщение в очередь полученных сообщений */
     entry->move_tail(current_thread->received_messages);
@@ -268,7 +285,7 @@ kmessage * get_message(tid_t from, u32_t flags)
 
   current_thread->new_messages_count.dec();
   hal->mt_enable();
-
+  
   return message;
 }
 
@@ -276,7 +293,7 @@ res_t receive(message *message)
 {
   if(check_message(message, MSG_CHK_RECVBUF))
     return RES_FAULT;
-
+  
   //printk("receive [%s]\n", hal->procman->current_thread->process->name);
   kmessage *received_message = get_message(message->tid, message->flags);
   if(!received_message) return RES_FAULT;  
@@ -284,21 +301,35 @@ res_t receive(message *message)
   size_t rcv_size = received_message->size;
   message->send_size = received_message->reply_size;
 
+  /*  if((message->flags & (MSG_MEM_SEND | MSG_MEM_SHARE))){
+    printk("SHM! rs=0x%X\n", rcv_size);
+    }*/
+  
   if (rcv_size > message->recv_size) /* решаем, сколько байт сообщения копировать */
     rcv_size = message->recv_size;
   else
     message->recv_size = rcv_size;
-
+  
   if (rcv_size) {
     if(!(received_message->flags & (MSG_MEM_SEND | MSG_MEM_SHARE))) {
       /* копируем сообщение из ядра в память получателя */
       memcpy(message->recv_buf, received_message->buffer, rcv_size);
       delete (u32_t *) received_message->buffer; /* переданные данные больше не нужны в ядре, освобождаем память */
     } else {
+      //printk("shared message!\n");
       rcv_size &= ~0xfff;
       if(rcv_size) {
 	/* монтируем буфер в свободное место адр. пр-ва сервера */
-	message->recv_buf = hal->procman->current_thread->process->memory->mmap(0, rcv_size, 0, OFFSET(received_message->buffer), received_message->thread->process->memory);
+	//printk("buf=[0x%X] rcv_size=[0x%X]", received_message->buffer, rcv_size);
+	message->recv_buf = hal->procman->current_thread->process->memory->mmap(0, rcv_size, 0, OFFSET(received_message->buffer), received_message->thread->process->memory); //hal->procman->current_thread->process->memory->mmap(0, rcv_size, 0, 0, 0);
+
+	//	u32_t *pagedir = received_message->thread->process->memory->pager->pagedir;
+	//u32_t phys = OFFSET(phys_addr_from(PAGE(OFFSET(received_message->buffer)), pagedir));
+	//	printk("{0x%X}", pagetable_addr(0x8005, pagedir));
+	//printk("[%s]", received_message->thread->process->name);
+	//	u32_t phys = OFFSET(phys_addr_from(0x8005, pagedir));
+	//	printk("phys=0x%X\n", phys);
+	  //hal->procman->current_thread->process->memory->mmap(0, rcv_size, 0, OFFSET(received_message->buffer), received_message->thread->process->memory);
 	
 	if(message->flags & MSG_MEM_SEND) /* демонтируем буфер из памяти клиента */
 	  received_message->thread->process->memory->munmap(OFFSET(received_message->buffer), received_message->size);
@@ -378,7 +409,7 @@ res_t send(message *message)
   }
 
   kmessage *send_message = new kmessage;
-  send_message->flags |= message->flags;
+  send_message->flags = message->flags;
   send_message->size = message->send_size;
 
   if(send_message->size){
@@ -386,9 +417,8 @@ res_t send(message *message)
       /* скопируем сообщение в память ядра */
       send_message->buffer = new char[send_message->size];
       memcpy(send_message->buffer, message->send_buf, send_message->size);
-    } else {
+    } else
       send_message->buffer = (void *) message->send_buf;
-    }
   }
 
   send_message->a0 = message->a0;

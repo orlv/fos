@@ -20,7 +20,6 @@ class fbterm {
   u16_t *lfb_cache;
   size_t lfb_size;
 
-  vbe_mode_info_block *vbeinfo;
   u32_t scr_width;
   u32_t scr_height;
 
@@ -36,6 +35,8 @@ class fbterm {
 
   void strip_buf();
 
+  vbe_mode_info_block *vbeinfo;
+
   void sync();
   void redraw();
   void putpixel (off_t x, off_t y, u32_t pixel);
@@ -48,6 +49,7 @@ class fbterm {
   void hide_cursor(off_t x, off_t y);
 
   bool stop_out;
+  bool disable;
 
   TMutex mutex;
 
@@ -57,6 +59,8 @@ class fbterm {
   void bar(off_t x, off_t y, size_t x_size, size_t y_size, u16_t color);
   int load_font(char *fontpath);
   int set_videomode(u16_t mode);
+  vbe_mode_info_block * get_info();
+  void lock(bool locked);
 
   size_t write(off_t offset, const void *buf, size_t count);
 };

@@ -17,11 +17,11 @@
 fbterm * volatile fb=0;
 
 #define RECV_BUF_SIZE 2048
-
+/*
 void fb_shma_thread()
 {
   struct message *msg = new message;
-  resmgr_attach("/dev/fb");
+  resmgr_attach("/dev/lfb");
 
   char *str = new char[512];
   volatile char * shbuf = 0;
@@ -64,7 +64,7 @@ void fb_shma_thread()
     }
   }
 }     
-
+*/
 asmlinkage int main()
 {
   char *buffer = new char[RECV_BUF_SIZE];
@@ -82,7 +82,7 @@ asmlinkage int main()
   size_t len = dmesg(buffer, RECV_BUF_SIZE);
   fb->write(0, buffer, len);
 
-  thread_create((off_t) &fb_shma_thread);
+ // thread_create((off_t) &fb_shma_thread);
 
   while (1) {
     msg.tid = _MSG_SENDER_ANY;
@@ -105,21 +105,20 @@ asmlinkage int main()
       msg.a0 = fb->load_font(buffer);
       break;
 
-      /*    case FBTTY_PUT_CH:
-      fb->out_ch(msg.a1);
-      msg.a0 = 1;
-      break;*/
-
     case FS_CMD_WRITE:
       msg.a0 = fb->write(0 /*msg.a2*/, buffer, msg.recv_size);
       msg.a2 = NO_ERR;
       break;
-
-    case 666:
-      msg.a0 = fb->write(0, "msg_666 rcvd", 12);
-      msg.a2 = NO_ERR;
-      break;
-      
+    case 0xfffe:
+	msg.a2 = NO_ERR;
+	fb->lock(msg.a1);
+	break;
+    case 0xffff:
+        msg.a2 = NO_ERR;
+	msg.a0 = fb->get_info()->phys_base_addr;
+	msg.a1 = fb->get_info()->x_resolution;
+	msg.a3 = fb->get_info()->y_resolution;
+	break;
     default:
       msg.a0 = 0;
       msg.a2 = ERR_UNKNOWN_CMD;

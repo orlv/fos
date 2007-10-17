@@ -2,11 +2,13 @@
 # Copyright (C) 2006-2007 Oleg Fedorov
 # Modified by:
 #	Michael Zhilin 23-08-2007
+#       Grindarssov Sergey 17-10-2007
+#        Portable GUI System added
 # -----------------------------------------------------------------------------
 
 include config.mk
 
-SERVERS = namer keyboard fbtty tty speaker hw
+SERVERS = namer keyboard fbtty tty speaker hw pgs
 #SERVERS += floppy
 
 all: 

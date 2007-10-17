@@ -5,30 +5,38 @@
 #include <fos/message.h>
 #include <sys/mman.h>
 #include <string.h>
+unsigned short *lfb;
 
 asmlinkage int main(int argc, char ** argv)
 {
-  int tty = open("/dev/fb", 0);
+  printf("LFB test\n");
+  int tty = open("/dev/tty", 0);
   struct fd *fd = (struct fd *) tty;
-  
-  struct message volatile msg;
-  volatile char *buffer = (volatile char *) kmmap(0, 4096, 0, 0);
-  strcpy((char *)buffer, "hello");
-  
-  msg.a0 = 666;
-  msg.send_buf = (char *)buffer;
-  msg.send_size = 4096;
+  struct message msg;
+  sched_yield();
+  msg.a0 = 0xffff;
+  msg.send_size = 0;
   msg.recv_size = 0;
-  msg.flags = MSG_MEM_SHARE;
+  msg.flags = 0;
   msg.tid = fd->thread;
-
   send((struct message *)&msg);
-  printf("rep\n");
-  u8_t i=0;
-  while(1) {
-    buffer[0] = i;
-    i++;
-  }
+  	if(msg.a2 != NO_ERR) {
+		printf("Failed.\n");
+		return 1;
+	}
+ 	printf("Video mode %ux%u, lfb @ 0x%x\n", msg.a1, msg.a3, msg.a0);
+	lfb = (unsigned short *) kmmap(0, msg.a1 * msg.a3 * 2, 0, msg.a0);
+	if(!lfb) {
+		printf("Failed.\n");
+		return 1;
+	}
+	printf("LFB mapped to 0x%x\n", lfb);
+	printf("Ÿ’œ €Š“ˆ‹‘Ÿ?\n");	
+	for(;;) {
+		for(int i = 0; i < msg.a1 * msg.a3; i ++) {
+			lfb[i]++;
+		}
+	}
   return 0;
 }
 

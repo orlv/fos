@@ -30,16 +30,19 @@ fbterm::fbterm()
   vbeinfo = new vbe_mode_info_block;
   _x = CH_SPACE + X_BORDER;
   _y = CH_SPACE + Y_BORDER;
+  disable = false;
 }
 
 void fbterm::putpixel (off_t x, off_t y, u32_t pixel)
 {
+  if(disable) return;
   off_t off = x + y*vbeinfo->x_resolution;
   lfb_cache[off] = pixel;
 }
 
 void fbterm::putpixel_direct(off_t x, off_t y, u32_t pixel)
 {
+  if(disable) return;
   off_t off = x + y*vbeinfo->x_resolution;
   lfb[off] = pixel;
 }
@@ -47,6 +50,7 @@ void fbterm::putpixel_direct(off_t x, off_t y, u32_t pixel)
 
 void fbterm::put_char(off_t x, off_t y, unsigned char ch)
 {
+  if(disable) return;
   for(int i = 0; i < font_height; i++) {
     for(int j = 0; j < font_width ; j++) {
       if(font_rawdata[font_height*ch + i] & (1<<j))
@@ -59,6 +63,7 @@ void fbterm::put_char(off_t x, off_t y, unsigned char ch)
 
 void fbterm::put_char_direct(off_t x, off_t y, unsigned char ch)
 {
+  if(disable) return;
   for(int i = 0; i < font_height; i++) {
     for(int j = 0; j < font_width ; j++) {
       if(font_rawdata[font_height*ch + i] & (1<<j))
@@ -71,6 +76,7 @@ void fbterm::put_char_direct(off_t x, off_t y, unsigned char ch)
 
 void fbterm::bar(off_t x, off_t y, size_t x_size, size_t y_size, u16_t color)
 {
+  if(disable) return;
   for(size_t i=y; i<y+y_size; i++)
     for(size_t j=x; j<x+x_size; j++)
       putpixel(j,i, color);
@@ -78,11 +84,13 @@ void fbterm::bar(off_t x, off_t y, size_t x_size, size_t y_size, u16_t color)
 
 void fbterm::sync()
 {
+  if(disable) return;
   memcpy(lfb, lfb_cache, lfb_size);
 }
 
 void fbterm::redraw()
 {
+  if(disable) return;
   bar(10, 10, scr_width-20, scr_height-20, 0x4aad);
       u8_t p[3];
       char *data = (char *) &logo_header_data;
@@ -111,6 +119,7 @@ void fbterm::redraw()
 
 void fbterm::strip_buf()
 {
+  if(disable) return;
   size_t i;
   for(i=0; i<(scr_width - X_BORDER*2)/font_width; i++)
     if(chars_buf[i] == '\n') {
@@ -123,6 +132,7 @@ void fbterm::strip_buf()
 
 void fbterm::put_ch(unsigned char ch)
 {
+  if(disable) return;
   if(buf_top >= chars_max_cnt)
     strip_buf();
 
@@ -132,6 +142,7 @@ void fbterm::put_ch(unsigned char ch)
 
 void fbterm::do_out_ch(unsigned char ch)
 {
+  if(disable) return;
   switch (ch) {
   case '\n':
     _x = X_BORDER;
@@ -171,11 +182,13 @@ void fbterm::do_out_ch(unsigned char ch)
 
 void fbterm::show_cursor(off_t x, off_t y)
 {
+  if(disable) return;
   put_char_direct(_x, _y, 219);
 }
 
 void fbterm::hide_cursor(off_t x, off_t y)
 {
+  if(disable) return;
   //bar(_x, _y, font_width, font_height, 0x4aad);
   for(size_t i=y; i<y+font_height; i++)
     for(size_t j=x; j<x+font_width; j++)
@@ -184,6 +197,7 @@ void fbterm::hide_cursor(off_t x, off_t y)
 
 void fbterm::out_ch(unsigned char ch)
 {
+  if(disable) return;
   put_ch(ch);
   //if(!stop_out)
   do_out_ch(ch);
@@ -317,4 +331,10 @@ int fbterm::load_font(char *fontpath)
 
   //printf("fbtty: file not found\n");
   return 0;
+}
+vbe_mode_info_block * fbterm::get_info() {
+	return vbeinfo;
+}
+void fbterm::lock(bool locked) {
+	disable = locked;
 }

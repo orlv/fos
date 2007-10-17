@@ -60,7 +60,8 @@ GRUB_MODULES =	/boot/modules/test.txt		\\
 		/boot/modules/font.psf		\\
 		/boot/modules/ext2.img		\\
 		/boot/modules/ext2test		\\
-		/boot/modules/pci_server
+		/boot/modules/pci_server	\\
+		/boot/modules/pgs
 
 GRUB_MENU    = $TOPDIR/boot/grub/menu.lst
 GRUB_TFTP_MENU = $TOPDIR/boot/grub/tftpmenu.lst
@@ -112,7 +113,12 @@ ASFLAGS		= \$(FLAGS)
 CFLAGS		= \$(FLAGS) -ffreestanding -fno-leading-underscore
 CXXFLAGS	= \$(FLAGS) -nostdinc++ -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin
 LDFLAGS		= -nostdlib -L\$(LIB)
-
+ifeq (\$(shell uname -m), x86_64)
+CFLAGS+=-m32
+ASFLAGS+=-m32
+CXXFLAGS+=-m32
+LDFLAGS+=-melf_i386
+endif
 .s.o:
 	@echo "Compiling \$<"
 	@\$(AS) \$(ASFLAGS) -c -o \$*.o \$<
@@ -170,6 +176,13 @@ ASFLAGS		= \$(FLAGS)
 CFLAGS		= \$(FLAGS) -ffreestanding -fno-leading-underscore
 CXXFLAGS	= \$(FLAGS) -nostdinc++ -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin
 LDFLAGS		= -nostdlib -L\$(LIB)
+
+ifeq (\$(shell uname -m), x86_64)
+CFLAGS+=-m32
+ASFLAGS+=-m32
+CXXFLAGS+=-m32
+LDFLAGS+=-melf_i386
+endif
 
 .s.o:
 	@echo "Compiling \$<"

@@ -8,8 +8,8 @@ include config.iso.mk
 
 all:	version build_kernel build_user
 	@rm -f `find . -name \*~`
-	@expr `cat .build.next` + 1 | xargs $(ECHO) -n > .build.next.tmp
-	@mv .build.next.tmp .build.next
+#	@expr `cat .build.next` + 1 | xargs $(ECHO) -n > .build.next.tmp
+#	@mv .build.next.tmp .build.next
 	@$(GREEN) $(ECHO) \ System Complete!
 	@$(ECHO) \ Run \"make install\" to build iso image.
 	@$(YELLOW) $(ECHO) \#------------------------------------------------------------------------------ ; $(GREY)

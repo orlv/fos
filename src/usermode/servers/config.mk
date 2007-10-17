@@ -19,19 +19,26 @@ GREY		= /bin/echo -en "\033[1;37;40m" ;
 #----------------------------------------------------------------------------#
 
 SYSTEM_NAME     = FOS
-SYSTEM_ROOT	= /home/oleg/fos/src/..
-SYSTEM_SRC	= /home/oleg/fos/src/../src
-BINDIR		= /home/oleg/fos/src/../boot/modules
-INSTALLDIR	= /home/oleg/fos/src/../boot/modules
-INCLUDE		= /home/oleg/fos/src/../include
-LIB		= /home/oleg/fos/src/../lib
+SYSTEM_ROOT	= /home/grindars/oses/fos/src/..
+SYSTEM_SRC	= /home/grindars/oses/fos/src/../src
+BINDIR		= /home/grindars/oses/fos/src/../boot/modules
+INSTALLDIR	= /home/grindars/oses/fos/src/../boot/modules
+INCLUDE		= /home/grindars/oses/fos/src/../include
+LIB		= /home/grindars/oses/fos/src/../lib
 #DEBUG		= -g
-FLAGS		= -Wall -nostdlib -nostdinc -I$(INCLUDE) -fno-stack-protector -O2
+FLAGS		= -Wall -nostdlib -nostdinc -I$(INCLUDE) -fno-stack-protector -O3 
 
 ASFLAGS		= $(FLAGS)
 CFLAGS		= $(FLAGS) -ffreestanding -fno-leading-underscore
 CXXFLAGS	= $(FLAGS) -nostdinc++ -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin
 LDFLAGS		= -nostdlib -L$(LIB)
+
+ifeq ($(shell uname -m), x86_64)
+CFLAGS+=-m32
+ASFLAGS+=-m32
+CXXFLAGS+=-m32
+LDFLAGS+=-melf_i386
+endif
 
 .s.o:
 	@echo "Compiling $<"

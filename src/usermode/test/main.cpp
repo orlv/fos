@@ -33,7 +33,7 @@ asmlinkage int main(int argc, char ** argv)
 	printf("LFB mapped to 0x%x\n", lfb);
 	printf("Ÿ’œ €Š“ˆ‹‘Ÿ?\n");	
 	for(;;) {
-		for(int i = 0; i < msg.a1 * msg.a3; i ++) {
+		for(u32_t i = 0; i < msg.a1 * msg.a3; i ++) {
 			lfb[i]++;
 		}
 	}

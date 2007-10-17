@@ -10,6 +10,8 @@
 
 #include "version.h"
 #include "windowing.h"
+#include "cursor.h"
+
 mode_definition_t mode;
 int need_cursor = 0;
 extern context_t *backbuf;

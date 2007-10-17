@@ -11,25 +11,26 @@ ITEMS = crt0 libc libcpp libfos init shell test int16b servers
 all: 
 	@$(foreach item,$(ITEMS),\
 		$(YELLOW) $(ECHO) ---------------------------------\> Building $(item) ; $(GREY)\
-		$(MAKE) -s -C $(item);\
+		$(MAKE) -s -C $(item) || exit 1;\
 	)
+
 
 install:
 	@$(foreach item,$(ITEMS),\
 		$(YELLOW) $(ECHO) ---------------------------------\> Install $(item) ; $(GREY)\
-		$(MAKE) -s -C $(item) install;\
+		$(MAKE) -s -C $(item) install || exit 1;\
 	)
 
 uninstall:
 	@$(foreach item,$(ITEMS),\
 		$(YELLOW) $(ECHO) ---------------------------------\> Uninstall $(item) ; $(GREY)\
-		$(MAKE) -s -C $(item) uninstall;\
+		$(MAKE) -s -C $(item) uninstall || exit 1;\
 	)
 
 clean:
 	@$(foreach item,$(ITEMS),\
 		$(YELLOW) $(ECHO) ---------------------------------\> Cleaning $(item) ; $(GREY)\
-		$(MAKE) -s -C $(item) clean;\
+		$(MAKE) -s -C $(item) clean || exit 1;\
 	)
 
 # -----------------------------------------------------------------------------

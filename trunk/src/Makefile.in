@@ -53,10 +53,10 @@ build_user:
 #--------------------------------- Clean -------------------------------------
 
 clean_kernel:
-	@$(MAKE) -C kernel clean
+	@$(MAKE) -s -C kernel clean
 
 clean_user:
-	@$(MAKE) -C usermode clean uninstall
+	@$(MAKE) -s -C usermode clean uninstall
 
 clean: clean_kernel clean_user
 

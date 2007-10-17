@@ -8,31 +8,31 @@
 
 include config.mk
 
-SERVERS = namer keyboard fbtty tty speaker hw pgs
+SERVERS = namer keyboard fbtty pgs tty speaker hw
 #SERVERS += floppy
 
 all: 
 	@$(foreach server,$(SERVERS),\
 		$(YELLOW) $(ECHO) ---------------------------------\> Building $(server) ; $(GREY)\
-		$(MAKE) -s -C $(server);\
+		$(MAKE) -s -C $(server) || exit 1; \
 	)
 
 install:
 	@$(foreach server,$(SERVERS),\
 		$(YELLOW) $(ECHO) ---------------------------------\> Install $(server) ; $(GREY)\
-		$(MAKE) -s -C $(server) install;\
+		$(MAKE) -s -C $(server) install || exit 1;\
 	)
 
 uninstall:
 	@$(foreach server,$(SERVERS),\
 		$(YELLOW) $(ECHO) ---------------------------------\> Uninstall $(server) ; $(GREY)\
-		$(MAKE) -s -C $(server) uninstall;\
+		$(MAKE) -s -C $(server) uninstall || exit 1;\
 	)
 
 clean:
 	@$(foreach server,$(SERVERS),\
 		$(YELLOW) $(ECHO) ---------------------------------\> Cleaning $(server) ; $(GREY)\
-		$(MAKE) -s -C $(server) clean;\
+		$(MAKE) -s -C $(server) clean || exit 1;\
 	)
 
 # -----------------------------------------------------------------------------

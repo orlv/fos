@@ -96,6 +96,7 @@ void Redraw() {
 		FlushContext(p->context, p->w, p->h, p->x, p->y, 0, 0, backbuf);
 	}
 	}
+	line(0, 0, mode.width, mode.height, 0xFF0000, backbuf);
 	FlushBackBuffer(backbuf->data);
 	refreshing = 0;
 }

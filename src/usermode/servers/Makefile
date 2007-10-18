@@ -2,13 +2,15 @@
 # Copyright (C) 2006-2007 Oleg Fedorov
 # Modified by:
 #	Michael Zhilin 23-08-2007
-#       Grindarssov Sergey 17-10-2007
-#        Portable GUI System added
+#       Grindassov Sergey 
+#	 17-10-2007 Portable GUI System added
+#        18-10-2007 New i8042 server added
+#       
 # -----------------------------------------------------------------------------
 
 include config.mk
 
-SERVERS = namer keyboard fbtty pgs tty speaker hw
+SERVERS = namer keyboard fbtty pgs tty speaker hw i8042
 #SERVERS += floppy
 
 all: 

@@ -55,13 +55,15 @@ GRUB_MODULES =	/boot/modules/test.txt		\\
 		/boot/modules/shell		\\
 		/boot/modules/tty		\\
 		/boot/modules/fbtty		\\
-		/boot/modules/keyboard		\\
 		/boot/modules/test		\\
 		/boot/modules/font.psf		\\
-		/boot/modules/ext2.img		\\
-		/boot/modules/ext2test		\\
 		/boot/modules/pci_server	\\
-		/boot/modules/pgs
+		/boot/modules/pgs		\\
+		/boot/modules/i8042
+
+#		/boot/modules/ext2.img
+#		/boot/modules/ext2test
+#		/boot/modules/keyboard
 
 GRUB_MENU    = $TOPDIR/boot/grub/menu.lst
 GRUB_TFTP_MENU = $TOPDIR/boot/grub/tftpmenu.lst

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "keyboard.h"
 #include "mouse.h"
+
 void thread_handler()
 {
   if(interrupt_attach(1) == RES_SUCCESS)
@@ -29,35 +30,35 @@ void thread_handler()
     if(msg.a0 == 1) {
       keyboard_ps2_interrupt();
     } else if(msg.a0 == 12) {
-	mouse_ps2_interrupt();
+      mouse_ps2_interrupt();
     }
     else
       printf("i8042: unknown signal received!\n");
   }
 }
-int main(int argc, char *argv[]) {
-	printf("i8042: starting up\n");
-	printf("i8042: keyboard init\n");
 
-	keyboard_ps2_init();
-
-	printf("i8042: mouse init\n");
-	mouse_ps2_init();
-	printf("i8042: interface init\n");
-
-	struct message msg;
-	char *buffer = malloc(KB_CHARS_BUFF_SIZE);
-
-
-	printf("i8042: daemonized\n");
-	thread_create((off_t) &thread_handler);
-	resmgr_attach("/dev/keyboard");
+int main(int argc, char *argv[])
+{
+  printf("i8042: starting up\n");
+  printf("i8042: keyboard init\n");
+  keyboard_ps2_init();
+  
+  printf("i8042: mouse init\n");
+  mouse_ps2_init();
+  printf("i8042: interface init\n");
+  
+  struct message msg;
+  char *buffer = malloc(KB_CHARS_BUFF_SIZE);
+  
+  printf("i8042: daemonized\n");
+  thread_create((off_t) &thread_handler);
+  resmgr_attach("/dev/keyboard");
   while (1) {
     msg.tid = _MSG_SENDER_ANY;
     msg.recv_buf  = buffer;
     msg.recv_size = KB_CHARS_BUFF_SIZE;
     receive(&msg);
-
+    
     switch(msg.a0){
     case FS_CMD_ACCESS:
       msg.a0 = 1;
@@ -65,7 +66,7 @@ int main(int argc, char *argv[]) {
       msg.a2 = NO_ERR;
       msg.send_size = 0;
       break;
-
+      
     case FS_CMD_WRITE:
       msg.a0 = kb_write(0, buffer, msg.recv_size);
       msg.send_size = 0;
@@ -74,7 +75,7 @@ int main(int argc, char *argv[]) {
       else
 	msg.a2 = NO_ERR;
       break;
-
+      
     case FS_CMD_READ:
       msg.a0 = kb_read(0, buffer, msg.send_size);
       if(msg.a0 < msg.send_size) {
@@ -82,10 +83,10 @@ int main(int argc, char *argv[]) {
 	msg.a2 = ERR_EOF;
       } else
 	msg.a2 = NO_ERR;
-
+      
       msg.send_buf = buffer;
       break;
-
+      
     default:
       msg.a0 = 0;
       msg.a2 = ERR_UNKNOWN_CMD;

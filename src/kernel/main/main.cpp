@@ -41,7 +41,6 @@ asmlinkage void init()
 
   hal->cli();
   hal->pic = new PIC;
-  hal->pic->remap(0x20, 0x28);
 
   hal->gdt = new GDT;
   hal->idt = new IDT;

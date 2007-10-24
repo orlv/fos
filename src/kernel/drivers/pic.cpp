@@ -10,9 +10,7 @@
 
 PIC::PIC()
 {
-  /* запретим прерывания, кроме каскадируемого */
-  hal->outportb(0x21, 0xfb); 
-  hal->outportb(0xA1, 0xff);
+  remap(0x20, 0x28);
 }
 
 void PIC::remap(u8_t v1, u8_t v2)
@@ -27,12 +25,10 @@ void PIC::remap(u8_t v1, u8_t v2)
   hal->outportb(0xA1, 0x02);
   hal->outportb(0x21, 0x01);
   hal->outportb(0xA1, 0x01);
-  hal->outportb(0x21, 0x0);
-  hal->outportb(0xA1, 0x0);
 
   /* запретим прерывания, кроме каскадируемого */
-  hal->outportb(0x21, 0xfb); 
   hal->outportb(0xA1, 0xff);
+  hal->outportb(0x21, 0xfb); 
 }
 
 /* запрещает IRQ номер n */

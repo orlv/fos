@@ -180,7 +180,9 @@ void common_interrupt(u8_t n)
     hal->user_int_handler[n]->set_signal(n);
   } else
     hal->panic("Unhandled interrupt received!\n");
-  
+
+  if(n>7)
+    hal->outportb(0xa0, 0x20);
   hal->outportb(0x20, 0x20);
 }
 
@@ -200,7 +202,7 @@ IRQ_HANDLER(irq_0)
 }
 
 IRQ_HANDLER(irq_1)  { common_interrupt(1);  }
-IRQ_HANDLER(irq_2)  { common_interrupt(2);  }
+
 IRQ_HANDLER(irq_3)  { common_interrupt(3);  }
 IRQ_HANDLER(irq_4)  { common_interrupt(4);  }
 IRQ_HANDLER(irq_5)  { common_interrupt(5);  }
@@ -243,7 +245,7 @@ void setup_idt()
 
   hal->idt->set_intr_gate(0x20, (off_t) & irq_0); /* timer */
   hal->idt->set_intr_gate(0x21, (off_t) & irq_1); /* keyboard */
-  hal->idt->set_intr_gate(0x22, (off_t) & irq_2);
+
   hal->idt->set_intr_gate(0x23, (off_t) & irq_3);
   hal->idt->set_intr_gate(0x24, (off_t) & irq_4);
   hal->idt->set_intr_gate(0x25, (off_t) & irq_5);

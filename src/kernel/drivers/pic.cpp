@@ -10,9 +10,9 @@
 
 PIC::PIC()
 {
-  /* запретим IRQ 0-15 */
-  for(int i = 0; i < 16; i++)
-    mask(i);
+  /* запретим прерывания, кроме каскадируемого */
+  hal->outportb(0x21, 0xfb); 
+  hal->outportb(0xA1, 0xff);
 }
 
 void PIC::remap(u8_t v1, u8_t v2)
@@ -29,6 +29,10 @@ void PIC::remap(u8_t v1, u8_t v2)
   hal->outportb(0xA1, 0x01);
   hal->outportb(0x21, 0x0);
   hal->outportb(0xA1, 0x0);
+
+  /* запретим прерывания, кроме каскадируемого */
+  hal->outportb(0x21, 0xfb); 
+  hal->outportb(0xA1, 0xff);
 }
 
 /* запрещает IRQ номер n */
@@ -77,4 +81,4 @@ void PIC::unlock()
 {
   hal->outportb(0xa1, status >> 8);
   hal->outportb(0x21, status & 0xff);
-}  
+}

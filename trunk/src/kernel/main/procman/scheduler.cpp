@@ -26,7 +26,6 @@ void TProcMan::scheduler()
 
   while (1) {
     //asm("incb 0xb8000+158\n" "movb $0x5f,0xb8000+159");
-
     _uptime = kuptime();
     
     /* Выбираем следующий подходящий для запуска поток */

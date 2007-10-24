@@ -28,7 +28,7 @@ void PIC::remap(u8_t v1, u8_t v2)
 
   /* запретим прерывания, кроме каскадируемого */
   hal->outportb(0xA1, 0xff);
-  hal->outportb(0x21, 0xfb); 
+  hal->outportb(0x21, 0xfb);
 }
 
 /* запрещает IRQ номер n */
@@ -69,8 +69,8 @@ void PIC::unmask(u8_t n)
 void PIC::lock()
 {
   status = (hal->inportb(0xa1) << 8) | hal->inportb(0x21);
-  for(int i = 0; i < 16; i++)
-    mask(i);
+  hal->outportb(0xA1, 0xff);
+  hal->outportb(0x21, 0xfb);
 }
 
 void PIC::unlock()

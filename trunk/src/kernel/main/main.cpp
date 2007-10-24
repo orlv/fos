@@ -43,10 +43,6 @@ asmlinkage void init()
   hal->pic = new PIC;
   hal->pic->remap(0x20, 0x28);
 
-  int i;
-  for(i = 0; i < 16; i++)
-    hal->pic->mask(i);
-
   hal->gdt = new GDT;
   hal->idt = new IDT;
 

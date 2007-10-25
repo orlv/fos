@@ -19,7 +19,7 @@ void event_handler(event_t *event) {
 	case EVENT_TYPE_MOUSEMOVE:
 		mousex = event->mousemove->x;
 		mousey = event->mousemove->y;
-//		RedrawCursor();
+		need_cursor = 1;
 		if (down)
 		{
 		    if (!dragging)

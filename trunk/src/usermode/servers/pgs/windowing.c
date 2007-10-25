@@ -107,8 +107,8 @@ void CreateWindow(int x, int y, int w, int h, char *caption) {
 	context_t *c = malloc(sizeof(context_t));
 	char * title = malloc(strlen(caption));
 	strcpy(title, caption);
-	c->w = w + 1;
-	c->h = h + 1;
+	c->w = w ;
+	c->h = h ;
 	c->bpp = mode.bpp;
 	c->data = video;
 	c->native_pixels = 0;
@@ -120,14 +120,15 @@ void CreateWindow(int x, int y, int w, int h, char *caption) {
 	win->context = c;
 	win->title = title;
 	insertBack(win);
-	DrawRect(0, 0, w, h, 0xc3c3c3, c);
+	//DrawRect(0, 0, w, h, 0xc3c3c3, c);
+	PutString(4,4, caption, 0xffffff, c);
 	line(1, 1, 1, h - 2, 0xffffff, c);
 	line(1, 1, w - 2, 1, 0xffffff, c); 
 	line(1, h - 1, w - 1, h - 1, 0x828282, c);
 	line(w - 1, h - 1, w - 1, 1, 0x828282, c);
 	line(0, h, w, h, 0x000000, c);
 	line(0, h, w, h, 0x000000, c);
-	PutString(4,4, caption, 0xffffff, c);
+
 	need_refresh = 1;
 }
 

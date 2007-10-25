@@ -33,10 +33,10 @@ typedef struct {
 } picture_t;
 
 typedef struct {
-	int w;
-	int h;
-	int bpp;
-	int native_pixels;
-	char *data;
+	volatile int w;
+	volatile int h;
+	volatile int bpp;
+	volatile int native_pixels;
+	volatile char *data;
 } context_t;
 #endif

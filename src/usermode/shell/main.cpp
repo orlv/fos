@@ -30,9 +30,7 @@ void eval(char *command)
       exit(0);
     } else if(!strcmp((const char *)command, "uptime"))
       printf("uptime=%d\n", uptime());
-    else if(!strcmp((const char *)command, "int")) {
-     sys_call(_FOS_CALL_INTERRUPT, 0);
-    }else if(!strcmp((const char *)command, "dmesg")) {
+    else if(!strcmp((const char *)command, "dmesg")) {
       extern int tty;
       char *buf = new char[2048];
       size_t len = dmesg(buf, 2048);

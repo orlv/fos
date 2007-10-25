@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include "mouse.h"
 #include "i8042.h"
-#include "mutex.h"
 
 #define debug_printf printf
 
@@ -21,15 +20,13 @@ static int set_sample_rate (int rate)
   
   /* Send a reset and wait for an ack response. */
   i8042_aux_write (KBDK_TYPEMATIC);
-  if (! i8042_read (&ack) || ack != KBDR_ACK) {
-    debug_printf ("set_sample_rate: no ACK after typematic\n");
+  if (! i8042_read (&ack) || ack != KBDR_ACK) 
     return 0;
-  }
+
   i8042_aux_write (rate);
-  if (! i8042_read (&ack) || ack != KBDR_ACK) {
-    debug_printf ("set_sample_rate: no ACK after rate\n");
+  if (! i8042_read (&ack) || ack != KBDR_ACK) 
     return 0;
-  }
+
   return 1;
 }
 
@@ -47,21 +44,17 @@ static int detect_wheel ()
   
   /* Send a reset and wait for an ack response. */
   i8042_aux_write (KBDK_READ_ID);
-  if (! i8042_read (&ack) || ack != KBDR_ACK) {
-    debug_printf ("mouse: wheel: no ACK after READ_ID\n");
+  if (! i8042_read (&ack) || ack != KBDR_ACK) 
     return 0;
-  }
+
   
   /* Get device id. */
   for (count=0; count<1000; ++count) {
-    if (i8042_read (&ack)) {
-      debug_printf ("mouse: wheel: %02x (%d)\n", ack, count);
+    if (i8042_read (&ack)) 
       if (ack == 3)
 	return 1;
       return 0;
-    }
   }
-  debug_printf ("mouse: wheel: no reply after READ_ID\n");
   return 0;
 }
 
@@ -99,7 +92,7 @@ make_move ()
   
   /* Invert vertical axis. */
   dy = dy;
-  debug_printf ("mouse: (%d, %d) %d\n", dx, dy, b);
+  debug_printf ("mouse: (%d, %d, %d) %d\n", dx, dy, dz, b);
 }
 
 /*
@@ -145,8 +138,6 @@ void receive_byte (unsigned char byte)
 void mouse_ps2_interrupt ()
 {
   unsigned char c, sts, strobe;
-  int event_generated = 0;
-  printf(".");
   sts = inb (KBDC_AT_CTL);
   
   c = inb (KBD_DATA);
@@ -159,7 +150,6 @@ void mouse_ps2_interrupt ()
   outb (strobe | KBDC_XT_CLEAR, KBDC_XT_CTL);
   outb (strobe, KBDC_XT_CTL);
   
-  debug_printf ("<%02x> ", c);
   receive_byte (c);
   unmask_interrupt(12);
 }

@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include "i8042.h"
 
-#define debug_printf printf
 /*
  * Clear input/output buffers of keyboard controller.
  */
@@ -22,7 +21,6 @@ static void i8042_wait ()
 			inb (KBD_DATA);
 		}
 	}
-	debug_printf ("i8042: busy\n");
 }
 
 /*
@@ -91,10 +89,8 @@ i8042_kbd_command (int cmd, int param)
 	/* Send command and wait for an ack response. */
 	/*debug_printf ("keyboard: command %02x-%02x\n", cmd, param);*/
 	i8042_kbd_write (cmd);
-	if (! i8042_read (&ack) || ack != KBDR_ACK) {
-		debug_printf ("keyboard: no ACK after command\n");
+	if (! i8042_read (&ack) || ack != KBDR_ACK) 
 		return 0;
-	}
 
 	/* Send a parameter and wait for an ack response. */
 	i8042_kbd_write (param);
@@ -102,12 +98,10 @@ i8042_kbd_command (int cmd, int param)
 		if (! i8042_read (&ack))
 			continue;
 
-		if (ack == KBDR_ACK) {
+		if (ack == KBDR_ACK) 
 			return 1;
-		}
-		debug_printf ("keyboard: %02x (%d)\n", ack, count);
+
 	}
-	debug_printf ("keyboard: no ACK\n", cmd, param);
 	return 0;
 }
 
@@ -122,22 +116,17 @@ i8042_kbd_probe ()
 
 	/* Send a reset and wait for an ack response. */
 	i8042_kbd_write (KBDK_RESET);
-	if (! i8042_read (&ack) || ack != KBDR_ACK) {
-		debug_printf ("keyboard: probe: no ACK after reset\n");
+	if (! i8042_read (&ack) || ack != KBDR_ACK) 
 		return 0;
-	}
 
 	/* Ensure that we see a basic assurance test response. */
 	for (count=0; count<1000; ++count) {
 		if (! i8042_read (&ack))
 			continue;
-		debug_printf ("keyboard: probe: %02x (%d)\n", ack, count);
 
-		if (ack == KBDR_TEST_OK) {
+		if (ack == KBDR_TEST_OK) 
 			return 1;
-		}
 	}
-	debug_printf ("keyboard: probe: no BAT after reset\n");
 	return 0;
 }
 
@@ -152,27 +141,21 @@ i8042_aux_probe ()
 
 	/* Send a reset and wait for an ack response. */
 	i8042_aux_write (KBDK_RESET);
-	if (! i8042_read (&ack) || ack != KBDR_ACK) {
-		debug_printf ("mouse: probe: no ACK after reset\n");
+	if (! i8042_read (&ack) || ack != KBDR_ACK)
 		return 0;
-	}
 
 	/* Ensure that we see a basic assurance test response. */
 	for (count=0; count<1000; ++count) {
 		if (! i8042_read (&ack))
 			continue;
-		debug_printf ("mouse: probe: %02x (%d)\n", ack, count);
 
 		if (ack == KBDR_TEST_OK) {
 			/* Check that we get a pointing device ID back */
-			if (! i8042_read (&ack) || ack != 0) {
-				debug_printf ("mouse: probe: no ACK after BAT\n");
+			if (! i8042_read (&ack) || ack != 0)
 				return 0;
-			}
 			return 1;
 		}
 	}
-	debug_printf ("mouse: probe: no BAT after reset\n");
 	return 0;
 }
 

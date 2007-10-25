@@ -697,7 +697,10 @@ SYSCALL_HANDLER(sys_call_handler)
     else
       result = 0;
     break;
-    
+  case _FOS_CALL_INTERRUPT:
+	asm("int $0x2c");
+	break;
+
   default:
     result = RES_FAULT;
     break;

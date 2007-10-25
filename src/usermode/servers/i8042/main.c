@@ -51,6 +51,7 @@ int main(int argc, char *argv[])
   char *buffer = malloc(KB_CHARS_BUFF_SIZE);
   
   printf("i8042: daemonized\n");
+  thread_create((off_t) &MouseHandlerThread);
   thread_create((off_t) &thread_handler);
   resmgr_attach("/dev/keyboard");
   while (1) {

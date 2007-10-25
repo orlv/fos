@@ -1,5 +1,7 @@
 #include <fos/fos.h>
 #include <sys/io.h>
+#include <fos/fs.h>
+#include <fos/message.h>
 #include <stdio.h>
 #include "mouse.h"
 #include "i8042.h"
@@ -8,10 +10,9 @@
 
 int wheel = 0;
 int count = 0;
-int x = 0;
-int y = 0;
-int b = 0;
-int dx = 0, dy = 0, dz = 0;
+volatile signed int b = 0;
+volatile signed int dx = 0, dy = 0, dz = 0;
+volatile int moved = 0;
 u8_t buf[3];
 
 static int set_sample_rate (int rate)
@@ -91,8 +92,8 @@ make_move ()
     dz = 0;
   
   /* Invert vertical axis. */
-  dy = dy;
-  debug_printf ("mouse: (%d, %d, %d) %d\n", dx, dy, dz, b);
+  dy = -dy;
+  moved = 1;
 }
 
 /*
@@ -163,4 +164,47 @@ void mouse_ps2_init ()
       wheel = 1;
     }
   }
+}
+
+struct mouse_pos {
+	signed int dx;
+	signed int dy;
+	signed int dz;
+	int b;
+};
+void MouseHandlerThread() {
+	resmgr_attach("/dev/psaux");
+	struct message msg;
+	struct mouse_pos mouse_struct;
+	while(1) {
+		msg.tid = _MSG_SENDER_ANY;
+		msg.recv_buf = &mouse_struct;
+		msg.recv_size = sizeof(mouse_struct);
+		receive(&msg);
+		switch(msg.a0) {
+		case FS_CMD_ACCESS:
+			msg.a0 = 1;
+			msg.a1 = sizeof(mouse_struct);
+			msg.a2 = NO_ERR;
+			msg.send_size = 0;
+			break;
+		case FS_CMD_READ:
+			while(!moved) { sched_yield(); }
+			moved = 0;
+			mouse_struct.dx = dx;
+			mouse_struct.dy = dy;
+			mouse_struct.dz = dz;
+			mouse_struct.b = b;
+			msg.send_size = sizeof(mouse_struct);
+			msg.a0 = sizeof(mouse_struct);
+			msg.a2 = NO_ERR;
+			msg.send_buf = &mouse_struct;
+			break;
+		default:
+			msg.a0 = 0;
+			msg.a2 = ERR_UNKNOWN_CMD;
+			msg.send_size = 0;
+		}
+		reply(&msg);
+	}
 }

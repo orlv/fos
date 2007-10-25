@@ -26,13 +26,12 @@ void out_banner()
 {
   extern const string version;
   extern u32_t build;
-  extern const string compile_date, compile_time;
 
-  printk(" FOS OS. Revision %s. Build #%d %s %s \n"			\
+  printk(" FOS %s (%s) \n"						\
 	 "-------------------------------------------------------------------------------\n" \
 	 " Copyright (C) 2004-2007 Oleg Fedorov                      http://fos.osdev.ru/\n" \
 	 "-------------------------------------------------------------------------------\n",
-	 version, build, compile_date, compile_time);
+	 version, build);
 }
 
 asmlinkage void init()
@@ -56,12 +55,6 @@ asmlinkage void init()
 
   printk("Memory size: %d Kb, free %dK (%dK high/%dK low)\n", hal->pages_cnt*4, hal->free_pages.read()*4 + hal->free_pages_DMA16.read()*4, hal->free_pages.read()*4, hal->free_pages_DMA16.read()*4);
 
-#if 0
-  char *buf = new char[2000];
-  stdout->read(0, buf, 2000);
-  printk("[%s]", buf);
-  while(1);
-#endif
   hal->procman = new TProcMan;
 
   SysTimer = new Timer;

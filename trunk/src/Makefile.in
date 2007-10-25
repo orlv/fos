@@ -10,6 +10,7 @@ all:	version build_kernel build_user
 	@rm -f `find . -name \*~`
 #	@expr `cat .build.next` + 1 | xargs $(ECHO) -n > .build.next.tmp
 #	@mv .build.next.tmp .build.next
+	@LANG=C date -u | xargs $(ECHO) -n > VERSION
 	@$(GREEN) $(ECHO) \ System Complete!
 	@$(ECHO) \ Run \"make install\" to build iso image.
 	@$(YELLOW) $(ECHO) \#------------------------------------------------------------------------------ ; $(GREY)
@@ -23,9 +24,9 @@ help:
 
 version:
 	@rm -f kernel/main/version.o
-	@cat .build.next > BUILD
+#	@cat .build.next > BUILD
 	@$(ECHO) " "
-	@$(RED) $(ECHO) "FOS Version `cat VERSION`. Build `cat BUILD`." ; $(GREY)
+	@$(RED) $(ECHO) "FOS `cat kernel/VERSION` (`cat VERSION`)" ; $(GREY)
 	@$(ECHO) "Copyright (C) 2004-2007 Oleg Fedorov"
 	@$(ECHO) " "
 	@$(ECHO) "/* " > ../include/fos/version.h
@@ -34,8 +35,8 @@ version:
 	@$(ECHO) "Copyright (C) 2004-2007 Oleg Fedorov" >> ../include/fos/version.h
 	@$(ECHO) "*/" >> ../include/fos/version.h
 	@$(ECHO) " " >> ../include/fos/version.h
-	@$(ECHO) "#define VERSION	\"`cat VERSION`\"" >> ../include/fos/version.h
-	@$(ECHO) "#define BUILD	`cat BUILD`" >> ../include/fos/version.h
+	@$(ECHO) "#define VERSION	\"`cat kernel/VERSION`\"" >> ../include/fos/version.h
+	@$(ECHO) "#define BUILD	\"`cat VERSION`\"" >> ../include/fos/version.h
 
 
 build_kernel:

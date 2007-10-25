@@ -204,7 +204,6 @@ void procman_srv()
       break;
 
     case PROCMAN_CMD_DMESG:
-      //printk("procman: dmesg \n");
       kmesg = new char[2000];
       extern TTY *stdout;
       len = stdout->read(0, kmesg, 2000);

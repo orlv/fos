@@ -153,13 +153,12 @@ static void receive_byte (unsigned char scancode)
  */
 void keyboard_ps2_interrupt ()
 {
-	unsigned char c, strobe;
+	unsigned char c, strobe, sts;
 
 	/* Read the pending information. */
-//	sts = inb (KBDC_AT_CTL);
-//	if (sts & KBSTS_AUX_DATAVL) 
-//		return;
+	sts = inb (KBDC_AT_CTL);
 	c = inb (KBD_DATA);
+
 	strobe = inb (KBDC_XT_CTL);
 	outb (strobe | KBDC_XT_CLEAR, KBDC_XT_CTL);
 	outb (strobe, KBDC_XT_CTL);
@@ -234,6 +233,5 @@ keyboard_ps2_init ()
 	if (!i8042_kbd_probe ())
 		return;
 	set_rate_delay (20, 500);
-	printf("ready.\n");
 	chars = malloc(KB_CHARS_BUFF_SIZE);
 }

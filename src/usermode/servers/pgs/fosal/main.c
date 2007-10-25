@@ -24,7 +24,7 @@ mode_definition_t graphics_init() {
 
 	struct fd *fd = (struct fd *) tty;
 	struct message msg;
-	msg.a0 = 0xfff0;
+	msg.a0 = 0xffff;
 	msg.send_size = 0;
 	msg.recv_size = 0;
 	msg.flags = 0;

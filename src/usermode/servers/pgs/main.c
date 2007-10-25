@@ -27,7 +27,7 @@ int main(int argc, char *argv) {
 		if (need_refresh)
 		{
 		    Redraw();
-		    need_refresh = 1;
+		    need_refresh = 0;
 		}
 		if(need_cursor) {
 			RedrawCursor();

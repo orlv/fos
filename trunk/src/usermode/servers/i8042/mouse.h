@@ -6,5 +6,6 @@
 
 void mouse_ps2_init ();
 void mouse_ps2_interrupt ();
+void MouseHandlerThread();
 #define MOUSE_H
 #endif

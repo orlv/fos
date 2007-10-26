@@ -15,8 +15,8 @@ include ../config.mk
 #DEBUG =-g
 
 ASFLAGS		= -DiKERNEL $(DEBUG) -Wall -nostdlib -nostdinc -I$(INCLUDE)
-CFLAGS		= -DiKERNEL $(DEBUG) -Wall -O0 -I$(INCLUDE) -nostdinc -ffreestanding -fno-stack-protector 
-CXXFLAGS	= -DiKERNEL $(DEBUG) -Wall -O0 -I$(INCLUDE) -nostdinc -nostdinc++ -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin -fno-stack-protector -mregparm=3
+CFLAGS		= -DiKERNEL $(DEBUG) -Wall -O2 -I$(INCLUDE) -nostdinc -ffreestanding -fno-stack-protector 
+CXXFLAGS	= -DiKERNEL $(DEBUG) -Wall -O2 -I$(INCLUDE) -nostdinc -nostdinc++ -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin -fno-stack-protector -mregparm=3
 LDFLAGS		= -nostdlib -static
 ifeq ($(shell uname -m), x86_64)
 ASFLAGS+=-m32

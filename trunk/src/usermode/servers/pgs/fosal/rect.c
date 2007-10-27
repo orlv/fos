@@ -12,6 +12,7 @@ extern unsigned short *lfb;
 extern mode_definition_t __current_mode;
  void DrawRect(int x, int y, int width, int height, int color, context_t *context)
 {
+
 	unsigned short modecolor = 0;
 	if(context != NULL) {
 	if(context->native_pixels) 
@@ -32,11 +33,9 @@ extern mode_definition_t __current_mode;
 	} else {
 		for(; y < y_limit; y++) {
 			unsigned short *dot = (unsigned short *)context->data + y * context->w + x; // * context->w
-			for(int xx = 0; xx < width; xx++) {
-				*dot = modecolor;
-				dot ++;
-			}
+			for(int xx = 0; xx < width; xx++) 
+				*(dot++) = modecolor;
 		}
 	}
-		
+	
 }

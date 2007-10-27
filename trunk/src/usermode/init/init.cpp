@@ -17,7 +17,7 @@ asmlinkage int main()
   printf("Init started! If you see this text - all work fine.\n");
   exec("/mnt/modules/i8042", NULL);
   exec("/mnt/modules/pgs", NULL);
-  //exec("/mnt/modules/shell", NULL);
+  exec("/mnt/modules/shell", NULL);
   //exec("/mnt/modules/speaker", NULL);
   //exec("/mnt/modules/test", NULL);
   //exec("/mnt/modules/pci_server", NULL);

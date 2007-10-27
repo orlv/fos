@@ -10,7 +10,6 @@
 #include "windowing.h"
 #include "list.h"
 #include "cursor.h"
-#include "version.h"
 
 extern mode_definition_t mode;
 
@@ -18,7 +17,7 @@ extern node *front;
 extern node *back;
 
 int refreshing = 0;
-int need_refresh = 0;
+volatile int need_refresh = 0;
 
 int last_handle = 0;
 
@@ -43,7 +42,7 @@ void init_windowing() {
 	locate->h = mode.height;
 	locate->bpp = mode.bpp;
 	locate->data = locate_mem;
-	backbuf->native_pixels = 1;
+	locate->native_pixels = 1;
 
 	DrawRect(0, 0, mode.width, mode.height, 0, locate);
 
@@ -75,7 +74,7 @@ char version[] = { "Portable Graphics System version " VERSION };
 void Redraw() {
 
 	refreshing = 1;
-	memset(backbuf->data, 0xCC, mode.width  * mode.height * mode.bpp);
+	DrawRect(0, 0, mode.width, mode.height, 0xb6c2ff, backbuf);
 	memset(locate->data, 0,  (mode.width  * mode.height * mode.bpp));
 	PutString(mode.width - sizeof(version) * 8, mode.height - 16, version, 0, backbuf);
 	PutString(mode.width - sizeof(version) * 8 - 3, mode.height - 18, version, 0xffffff, backbuf);
@@ -96,19 +95,19 @@ void Redraw() {
 		FlushContext(p->context, p->w, p->h, p->x, p->y, 0, 0, backbuf);
 	}
 	}
-	line(0, 0, mode.width, mode.height, 0xFF0000, backbuf);
+	//line(0, 0, mode.width, mode.height, 0xFF0000, backbuf);
 	FlushBackBuffer(backbuf->data);
 	refreshing = 0;
 }
 
 void CreateWindow(int x, int y, int w, int h, char *caption) {
-	char *video = RequestMemory(h * w * mode.bpp);
+	char *video = RequestMemory(h  * w * mode.bpp);
 	struct window_t *win = malloc(sizeof(struct window_t));
 	context_t *c = malloc(sizeof(context_t));
 	char * title = malloc(strlen(caption));
 	strcpy(title, caption);
-	c->w = w ;
-	c->h = h ;
+	c->w = w;
+	c->h = h;
 	c->bpp = mode.bpp;
 	c->data = video;
 	c->native_pixels = 0;
@@ -120,19 +119,19 @@ void CreateWindow(int x, int y, int w, int h, char *caption) {
 	win->context = c;
 	win->title = title;
 	insertBack(win);
-	//DrawRect(0, 0, w, h, 0xc3c3c3, c);
-	PutString(4,4, caption, 0xffffff, c);
-	line(1, 1, 1, h - 2, 0xffffff, c);
-	line(1, 1, w - 2, 1, 0xffffff, c); 
-	line(1, h - 1, w - 1, h - 1, 0x828282, c);
-	line(w - 1, h - 1, w - 1, 1, 0x828282, c);
-	line(0, h, w, h, 0x000000, c);
-	line(0, h, w, h, 0x000000, c);
+	DrawRect(0, 0, w, h, 0xc3c3c3, c);
 
+	line(1, 1, 1, h - 3, 0xffffff, c);
+	line(1, 1, w - 3, 1, 0xffffff, c); 
+	line(1, h - 2, w - 2, h - 2, 0x828282, c);
+	line(w - 2, h - 1, w - 2, 1, 0x828282, c);
+	line(0, h - 1, w - 1, h - 1, 0x000000, c);
+	line(w - 1, h - 1, w - 1, 0, 0x000000, c);
 	need_refresh = 1;
 }
 
 void SetFocusTo(int handle) {
+//	printf("focus set to %u\n", handle);
 	for(node *n = front; n; n = n->next) {
 		window_t *win = (window_t *)n->data;
 		if(win->handle == handle) {

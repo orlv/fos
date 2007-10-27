@@ -21,14 +21,11 @@ void FlushContext(context_t  *context, int w, int h, int x, int y, int srcx, int
 			}
 		}
 	}else {
-		for(; y < y_limit; y++) {
+		for(; y < y_limit; y++, srcy++) {
 			unsigned short *trg = (unsigned short *)target->data + y * target->w + x; // 
 			unsigned short *src = (unsigned short *)context->data + srcy  * context->w + srcx; //
-			for(int xx = 0; xx < w; xx++) {
-				*trg = *src;
-				trg ++;
-				src ++;
-			}
+			for(int xx = 0; xx < w; xx++)
+				*(trg ++) = *(src ++);
 		}
 	}
 }

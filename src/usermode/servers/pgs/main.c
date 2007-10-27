@@ -8,7 +8,6 @@
 #include <gui/types.h>
 #include <gui/al.h>
 
-#include "version.h"
 #include "windowing.h"
 #include "cursor.h"
 

@@ -2,10 +2,9 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <fcntl.h>
- #include <unistd.h>
-
-#include <fos/message.h>
-#include <sys/mman.h>
+#include <unistd.h>
+#include <fos/fos.h>
+#include <sched.h>
 
 #include <gui/types.h>
 void event_handler(event_t *event);
@@ -21,6 +20,7 @@ void mouse_thread() {
 	int y = 0;
 	int oldx = 0;
 	int oldy = 0;
+	int oldb = 0;
 	int psaux;
 	do {
 		psaux = open("/dev/psaux", 0);
@@ -41,13 +41,16 @@ void mouse_thread() {
 			mousemove_event_t mouse = { x, y};
 			event_t event = { EVENT_TYPE_MOUSEMOVE, &mouse };
 			event_handler(&event);
-		}else if(move.dz) {  // колесико
-		}else if(move.b) { // кнопку нажали
+		}
+		if(move.b && !oldb) { // кнопку нажали
 			event_t event = { EVENT_TYPE_MOUSEDOWN, NULL };
 			event_handler(&event);
-		}else if(!move.b) { // отпустили
+			oldb = move.b;
+		}
+		if(!move.b && oldb) { // отпустили
 			event_t event = { EVENT_TYPE_MOUSEUP, NULL };
-			event_handler(&event);		
+			event_handler(&event);
+			oldb = move.b;	
 		}
 			
 	}

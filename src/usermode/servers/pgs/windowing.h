@@ -18,7 +18,7 @@ typedef struct window_t {
 } window_t;
 
 extern int _down;
-extern int need_refresh;
+extern volatile int need_refresh;
 
 void init_windowing();
 void HandleMouseClick(int x, int y, int down);

@@ -10,7 +10,7 @@
 
 volatile bool foo = 0;
 
-void thread()
+THREAD(thread)
 {
   struct message msg;
   int c = 0;
@@ -28,8 +28,6 @@ void thread()
     msg.send_size = 0;
     reply(&msg);
   }
-
-  while(1);
 }
 
 asmlinkage int main(int argc, char ** argv)
@@ -41,7 +39,7 @@ asmlinkage int main(int argc, char ** argv)
   while(!foo);
   int t1 = uptime();
   foo = 0;
-  int iter = 1012;
+  u32_t iter = 1012;
   while(1) {
     msg.recv_size = 0;
     msg.send_size = 0;

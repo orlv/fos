@@ -64,7 +64,7 @@ GRUB_MODULES =	/boot/modules/test.txt		\\
 
 #		/boot/modules/ext2.img
 #		/boot/modules/ext2test
-#		/boot/modules/keyboard
+
 
 GRUB_MENU    = $TOPDIR/boot/grub/menu.lst
 GRUB_TFTP_MENU = $TOPDIR/boot/grub/tftpmenu.lst

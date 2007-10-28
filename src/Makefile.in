@@ -10,7 +10,7 @@ all:	version build_kernel build_user
 	@rm -f `find . -name \*~`
 #	@expr `cat .build.next` + 1 | xargs $(ECHO) -n > .build.next.tmp
 #	@mv .build.next.tmp .build.next
-	@LANG=C date -u | xargs $(ECHO) -n > VERSION
+	@LANG=C date -u +%Y%m%d | xargs $(ECHO) -n > VERSION
 	@$(GREEN) $(ECHO) \ System Complete!
 	@$(ECHO) \ Run \"make install\" to build iso image.
 	@$(YELLOW) $(ECHO) \#------------------------------------------------------------------------------ ; $(GREY)

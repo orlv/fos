@@ -54,6 +54,16 @@ static inline void unmask_interrupt(u32_t int_num)
 asmlinkage u32_t kill(tid_t tid);
 asmlinkage tid_t exec(const char * filename, const char * args);
 
+#ifndef iKERNEL
+
+#define THREAD(thread) int _ ## thread();				\
+  void thread () {							\
+    exit (_ ## thread());						\
+  }									\
+  int _ ## thread()
+
+#endif
+
 asmlinkage tid_t thread_create(off_t eip);
 
 asmlinkage res_t interrupt_attach(u8_t n);

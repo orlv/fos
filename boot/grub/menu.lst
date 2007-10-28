@@ -2,7 +2,7 @@
 timeout 0
 default 0
 hiddenmenu
-title FOS - FOS is Operating System (VERSION 0.0.45.2, BUILD Sun Oct 28 11:53:51 UTC 2007)
+title FOS - FOS is Operating System (VERSION 0.0.45.2, BUILD Sun Oct 28 13:12:00 UTC 2007)
 	root(cd0)
 	kernel /boot/fos
 	module /boot/modules/test.txt

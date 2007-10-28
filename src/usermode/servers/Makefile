@@ -10,7 +10,7 @@
 
 include config.mk
 
-SERVERS = namer keyboard fbtty pgs tty speaker hw i8042
+SERVERS = namer fbtty pgs tty speaker hw i8042
 #SERVERS += floppy
 
 all: 

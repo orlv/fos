@@ -1,3 +1,8 @@
+Sun Oct 28 13:12:00 UTC 2007 (kernel version 0.0.45.2)
+Oleg S Fedorov <o.s.fedorov@gmail.com>)
+	- Добавлена пользовательская обертка THREAD() для корректного
+	  завершения потоков.
+
 Thu Oct 25 15:44:36 UTC 2007 (kernel version 0.0.45.2)
 Oleg S Fedorov <o.s.fedorov@gmail.com>)
 	- Исправления в ядре

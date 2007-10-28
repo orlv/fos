@@ -25,7 +25,7 @@ volatile bool irq_done = 0;
 volatile u32_t motor_ticks = 0; /* Больше нуля - то уменьшается на 1, когда станет равным 0 - мотор выключается */
 volatile bool motor_on = 0;
 
-void floppy_timer_thread()
+THREAD(floppy_timer_thread)
 {
   struct message msg;
   while(1) {

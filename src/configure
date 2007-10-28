@@ -59,6 +59,7 @@ GRUB_MODULES =	/boot/modules/test.txt		\\
 		/boot/modules/font.psf		\\
 		/boot/modules/pci_server	\\
 		/boot/modules/pgs		\\
+		/boot/modules/ipctest           \\
 		/boot/modules/i8042
 
 #		/boot/modules/ext2.img

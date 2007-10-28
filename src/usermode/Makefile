@@ -4,7 +4,8 @@
 
 include config.mk
 
-ITEMS = crt0 libc libcpp libfos init shell test int16b servers
+ITEMS = crt0 libc libcpp libfos init shell test int16b ipctest
+ITEMS += servers
 
 # -----------------------------------------------------------------------------
 

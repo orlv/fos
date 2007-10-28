@@ -9,10 +9,10 @@ extern mode_definition_t __current_mode;
 void SetPixel(int x, int y, int rgb, context_t *context)
 {
 	if(context == NULL) {
-		if(x < 0 || y < 0 || x > __current_mode.width || y > __current_mode.height)return;
+		if(x < 0 || y < 0 || x >= __current_mode.width || y >= __current_mode.height)return;
 		lfb[x + y * __current_mode.width] = RED(rgb, 5) << 11 | GREEN(rgb, 6) << 5 | BLUE(rgb, 5);
 	}else {
-		if(x < 0 || y < 0 || x > context->w || y > context->h) return;
+		if(x < 0 || y < 0 || x >= context->w || y >= context->h) return;
 		unsigned short *ptr = (unsigned short *) context->data;
 		ptr[x + y * context->w] = RED(rgb, 5) << 11 | GREEN(rgb, 6) << 5 | BLUE(rgb, 5);
 	}

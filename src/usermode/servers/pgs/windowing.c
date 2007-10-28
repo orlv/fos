@@ -10,7 +10,8 @@
 #include "windowing.h"
 #include "list.h"
 #include "cursor.h"
-
+#include "close.h"
+extern int need_cursor;
 extern mode_definition_t mode;
 
 extern node *front;
@@ -23,8 +24,7 @@ int last_handle = 0;
 
 context_t *backbuf;
 context_t *locate;
-
-void CreateWindow(int x, int y, int w, int h, char *caption);
+int CreateWindow(int tid, int x, int y, int w, int h, char *caption, int flags);
 
 void init_windowing() {
 
@@ -44,17 +44,8 @@ void init_windowing() {
 	locate->data = locate_mem;
 	locate->native_pixels = 1;
 
-	DrawRect(0, 0, mode.width, mode.height, 0, locate);
-
 	need_refresh = 1;
 
-	CreateWindow(100, 100, 200, 200, "Test window");
-
-	CreateWindow(250, 150, 200, 200, "Test window 2");
-
-	CreateWindow(350, 200, 200, 200, "Test window 3");
-
-	CreateWindow(450, 250, 200, 200, "Test window 4");
 }
 
 int get_window_handle(int x, int y) {
@@ -91,16 +82,17 @@ void Redraw() {
 			DrawRect(3, 3, p->w - 6, 18, 0x808080, p->context);
 			PutString(4, 4, p->title, 0xc0c0c0,  p->context);
 		}
+		DrawImage(p->w - 21, 5, &close_button,  p->context);
 		DrawRect(p->x, p->y, p->w, p->h, p->handle, locate);
 		FlushContext(p->context, p->w, p->h, p->x, p->y, 0, 0, backbuf);
 	}
 	}
-	//line(0, 0, mode.width, mode.height, 0xFF0000, backbuf);
 	FlushBackBuffer(backbuf->data);
+	need_cursor = 1;
 	refreshing = 0;
 }
 
-void CreateWindow(int x, int y, int w, int h, char *caption) {
+int CreateWindow(int tid, int x, int y, int w, int h, char *caption, int class) {
 	char *video = RequestMemory(h  * w * mode.bpp);
 	struct window_t *win = malloc(sizeof(struct window_t));
 	context_t *c = malloc(sizeof(context_t));
@@ -118,6 +110,7 @@ void CreateWindow(int x, int y, int w, int h, char *caption) {
 	win->h = h;
 	win->context = c;
 	win->title = title;
+	win->tid = tid;
 	insertBack(win);
 	DrawRect(0, 0, w, h, 0xc3c3c3, c);
 
@@ -128,6 +121,7 @@ void CreateWindow(int x, int y, int w, int h, char *caption) {
 	line(0, h - 1, w - 1, h - 1, 0x000000, c);
 	line(w - 1, h - 1, w - 1, 0, 0x000000, c);
 	need_refresh = 1;
+	return win->handle;
 }
 
 void SetFocusTo(int handle) {
@@ -143,6 +137,26 @@ void SetFocusTo(int handle) {
 			return;
 		}
 		
+	}
+	
+}
+void DestroyWindow(int handle) {
+	for(node *n = front; n; n = n->next) {
+		window_t *win = (window_t *)n->data;
+		if(win->handle == handle) {
+			free(win->context->data);
+			free(win->context);
+			free(win->title);
+			free(win);
+
+			if(n == front && n == back) {
+				front = NULL;
+				back = NULL;
+			} else
+				removeNode(n);
+			free(n);
+			need_refresh = 1;
+		}
 	}
 	
 }

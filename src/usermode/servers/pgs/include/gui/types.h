@@ -39,4 +39,18 @@ typedef struct {
 	int native_pixels;
 	char *data;
 } context_t;
+typedef struct {
+	int parent;
+	int x;
+	int y;
+	int w;
+	int h;
+	int class;
+} create_win_t;
+#define MAX_TITLE_LEN 64
+#define WIN_CMD_CREATEWINDOW 1
+#define WIN_CMD_DESTROYWINDOW 2
+#define WIN_CMD_WAIT_EVENT 3
+#define WIN_CMD_CLEANUP 4
+#define EV_WINCLOSE 1
 #endif

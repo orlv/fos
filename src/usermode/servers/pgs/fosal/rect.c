@@ -22,7 +22,6 @@ extern mode_definition_t __current_mode;
 	}else{
 		modecolor = RED(color, 5) << 11 | GREEN(color, 6) << 5 | BLUE(color, 5);
 	}
-
 	int y_limit = height + y;
 	if(context == NULL) {
 		for(; y < y_limit; y++) {

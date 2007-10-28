@@ -138,20 +138,25 @@ void EventsThread()
       }
       case WIN_CMD_CLEANUP: {
 	// FIXME: тут виснет.
-	break;
+	//	break;
 	proc_t *n = NULL;
+	if(!proc_head)
+	  break;
 	for(proc_t *p = proc_head; p;) {
 	  n = p->next;
 	  if(p->tid == msg.tid) {
 	    if(p->events != NULL) {
-	      event_q_t * n;
-	      for(event_q_t *ev = p->events; ev; n = ev->next) {
+	      event_q_t * en;
+	      for(event_q_t * ev = p->events; ev;) {
+		en = ev->next;
 		free(ev);
-		ev = n;
+		ev = en;
 	      }
 	    }
 	    if(n)
 	      n->next = p->next;
+	    if(p == proc_head)
+	      proc_head = n;
 	    free(p);
 	  }
 	  p = n;
@@ -227,6 +232,6 @@ void mouse_thread()
 
 void StartEventHandling()
 {
-  thread_create(&mouse_thread);
-  thread_create(&EventsThread);
+  thread_create((off_t)&mouse_thread);
+  thread_create((off_t)&EventsThread);
 }

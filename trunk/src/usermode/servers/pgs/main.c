@@ -22,6 +22,10 @@ int main(int argc, char *argv) {
 	init_windowing();
 	StartEventHandling();
 	printf("I'am alive!\n");
+	exec("/mnt/modules/test", NULL);
+	exec("/mnt/modules/test", NULL);
+	exec("/mnt/modules/test", NULL);
+	exec("/mnt/modules/test", NULL);
 	for(;;) {
 		if (need_refresh)
 		{

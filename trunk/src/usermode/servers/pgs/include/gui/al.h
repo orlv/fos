@@ -18,4 +18,5 @@ void FlushBackBuffer(char *back);
 int GetPixel(int x, int y, context_t *context);
 void SetPixel(int x, int y, int rgb, volatile context_t *context);
 void *RequestMemory(int c);
+void PostEvent(int tid, int handle, int class, int a0, int a1, int a2, int a3);
 #endif

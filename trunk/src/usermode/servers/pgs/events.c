@@ -68,8 +68,15 @@ void event_handler(event_t *event) {
 	case EVENT_TYPE_MOUSEUP:
 		down = 0;
 		int handle = get_window_handle(mousex, mousey);
-		if(handle != 0) 
-			SetFocusTo(handle);
+		if(!handle) break; 
+		window_t *win = GetWindowInfo(handle);
+		int win_x = mousex-win->x;
+		int win_y = mousey-win->y;
+		if((win_x >= win->w - 21) && (win_y >= 5) && (win_x <= win->w - 5) && (win_y <= 19)) {
+			PostEvent(win->tid, handle, EV_WINCLOSE, 0, 0, 0, 0);
+			break;
+		}
+		SetFocusTo(handle);
 		need_cursor = 1;
 		break;
 	}

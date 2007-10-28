@@ -5,7 +5,7 @@
 include ../config.mk
 
 OUTPUT		=	test
-OBJECTS		=	main.o
+OBJECTS		=	gui.o main.o
 LDLIBS		=	-lc -lcpp -lfos
 
 all:	$(OBJECTS)

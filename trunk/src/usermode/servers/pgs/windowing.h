@@ -15,6 +15,7 @@ typedef struct window_t {
 	int active;
 	context_t *context;
 	char *title;
+	int tid;
 } window_t;
 
 extern int _down;

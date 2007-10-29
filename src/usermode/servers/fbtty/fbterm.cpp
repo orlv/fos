@@ -92,7 +92,7 @@ void fbterm::redraw()
 {
   if(disable) return;
   bar(10, 10, scr_width-20, scr_height-20, 0x4aad);
-      u8_t p[3];
+  /*      u8_t p[3];
       char *data = (char *) &logo_header_data;
       u16_t color;
       for(size_t i=0; i<logo_height; i++)
@@ -109,7 +109,7 @@ void fbterm::redraw()
 	  color = ((p[0] & 0xf8) >> 3) << 11 | ((p[1] & 0xfc) >> 2) << 5 | ((p[2] & 0xf8) >> 3);
 	  if(p[2]) putpixel(j, i, color);
 	}
-
+  */
   _x = X_BORDER;
   _y = Y_BORDER;
 
@@ -268,7 +268,7 @@ int fbterm::set_videomode(u16_t mode)
       //bar(0, 0, scr_width, scr_height, 0xeefe);
       //bar(scr_width-20, 0, 20, 20, 0xadef);
       bar(0, 0, scr_width, scr_height, 0x4aad);
-
+      /*
       u8_t p[3];
       char *data = (char *) &logo_header_data;
       u16_t color;
@@ -286,7 +286,7 @@ int fbterm::set_videomode(u16_t mode)
 	  color = ((p[0] & 0xf8) >> 3) << 11 | ((p[1] & 0xfc) >> 2) << 5 | ((p[2] & 0xf8) >> 3);
 	  if(p[2]) putpixel(j, i, color);
 	}
-	
+      */
       close(fd);
       return 1;
     }

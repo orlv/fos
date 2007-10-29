@@ -80,7 +80,7 @@ void EventsThread()
     msg.recv_buf  = buffer;
     msg.flags = 0;
     msg.recv_size = sizeof(create_win_t) + MAX_TITLE_LEN;
-    alarm(100);
+    alarm(50);
     receive(&msg);
     alarm(0);
     if(msg.tid != _MSG_SENDER_SIGNAL)
@@ -137,12 +137,12 @@ void EventsThread()
 	break;
       }
       case WIN_CMD_CLEANUP: {
-	// FIXME: тут виснет.
+	q_locked = 1;
+	// FIXME: тут виснет. да, все еще виснет.
 	//	break;
-	proc_t *n = NULL;
 	if(!proc_head)
 	  break;
-	for(proc_t *p = proc_head; p;) {
+for(proc_t *p = proc_head, *n = NULL; p;) {
 	  n = p->next;
 	  if(p->tid == msg.tid) {
 	    if(p->events != NULL) {
@@ -161,8 +161,11 @@ void EventsThread()
 	  }
 	  p = n;
 	}
+	msg.send_size = 0;
+	reply(&msg);
+        q_locked = 0;
 	break;
-      }
+	}
       default:
 	printf("message: %u %u %u %u\n", msg.a0, msg.a1, msg.a2, msg.a3);
 	msg.a0 = 0;
@@ -170,8 +173,12 @@ void EventsThread()
 	msg.send_size = 0;
 	reply(&msg);
       }
-    while(q_locked) sched_yield();
+    while(q_locked) sched_yield(); 
     for(proc_t *p = proc_head; p; p = p->next) {
+	if(p == p->next) {
+		printf("Looped.\n");
+		break;
+	}
       if(p->waiting && p->events) {
 	event_q_t *ev = p->events;
 	p->events = ev->next;
@@ -186,6 +193,7 @@ void EventsThread()
       }
     }
   }
+  printf("WARNING: EXIT FROM INFINITE LOOP!\n");
 }
 
 void mouse_thread()

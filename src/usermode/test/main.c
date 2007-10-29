@@ -11,8 +11,8 @@ asmlinkage int main(int argc, char ** argv)
 		case  EV_WINCLOSE:
 			DestroyWindow(winhandle);
 			GuiEnd();
+			printf("Window closed, all cleaned, exiting.\n");
 			return 1;
-			break;
 		}
 	}
 	

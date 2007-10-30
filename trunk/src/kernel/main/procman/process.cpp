@@ -9,7 +9,6 @@
 #include <fos/procman.h>
 #include <fos/printk.h>
 #include <fos/fos.h>
-#include <fos/hal.h>
 #include <sys/elf32.h>
 #include <string.h>
 
@@ -67,7 +66,7 @@ u32_t TProcess::LoadELF(register void *image)
       }
 
       /* Монтируем секцию в адресное пространство процесса */
-      memory->mmap(p->p_vaddr & 0xfffff000, p->p_memsz + (p->p_vaddr % PAGE_SIZE), MAP_FIXED, (off_t)object, hal->kmem);
+      memory->mmap(p->p_vaddr & 0xfffff000, p->p_memsz + (p->p_vaddr % PAGE_SIZE), MAP_FIXED, (off_t)object, system->kmem);
       kfree(object, o_size); /* освобождаем память ядра от ненужных тут страниц */
     }
   }

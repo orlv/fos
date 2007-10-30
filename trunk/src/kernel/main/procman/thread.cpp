@@ -6,7 +6,6 @@
 #include <fos/thread.h>
 #include <fos/mmu.h>
 #include <fos/fos.h>
-#include <fos/hal.h>
 #include <fos/pager.h>
 
 Thread::Thread(class TProcess *process, off_t eip, u16_t flags, void * kernel_stack, void * user_stack, u16_t code_segment, u16_t data_segment)
@@ -25,9 +24,9 @@ Thread::Thread(class TProcess *process, off_t eip, u16_t flags, void * kernel_st
 Thread::~Thread()
 {
   for(int n=0; n<256; n++){
-    if(hal->user_int_handler[n] == this){
-      hal->pic->mask(n);
-      hal->user_int_handler[n] = 0;
+    if(system->user_int_handler[n] == this){
+      system->pic->mask(n);
+      system->user_int_handler[n] = 0;
     }
   }
 
@@ -79,20 +78,20 @@ void Thread::set_tss(register off_t eip,
   tss->io_bitmap_base = 0xffff;
 
   /* создадим селектор TSS */
-  hal->gdt->set_tss_descriptor((off_t) tss, &descr);
+  system->gdt->set_tss_descriptor((off_t) tss, &descr);
 }
 
 void Thread::run()
 {
-  hal->gdt->load_tss(SEL_N(BASE_TSK_SEL), &descr);
+  system->gdt->load_tss(SEL_N(BASE_TSK_SEL), &descr);
   __asm__ __volatile__("ljmp $0x38, $0");
 }
 
 res_t Thread::put_message(kmessage *message)
 {
-  hal->mt_disable();
+  system->mt_disable();
   if(new_messages_count.read() >= MAX_MSG_COUNT){
-    hal->mt_enable();
+    system->mt_enable();
     return RES_FAULT2;
   }
 
@@ -100,7 +99,7 @@ res_t Thread::put_message(kmessage *message)
   new_messages_count.inc();
   flags &= ~FLAG_TSK_RECV;	/* сбросим флаг ожидания получения сообщения (если он там есть) */
 
-  hal->mt_enable();
+  system->mt_enable();
   return RES_SUCCESS;
 }
 

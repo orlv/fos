@@ -9,6 +9,10 @@
 #include <types.h>
 #include <fos/syscall.h>
 
+#ifdef iKERNEL
+#include <fos/system.h>
+#endif
+
 #define BASE_TSK_SEL 0x38
 #define SEL_N(SEL) ((SEL)/8)
 

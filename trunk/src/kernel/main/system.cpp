@@ -1,26 +1,25 @@
 /*
-  kernel/main/hal.cpp
+  kernel/main/system.cpp
   Copyright (C) 2007 Oleg Fedorov
 */
 
-#include <fos/hal.h>
+#include <fos/fos.h>
 #include <stdarg.h>
 #include <vsprintf.h>
 #include <fos/printk.h>
-#include <fos/fos.h>
 #include <fos/procman.h>
 
-HAL::HAL(register multiboot_info_t * mbi)
+SYSTEM::SYSTEM(register multiboot_info_t * mbi)
 {
   this->mbi = mbi;
   user_int_handler = new Thread* [256];
   mt_disable();
 }
 
-void HAL::panic(register const char *fmt, ...)
+void SYSTEM::panic(register const char *fmt, ...)
 {
   char panic_buf[512];
-  hal->cli();
+  system->cli();
 
   va_list args;
   va_start(args, fmt);
@@ -38,15 +37,15 @@ void HAL::panic(register const char *fmt, ...)
   halt();
 }
 
-void HAL::halt()
+void SYSTEM::halt()
 {
   while(1){
-    hal->cli();
-    hal->hlt();
+    system->cli();
+    system->hlt();
   }
 }
 
-res_t HAL::interrupt_attach(Thread *thread, u8_t n)
+res_t SYSTEM::interrupt_attach(Thread *thread, u8_t n)
 {
   if(!user_int_handler[n]){
     user_int_handler[n] = thread;
@@ -56,7 +55,7 @@ res_t HAL::interrupt_attach(Thread *thread, u8_t n)
   }
 }
 
-res_t HAL::interrupt_detach(Thread *thread, u8_t n)
+res_t SYSTEM::interrupt_detach(Thread *thread, u8_t n)
 {
   if(user_int_handler[n] == thread){
     pic->mask(n);

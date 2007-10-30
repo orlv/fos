@@ -8,7 +8,7 @@
 
 #include <types.h>
 #include <time.h>
-#include <fos/hal.h>
+#include <fos/system.h>
 
 #define TIMER_IRQ_NUM 0
 
@@ -23,12 +23,12 @@ public:
 
   inline void enable()
   {
-    hal->pic->unmask(TIMER_IRQ_NUM);
+    system->pic->unmask(TIMER_IRQ_NUM);
   }
 
   inline void disable()
   {
-    hal->pic->mask(TIMER_IRQ_NUM);
+    system->pic->mask(TIMER_IRQ_NUM);
   }
 };
 

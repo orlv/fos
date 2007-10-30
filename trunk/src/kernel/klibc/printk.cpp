@@ -5,7 +5,7 @@
 
 #include <fos/printk.h>
 #include <fos/drivers/char/tty/tty.h>
-#include <fos/hal.h>
+#include <fos/system.h>
 #include <stdarg.h>
 #include <vsprintf.h>
 
@@ -19,9 +19,9 @@ int printk(const char *fmt, ...)
     char *printbuf = new char[2000];
     i = vsprintf(printbuf, fmt, args);
     va_end(args);
-    hal->mt_disable();
+    system->mt_disable();
     stdout->write(0, printbuf, i);
-    hal->mt_enable();
+    system->mt_enable();
     delete printbuf;
   }
   return i;

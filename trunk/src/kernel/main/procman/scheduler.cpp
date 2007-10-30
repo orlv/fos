@@ -8,7 +8,6 @@
 #include <fos/printk.h>
 #include <fos/fos.h>
 #include <fos/drivers/char/timer/timer.h>
-#include <fos/hal.h>
 #include <fos/fs.h>
 #include <sys/elf32.h>
 
@@ -16,7 +15,7 @@ extern Timer *SysTimer;
 
 void sched_srv()
 {
-  hal->procman->scheduler();
+  system->procman->scheduler();
 }
 
 void TProcMan::scheduler()

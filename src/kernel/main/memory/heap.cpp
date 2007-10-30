@@ -8,7 +8,7 @@
 
 #include <fos/mm.h>
 #include <fos/printk.h>
-#include <fos/hal.h>
+#include <fos/system.h>
 #include <c++/tmutex.h>
 #include <string.h>
 
@@ -69,7 +69,7 @@ void *malloc(register size_t size)
       //heap_mutex.unlock();
       //__mt_enable();
       if(!(p = morecore(nunits*sizeof(struct HeapMemBlock)))){
-	hal->panic("no free memory available in kernel heap!");
+	system->panic("no free memory available in kernel heap!");
       }
     }
   }

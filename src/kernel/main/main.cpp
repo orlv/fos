@@ -10,7 +10,6 @@
 #include <fos/fos.h>
 #include <fos/printk.h>
 #include <fos/drivers/char/timer/timer.h>
-#include <fos/hal.h>
 #include <fos/traps.h>
 #include <vsprintf.h>
 #include <stdarg.h>
@@ -19,7 +18,7 @@
 
 TTY *stdout;
 Timer *SysTimer;
-HAL *hal;
+SYSTEM *system;
 ModuleFS *initrb; /* Модули, загруженные GRUB */
 
 void out_banner()
@@ -38,14 +37,14 @@ asmlinkage void init()
 {
   init_memory();
 
-  hal->cli();
-  hal->pic = new PIC;
+  system->cli();
+  system->pic = new PIC;
 
-  hal->gdt = new GDT;
-  hal->idt = new IDT;
+  system->gdt = new GDT;
+  system->idt = new IDT;
 
   setup_idt();
-  hal->sti();
+  system->sti();
 
   /*  TTY *tty1 = new TTY(80, 25);
   tty1->set_text_color(WHITE);
@@ -53,9 +52,9 @@ asmlinkage void init()
 
   out_banner();
 
-  printk("Memory size: %d Kb, free %dK (%dK high/%dK low)\n", hal->pages_cnt*4, hal->free_pages.read()*4 + hal->free_pages_DMA16.read()*4, hal->free_pages.read()*4, hal->free_pages_DMA16.read()*4);
+  printk("Memory size: %d Kb, free %dK (%dK high/%dK low)\n", system->pages_cnt*4, system->free_pages.read()*4 + system->free_pages_DMA16.read()*4, system->free_pages.read()*4, system->free_pages_DMA16.read()*4);
 
-  hal->procman = new TProcMan;
+  system->procman = new TProcMan;
 
   SysTimer = new Timer;
   extern multiboot_info_t *__mbi;
@@ -63,8 +62,8 @@ asmlinkage void init()
   
   printk("Kernel: start task switching\n");
  
-  hal->mt_reset();  /* сбросим счетчик на 1 */
-  hal->mt_enable();
+  system->mt_reset();  /* сбросим счетчик на 1 */
+  system->mt_enable();
 
   sched_yield();
 
@@ -78,7 +77,7 @@ asmlinkage void init()
   while(1){
     i++;
     if(i == 0x60){
-      printk("Memory size: %d Kb, free %dK (%dK high/%dK low), heap_free=%d \n", hal->pages_cnt*4, hal->free_pages.read()*4 + hal->free_lowpages.read()*4, hal->free_pages.read()*4, hal->free_lowpages.read()*4, heap_free);
+      printk("Memory size: %d Kb, free %dK (%dK high/%dK low), heap_free=%d \n", system->pages_cnt*4, system->free_pages.read()*4 + system->free_lowpages.read()*4, system->free_pages.read()*4, system->free_lowpages.read()*4, heap_free);
       i=0;
     }
     sched_yield();

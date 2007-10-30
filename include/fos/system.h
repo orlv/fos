@@ -1,10 +1,10 @@
 /*
-  fos/hal.h
+  fos/system.h
   Copyright (C) 2007 Oleg Fedorov
 */
 
-#ifndef _FOS_HAL_H
-#define _FOS_HAL_H
+#ifndef _FOS_SYSTEM_H
+#define _FOS_SYSTEM_H
 
 #include <types.h>
 #include <multiboot.h>
@@ -41,12 +41,12 @@ static inline bool __mt_status()
 }
 
 
-class HAL {
+class SYSTEM {
  private:
   multiboot_info_t *mbi;
 
  public:
-  HAL(register multiboot_info_t * mbi);
+  SYSTEM(register multiboot_info_t * mbi);
   
   TProcMan *procman;
   tid_t tid_procman;
@@ -118,43 +118,43 @@ class HAL {
   res_t interrupt_detach(Thread *thread, u8_t n);
 };
 
-extern HAL *hal;
+extern SYSTEM *system;
 
 static inline int page_status(u32_t n)
 {
-  if(n < hal->pages_cnt)
-    return hal->phys_page[n].mapcount.read();
+  if(n < system->pages_cnt)
+    return system->phys_page[n].mapcount.read();
   else
     return -1;
 }
 
 static inline u32_t kmem_log_addr(u32_t n)
 {
-  if(n < hal->pages_cnt)
-    return hal->phys_page[n].kernel_map;
+  if(n < system->pages_cnt)
+    return system->phys_page[n].kernel_map;
   else
     return 0;
 }
 
 static inline void kmem_set_log_addr(u32_t n, u32_t kmap_address)
 {
-  if(n < hal->pages_cnt)
-    hal->phys_page[n].kernel_map = kmap_address;
+  if(n < system->pages_cnt)
+    system->phys_page[n].kernel_map = kmap_address;
 }
 
 static inline int alloc_page(u32_t n)
 {
-  if(n < hal->pages_cnt)
-    return hal->phys_page[n].mapcount.inc_return();
+  if(n < system->pages_cnt)
+    return system->phys_page[n].mapcount.inc_return();
   else
     return -1;
 }
 
 static inline int free_page(u32_t n)
 {
-  if(n < hal->pages_cnt) {
-    if(hal->phys_page[n].mapcount.read())
-      return hal->phys_page[n].mapcount.dec_return();
+  if(n < system->pages_cnt) {
+    if(system->phys_page[n].mapcount.read())
+      return system->phys_page[n].mapcount.dec_return();
     else
       return 0;
   } else

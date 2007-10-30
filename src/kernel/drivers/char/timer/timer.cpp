@@ -34,11 +34,11 @@ Timer::Timer()
   printk("SysTimer: setting up.. ");
   u16_t HZ = 1000;
   u16_t count = TIMER_FREQ/HZ;
-  //hal->outportb(I8253_MODE, I8253_MODE_SEL0 | I8253_MODE_RATEGEN | I8253_MODE_16BIT);
-  hal->outportb(I8253_MODE, I8253_MODE_SEL0 | I8253_MODE_SQWAVE | I8253_MODE_16BIT);
+  //system->outportb(I8253_MODE, I8253_MODE_SEL0 | I8253_MODE_RATEGEN | I8253_MODE_16BIT);
+  system->outportb(I8253_MODE, I8253_MODE_SEL0 | I8253_MODE_SQWAVE | I8253_MODE_16BIT);
 
-  hal->outportb(I8253_CNTR0, count & 0xff);
-  hal->outportb(I8253_CNTR0, count >> 8);
+  system->outportb(I8253_CNTR0, count & 0xff);
+  system->outportb(I8253_CNTR0, count >> 8);
 
   printk("[OK]\n");
   enable();

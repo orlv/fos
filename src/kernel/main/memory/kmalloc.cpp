@@ -6,7 +6,7 @@
 #include <fos/mm.h>
 #include <fos/mmu.h>
 #include <fos/printk.h>
-#include <fos/hal.h>
+#include <fos/system.h>
 #include <fos/pager.h>
 #include <c++/stack.h>
 #include <multiboot.h>
@@ -19,8 +19,8 @@ void put_page(u32_t page)
 {
   if(page >= PAGE(DMA16_MEM_SIZE)){
     if(!free_page(page)){ /* если эта страница больше никем не используется */
-      hal->free_page->push(page);
-      hal->free_pages.inc();
+      system->free_page->push(page);
+      system->free_pages.inc();
     }
   } else {
     put_page_DMA16(page);
@@ -30,9 +30,9 @@ void put_page(u32_t page)
 /* если в пуле есть страницы - возвращаем одну, иначе пытаемся возвратить страницу из нижней памяти */
 u32_t get_page()
 {
-  if(hal->free_pages.read()){
-    hal->free_pages.dec();
-    return hal->free_page->pop();
+  if(system->free_pages.read()){
+    system->free_pages.dec();
+    return system->free_page->pop();
   } else {
     return get_page_DMA16();
   }
@@ -41,16 +41,16 @@ u32_t get_page()
 void put_page_DMA16(u32_t page)
 {
   if(!free_page(page)){ /* если эта страница больше никем не используется */
-    hal->free_page_DMA16->push(page);
-    hal->free_pages_DMA16.inc();
+    system->free_page_DMA16->push(page);
+    system->free_pages_DMA16.inc();
   }
 }
 
 u32_t get_page_DMA16()
 {
-  if(hal->free_pages_DMA16.read()){
-    hal->free_pages_DMA16.dec();
-    return hal->free_page_DMA16->pop();
+  if(system->free_pages_DMA16.read()){
+    system->free_pages_DMA16.dec();
+    return system->free_page_DMA16->pop();
   } else {
     return 0;
   }
@@ -107,12 +107,12 @@ void init_memory()
   free((void *)(kheap+1));
 
   /* ------------  Тут уже можно использовать оператор new  ------------ */
-  hal = new HAL(__mbi);
-  hal->pages_cnt = pages_cnt;
-  hal->phys_page = new page[hal->pages_cnt];
+  system = new SYSTEM(__mbi);
+  system->pages_cnt = pages_cnt;
+  system->phys_page = new page[system->pages_cnt];
 
   /* Создаем пул свободных нижних (<16 Мб) страниц */
-  hal->free_page_DMA16 = new Stack<u32_t>(PAGE(DMA16_MEM_SIZE)-PAGE(freemem_start_DMA16));
+  system->free_page_DMA16 = new Stack<u32_t>(PAGE(DMA16_MEM_SIZE)-PAGE(freemem_start_DMA16));
   for(u32_t i = PAGE(freemem_start_DMA16); (i < PAGE(heap_start)) && (i < PAGE(DMA16_MEM_SIZE)); i++){
     put_page_DMA16(i);
   }
@@ -130,47 +130,47 @@ void init_memory()
     Пул будет пуст, если нет свободной памяти выше 16 Мб -- запросы get_page() будут отдавать страницы из пула free_lowpage
   */
   if(freemem_start){
-    hal->free_page = new Stack<u32_t>(PAGE(freemem_end)-PAGE(freemem_start));
+    system->free_page = new Stack<u32_t>(PAGE(freemem_end)-PAGE(freemem_start));
     for(u32_t i = PAGE(freemem_start); (i < PAGE(freemem_end)) && (i < PAGE(KERNEL_MEM_LIMIT)); i++){
       put_page(i);
     }
   }
 
-  hal->kmem = new VMM(0, KERNEL_MEM_LIMIT);
-  hal->kmem->pager = new Pager(get_page() * PAGE_SIZE, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS); /* каталог страниц ядра */
-  kmem_set_log_addr(PAGE(OFFSET(hal->kmem->pager->pagedir)), PAGE(OFFSET(hal->kmem->pager->pagedir)));
+  system->kmem = new VMM(0, KERNEL_MEM_LIMIT);
+  system->kmem->pager = new Pager(get_page() * PAGE_SIZE, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS); /* каталог страниц ядра */
+  kmem_set_log_addr(PAGE(OFFSET(system->kmem->pager->pagedir)), PAGE(OFFSET(system->kmem->pager->pagedir)));
 
   /* Создадим таблицы страниц для всей памяти, входящей в KERNEL_MEM_LIMIT (32 каталога для 128 мегабайт) */
   for(u32_t i=0; i < KERNEL_MEM_LIMIT/(PAGE_SIZE*1024); i++){
-    hal->kmem->pager->pagedir[i] = (get_page()*PAGE_SIZE) | 3;
-    kmem_set_log_addr(PAGE(hal->kmem->pager->pagedir[i]), PAGE(hal->kmem->pager->pagedir[i]));
+    system->kmem->pager->pagedir[i] = (get_page()*PAGE_SIZE) | 3;
+    kmem_set_log_addr(PAGE(system->kmem->pager->pagedir[i]), PAGE(system->kmem->pager->pagedir[i]));
   }
 
   for(u32_t i=0; i < KERNEL_MEM_LIMIT/(PAGE_SIZE*1024); i++){
-    hal->kmem->mmap(hal->kmem->pager->pagedir[i] & 0xfffff000, PAGE_SIZE, MAP_FIXED, hal->kmem->pager->pagedir[i] & 0xfffff000, 0);
+    system->kmem->mmap(system->kmem->pager->pagedir[i] & 0xfffff000, PAGE_SIZE, MAP_FIXED, system->kmem->pager->pagedir[i] & 0xfffff000, 0);
     //if(i==2) while(1);
-    //mmap(ADDRESS(hal->kmem->pager->pagedir[i] & 0xfffff000), ADDRESS(hal->kmem->pager->pagedir[i] & 0xfffff000), PAGE_SIZE);
+    //mmap(ADDRESS(system->kmem->pager->pagedir[i] & 0xfffff000), ADDRESS(system->kmem->pager->pagedir[i] & 0xfffff000), PAGE_SIZE);
   }
 
-  hal->kmem->mmap(OFFSET(hal->kmem->pager->pagedir), PAGE_SIZE, MAP_FIXED, OFFSET(hal->kmem->pager->pagedir), 0);
-    //mmap(hal->kmem->pager->pagedir, hal->kmem->pager->pagedir, PAGE_SIZE);
+  system->kmem->mmap(OFFSET(system->kmem->pager->pagedir), PAGE_SIZE, MAP_FIXED, OFFSET(system->kmem->pager->pagedir), 0);
+    //mmap(system->kmem->pager->pagedir, system->kmem->pager->pagedir, PAGE_SIZE);
 
   /* Смонтируем память от нуля до начала свободной памяти как есть */
-  hal->kmem->mmap(0, freemem_start_DMA16, MAP_FIXED, 0, 0);
+  system->kmem->mmap(0, freemem_start_DMA16, MAP_FIXED, 0, 0);
     //mmap(0, 0, low_freemem_start);
   //while(1);  
 
   /* Смонтируем heap */
-  hal->kmem->mmap(heap_start, heap_size, MAP_FIXED, heap_start, 0);
+  system->kmem->mmap(heap_start, heap_size, MAP_FIXED, heap_start, 0);
     //mmap(ADDRESS(heap_start), ADDRESS(heap_start), heap_size);
 
   /* Дополним пул свободных страниц оставшимися свободными страницами (если они остались, конечно) */
-  for(u32_t i = PAGE(KERNEL_MEM_LIMIT); i < hal->pages_cnt; i++){
+  for(u32_t i = PAGE(KERNEL_MEM_LIMIT); i < system->pages_cnt; i++){
     alloc_page(i);
     put_page(i);
   }
 
-  enable_paging(hal->kmem->pager->pagedir);
+  enable_paging(system->kmem->pager->pagedir);
   heap_create_reserved_block();
   //printk("fooo");
   //while(1);
@@ -179,11 +179,11 @@ void init_memory()
 void *kmalloc(register size_t size)
 {
   void *ptr;
-  hal->mt_disable();
-  if(!(ptr = hal->kmem->mmap(0, size, 0, 0, 0)))
+  system->mt_disable();
+  if(!(ptr = system->kmem->mmap(0, size, 0, 0, 0)))
        //mem_alloc(size)))
-    hal->panic("No memory left!!! \nCan't allocate 0x%X bytes of kernel memory!", size);
-  hal->mt_enable();
+    system->panic("No memory left!!! \nCan't allocate 0x%X bytes of kernel memory!", size);
+  system->mt_enable();
 
   memset(ptr, 0, size);
   return ptr;
@@ -191,8 +191,8 @@ void *kmalloc(register size_t size)
 
 void kfree(register void *ptr, size_t size)
 {
-  hal->mt_disable();
-  hal->kmem->munmap((off_t)ptr, size);
+  system->mt_disable();
+  system->kmem->munmap((off_t)ptr, size);
     //mem_free(ptr, size);
-  hal->mt_enable();
+  system->mt_enable();
 }

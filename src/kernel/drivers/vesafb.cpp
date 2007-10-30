@@ -7,7 +7,6 @@
 
 #include <fos/fs.h>
 #include <fos/printk.h>
-#include <fos/hal.h>
 #include <fos/fos.h>
 #include <string.h>
 #include <unistd.h>
@@ -60,13 +59,13 @@ void vesafb_srv()
       break;
 
     case VBESRV_CMD_SET_MODE:
-      hal->mt_disable();
-      hal->cli();
-      hal->pic->lock(); /* обязательно необходимо запретить все IRQ */
+      system->mt_disable();
+      system->cli();
+      system->pic->lock(); /* обязательно необходимо запретить все IRQ */
       vbeinfo = vbe_set_video_mode(msg.a1);
-      hal->pic->unlock();
-      hal->sti();
-      hal->mt_enable();
+      system->pic->unlock();
+      system->sti();
+      system->mt_enable();
 
       if(vbeinfo) {
 	vbeinfo_l = new vbe_mode_info_block;

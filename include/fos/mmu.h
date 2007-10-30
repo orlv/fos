@@ -8,7 +8,7 @@
 
 #include <types.h>
 #include <fos/page.h>
-#include <fos/hal.h>
+#include <fos/system.h>
 
 #define PAGE_SIZE 0x1000
 

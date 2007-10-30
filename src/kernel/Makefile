@@ -43,7 +43,7 @@ endif
 #-----------------------------------------------------------------------------#
 
 OBJECTS =	main/boot/setup.o		\
-		main/hal.o			\
+		main/system.o			\
 		main/procman/procman.o		\
 		main/procman/scheduler.o	\
 		main/procman/process.o		\

@@ -8,7 +8,7 @@
 
 #include <types.h>
 #include <fos/mmu.h>
-#include <fos/hal.h>
+#include <fos/system.h>
 #include <fos/page.h>
 
 class Pager {

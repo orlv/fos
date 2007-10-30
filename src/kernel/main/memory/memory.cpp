@@ -6,7 +6,7 @@
 #include <fos/mm.h>
 #include <fos/printk.h>
 #include <fos/process.h>
-#include <fos/hal.h>
+#include <fos/system.h>
 #include <fos/pager.h>
 
 /*
@@ -34,7 +34,7 @@ void mm_srv()
     switch(msg->a0){
     case MM_CMD_MMAP:
       //printk("mm: mapping 0x%X bytes of memory to 0x%X\n", msg->a2, msg->a1);
-      thread = hal->procman->get_thread_by_tid(msg->tid);
+      thread = system->procman->get_thread_by_tid(msg->tid);
       msg->a0 = (u32_t) thread->process->memory->mmap(msg->a1 & ~0xfff, msg->a2, msg->a1 & 0xfff, msg->a3, 0);
       msg->send_size = 0;
       reply(msg);
@@ -42,7 +42,7 @@ void mm_srv()
 
     case MM_CMD_MUNMAP:
       //printk("mm: unmapping 0x%X bytes from 0x%X\n", msg-a2, msg->a1);
-      thread = hal->procman->get_thread_by_tid(msg->tid);
+      thread = system->procman->get_thread_by_tid(msg->tid);
       if(msg->a1 > USER_MEM_BASE){
 	msg->a0 = 1;
 	thread->process->memory->munmap(msg->a1, msg->a2); //mem_free((void *)msg->a1, msg->a2);

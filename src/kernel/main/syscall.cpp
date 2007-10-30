@@ -4,7 +4,7 @@
  */
 
 #include <fos/printk.h>
-#include <fos/hal.h>
+#include <fos/fos.h>
 #include <fos/syscall.h>
 #include <fos/pager.h>
 #include <fos/drivers/char/timer/timer.h>
@@ -112,28 +112,28 @@ struct memmap {
 
 void wait_message()
 {
-  hal->procman->current_thread->flags |= FLAG_TSK_RECV;
-  hal->mt_enable();
+  system->procman->current_thread->flags |= FLAG_TSK_RECV;
+  system->mt_enable();
   sched_yield();
-  hal->mt_disable();
+  system->mt_disable();
 }
 
 List<kmessage *> *get_message_any()
 {
-  hal->mt_disable();
-  if (!hal->procman->current_thread->new_messages_count.read())
+  system->mt_disable();
+  if (!system->procman->current_thread->new_messages_count.read())
     wait_message();
 
-  return hal->procman->current_thread->new_messages->next;
+  return system->procman->current_thread->new_messages->next;
 }
 
 List<kmessage *> *get_message_from(tid_t from)
 {
-  hal->mt_disable();
-  List<kmessage *> *messages = hal->procman->current_thread->new_messages;
+  system->mt_disable();
+  List<kmessage *> *messages = system->procman->current_thread->new_messages;
   List<kmessage *> *entry;
 
-  if (hal->procman->current_thread->new_messages_count.read()) { /* есть сообщения, обрабатываем.. */
+  if (system->procman->current_thread->new_messages_count.read()) { /* есть сообщения, обрабатываем.. */
     list_for_each (entry, messages) {
       if(entry->item->thread == THREAD(from))
 	return entry;
@@ -141,7 +141,7 @@ List<kmessage *> *get_message_from(tid_t from)
   }
   
   while(1) {
-    if (!SYSTEM_TID(from) && hal->procman->current_thread->new_messages_count.read() > MAX_MSG_COUNT)
+    if (!SYSTEM_TID(from) && system->procman->current_thread->new_messages_count.read() > MAX_MSG_COUNT)
       return 0;
     
     wait_message();
@@ -168,13 +168,13 @@ void kill_message(kmessage *message)
 
 static inline bool check_message(message *message, int flags)
 {
-  if(OFFSET(message) < hal->procman->current_thread->process->memory->mem_base) {
+  if(OFFSET(message) < system->procman->current_thread->process->memory->mem_base) {
     printk("foo #1\n");
     //while(1);
     return 1;
   }
   
-  u32_t *pagedir = hal->procman->current_thread->process->memory->pager->pagedir;
+  u32_t *pagedir = system->procman->current_thread->process->memory->pager->pagedir;
   u32_t count;
 
   count = (OFFSET(message)%PAGE_SIZE + sizeof(struct message) + PAGE_SIZE - 1)/PAGE_SIZE;
@@ -222,7 +222,7 @@ kmessage * get_message(tid_t from, u32_t flags)
 {
   kmessage *message;
   List<kmessage *> *entry;
-  Thread *current_thread = hal->procman->current_thread;
+  Thread *current_thread = system->procman->current_thread;
 
   //  while(1) {
   if(from)
@@ -231,7 +231,7 @@ kmessage * get_message(tid_t from, u32_t flags)
     entry = get_message_any();
   
   if(!entry) {
-    hal->mt_enable();
+    system->mt_enable();
     return 0;
   }
 
@@ -284,7 +284,7 @@ kmessage * get_message(tid_t from, u32_t flags)
     delete entry; /* убираем сообщение из очереди новых сообщений */
 
   current_thread->new_messages_count.dec();
-  hal->mt_enable();
+  system->mt_enable();
   
   return message;
 }
@@ -294,7 +294,7 @@ res_t receive(message *message)
   if(check_message(message, MSG_CHK_RECVBUF))
     return RES_FAULT;
   
-  //printk("receive [%s]\n", hal->procman->current_thread->process->name);
+  //printk("receive [%s]\n", system->procman->current_thread->process->name);
   kmessage *received_message = get_message(message->tid, message->flags);
   if(!received_message) return RES_FAULT;  
 
@@ -321,7 +321,7 @@ res_t receive(message *message)
       if(rcv_size) {
 	/* монтируем буфер в свободное место адр. пр-ва сервера */
 	//printk("buf=[0x%X] rcv_size=[0x%X]", received_message->buffer, rcv_size);
-	message->recv_buf = hal->procman->current_thread->process->memory->mmap(0, rcv_size, 0, OFFSET(received_message->buffer), received_message->thread->process->memory); //hal->procman->current_thread->process->memory->mmap(0, rcv_size, 0, 0, 0);
+	message->recv_buf = system->procman->current_thread->process->memory->mmap(0, rcv_size, 0, OFFSET(received_message->buffer), received_message->thread->process->memory); //system->procman->current_thread->process->memory->mmap(0, rcv_size, 0, 0, 0);
 
 	//	u32_t *pagedir = received_message->thread->process->memory->pager->pagedir;
 	//u32_t phys = OFFSET(phys_addr_from(PAGE(OFFSET(received_message->buffer)), pagedir));
@@ -329,7 +329,7 @@ res_t receive(message *message)
 	//printk("[%s]", received_message->thread->process->name);
 	//	u32_t phys = OFFSET(phys_addr_from(0x8005, pagedir));
 	//	printk("phys=0x%X\n", phys);
-	  //hal->procman->current_thread->process->memory->mmap(0, rcv_size, 0, OFFSET(received_message->buffer), received_message->thread->process->memory);
+	  //system->procman->current_thread->process->memory->mmap(0, rcv_size, 0, OFFSET(received_message->buffer), received_message->thread->process->memory);
 	
 	if(message->flags & MSG_MEM_SEND) /* демонтируем буфер из памяти клиента */
 	  received_message->thread->process->memory->munmap(OFFSET(received_message->buffer), received_message->size);
@@ -359,18 +359,18 @@ res_t send(message *message)
 
   Thread *thread; /* процесс-получатель */
 
-  hal->mt_disable();
+  system->mt_disable();
   switch(message->tid){
   case SYSTID_NAMER:
-    thread = THREAD(hal->tid_namer);
+    thread = THREAD(system->tid_namer);
     break;
 
   case SYSTID_PROCMAN:
-    thread = THREAD(hal->tid_procman);
+    thread = THREAD(system->tid_procman);
     break;
 
   case SYSTID_MM:
-    thread = THREAD(hal->tid_mm);
+    thread = THREAD(system->tid_mm);
     break;
    
   case 0:
@@ -378,33 +378,33 @@ res_t send(message *message)
     return RES_FAULT;
 
   default:
-    thread = hal->procman->get_thread_by_tid(message->tid);
+    thread = system->procman->get_thread_by_tid(message->tid);
   }
 
-  //printk("send [%s]->[%s] \n", hal->procman->current_thread->process->name, thread->process->name);
+  //printk("send [%s]->[%s] \n", system->procman->current_thread->process->name, thread->process->name);
   
   if (!thread){
     message->send_size = 0;
-    hal->mt_enable();
+    system->mt_enable();
     return RES_FAULT;
   }
 
-  //  hal->mt_enable(); /* #1 */
+  //  system->mt_enable(); /* #1 */
 
   if(thread->new_messages_count.read() >= MAX_MSG_COUNT){
     message->send_size = 0;
-    hal->mt_enable();
+    system->mt_enable();
     return RES_FAULT2;
   }
 
-  Thread *thread_sender = hal->procman->current_thread;
+  Thread *thread_sender = system->procman->current_thread;
  
   /* простое предупреждение взаимоблокировки */
   thread_sender->send_to = TID(thread);
   if(thread->send_to == TID(thread_sender)){
     thread_sender->send_to = 0;
     message->send_size = 0;
-    hal->mt_enable();
+    system->mt_enable();
     return RES_FAULT3;
   }
 
@@ -429,12 +429,12 @@ res_t send(message *message)
   send_message->reply_size = message->recv_size;
   send_message->thread = thread_sender;
 
-  //hal->mt_disable();
+  //system->mt_disable();
   thread->new_messages->add_tail(send_message);       /* добавим сообщение процессу-получателю */
   thread->new_messages_count.inc();
   thread->flags &= ~FLAG_TSK_RECV;	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
   send_message->thread->flags |= FLAG_TSK_SEND;	 /* ожидаем ответа */
-  hal->mt_enable();
+  system->mt_enable();
   sched_yield();                                 /*  ожидаем ответа  */
 
   if(send_message->reply_size) { /* скопируем полученный ответ в память процесса */
@@ -463,16 +463,16 @@ res_t reply(message *message)
 
   kmessage *send_message = 0;
   List<kmessage *> *entry;
-  List<kmessage *> *messages = hal->procman->current_thread->received_messages;
+  List<kmessage *> *messages = system->procman->current_thread->received_messages;
 
   /* Ищем сообщение в списке полученных (чтобы ответ дошел, пользовательское приложение не должно менять поле tid) */
-  hal->mt_disable();
+  system->mt_disable();
   list_for_each (entry, messages) {
     send_message = entry->item;
     if(send_message->thread == THREAD(message->tid))
       break;
   }
-  hal->mt_enable();
+  system->mt_enable();
 
   if(!send_message){
     message->send_size = 0;
@@ -481,19 +481,19 @@ res_t reply(message *message)
 
   if(send_message->thread->flags & (FLAG_TSK_TERM | FLAG_TSK_EXIT_THREAD)) {
     /* поток-отправитель ожидает завершения */
-    hal->mt_disable();
+    system->mt_disable();
     send_message->reply_size = 0;
     delete entry; /* удалим запись о сообщении из списка полученных сообщений */
     if(TID(send_message->thread) > 0x1000)
       send_message->thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
-    hal->mt_enable();
+    system->mt_enable();
     return RES_SUCCESS;
   }
 
-  //printk("reply [%s]->[0x%X]\n", hal->procman->current_thread->process->name, send_message->thread /*->process->name*/);
+  //printk("reply [%s]->[0x%X]\n", system->procman->current_thread->process->name, send_message->thread /*->process->name*/);
   
   Thread *thread = send_message->thread;
-  send_message->thread = hal->procman->current_thread;
+  send_message->thread = system->procman->current_thread;
 
   if (send_message->reply_size < message->send_size)
     message->send_size = send_message->reply_size;
@@ -510,11 +510,11 @@ res_t reply(message *message)
   send_message->a2 = message->a2;
   send_message->a3 = message->a3;
 
-  hal->mt_disable();
+  system->mt_disable();
   delete entry; /* удалим запись о сообщении из списка полученных сообщений */
   if(TID(thread) > 0x1000)
     thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
-  hal->mt_enable();
+  system->mt_enable();
   return RES_SUCCESS;
 }
 
@@ -526,34 +526,34 @@ res_t reply(message *message)
 res_t forward(message *message, tid_t to)
 {
   Thread *thread;
-  hal->mt_disable();
+  system->mt_disable();
   switch(to){
   case SYSTID_NAMER:
-    thread = THREAD(hal->tid_namer);
+    thread = THREAD(system->tid_namer);
     break;
 
   case SYSTID_PROCMAN:
-    thread = THREAD(hal->tid_procman);
+    thread = THREAD(system->tid_procman);
     break;
 
   case 0:
     message->send_size = 0;
-    hal->mt_enable();
+    system->mt_enable();
     return RES_FAULT;
 
   default:
-    thread = hal->procman->get_thread_by_tid(to);
+    thread = system->procman->get_thread_by_tid(to);
   }
 
   if (!thread){
     message->send_size = 0;
-    hal->mt_enable();
+    system->mt_enable();
     return RES_FAULT;
   }
 
   if(thread->new_messages_count.read() >= MAX_MSG_COUNT){
     message->send_size = 0;
-    hal->mt_enable();
+    system->mt_enable();
     return RES_FAULT2;
   }
 
@@ -565,26 +565,26 @@ res_t forward(message *message, tid_t to)
   if(thread->send_to == TID(thread_sender)){
     thread_sender->send_to = 0;
     message->send_size = 0;
-    hal->mt_enable();
+    system->mt_enable();
     return RES_FAULT3;
   }
 
   kmessage *send_message = 0;
   List<kmessage *> *entry;
-  List<kmessage *> *messages = hal->procman->current_thread->received_messages;
+  List<kmessage *> *messages = system->procman->current_thread->received_messages;
 
   /* Ищем сообщение в списке полученных */
-  //hal->mt_disable();
+  //system->mt_disable();
   list_for_each (entry, messages) {
     send_message = entry->item;
     if(send_message->thread == THREAD(message->tid))
       break;
   }
-  //hal->mt_enable();
+  //system->mt_enable();
 
   if(!send_message){
     message->send_size = 0;
-    hal->mt_enable();
+    system->mt_enable();
     return RES_FAULT;
   }
 
@@ -599,12 +599,12 @@ res_t forward(message *message, tid_t to)
 
   send_message->thread = thread_sender;
 
-  //hal->mt_disable();
+  //system->mt_disable();
   entry->move_tail(thread->new_messages);
   thread->new_messages_count.inc();
-  hal->procman->current_thread->received_messages_count.dec();
+  system->procman->current_thread->received_messages_count.dec();
   thread->flags &= ~FLAG_TSK_RECV;	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
-  hal->mt_enable();
+  system->mt_enable();
 
   return RES_SUCCESS;
 }
@@ -613,21 +613,21 @@ u32_t uptime();
 
 void syscall_enter()
 {
-  hal->procman->current_thread->flags |= FLAG_TSK_SYSCALL;
+  system->procman->current_thread->flags |= FLAG_TSK_SYSCALL;
 }
 
 void syscall_exit()
 {
-  hal->procman->current_thread->flags &= ~FLAG_TSK_SYSCALL;
-  if((hal->procman->current_thread->flags & FLAG_TSK_TERM) || (hal->procman->current_thread->flags & FLAG_TSK_EXIT_THREAD)) {
-    hal->procman->current_thread->flags &= ~FLAG_TSK_READY;
+  system->procman->current_thread->flags &= ~FLAG_TSK_SYSCALL;
+  if((system->procman->current_thread->flags & FLAG_TSK_TERM) || (system->procman->current_thread->flags & FLAG_TSK_EXIT_THREAD)) {
+    system->procman->current_thread->flags &= ~FLAG_TSK_READY;
     sched_yield();
   }
 }
 
 SYSCALL_HANDLER(sys_call_handler)
 {
-  //printk("Syscall #%d (%s) arg1=0x%X, arg2=0x%X \n", cmd,  hal->procman->current_thread->process->name, arg1, arg2);
+  //printk("Syscall #%d (%s) arg1=0x%X, arg2=0x%X \n", cmd,  system->procman->current_thread->process->name, arg1, arg2);
   syscall_enter(); /* установим флаг нахождения в ядре */
   u32_t result = 0;
   u32_t _uptime;
@@ -656,11 +656,11 @@ SYSCALL_HANDLER(sys_call_handler)
     break;
     
   case _FOS_MASK_INTERRUPT:
-    hal->pic->mask(arg1);
+    system->pic->mask(arg1);
     break;
 
   case _FOS_UNMASK_INTERRUPT:
-    hal->pic->unmask(arg1);
+    system->pic->unmask(arg1);
     break;
 
   case _FOS_SCHED_YIELD:
@@ -674,25 +674,25 @@ SYSCALL_HANDLER(sys_call_handler)
 
   case _FOS_ALARM:
     _uptime = kuptime();
-    if(hal->procman->current_thread->get_alarm() > _uptime)
-      result = hal->procman->current_thread->get_alarm() - _uptime;
+    if(system->procman->current_thread->get_alarm() > _uptime)
+      result = system->procman->current_thread->get_alarm() - _uptime;
     else
       result = 0;
     
     if(arg1)  /* текущее время + arg1 */
-      hal->procman->current_thread->set_alarm(_uptime + arg1);
+      system->procman->current_thread->set_alarm(_uptime + arg1);
     else
-      hal->procman->current_thread->set_alarm(arg2);
+      system->procman->current_thread->set_alarm(arg2);
 
     break;
 
   case _FOS_MYTID:
-    result = TID(hal->procman->current_thread);
+    result = TID(system->procman->current_thread);
     break;
 
   case _FOS_GET_PAGE_PHYS_ADDR:
     if(arg1 > USER_MEM_BASE)
-      result = OFFSET(phys_addr_from(arg1, hal->procman->current_thread->process->
+      result = OFFSET(phys_addr_from(arg1, system->procman->current_thread->process->
 				     memory->pager->pagedir));
     else
       result = 0;

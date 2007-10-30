@@ -8,7 +8,6 @@
 #include <fos/procman.h>
 #include <fos/printk.h>
 #include <fos/fos.h>
-#include <fos/hal.h>
 #include <fos/limits.h>
 #include <string.h>
 
@@ -78,7 +77,7 @@ tid_t execute_module(char *pathname, char *args)
     char *elf_image = new char[size];
     initrb->read(fd, 0, elf_image, size);
     if(!check_ELF_image(elf_image, size))
-      result = hal->procman->exec(elf_image, pathname, args);
+      result = system->procman->exec(elf_image, pathname, args);
     delete elf_image;
   }
   return result;
@@ -101,7 +100,7 @@ tid_t execute(char *pathname, char *args)
     char *elf_image = new char[statbuf->st_size];
     read(fd, elf_image, statbuf->st_size);
     if(!check_ELF_image(elf_image, statbuf->st_size))
-      result = hal->procman->exec(elf_image, pathname, args);
+      result = system->procman->exec(elf_image, pathname, args);
     delete statbuf;
     delete elf_image;
   }
@@ -110,7 +109,7 @@ tid_t execute(char *pathname, char *args)
 
 void procman_srv()
 {
-  hal->tid_namer = execute_module("namer", "namer");
+  system->tid_namer = execute_module("namer", "namer");
 
   Thread *thread;
   char *kmesg;
@@ -150,7 +149,7 @@ void procman_srv()
       break;
 
     case PROCMAN_CMD_KILL:
-      if(hal->procman->kill(msg->a1, FLAG_TSK_TERM))
+      if(system->procman->kill(msg->a1, FLAG_TSK_TERM))
 	msg->a0 = 1;
       else
 	msg->a0 = 0;
@@ -160,8 +159,8 @@ void procman_srv()
 
       /* завершить все потоки в адресном пространстве */
     case PROCMAN_CMD_EXIT:
-      thread = hal->procman->get_thread_by_tid(msg->tid);
-      if(hal->procman->kill(TID(thread), FLAG_TSK_TERM))
+      thread = system->procman->get_thread_by_tid(msg->tid);
+      if(system->procman->kill(TID(thread), FLAG_TSK_TERM))
 	msg->a0 = 1;
       else
 	msg->a0 = 0;
@@ -171,8 +170,8 @@ void procman_srv()
 
       /* завершить только данный поток */
     case PROCMAN_CMD_THREAD_EXIT:
-      thread = hal->procman->get_thread_by_tid(msg->tid);
-      if(hal->procman->kill(TID(thread), FLAG_TSK_EXIT_THREAD))
+      thread = system->procman->get_thread_by_tid(msg->tid);
+      if(system->procman->kill(TID(thread), FLAG_TSK_EXIT_THREAD))
 	msg->a0 = 1;
       else
 	msg->a0 = 0;
@@ -181,24 +180,24 @@ void procman_srv()
       break;
 
     case PROCMAN_CMD_CREATE_THREAD:
-      thread = hal->procman->get_thread_by_tid(msg->tid);
+      thread = system->procman->get_thread_by_tid(msg->tid);
       thread = thread->process->thread_create(msg->a1, FLAG_TSK_READY, kmalloc(PAGE_SIZE), thread->process->memory->mmap(0, PAGE_SIZE, 0, 0, 0));
-      hal->procman->reg_thread(thread);
+      system->procman->reg_thread(thread);
       msg->a0 = (u32_t) thread;
       msg->send_size = 0;
       reply(msg);
       break;
 
     case PROCMAN_CMD_INTERRUPT_ATTACH:
-      thread = hal->procman->get_thread_by_tid(msg->tid);
-      msg->a0 = hal->interrupt_attach(thread, msg->a1);
+      thread = system->procman->get_thread_by_tid(msg->tid);
+      msg->a0 = system->interrupt_attach(thread, msg->a1);
       msg->send_size = 0;
       reply(msg);
       break;
 
     case PROCMAN_CMD_INTERRUPT_DETACH:
-      thread = hal->procman->get_thread_by_tid(msg->tid);
-      msg->a0 = hal->interrupt_detach(thread, msg->a1);
+      thread = system->procman->get_thread_by_tid(msg->tid);
+      msg->a0 = system->interrupt_detach(thread, msg->a1);
       msg->send_size = 0;
       reply(msg);
       break;
@@ -229,7 +228,7 @@ void procman_srv()
 
 TProcMan::TProcMan()
 {
-  hal->procman = this;
+  system->procman = this;
 
   Thread *thread;
   void *stack;
@@ -237,13 +236,13 @@ TProcMan::TProcMan()
 
   process->name = "kernel";
   
-  process->memory = hal->kmem;
-  process->memory->pager->pagedir = hal->kmem->pager->pagedir;
+  process->memory = system->kmem;
+  process->memory->pager->pagedir = system->kmem->pager->pagedir;
 
   stack = kmalloc(STACK_SIZE);
   thread = process->thread_create(0, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
   threadlist = new List<Thread *>(thread);
-  hal->gdt->load_tss(SEL_N(BASE_TSK_SEL), &thread->descr);
+  system->gdt->load_tss(SEL_N(BASE_TSK_SEL), &thread->descr);
   ltr(BASE_TSK_SEL);
   lldt(0);
   
@@ -252,17 +251,17 @@ TProcMan::TProcMan()
 
   stack = kmalloc(STACK_SIZE);
   thread = process->thread_create((off_t) &sched_srv, FLAG_TSK_KERN, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
-  hal->gdt->load_tss(SEL_N(BASE_TSK_SEL) + 1, &thread->descr);
+  system->gdt->load_tss(SEL_N(BASE_TSK_SEL) + 1, &thread->descr);
   //printk("kernel: scheduler thread created (tid=0x%X)\n", thread);
 
   stack = kmalloc(STACK_SIZE);
-  hal->tid_procman = TID(process->thread_create((off_t) &procman_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT));
-  reg_thread(THREAD(hal->tid_procman));
-  //printk("kernel: procman added to threads list (tid=0x%X)\n", hal->tid_procman);
+  system->tid_procman = TID(process->thread_create((off_t) &procman_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT));
+  reg_thread(THREAD(system->tid_procman));
+  //printk("kernel: procman added to threads list (tid=0x%X)\n", system->tid_procman);
 
   stack = kmalloc(STACK_SIZE);
-  hal->tid_mm = TID(process->thread_create((off_t) &mm_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT));
-  reg_thread(THREAD(hal->tid_mm));
+  system->tid_mm = TID(process->thread_create((off_t) &mm_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT));
+  reg_thread(THREAD(system->tid_mm));
   
   stack = kmalloc(STACK_SIZE);
   thread = process->thread_create((off_t) &grub_modulefs_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
@@ -285,7 +284,7 @@ tid_t TProcMan::exec(register void *image, const string name, const string args)
   process->memory->pager = new Pager(OFFSET(kmalloc(PAGE_SIZE)), MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS|MMU_PAGE_USER_ACCESSABLE);
   /* скопируем указатели на таблицы страниц ядра (страницы, расположенные ниже KERNEL_MEM_LIMIT) */
   for(u32_t i=0; i <= PAGE(KERNEL_MEM_LIMIT)/1024; i++){
-    process->memory->pager->pagedir[i] = hal->kmem->pager->pagedir[i];
+    process->memory->pager->pagedir[i] = system->kmem->pager->pagedir[i];
   }
 
   off_t eip = process->LoadELF(image);
@@ -295,7 +294,7 @@ tid_t TProcMan::exec(register void *image, const string name, const string args)
     size_t len = strlen(args);
     char *args_buf = (char *) kmalloc(len);
     memcpy(args_buf, args, len);
-    thread->tss->eax = (u32_t)process->memory->mmap(0, len, 0, (off_t)args_buf, hal->kmem);
+    thread->tss->eax = (u32_t)process->memory->mmap(0, len, 0, (off_t)args_buf, system->kmem);
     kfree(args_buf, len);
   }
   
@@ -306,17 +305,17 @@ tid_t TProcMan::exec(register void *image, const string name, const string args)
 /* Добавляет поток в список */
 void TProcMan::reg_thread(register Thread * thread)
 {
-  hal->mt_disable();
+  system->mt_disable();
   threadlist->add_tail(thread);
-  hal->mt_enable();
+  system->mt_enable();
 }
 
 void TProcMan::unreg_thread(register List<Thread *> * thread)
 {
-  hal->mt_disable();
+  system->mt_disable();
   delete thread->item;
   delete thread;
-  hal->mt_enable();
+  system->mt_enable();
 }
 
 List<Thread *> *TProcMan::do_kill(List<Thread *> *thread)
@@ -346,7 +345,7 @@ res_t TProcMan::kill(register tid_t tid, u16_t flag)
   res_t result = RES_FAULT;
 
   if(thread) {
-    hal->mt_disable();
+    system->mt_disable();
     if(!(thread->flags & FLAG_TSK_KERN)) {
 
       thread->flags |= flag;      /* поставим флаг завершения */
@@ -356,7 +355,7 @@ res_t TProcMan::kill(register tid_t tid, u16_t flag)
 
       result = RES_SUCCESS;
     }
-    hal->mt_enable();
+    system->mt_enable();
   }
 
   return result;
@@ -366,7 +365,7 @@ res_t TProcMan::kill(register tid_t tid, u16_t flag)
    если поток существует, и не помечен для удаления */
 Thread *TProcMan::get_thread_by_tid(register tid_t tid)
 {
-  hal->mt_disable();
+  system->mt_disable();
   List<Thread *> *current = threadlist;
   Thread *result = 0;
 
@@ -383,6 +382,6 @@ Thread *TProcMan::get_thread_by_tid(register tid_t tid)
     current = current->next;
   } while (current != threadlist);
 
-  hal->mt_enable();
+  system->mt_enable();
   return result;
 }

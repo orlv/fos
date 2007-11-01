@@ -25,7 +25,7 @@ void grub_modulefs_srv();
 void vesafb_srv();
 void mm_srv();
 
-#define FOS_MAX_ELF_SECTION_SIZE 0x100000 
+#define FOS_MAX_ELF_SECTION_SIZE 0x2000000 
 
 int check_ELF_image(register void *image, register size_t image_size)
 {

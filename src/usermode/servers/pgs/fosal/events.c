@@ -142,7 +142,8 @@ void EventsThread()
 	//	break;
 	if(!proc_head)
 	  break;
-for(proc_t *p = proc_head, *n = NULL; p;) {
+	for(proc_t *p = proc_head, *n = NULL, *prev = p; p;) {
+	  printf(".");
 	  n = p->next;
 	  if(p->tid == msg.tid) {
 	    if(p->events != NULL) {
@@ -153,12 +154,13 @@ for(proc_t *p = proc_head, *n = NULL; p;) {
 		ev = en;
 	      }
 	    }
-	    if(n)
-	      n->next = p->next;
-	    if(p == proc_head)
+	    if (prev) 
+		prev->next = n; 
+	    if(p == proc_head) 
 	      proc_head = n;
 	    free(p);
 	  }
+	  prev = p;
 	  p = n;
 	}
 	msg.send_size = 0;

@@ -1,8 +1,9 @@
 include ../config.mk
 include config.mk
 include $(TARGET)al/config.mk
-CFLAGS+=-Iinclude --std=c99 -DVERSION=$(VERSION) -O0
+CFLAGS+=-Iinclude --std=c99 -DVERSION=$(VERSION)
 LDFLAGS+=$(LIBS_AL) $(addprefix $(TARGET)al/, $(OBJECTS_AL))
+
 OBJECTS=main.o events.o cursor.o windowing.o list.o
 MAKEFLAGS=-s
 all: $(PGS_CUSTOM) al pgs
@@ -20,6 +21,5 @@ clean:
 uninstall:
 	rm -f $(INSTALLDIR)/pgs
 al:
-	echo $(CFLAGS)
 	make -C $(TARGET)al
 

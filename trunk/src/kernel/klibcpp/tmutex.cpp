@@ -1,6 +1,7 @@
 /*
   (C) SadKo (Sadovnikov And Company)
   (C) XSystem Kernel Team
+  (C) Oleg Fedorov
 */
 
 #include <c++/tmutex.h>
@@ -11,15 +12,9 @@ TMutex::TMutex(void)
   FLockItem = 0;
 }
 
-bool TMutex::lock(void)
+void TMutex::lock(void)
 {
-  int result;
-
-  do {
-    result = xchg(&FLockItem, 1);
-  } while (result!=0);
-
-  return true;
+  while (xchg(&FLockItem, 1) != 0);
 }
 
 bool TMutex::try_lock(void)

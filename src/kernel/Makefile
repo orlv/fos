@@ -76,10 +76,10 @@ OBJECTS +=	klibc/close.o			\
 		klibc/vsprintf.o		\
 		klibc/printk.o			\
 		klibc/stat.o			\
-		klibc/fstat.o			\
-		klibc/tmutex.o
+		klibc/fstat.o
 
-OBJECTS +=	klibcpp/purestub.o
+OBJECTS +=	klibcpp/purestub.o		\
+		klibcpp/tmutex.o
 
 OBJECTS +=	klibfos/intattach.o		\
 		klibfos/resmgrattach.o

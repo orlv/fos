@@ -55,13 +55,13 @@ int CreateWindow(int parent, int x, int y, int w, int h, char *caption, int flag
 	return msg.a0;
 }
 typedef struct {
+	void * reserved[2];
 	int class;
 	int handle;
 	int a0;
 	int a1;
 	int a2;
 	int a3;
-	void * reserved;
 } event_t;
 void WaitEvent(int *class, int *handle, int *a0, int *a1, int *a2, int *a3) {
 	event_t event;

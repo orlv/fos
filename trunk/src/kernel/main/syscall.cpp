@@ -133,14 +133,21 @@ List<kmessage *> *get_message_from(tid_t from)
   List<kmessage *> *messages = system->procman->current_thread->new_messages;
   List<kmessage *> *entry;
 
-  if (system->procman->current_thread->new_messages_count.read()) { /* есть сообщения, обрабатываем.. */
+  while(1) {
+    //if (system->procman->current_thread->new_messages_count.read()) { /* есть сообщения, обрабатываем.. */
     list_for_each (entry, messages) {
       if(entry->item->thread == THREAD(from))
 	return entry;
     }
+
+    if (!SYSTEM_TID(from) && system->procman->current_thread->new_messages_count.read() > MAX_MSG_COUNT)
+      return 0;
+    
+    wait_message();
   }
+    //}
   
-  while(1) {
+    /*  while(1) {
     if (!SYSTEM_TID(from) && system->procman->current_thread->new_messages_count.read() > MAX_MSG_COUNT)
       return 0;
     
@@ -149,7 +156,7 @@ List<kmessage *> *get_message_from(tid_t from)
       if(entry->item->thread == THREAD(from))
 	return entry;
     }
-  }
+    }*/
 }
 
 #define MSG_CHK_SENDBUF  1
@@ -474,7 +481,7 @@ res_t reply(message *message)
   }
   system->mt_enable();
 
-  if(!send_message){
+  if(!send_message || (send_message->thread != THREAD(message->tid))){
     message->send_size = 0;
     return RES_FAULT;
   }
@@ -582,7 +589,7 @@ res_t forward(message *message, tid_t to)
   }
   //system->mt_enable();
 
-  if(!send_message){
+  if(!send_message || (send_message->thread != THREAD(message->tid))){
     message->send_size = 0;
     system->mt_enable();
     return RES_FAULT;

@@ -18,7 +18,7 @@ class TMutex
  public:
   TMutex(void);
   
-  bool lock(void);
+  void lock(void);
   bool unlock(void);
   bool try_lock(void);
   bool is_locked(void);

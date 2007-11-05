@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -6,68 +7,92 @@
 #include <fos/fos.h>
 #include <fos/message.h>
 #include <sched.h>
-
+#include <list.h>
 #include <gui/types.h>
+#include <mutex.h>
+
 void event_handler(event_t *event);
+
 struct mouse_pos {
-	int dx;
-	int dy;
-	int dz;
-	int b;
+  int dx;
+  int dy;
+  int dz;
+  int b;
 };
+
 extern mode_definition_t __current_mode;
+
 typedef struct event_q{
-	int class;
-	int handle;
-	int a0;
-	int a1;
-	int a2;
-	int a3;
-	struct event_q * next;
+  struct list_head list;
+  int class;
+  int handle;
+  int a0;
+  int a1;
+  int a2;
+  int a3;
 } event_q_t;
+
 typedef struct proc_q {
-	int waiting;
-	int tid;
-	event_q_t *events;
-	struct proc_q *next;
+  struct list_head list;
+  int waiting;
+  int tid;
+  event_q_t events;
 } proc_t;
-volatile int q_locked = 0;
-proc_t *proc_head;
+
+mutex_t q_locked = 0;
+
+proc_t proc_head = {
+  .list = LIST_HEAD_INIT(proc_head.list),
+  .waiting = 0,
+  .tid = 0,
+  .events.list = LIST_HEAD_INIT(proc_head.events.list),
+  .events.class = 0,
+  .events.handle = 0,
+  .events.a0 = 0,
+  .events.a1 = 0,
+  .events.a2 = 0,
+  .events.a3 = 0 
+};
+
 void DestroyWindow(int handle);
+
 int CreateWindow(int tid, int x, int y, int w, int h, char *caption, int class);
-void PostEvent(int tid, int handle, int class, int a0, int a1, int a2, int a3) {
-	q_locked = 1;
-	for(proc_t *p = proc_head; p; p = p->next) {
-		if(p->tid == tid) {
-			event_q_t *ev = malloc(sizeof(event_q_t));
-			ev->class = class;
-			ev->handle = handle;
-			ev->a0 = a0;
-			ev->a1 = a1;
-			ev->a2 = a2;
-			ev->a3 = a3;
-			ev->next = p->events;
-			p->events = ev;
-			q_locked = 0;
-			return;
-		}
-	}
-	// процесса нет, ааа
-	proc_t *proc = malloc(sizeof(proc_t));
-	proc->waiting = 0;
-	proc->tid = tid;
-	proc->next = proc_head;
-	proc_head = proc;
-	event_q_t *ev = malloc(sizeof(event_q_t));
-	ev->class = class;
-	ev->handle = handle;
-	ev->a0 = a0;
-	ev->a1 = a1;
-	ev->a2 = a2;
-	ev->a3 = a3;
-	ev->next = NULL;
-	proc->events = ev;
-	q_locked = 0;
+
+void PostEvent(int tid, int handle, int class, int a0, int a1, int a2, int a3)
+{
+  while(!mutex_try_lock(q_locked))
+    sched_yield();
+
+  printf("[ev %d on 0x%X]", class, tid);
+  struct list_head *entry;
+  proc_t *p = &proc_head;
+
+  event_q_t *ev = malloc(sizeof(event_q_t));
+  ev->class = class;
+  ev->handle = handle;
+  ev->a0 = a0;
+  ev->a1 = a1;
+  ev->a2 = a2;
+  ev->a3 = a3;
+  
+  list_for_each(entry, &proc_head.list){
+    p = list_entry(entry, proc_t, list);
+    printf("{0x%X}", p->tid);
+    if(p->tid == tid)
+      break;
+  }
+  
+  if(p->tid != tid) { /* запись процесса не найдена, создаем */
+    //    printf("[cr]");
+    p = malloc(sizeof(proc_t));
+    p->waiting = 0;
+    INIT_LIST_HEAD(&p->events.list);
+    p->tid = tid;
+    list_add_tail(&p->list, &proc_head.list);
+  }
+  //  printf("[p_tid=0x%X]", p->tid);
+  list_add_tail(&ev->list, &p->events.list);
+  mutex_unlock(q_locked);
 }
 
 void EventsThread()
@@ -83,8 +108,10 @@ void EventsThread()
     alarm(50);
     receive(&msg);
     alarm(0);
+
     if(msg.tid != _MSG_SENDER_SIGNAL)
       switch(msg.a0) {
+
       case FS_CMD_ACCESS:
 	msg.a0 = 1;
 	msg.a1 = sizeof(create_win_t) + MAX_TITLE_LEN;
@@ -92,82 +119,94 @@ void EventsThread()
 	msg.send_size = 0;
 	reply(&msg);
 	break;
+
       case WIN_CMD_CREATEWINDOW: {
 	create_win_t *win = (create_win_t *) buffer;
 	char *caption = buffer + sizeof(create_win_t);
 	msg.a0 = CreateWindow(msg.tid, win->x, win->y, win->w, win->h, caption, win->class);
 	msg.a2 = NO_ERR;
+	//printf("[crwin %d]", msg.a0);
 	msg.send_size = 0;
+	msg.flags = 0;
 	reply(&msg);
 	break;
       }
+
       case WIN_CMD_DESTROYWINDOW:
+	//	printf("[destr %d]", msg.a1);
 	DestroyWindow(msg.a1);
 	msg.a2 = NO_ERR;
 	msg.send_size = 0;
+	msg.flags = 0;
+	//printf("[destrcompl]");
 	reply(&msg);
 	break;
+
       case WIN_CMD_WAIT_EVENT: {
+	while(!mutex_try_lock(q_locked))
+	  sched_yield();
+
+	struct list_head *entry;
+	proc_t *p = &proc_head;
+
+	list_for_each(entry, &proc_head.list){
+	  p = list_entry(entry, proc_t, list);
+	  if(p->tid == msg.tid)
+	    break;
+	}
+
+	if(p->tid != msg.tid) { /* запись процесса не найдена, создаем */
+	  //printf("[cr1]");
+	  p = malloc(sizeof(proc_t));
+	  p->waiting = 1;
+	  INIT_LIST_HEAD(&p->events.list);
+	  p->tid = msg.tid;
+	  list_add_tail(&p->list, &proc_head.list);
+	} else {
+	  if(!list_empty(&p->events.list)) {
+	    event_q_t *ev = list_entry(p->events.list.next, event_q_t, list);
+	    list_del(&ev->list);
+	    msg.send_size = sizeof(event_q_t);
+	    msg.send_buf = ev;
+	    msg.flags = 0;
+	    reply(&msg);
+	    free(ev);
+	    p->waiting = 0;
+	  } else
+	    p->waiting = 1;
+	}
+	mutex_unlock(q_locked);
+	break;
+      }
+
+      case WIN_CMD_CLEANUP: {
+	while(!mutex_try_lock(q_locked))
+	  sched_yield();
+	/*
+	//printf(".");
+	struct list_head *entry;
 	proc_t *p;
-	while(q_locked) sched_yield();
-	for(p = proc_head; p; p = p->next) {
-	  if(p->tid == msg.tid) {
-	    if(p->events != NULL) {
-	      event_q_t *ev = p->events;
-	      p->events = ev->next;
-	      msg.send_size = sizeof(event_q_t);
-	      msg.send_buf = ev;
-	      reply(&msg);
+
+	list_for_each(entry, &proc_head.list){
+	  p = list_entry(entry, proc_t, list);
+	  if(p->tid == msg.tid){
+	    list_del(entry);
+	    list_for_each(entry, &p->events.list){
+	      event_q_t *ev = list_entry(entry, event_q_t, list);
 	      free(ev);
-	      p->waiting = 0;
-	      
-	    } else 
-	      p->waiting = 1;
+	    }
+	    free(p);
 	    break;
 	  }
 	}
-	if(!p) { // процесс не найден.
-	  proc_t *ev = malloc(sizeof(proc_t));
-	  ev->waiting = 1;
-	  ev->events = NULL;
-	  ev->next = proc_head;
-	  ev->tid = msg.tid;
-	  proc_head = ev;
-	}
+	*/
+	msg.send_size = 0;
+	msg.flags = 0;
+	reply(&msg);
+	mutex_unlock(q_locked);
 	break;
       }
-      case WIN_CMD_CLEANUP: {
-	q_locked = 1;
-	// FIXME: тут виснет. да, все еще виснет.
-	//	break;
-	if(!proc_head)
-	  break;
-	for(proc_t *p = proc_head, *n = NULL, *prev = p; p;) {
-	  printf(".");
-	  n = p->next;
-	  if(p->tid == msg.tid) {
-	    if(p->events != NULL) {
-	      event_q_t * en;
-	      for(event_q_t * ev = p->events; ev;) {
-		en = ev->next;
-		free(ev);
-		ev = en;
-	      }
-	    }
-	    if (prev) 
-		prev->next = n; 
-	    if(p == proc_head) 
-	      proc_head = n;
-	    free(p);
-	  }
-	  prev = p;
-	  p = n;
-	}
-	msg.send_size = 0;
-	reply(&msg);
-        q_locked = 0;
-	break;
-	}
+	
       default:
 	printf("message: %u %u %u %u\n", msg.a0, msg.a1, msg.a2, msg.a3);
 	msg.a0 = 0;
@@ -175,25 +214,31 @@ void EventsThread()
 	msg.send_size = 0;
 	reply(&msg);
       }
-    while(q_locked) sched_yield(); 
-    for(proc_t *p = proc_head; p; p = p->next) {
-	if(p == p->next) {
-		printf("Looped.\n");
-		break;
-	}
-      if(p->waiting && p->events) {
-	event_q_t *ev = p->events;
-	p->events = ev->next;
-	msg.recv_size = 0;
-	msg.flags = 0;
+
+    struct list_head *entry;
+    proc_t *p;
+
+    while(!mutex_try_lock(q_locked))
+      sched_yield();
+
+    list_for_each(entry, &proc_head.list){
+      p = list_entry(entry, proc_t, list);
+      if(p->waiting && !list_empty(&p->events.list)) {
+	printf("[found ev on 0x%X]", p->tid);
+	event_q_t *ev = list_entry(p->events.list.next, event_q_t, list);
+	list_del(&ev->list);
+	printf("[evclass=0x%X, a3=0x%X]", ev->class, ev->a3);
 	msg.send_size = sizeof(event_q_t);
-			msg.send_buf = ev;
-			msg.tid = p->tid;
-			reply(&msg);
-			free(ev);
-			p->waiting = 0;
+	msg.send_buf = ev;
+	msg.flags = 0;
+	msg.tid = p->tid;
+	reply(&msg);
+	free(ev);
+	p->waiting = 0;
       }
     }
+    //printf("[bbb]");
+    mutex_unlock(q_locked);
   }
   printf("WARNING: EXIT FROM INFINITE LOOP!\n");
 }

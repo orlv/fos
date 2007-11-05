@@ -21,7 +21,8 @@ OBJECTS		=	message.o		\
 			dmesg.o			\
 			uptime.o		\
 			alarm.o			\
-			alarm2.o
+			alarm2.o		\
+			mytid.o
 
 all:	$(OBJECTS)
 	$(AR) rc $(OUTPUT) $(OBJECTS)

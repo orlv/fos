@@ -5,9 +5,50 @@
 
 #include "tty.h"
 #include <string.h>
+#include <fos/system.h>
+
+#define OutPortByte system->outportb
+#define InPortByte system->inportb
+#define BASE 0x3f8
+#define DLL		0
+#define DLM		1
+#define RBR		0
+#define THR		0
+#define IER		1
+#define IIR		2
+#define LSR		5
+#define FCR		8
+#define LCR		3
+// флаги в IER
+#define INTERRUPT_DISABLE	0
+#define RECEIVE_ENABLE		1
+#define TRANSMIT_ENABLE		2
+#define RECEIVER_LINE_ST_ENABLE	4
+#define MODEM_ENABLE		8
+// флаги в LCR
+#define DLAB	0x80
+#define Wls8	0x03
+
+#define DR	0x01
+#define THRE	0x20
+
+#define IP	0x01
+
+
 
 TTY::TTY(u16_t width, u16_t height)
 {
+
+	OutPortByte(BASE + FCR, 0x84);
+	int bgc = (1843200 + 8 * 9600 - 1) / (16 * 9600);
+
+	OutPortByte(BASE + LCR, DLAB);
+	OutPortByte(BASE + DLM, bgc >> 8);
+	OutPortByte(BASE + DLL, bgc);
+	OutPortByte(BASE + LCR, 0);
+
+	OutPortByte(BASE + LCR,  Wls8);
+
   geom.width = width;
   geom.height = height;
 
@@ -44,6 +85,11 @@ void TTY::scroll_up()
 
 void TTY::out_ch(const char ch)
 {
+
+	while(!(InPortByte(BASE + LSR) &THRE)); // ждем опустошения буфера
+	OutPortByte(BASE + THR, ch);
+
+
   switch (ch) {
   case '\n':
     offs += geom.width;

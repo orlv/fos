@@ -460,6 +460,7 @@ res_t send(message *message)
   
   delete send_message;
   thread_sender->send_to = 0;
+
   return RES_SUCCESS;
 }
 
@@ -522,6 +523,7 @@ res_t reply(message *message)
   if(TID(thread) > 0x1000)
     thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
   system->mt_enable();
+
   return RES_SUCCESS;
 }
 

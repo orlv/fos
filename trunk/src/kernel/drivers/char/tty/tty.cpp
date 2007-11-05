@@ -7,6 +7,8 @@
 #include <string.h>
 #include <fos/system.h>
 
+#ifdef QEMU_DEBUG
+
 #define OutPortByte system->outportb
 #define InPortByte system->inportb
 #define BASE 0x3f8
@@ -34,21 +36,22 @@
 
 #define IP	0x01
 
+#endif /* QEMU_DEBUG */
 
 
 TTY::TTY(u16_t width, u16_t height)
 {
-
-	OutPortByte(BASE + FCR, 0x84);
-	int bgc = (1843200 + 8 * 9600 - 1) / (16 * 9600);
-
-	OutPortByte(BASE + LCR, DLAB);
-	OutPortByte(BASE + DLM, bgc >> 8);
-	OutPortByte(BASE + DLL, bgc);
-	OutPortByte(BASE + LCR, 0);
-
-	OutPortByte(BASE + LCR,  Wls8);
-
+#ifdef QEMU_DEBUG
+  OutPortByte(BASE + FCR, 0x84);
+  int bgc = (1843200 + 8 * 9600 - 1) / (16 * 9600);
+  
+  OutPortByte(BASE + LCR, DLAB);
+  OutPortByte(BASE + DLM, bgc >> 8);
+  OutPortByte(BASE + DLL, bgc);
+  OutPortByte(BASE + LCR, 0);
+  
+  OutPortByte(BASE + LCR,  Wls8);
+#endif
   geom.width = width;
   geom.height = height;
 
@@ -85,10 +88,10 @@ void TTY::scroll_up()
 
 void TTY::out_ch(const char ch)
 {
-
-	while(!(InPortByte(BASE + LSR) &THRE)); // ждем опустошения буфера
-	OutPortByte(BASE + THR, ch);
-
+#ifdef QEMU_DEBUG
+  while(!(InPortByte(BASE + LSR) &THRE)); // ждем опустошения буфера
+  OutPortByte(BASE + THR, ch);
+#endif
 
   switch (ch) {
   case '\n':

@@ -7,6 +7,7 @@
 #include <fos/mmu.h>
 #include <fos/fos.h>
 #include <fos/pager.h>
+#include <fos/printk.h>
 
 Thread::Thread(class TProcess *process, off_t eip, u16_t flags, void * kernel_stack, void * user_stack, u16_t code_segment, u16_t data_segment)
 {
@@ -29,7 +30,6 @@ Thread::~Thread()
       system->user_int_handler[n] = 0;
     }
   }
-
   List<kmessage *> *curr, *n;
   /* удалим все сообщения, вернем ошибки отправителям */
   list_for_each_safe(curr, n, new_messages){
@@ -40,7 +40,6 @@ Thread::~Thread()
   }
   delete new_messages->item;
   delete new_messages;
-
   list_for_each_safe(curr, n, received_messages){
     curr->item->reply_size = 0;
     curr->item->thread->flags &= ~FLAG_TSK_SEND;
@@ -48,7 +47,6 @@ Thread::~Thread()
     delete curr;
   }
   delete received_messages;
-  
   kfree((void *)stack_pl0, STACK_SIZE);
   kfree((void *)tss, sizeof(TSS));
 }

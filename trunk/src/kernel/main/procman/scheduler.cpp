@@ -24,7 +24,6 @@ void TProcMan::scheduler()
   u32_t _uptime;
 
   while (1) {
-    //asm("incb 0xb8000+158\n" "movb $0x5f,0xb8000+159");
     _uptime = kuptime();
     
     /* Выбираем следующий подходящий для запуска поток */
@@ -32,6 +31,7 @@ void TProcMan::scheduler()
       if(((curr->item->flags & FLAG_TSK_TERM) || (curr->item->flags & FLAG_TSK_EXIT_THREAD)) && !(curr->item->flags & FLAG_TSK_SYSCALL)){
 	curr->item->flags &= ~FLAG_TSK_READY;
 	curr = do_kill(curr);
+	continue;
       } else
 	curr = curr->next;
       

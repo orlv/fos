@@ -13,6 +13,7 @@ LD = ld
 include ../config.mk
 
 #DEBUG =-g
+#DEBUG = -DQEMU_DEBUG
 
 ASFLAGS		= -DiKERNEL $(DEBUG) -Wall -nostdlib -nostdinc -I$(INCLUDE)
 CFLAGS		= -DiKERNEL $(DEBUG) -Wall -O2 -I$(INCLUDE) -nostdinc -ffreestanding -fno-stack-protector 

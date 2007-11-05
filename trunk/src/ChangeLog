@@ -1,12 +1,23 @@
+Mon Nov  5 23:08:57 2007 [20071105] (kernel version 0.0.45.3)
+	- Различные мелкие исправления
+Oleg S Fedorov <o.s.fedorov@gmail.com>:
+	- Исправлены потенциальные баги в системе сообщений
+	- Исправлен баг в системе управления памятью
+	- Доработан FOSAL в PGS
+	- Добавлен list.h из Linux
+	- Добавлен mutex.h
+Serge Gridassov <grindars@grindars.org.ru>:
+	- Доработан PGS
+	
 Sun Oct 28 13:12:00 UTC 2007 (kernel version 0.0.45.2)
 Oleg S Fedorov <o.s.fedorov@gmail.com>)
 	- Добавлена пользовательская обертка THREAD() для корректного
 	  завершения потоков.
 
 Thu Oct 25 15:44:36 UTC 2007 (kernel version 0.0.45.2)
-Oleg S Fedorov <o.s.fedorov@gmail.com>)
+Oleg S Fedorov <o.s.fedorov@gmail.com>:
 	- Исправления в ядре
-Serge Gridassov <grindars@grindars.org.ru>
+Serge Gridassov <grindars@grindars.org.ru>:
 	- Перенесены драйвера мыши, клавиатуры
 	- Графический сервер PGS
 Zhilin Mike <mizh@bk.ru>

@@ -181,7 +181,6 @@ void *kmalloc(register size_t size)
   void *ptr;
   system->mt_disable();
   if(!(ptr = system->kmem->mmap(0, size, 0, 0, 0)))
-       //mem_alloc(size)))
     system->panic("No memory left!!! \nCan't allocate 0x%X bytes of kernel memory!", size);
   system->mt_enable();
 
@@ -193,6 +192,5 @@ void kfree(register void *ptr, size_t size)
 {
   system->mt_disable();
   system->kmem->munmap((off_t)ptr, size);
-    //mem_free(ptr, size);
   system->mt_enable();
 }

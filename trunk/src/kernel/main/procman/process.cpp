@@ -21,7 +21,6 @@ TProcess::~TProcess()
 {
   delete memory;
   delete name;
-
   List<Thread *> *curr, *n;
   list_for_each_safe(curr, n, threads){
     //delete curr->item;

@@ -321,22 +321,22 @@ void TProcMan::unreg_thread(register List<Thread *> * thread)
 List<Thread *> *TProcMan::do_kill(List<Thread *> *thread)
 {
   List<Thread *> *next;
+  system->mt_disable();
   if(thread->item->flags & FLAG_TSK_TERM) {
     TProcess *process = thread->item->process;
-    List<Thread *> *current = threadlist;
-    do {
-      next = current->next;
+    List<Thread *> *current, *n;// = threadlist;
+    list_for_each_safe(current, n, threadlist){
       if (current->item->process == process)
-	unreg_thread(current);
-      current = next;
-    } while (current != threadlist);
+      	unreg_thread(current);
+    }
     delete process;
   } else {
     next = thread->next;
     unreg_thread(thread);
   }
-  
-  return next;
+  system->mt_enable();
+  //return next;
+  return threadlist;
 }
 
 res_t TProcMan::kill(register tid_t tid, u16_t flag)

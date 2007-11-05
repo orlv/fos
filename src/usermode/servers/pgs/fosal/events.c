@@ -1,3 +1,7 @@
+/*
+  (C) 2007 Serge Gridasov
+  (Mon Nov  5 23:04:21 2007) Oleg Fedorov: переделал по-своему
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -63,7 +67,6 @@ void PostEvent(int tid, int handle, int class, int a0, int a1, int a2, int a3)
   while(!mutex_try_lock(q_locked))
     sched_yield();
 
-  printf("[ev %d on 0x%X]", class, tid);
   struct list_head *entry;
   proc_t *p = &proc_head;
 
@@ -77,20 +80,18 @@ void PostEvent(int tid, int handle, int class, int a0, int a1, int a2, int a3)
   
   list_for_each(entry, &proc_head.list){
     p = list_entry(entry, proc_t, list);
-    printf("{0x%X}", p->tid);
     if(p->tid == tid)
       break;
   }
   
   if(p->tid != tid) { /* запись процесса не найдена, создаем */
-    //    printf("[cr]");
     p = malloc(sizeof(proc_t));
     p->waiting = 0;
     INIT_LIST_HEAD(&p->events.list);
     p->tid = tid;
     list_add_tail(&p->list, &proc_head.list);
   }
-  //  printf("[p_tid=0x%X]", p->tid);
+
   list_add_tail(&ev->list, &p->events.list);
   mutex_unlock(q_locked);
 }
@@ -125,7 +126,6 @@ void EventsThread()
 	char *caption = buffer + sizeof(create_win_t);
 	msg.a0 = CreateWindow(msg.tid, win->x, win->y, win->w, win->h, caption, win->class);
 	msg.a2 = NO_ERR;
-	//printf("[crwin %d]", msg.a0);
 	msg.send_size = 0;
 	msg.flags = 0;
 	reply(&msg);
@@ -133,12 +133,10 @@ void EventsThread()
       }
 
       case WIN_CMD_DESTROYWINDOW:
-	//	printf("[destr %d]", msg.a1);
 	DestroyWindow(msg.a1);
 	msg.a2 = NO_ERR;
 	msg.send_size = 0;
 	msg.flags = 0;
-	//printf("[destrcompl]");
 	reply(&msg);
 	break;
 
@@ -156,7 +154,6 @@ void EventsThread()
 	}
 
 	if(p->tid != msg.tid) { /* запись процесса не найдена, создаем */
-	  //printf("[cr1]");
 	  p = malloc(sizeof(proc_t));
 	  p->waiting = 1;
 	  INIT_LIST_HEAD(&p->events.list);
@@ -182,8 +179,7 @@ void EventsThread()
       case WIN_CMD_CLEANUP: {
 	while(!mutex_try_lock(q_locked))
 	  sched_yield();
-	/*
-	//printf(".");
+
 	struct list_head *entry;
 	proc_t *p;
 
@@ -199,7 +195,7 @@ void EventsThread()
 	    break;
 	  }
 	}
-	*/
+
 	msg.send_size = 0;
 	msg.flags = 0;
 	reply(&msg);
@@ -224,10 +220,8 @@ void EventsThread()
     list_for_each(entry, &proc_head.list){
       p = list_entry(entry, proc_t, list);
       if(p->waiting && !list_empty(&p->events.list)) {
-	printf("[found ev on 0x%X]", p->tid);
 	event_q_t *ev = list_entry(p->events.list.next, event_q_t, list);
 	list_del(&ev->list);
-	printf("[evclass=0x%X, a3=0x%X]", ev->class, ev->a3);
 	msg.send_size = sizeof(event_q_t);
 	msg.send_buf = ev;
 	msg.flags = 0;
@@ -237,7 +231,6 @@ void EventsThread()
 	p->waiting = 0;
       }
     }
-    //printf("[bbb]");
     mutex_unlock(q_locked);
   }
   printf("WARNING: EXIT FROM INFINITE LOOP!\n");

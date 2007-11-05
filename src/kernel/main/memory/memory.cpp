@@ -299,7 +299,7 @@ int VMM::munmap(register off_t start, register size_t lenght)
       }
       __mt_enable();
       return lenght;
-    }while (curr != FreeMem);
+    }
 
     next = curr->next->item;
     /* разместить между нижним и верхним соседями */

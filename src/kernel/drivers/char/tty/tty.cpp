@@ -7,7 +7,7 @@
 #include <string.h>
 #include <fos/system.h>
 
-#ifdef QEMU_DEBUG
+#ifdef DEBUG_SERIAL
 
 #define OutPortByte system->outportb
 #define InPortByte system->inportb
@@ -41,7 +41,7 @@
 
 TTY::TTY(u16_t width, u16_t height)
 {
-#ifdef QEMU_DEBUG
+#ifdef DEBUG_SERIAL
   OutPortByte(BASE + FCR, 0x84);
   int bgc = (1843200 + 8 * 9600 - 1) / (16 * 9600);
   
@@ -88,7 +88,7 @@ void TTY::scroll_up()
 
 void TTY::out_ch(const char ch)
 {
-#ifdef QEMU_DEBUG
+#ifdef DEBUG_SERIAL
   while(!(InPortByte(BASE + LSR) &THRE)); // ждем опустошения буфера
   OutPortByte(BASE + THR, ch);
 #endif

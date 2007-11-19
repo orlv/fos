@@ -56,11 +56,15 @@ u32_t get_page_DMA16()
   }
 }
 
+#define MEMORY_LIMIT 536870912
+
 void init_memory()
 {
   extern multiboot_info_t *__mbi;
 
   size_t memory_size = (__mbi->mem_upper + 1024)*1024;
+  if(memory_size > MEMORY_LIMIT)
+    memory_size = MEMORY_LIMIT;
 
   offs_t freemem_start_DMA16 = ((module_t *) __mbi->mods_addr)[__mbi->mods_count - 1].mod_end;
   if (freemem_start_DMA16 & 0xfff) {

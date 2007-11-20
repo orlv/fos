@@ -23,9 +23,9 @@ void thread_handler()
     msg.recv_size = 0;
     msg.tid = _MSG_SENDER_SIGNAL;
     receive(&msg);
-    if(msg.a0 == 1) {
+    if(msg.arg[0] == 1) {
       keyboard_ps2_interrupt();
-    } else if(msg.a0 == 12) {
+    } else if(msg.arg[0] == 12) {
       mouse_ps2_interrupt();
     }
     else
@@ -51,37 +51,37 @@ int main(int argc, char *argv[])
     msg.recv_size = KB_CHARS_BUFF_SIZE;
     receive(&msg);
     
-    switch(msg.a0){
+    switch(msg.arg[0]){
     case FS_CMD_ACCESS:
-      msg.a0 = 1;
-      msg.a1 = KB_CHARS_BUFF_SIZE;
-      msg.a2 = NO_ERR;
+      msg.arg[0] = 1;
+      msg.arg[1] = KB_CHARS_BUFF_SIZE;
+      msg.arg[2] = NO_ERR;
       msg.send_size = 0;
       break;
       
     case FS_CMD_WRITE:
-      msg.a0 = kb_write(0, buffer, msg.recv_size);
+      msg.arg[0] = kb_write(0, buffer, msg.recv_size);
       msg.send_size = 0;
-      if(msg.a0 < msg.recv_size)
-	msg.a2 = ERR_EOF;
+      if(msg.arg[0] < msg.recv_size)
+	msg.arg[2] = ERR_EOF;
       else
-	msg.a2 = NO_ERR;
+	msg.arg[2] = NO_ERR;
       break;
       
     case FS_CMD_READ:
-      msg.a0 = kb_read(0, buffer, msg.send_size);
-      if(msg.a0 < msg.send_size) {
-	msg.send_size = msg.a0;
-	msg.a2 = ERR_EOF;
+      msg.arg[0] = kb_read(0, buffer, msg.send_size);
+      if(msg.arg[0] < msg.send_size) {
+	msg.send_size = msg.arg[0];
+	msg.arg[2] = ERR_EOF;
       } else
-	msg.a2 = NO_ERR;
+	msg.arg[2] = NO_ERR;
       
       msg.send_buf = buffer;
       break;
       
     default:
-      msg.a0 = 0;
-      msg.a2 = ERR_UNKNOWN_CMD;
+      msg.arg[0] = 0;
+      msg.arg[2] = ERR_UNKNOWN_CMD;
       msg.send_size = 0;
     }
     

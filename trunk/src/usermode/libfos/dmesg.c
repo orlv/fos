@@ -8,7 +8,7 @@
 asmlinkage size_t dmesg(char *buf, size_t count)
 {
   struct message msg;
-  msg.a0 = PROCMAN_CMD_DMESG;
+  msg.arg[0] = PROCMAN_CMD_DMESG;
   msg.recv_buf = buf;
   msg.recv_size = count;
   msg.send_size = 0;

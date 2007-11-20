@@ -15,7 +15,7 @@ int stat(const char *path, struct stat *buf)
     return 0;
 
   volatile struct message msg;
-  msg.a0 = FS_CMD_STAT;
+  msg.arg[0] = FS_CMD_STAT;
   msg.send_buf = path;
   msg.send_size = len+1;
   msg.recv_buf = buf;
@@ -24,7 +24,7 @@ int stat(const char *path, struct stat *buf)
   msg.tid = SYSTID_NAMER;
 
   if(send((struct message *)&msg) == RES_SUCCESS &&
-     msg.a2 == NO_ERR)
+     msg.arg[2] == NO_ERR)
     return 0;
   else
     return -1;

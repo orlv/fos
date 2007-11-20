@@ -114,12 +114,12 @@ void EventsThread()
     alarm(0);
 
     if(msg.tid != _MSG_SENDER_SIGNAL)
-      switch(msg.a0) {
+      switch(msg.arg[0]) {
 
       case FS_CMD_ACCESS:
-	msg.a0 = 1;
-	msg.a1 = sizeof(create_win_t) + MAX_TITLE_LEN;
-	msg.a2 = NO_ERR;
+	msg.arg[0] = 1;
+	msg.arg[1] = sizeof(create_win_t) + MAX_TITLE_LEN;
+	msg.arg[2] = NO_ERR;
 	msg.send_size = 0;
 	reply(&msg);
 	break;
@@ -127,19 +127,19 @@ void EventsThread()
       case WIN_CMD_CREATEWINDOW: {
 	create_win_t *win = (create_win_t *) buffer;
 	char *caption = buffer + sizeof(create_win_t);
-	msg.a0 = CreateWindow(msg.tid, win->x, win->y, win->w, win->h, caption, win->class);
-	window_t *w = GetWindowInfo(msg.a0);
-//	printf("handle %u , ptr %u\n", msg.a0, w);
-	msg.a1 = w->context->bpp;
-	msg.a2 = NO_ERR;
+	msg.arg[0] = CreateWindow(msg.tid, win->x, win->y, win->w, win->h, caption, win->class);
+	window_t *w = GetWindowInfo(msg.arg[0]);
+//	printf("handle %u , ptr %u\n", msg.arg[0], w);
+	msg.arg[1] = w->context->bpp;
+	msg.arg[2] = NO_ERR;
 	msg.send_size = 0;
 	msg.flags = 0;
 	reply(&msg);
 	break;
       }
       case WIN_CMD_DESTROYWINDOW:
-	DestroyWindow(msg.a1);
-	msg.a2 = NO_ERR;
+	DestroyWindow(msg.arg[1]);
+	msg.arg[2] = NO_ERR;
 	msg.send_size = 0;
 	msg.flags = 0;
 	reply(&msg);
@@ -207,9 +207,9 @@ void EventsThread()
       }
 	
       default:
-	printf("main events thread received message: %u %u %u %u\n", msg.a0, msg.a1, msg.a2, msg.a3);
-	msg.a0 = 0;
-	msg.a2 = ERR_UNKNOWN_CMD;
+	printf("main events thread received message: %u %u %u %u\n", msg.arg[0], msg.arg[1], msg.arg[2], msg.arg[3]);
+	msg.arg[0] = 0;
+	msg.arg[2] = ERR_UNKNOWN_CMD;
 	msg.send_size = 0;
 	reply(&msg);
       }
@@ -288,29 +288,29 @@ void MappingThread() {
 		msg.flags = MSG_MEM_SHARE;
 		msg.recv_size = screen_width * screen_height * 2;
 		receive(&msg);
-		switch(msg.a0) {
+		switch(msg.arg[0]) {
 		case FS_CMD_ACCESS:
-			msg.a0 = 1;
-			msg.a1 = screen_width * screen_height * 2;
-			msg.a2 = NO_ERR;
+			msg.arg[0] = 1;
+			msg.arg[1] = screen_width * screen_height * 2;
+			msg.arg[2] = NO_ERR;
 			msg.send_size = 0;
 			reply(&msg);
 			break;
 		case WIN_CMD_MAPBUF: {
-			window_t *w = GetWindowInfo(msg.a1);
+			window_t *w = GetWindowInfo(msg.arg[1]);
 			msg.send_size = w->context->w * w->context->h * w->context->bpp;
 		//	msg.recv_size = msg.send_size;
 			msg.send_buf = w->context->data;
 			msg.recv_buf = msg.send_buf;
-			msg.a0 = NO_ERR;
+			msg.arg[0] = NO_ERR;
 			msg.flags = MSG_MEM_SHARE;
 			reply(&msg);
 			break;
 		}
 		default:
-			printf("message: %u %u %u %u\n", msg.a0, msg.a1, msg.a2, msg.a3);
-			msg.a0 = 0;
-			msg.a2 = ERR_UNKNOWN_CMD;
+			printf("message: %u %u %u %u\n", msg.arg[0], msg.arg[1], msg.arg[2], msg.arg[3]);
+			msg.arg[0] = 0;
+			msg.arg[2] = ERR_UNKNOWN_CMD;
 			msg.send_size = 0;
 			reply(&msg);
 		}

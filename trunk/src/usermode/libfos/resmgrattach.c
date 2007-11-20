@@ -13,7 +13,7 @@ int resmgr_attach(const char *pathname)
     return 0;
 
   struct message msg;
-  msg.a0 = NAMER_CMD_ADD;
+  msg.arg[0] = NAMER_CMD_ADD;
   size_t len = strlen(pathname);
   if(len+1 > MAX_PATH_LEN)
     return 0;
@@ -24,7 +24,7 @@ int resmgr_attach(const char *pathname)
   msg.flags = 0;
   msg.tid = SYSTID_NAMER;
   if(send(&msg) == RES_SUCCESS)
-    return msg.a0;
+    return msg.arg[0];
   else
     return 0;
 }

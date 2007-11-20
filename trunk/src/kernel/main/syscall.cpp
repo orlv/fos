@@ -346,10 +346,10 @@ res_t receive(message *message)
   
   message->tid = TID(received_message->thread); /* укажем отправителя сообщения */
 
-  message->a0 = received_message->a0;
-  message->a1 = received_message->a1;
-  message->a2 = received_message->a2;
-  message->a3 = received_message->a3;
+  message->arg[0] = received_message->arg[0];
+  message->arg[1] = received_message->arg[1];
+  message->arg[2] = received_message->arg[2];
+  message->arg[3] = received_message->arg[3];
   
   if((received_message->flags & MESSAGE_ASYNC)) /* асинхронные сообщения не требуют ответа, сразу удаляем из ядра */
     delete received_message;
@@ -428,10 +428,10 @@ res_t send(message *message)
       send_message->buffer = (void *) message->send_buf;
   }
 
-  send_message->a0 = message->a0;
-  send_message->a1 = message->a1;
-  send_message->a2 = message->a2;
-  send_message->a3 = message->a3;
+  send_message->arg[0] = message->arg[0];
+  send_message->arg[1] = message->arg[1];
+  send_message->arg[2] = message->arg[2];
+  send_message->arg[3] = message->arg[3];
   
   send_message->reply_size = message->recv_size;
   send_message->thread = thread_sender;
@@ -453,10 +453,10 @@ res_t send(message *message)
   message->recv_size = send_message->reply_size;  /* сколько байт ответа пришло */
   message->tid = TID(send_message->thread);       /* ответ на сообщение мог прийти не от изначального получателя,
 						     а от другого процесса (при использовании получателем forward()) */
-  message->a0 = send_message->a0;
-  message->a1 = send_message->a1;
-  message->a2 = send_message->a2;
-  message->a3 = send_message->a3;
+  message->arg[0] = send_message->arg[0];
+  message->arg[1] = send_message->arg[1];
+  message->arg[2] = send_message->arg[2];
+  message->arg[3] = send_message->arg[3];
   
   delete send_message;
   thread_sender->send_to = 0;
@@ -513,10 +513,10 @@ res_t reply(message *message)
     memcpy(send_message->buffer, message->send_buf, send_message->reply_size);
   }
 
-  send_message->a0 = message->a0;
-  send_message->a1 = message->a1;
-  send_message->a2 = message->a2;
-  send_message->a3 = message->a3;
+  send_message->arg[0] = message->arg[0];
+  send_message->arg[1] = message->arg[1];
+  send_message->arg[2] = message->arg[2];
+  send_message->arg[3] = message->arg[3];
 
   system->mt_disable();
   delete entry; /* удалим запись о сообщении из списка полученных сообщений */

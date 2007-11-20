@@ -238,16 +238,16 @@ int fbterm::set_videomode(u16_t mode)
     }
 
     
-    msg.a0 = VBESRV_CMD_SET_MODE;
-    msg.a1 = mode;
+    msg.arg[0] = VBESRV_CMD_SET_MODE;
+    msg.arg[1] = mode;
     msg.send_size = 0;
     msg.recv_size = sizeof(vbe_mode_info_block);
     msg.recv_buf = vbeinfo;
     msg.tid = ((fd_t)fd)->thread;
     send((message *)&msg);
-    //printf("fbtty: result=0x%X, vbeinfo=0x%X\n", msg.a0, vbeinfo);
+    //printf("fbtty: result=0x%X, vbeinfo=0x%X\n", msg.arg[0], vbeinfo);
 
-    if(msg.a0) { /* режим успешно установлен */
+    if(msg.arg[0]) { /* режим успешно установлен */
       lfb_size = vbeinfo->x_resolution * vbeinfo->y_resolution * vbeinfo->bits_per_pixel/8;
       /*printf("lfbtty: lfb address=%X   \n"	\
 	     "lfbtty: mode %dx%d@%dbpp \n"	\
@@ -263,7 +263,7 @@ int fbterm::set_videomode(u16_t mode)
 	  
       lfb = (u16_t *)kmmap(0, lfb_size, 0, vbeinfo->phys_base_addr);
       lfb_cache = (u16_t *)kmmap(0, lfb_size, 0, 0);
-      mode = msg.a1;
+      mode = msg.arg[1];
 
       //bar(0, 0, scr_width, scr_height, 0xeefe);
       //bar(scr_width-20, 0, 20, 20, 0xadef);

@@ -8,14 +8,14 @@
 asmlinkage tid_t thread_create(off_t eip)
 {
   struct message msg;
-  msg.a0 = PROCMAN_CMD_CREATE_THREAD;
-  msg.a1 = eip;
+  msg.arg[0] = PROCMAN_CMD_CREATE_THREAD;
+  msg.arg[1] = eip;
   msg.send_size = 0;
   msg.recv_size = 0;
   msg.flags = 0;
   msg.tid = SYSTID_PROCMAN;
   if(send(&msg) == RES_SUCCESS)
-    return (tid_t) msg.a0;
+    return (tid_t) msg.arg[0];
   else
     return 0;
 }

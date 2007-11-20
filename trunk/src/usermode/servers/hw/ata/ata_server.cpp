@@ -51,12 +51,12 @@ asmlinkage int main()
 		msg.recv_buf = buffer;
 		receive(&msg);
 
-		switch(msg.a0){
+		switch(msg.arg[0]){
 			case FS_CMD_ACCESS:
 				printf("Attempt of access... \n");
-				msg.a0 = 1;
-				msg.a1 = RECV_BUF_SIZE;
-				msg.a2 = NO_ERR;
+				msg.arg[0] = 1;
+				msg.arg[1] = RECV_BUF_SIZE;
+				msg.arg[2] = NO_ERR;
 			break;
 	
 			case FS_CMD_WRITE:
@@ -65,8 +65,8 @@ asmlinkage int main()
 		
 			default:
 				printf("Unknown \n");
-				msg.a0 = 0;
-				msg.a2 = ERR_UNKNOWN_CMD;
+				msg.arg[0] = 0;
+				msg.arg[2] = ERR_UNKNOWN_CMD;
 		}
 	
 		msg.send_size = 0;

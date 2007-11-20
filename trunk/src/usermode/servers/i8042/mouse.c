@@ -179,11 +179,11 @@ void MouseHandlerThread() {
 		msg.recv_buf = &mouse_struct;
 		msg.recv_size = sizeof(mouse_struct);
 		receive(&msg);
-		switch(msg.a0) {
+		switch(msg.arg[0]) {
 		case FS_CMD_ACCESS:
-			msg.a0 = 1;
-			msg.a1 = sizeof(mouse_struct);
-			msg.a2 = NO_ERR;
+			msg.arg[0] = 1;
+			msg.arg[1] = sizeof(mouse_struct);
+			msg.arg[2] = NO_ERR;
 			msg.send_size = 0;
 			break;
 		case FS_CMD_READ:
@@ -194,13 +194,13 @@ void MouseHandlerThread() {
 			mouse_struct.dz = dz;
 			mouse_struct.b = b;
 			msg.send_size = sizeof(mouse_struct);
-			msg.a0 = sizeof(mouse_struct);
-			msg.a2 = NO_ERR;
+			msg.arg[0] = sizeof(mouse_struct);
+			msg.arg[2] = NO_ERR;
 			msg.send_buf = &mouse_struct;
 			break;
 		default:
-			msg.a0 = 0;
-			msg.a2 = ERR_UNKNOWN_CMD;
+			msg.arg[0] = 0;
+			msg.arg[2] = ERR_UNKNOWN_CMD;
 			msg.send_size = 0;
 		}
 		reply(&msg);

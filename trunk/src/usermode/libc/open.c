@@ -10,7 +10,7 @@
 int open(const char *pathname, int flags)
 {
   volatile struct message msg;
-  msg.a0 = FS_CMD_ACCESS;
+  msg.arg[0] = FS_CMD_ACCESS;
   size_t len = strlen(pathname);
   if(len > MAX_PATH_LEN)
     return 0;
@@ -22,11 +22,11 @@ int open(const char *pathname, int flags)
   msg.tid = SYSTID_NAMER;
 
   u32_t result = send((struct message *)&msg);
-  if(result == RES_SUCCESS && msg.a0 && msg.a2 == NO_ERR) {
+  if(result == RES_SUCCESS && msg.arg[0] && msg.arg[2] == NO_ERR) {
     struct fd *fd = malloc(sizeof(struct fd));
     fd->thread = msg.tid;
-    fd->inode = msg.a0;
-    fd->buf_size = msg.a1;
+    fd->inode = msg.arg[0];
+    fd->buf_size = msg.arg[1];
     return (int) fd;
   } else
     return -1;

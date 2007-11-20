@@ -107,7 +107,7 @@ void Thread::parse_signals()
     if(signals & mask){
       kmessage *message = new kmessage;
       message->size = 0;
-      message->a0 = n;
+      message->arg[0] = n;
       message->flags = MESSAGE_ASYNC;
       message->thread = THREAD(_MSG_SENDER_SIGNAL);
       this->put_message(message);

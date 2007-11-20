@@ -24,7 +24,7 @@ THREAD(thread)
     receive(&msg);
 
     c++;
-    msg.a0 = c;
+    msg.arg[0] = c;
     msg.send_size = 0;
     reply(&msg);
   }
@@ -47,7 +47,7 @@ asmlinkage int main(int argc, char ** argv)
     msg.tid = tid;
     send(&msg);
 
-    if(msg.a0 >= iter)
+    if(msg.arg[0] >= iter)
       break;
   }
 

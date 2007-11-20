@@ -131,9 +131,9 @@ void procman_srv()
     msg->tid = _MSG_SENDER_ANY;
 
     receive(msg);
-    //printk("procman: a0=%d from [%s]\n", msg->a0, THREAD(msg->tid)->process->name);
+    //printk("procman: a0=%d from [%s]\n", msg->arg[0], THREAD(msg->tid)->process->name);
 
-    switch(msg->a0){
+    switch(msg->arg[0]){
     case PROCMAN_CMD_EXEC:
       path_len = strlen(data);
       if(path_len+1 < msg->recv_size) {
@@ -143,16 +143,16 @@ void procman_srv()
       } else
 	p = data;
 
-      msg->a0 = execute(p, data);
+      msg->arg[0] = execute(p, data);
       msg->send_size = 0;
       reply(msg);
       break;
 
     case PROCMAN_CMD_KILL:
-      if(system->procman->kill(msg->a1, FLAG_TSK_TERM))
-	msg->a0 = 1;
+      if(system->procman->kill(msg->arg[1], FLAG_TSK_TERM))
+	msg->arg[0] = 1;
       else
-	msg->a0 = 0;
+	msg->arg[0] = 0;
       msg->send_size = 0;
       reply(msg);
       break;
@@ -161,9 +161,9 @@ void procman_srv()
     case PROCMAN_CMD_EXIT:
       thread = system->procman->get_thread_by_tid(msg->tid);
       if(system->procman->kill(TID(thread), FLAG_TSK_TERM))
-	msg->a0 = 1;
+	msg->arg[0] = 1;
       else
-	msg->a0 = 0;
+	msg->arg[0] = 0;
       msg->send_size = 0;
       reply(msg);
       break;
@@ -172,32 +172,32 @@ void procman_srv()
     case PROCMAN_CMD_THREAD_EXIT:
       thread = system->procman->get_thread_by_tid(msg->tid);
       if(system->procman->kill(TID(thread), FLAG_TSK_EXIT_THREAD))
-	msg->a0 = 1;
+	msg->arg[0] = 1;
       else
-	msg->a0 = 0;
+	msg->arg[0] = 0;
       msg->send_size = 0;
       reply(msg);
       break;
 
     case PROCMAN_CMD_CREATE_THREAD:
       thread = system->procman->get_thread_by_tid(msg->tid);
-      thread = thread->process->thread_create(msg->a1, FLAG_TSK_READY, kmalloc(PAGE_SIZE), thread->process->memory->mmap(0, PAGE_SIZE, 0, 0, 0));
+      thread = thread->process->thread_create(msg->arg[1], FLAG_TSK_READY, kmalloc(PAGE_SIZE), thread->process->memory->mmap(0, PAGE_SIZE, 0, 0, 0));
       system->procman->reg_thread(thread);
-      msg->a0 = (u32_t) thread;
+      msg->arg[0] = (u32_t) thread;
       msg->send_size = 0;
       reply(msg);
       break;
 
     case PROCMAN_CMD_INTERRUPT_ATTACH:
       thread = system->procman->get_thread_by_tid(msg->tid);
-      msg->a0 = system->interrupt_attach(thread, msg->a1);
+      msg->arg[0] = system->interrupt_attach(thread, msg->arg[1]);
       msg->send_size = 0;
       reply(msg);
       break;
 
     case PROCMAN_CMD_INTERRUPT_DETACH:
       thread = system->procman->get_thread_by_tid(msg->tid);
-      msg->a0 = system->interrupt_detach(thread, msg->a1);
+      msg->arg[0] = system->interrupt_detach(thread, msg->arg[1]);
       msg->send_size = 0;
       reply(msg);
       break;
@@ -213,13 +213,13 @@ void procman_srv()
       break;
 
     case FS_CMD_ACCESS:
-      msg->a0 = 1;
+      msg->arg[0] = 1;
       msg->send_size = 0;
       reply(msg);
       break;
       
     default:
-      msg->a0 = RES_FAULT;
+      msg->arg[0] = RES_FAULT;
       msg->send_size = 0;
       reply(msg);
     }

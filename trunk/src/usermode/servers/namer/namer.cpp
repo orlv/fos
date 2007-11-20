@@ -42,15 +42,15 @@ asmlinkage int main()
     msg->recv_buf  = pathname;
     msg->tid = _MSG_SENDER_ANY;
     receive(msg);
-    switch(msg->a0){
+    switch(msg->arg[0]){
     case NAMER_CMD_ADD:
       //printf("namer: adding [%s]\n", pathname);
       obj = namer->add(pathname, msg->tid);
 
       if(obj)
-	msg->a0 = RES_SUCCESS;
+	msg->arg[0] = RES_SUCCESS;
       else
-	msg->a0 = RES_FAULT;
+	msg->arg[0] = RES_FAULT;
 
       msg->send_size = 0;
       reply(msg);
@@ -66,15 +66,15 @@ asmlinkage int main()
 	msg->send_size = strlen(pathname);
 	msg->send_buf = pathname;
 	if(forward(msg, obj->sid) != RES_SUCCESS){
-	  msg->a0 = 0;
-	  msg->a2 = ERR_NO_SUCH_FILE;
+	  msg->arg[0] = 0;
+	  msg->arg[2] = ERR_NO_SUCH_FILE;
 	  reply(msg);
 	}
       } else {
 	//printf("namer: access denied\n");
 	msg->send_size = 0;
-	msg->a0 = 0;
-	msg->a2 = ERR_NO_SUCH_FILE;
+	msg->arg[0] = 0;
+	msg->arg[2] = ERR_NO_SUCH_FILE;
 	reply(msg);
       }
       memset(path_tail, 0, MAX_PATH_LEN);
@@ -87,14 +87,14 @@ asmlinkage int main()
 	msg->send_size = strlen(pathname);
 	msg->send_buf = pathname;
 	if(forward(msg, obj->sid) != RES_SUCCESS){
-	  msg->a0 = 0;
-	  msg->a2 = ERR_NO_SUCH_FILE;
+	  msg->arg[0] = 0;
+	  msg->arg[2] = ERR_NO_SUCH_FILE;
 	  reply(msg);
 	}
       } else {
 	msg->send_size = 0;
-	msg->a0 = 0;
-	msg->a2 = ERR_NO_SUCH_FILE;
+	msg->arg[0] = 0;
+	msg->arg[2] = ERR_NO_SUCH_FILE;
 	reply(msg);
       }
       memset(path_tail, 0, MAX_PATH_LEN);
@@ -102,14 +102,14 @@ asmlinkage int main()
 
       /*case NAMER_CMD_RESOLVE:
       //printf("namer: resolving [%s]\n", m->data3.buf);
-      msg->a0 = hal->namer->resolve(pathname);
+      msg->arg[0] = hal->namer->resolve(pathname);
       msg->send_size = 0;
       reply(msg);
       break;*/
 
     default:
       msg->send_size = 0;
-      msg->a0 = 0;
+      msg->arg[0] = 0;
       reply(msg);
     }
   }

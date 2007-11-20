@@ -15,6 +15,8 @@
 #include <gui/types.h>
 #include <mutex.h>
 
+
+#include "../windowing.h"
 void event_handler(event_t *event);
 
 struct mouse_pos {
@@ -24,7 +26,7 @@ struct mouse_pos {
   int b;
 };
 
-extern mode_definition_t __current_mode;
+extern int screen_width, screen_height;
 
 typedef struct event_q{
   struct list_head list;
@@ -100,12 +102,13 @@ void EventsThread()
 {
   struct message msg;
   char *buffer = malloc( sizeof(create_win_t) + MAX_TITLE_LEN);
+	int buf_size = sizeof(create_win_t) + MAX_TITLE_LEN;
   resmgr_attach("/dev/pgs");
   while(1) {
     msg.tid = _MSG_SENDER_ANY;
     msg.recv_buf  = buffer;
-    msg.flags = 0;
-    msg.recv_size = sizeof(create_win_t) + MAX_TITLE_LEN;
+    msg.flags = 0;//MSG_MEM_SHARE;
+    msg.recv_size = buf_size;
     alarm(50);
     receive(&msg);
     alarm(0);
@@ -125,13 +128,22 @@ void EventsThread()
 	create_win_t *win = (create_win_t *) buffer;
 	char *caption = buffer + sizeof(create_win_t);
 	msg.a0 = CreateWindow(msg.tid, win->x, win->y, win->w, win->h, caption, win->class);
+	window_t *w = GetWindowInfo(msg.a0);
+//	printf("handle %u , ptr %u\n", msg.a0, w);
+	msg.a1 = w->context->bpp;
 	msg.a2 = NO_ERR;
 	msg.send_size = 0;
 	msg.flags = 0;
 	reply(&msg);
 	break;
       }
-
+      case WIN_CMD_MAPBUF: {
+	window_t *w = GetWindowInfo(msg.a0);
+	msg.send_size = w->context->w * w->context->h * w->context->bpp;
+	msg.send_buf = w->context->data;
+	msg.flags = MSG_MEM_SHARE;
+	break;
+	}
       case WIN_CMD_DESTROYWINDOW:
 	DestroyWindow(msg.a1);
 	msg.a2 = NO_ERR;
@@ -182,7 +194,6 @@ void EventsThread()
 
 	struct list_head *entry;
 	proc_t *p;
-
 	list_for_each(entry, &proc_head.list){
 	  p = list_entry(entry, proc_t, list);
 	  if(p->tid == msg.tid){
@@ -195,7 +206,6 @@ void EventsThread()
 	    break;
 	  }
 	}
-
 	msg.send_size = 0;
 	msg.flags = 0;
 	reply(&msg);
@@ -255,8 +265,8 @@ void mouse_thread()
     y += move.dy;
     if(x < 0) x = 0;
     if(y < 0) y = 0;
-    if(x > __current_mode.width) x = __current_mode.width;
-    if(y > __current_mode.height) y = __current_mode.height;
+    if(x > screen_width) x = screen_width;
+    if(y > screen_height) y = screen_height;
     if(x != oldx || y != oldy) { // мышь сдвинули
       oldx = x;
       oldy = y;

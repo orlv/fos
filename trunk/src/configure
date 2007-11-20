@@ -60,7 +60,8 @@ GRUB_MODULES =	/boot/modules/test.txt		\\
 		/boot/modules/pci_server	\\
 		/boot/modules/pgs		\\
 		/boot/modules/ipctest           \\
-		/boot/modules/i8042
+		/boot/modules/i8042		\\
+		/boot/modules/stty
 
 #		/boot/modules/ext2.img          \\
 #		/boot/modules/ext2test

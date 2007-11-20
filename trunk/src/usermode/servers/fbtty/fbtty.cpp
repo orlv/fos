@@ -28,12 +28,14 @@ asmlinkage int main()
   if(resmgr_attach("/dev/tty") != RES_SUCCESS)
     return -1;
 
-  while(!fb->set_videomode(0x4114));
+	// было 0x4114 - 800x600x16
+	// поставил 0x4117 - 1024x768x16
+  while(!fb->set_videomode(0x4117));
   while(!fb->load_font("/mnt/modules/font.psf"));
   //outs("Welcome to FOS\n");
 
-  size_t len = dmesg(buffer, RECV_BUF_SIZE);
-  fb->write(0, buffer, len);
+//  size_t len = dmesg(buffer, RECV_BUF_SIZE);
+//  fb->write(0, buffer, len);
 
   while (1) {
     msg.tid = _MSG_SENDER_ANY;

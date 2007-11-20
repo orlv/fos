@@ -7,6 +7,7 @@
 #include <stddef.h>
 
 extern context_t *backbuf;
+extern context_t screen;
 
 int mousex;
 int mousey;
@@ -15,8 +16,8 @@ int cursory = 0;
 #include "cursormap.h"
 #include "windowing.h"
 void RedrawCursor() {
-	FlushContext(backbuf, cursor.width, cursor.height, cursorx, cursory, cursorx, cursory , NULL);
-	DrawImage(mousex, mousey, &cursor, NULL);
+	FlushContext(backbuf, cursor.width, cursor.height, cursorx, cursory, cursorx, cursory , &screen);
+	DrawImage(mousex, mousey, &cursor, &screen);
 	cursorx = mousex;
 	cursory = mousey;
 }

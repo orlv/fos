@@ -7,8 +7,10 @@ LDFLAGS+=$(LIBS_AL) $(addprefix $(TARGET)al/, $(OBJECTS_AL))
 OBJECTS=main.o events.o cursor.o windowing.o list.o
 MAKEFLAGS=-s
 all: $(PGS_CUSTOM) al $(OBJECTS)
-	@echo \ Linking pgs
-	@$(LD) -s $(LDFLAGS) $(LIB)/crt0.o $(OBJECTS) --entry=_start --oformat=elf32-i386  --Ttext=$(USER_MEM_BASE) -o pgs -lc -lcpp -lfos
+	echo \ Linking pgs
+	$(LD) $(LDFLAGS) $(LIB)/crt0.o $(OBJECTS) --entry=_start --oformat=elf32-i386  --Ttext=$(USER_MEM_BASE) -o pgs -lc -lcpp -lfos
+	nm pgs | sort > pgs.sym
+	#strip pgs
 
 install:
 	cp pgs $(INSTALLDIR)/$(OUTPUT)

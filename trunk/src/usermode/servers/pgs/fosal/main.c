@@ -8,41 +8,25 @@
 
 #include <gui/types.h>
 
-unsigned short *lfb;
-mode_definition_t __current_mode;
+#include "vbe.h"
 
-mode_definition_t graphics_init() {
-	printf("FOS layer starting up\n");
-	int tty;
-	do {
-	tty = open("/dev/tty", 0);
-	} while(!tty);
-	if(!tty) {
-		printf("FOSAL: can't connect to video server\n");
-		exit(1);
-	}
-
-	struct fd *fd = (struct fd *) tty;
-	struct message msg;
-	msg.a0 = 0xffff;
-	msg.send_size = 0;
-	msg.recv_size = 0;
-	msg.flags = 0;
-	msg.tid = fd->thread;
-	send((struct message *)&msg);
-  	if(msg.a2 != NO_ERR) {
-		printf("FOSAL: server error. Is server supports extended functions 0xfffe / 0xffff?\n");
-		exit(1);
-	}
- 	printf("Video mode %ux%u, lfb @ 0x%x\n", msg.a1, msg.a3, msg.a0);
-	lfb = (unsigned short *) kmmap(0, msg.a1 * msg.a3 * 2, 0, msg.a0);
+int screen_width, screen_height;
+context_t graphics_init() {
+	printf("Configuring VBE\n");
+	vbe_set_mode(0x4117);
+	unsigned short *lfb;
+	context_t screen;
+	lfb = (unsigned short *) kmmap(0, vbe->x_resolution * vbe->y_resolution * 2, 0, vbe->phys_base_addr);
 	if(!lfb) {
 		printf("FOSAL: failed mapping LFB\n");
 		exit(1);
 	}
-	printf("LFB mapped to 0x%x\n", lfb);
-	__current_mode.width= msg.a1;
-	__current_mode.height = msg.a3;
-	__current_mode.bpp = 2;
-	return __current_mode;
-} 
+	screen.w= vbe->x_resolution;
+	screen.h = vbe->y_resolution;
+	screen.bpp = 2;
+	screen.native_pixels = 0;
+	screen.data = lfb;
+	screen_width = vbe->x_resolution;
+	screen_height = vbe->y_resolution;
+	return screen;
+}

@@ -13,7 +13,7 @@ asmlinkage int main()
     sched_yield();
   }
 
-  while(!exec("/mnt/modules/fbtty", NULL));
+  while(!exec("/mnt/modules/stty", NULL));
   printf("Init started! If you see this text - all work fine.\n");
   exec("/mnt/modules/i8042", NULL);
   exec("/mnt/modules/pgs", NULL);

@@ -61,10 +61,19 @@ void event_handler(event_t *event) {
 		}
 		need_cursor = 1;
 		break;
-	case EVENT_TYPE_MOUSEDOWN:
+	case EVENT_TYPE_MOUSEDOWN: {
 		down = 1;
 		need_cursor = 1;
+		int handle = get_window_handle(mousex, mousey);
+		if(!handle) break;
+		window_t *win = GetWindowInfo(handle);
+		int win_x = mousex-win->x;
+		int win_y = mousey-win->y;
+		if(win_x > 3 && win_x < win->w - 3 && win_y > 21 && win_y < win->h - 3)
+			PostEvent(win->tid, handle, EV_MDOWN,  win_x - 3 , win_y - 21, 0, 0);
+
 		break;
+	}
 	case EVENT_TYPE_MOUSEUP:
 		down = 0;
 		int handle = get_window_handle(mousex, mousey);

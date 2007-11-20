@@ -2,15 +2,14 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <fcntl.h>
- #include <unistd.h>
+#include <unistd.h>
 
 #include <fos/message.h>
 #include <fos/fs.h>
 
 #include <string.h>
 #include "gui.h"
-fd_t gui;
-
+static fd_t gui;
 void GUIInit() {
 	int iterations = 0;
 	int gui_handle;
@@ -52,6 +51,19 @@ int CreateWindow(int parent, int x, int y, int w, int h, char *caption, int flag
 	msg.send_size = sizeof(create_win_t) + MAX_TITLE_LEN;
 	msg.send_buf = buf;
 	send(&msg);
+	int bpp = msg.a1;
+	printf("Videobuffer: %ux%ux%u (%u bytes)\n", w, h, bpp * 8, w * h * bpp);
+
+	/*char *canvas = kmmap(0, w * h * msg.a1, 0, 0);
+	msg.recv_size =  w * h * msg.a1;
+	msg.recv_buf = canvas;
+	msg.send_size = w * h * msg.a1;
+	msg.send_buf = canvas;
+	msg.flags = MSG_MEM_SHARE;
+	msg.a0 = WIN_CMD_MAPBUF;
+	send(&msg);
+	canvas[256] = 0xAA;
+*/
 	return msg.a0;
 }
 typedef struct {
@@ -81,6 +93,8 @@ void WaitEvent(int *class, int *handle, int *a0, int *a1, int *a2, int *a3) {
 	*a1 = event.a1;
 	*a2 = event.a2;
 	*a3 = event.a3;
+
+
 }
 void DestroyWindow(int handle) {
 	struct message msg;

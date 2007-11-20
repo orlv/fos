@@ -11,13 +11,13 @@
 #include "windowing.h"
 #include "cursor.h"
 
-mode_definition_t mode;
 int need_cursor = 0;
 extern context_t *backbuf;
+context_t screen;
 int main(int argc, char *argv) {
 	printf("Portable Graphics System version " VERSION " started up\n");
-	mode = graphics_init();	
-	printf("Mode set: %ux%ux%u\n", mode.width, mode.height, mode.bpp * 8);
+	screen = graphics_init();	
+	printf("Mode set: %ux%ux%u\n",screen.w, screen.h, screen.bpp * 8);
 
 	init_windowing();
 	StartEventHandling();

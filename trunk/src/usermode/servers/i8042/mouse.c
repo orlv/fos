@@ -159,10 +159,8 @@ void mouse_ps2_init ()
 {
   if (i8042_aux_probe ()) {
     i8042_aux_enable ();
-    if (detect_wheel ()) {
-      printf("Wheel mouse.\n");
+    if (detect_wheel ())
       wheel = 1;
-    }
   }
 }
 

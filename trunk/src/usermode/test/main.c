@@ -6,7 +6,7 @@ asmlinkage int main(int argc, char ** argv)
 	int i;
 	GUIInit();
 	char title[128];
-	strcpy(title, "Окно ");
+	strcpy(title, "Window ");
 	if(argc>1)
 		for(i=1; i<argc; i++)
 			strcat(title, argv[i]);
@@ -17,10 +17,15 @@ asmlinkage int main(int argc, char ** argv)
 		WaitEvent(&class, &handle, &a0, &a1, &a2, &a3);
 		switch(class) {
 		case  EV_WINCLOSE:
-
 			DestroyWindow(winhandle);
 			GuiEnd();
 			return 1;
+		case EV_MDOWN:
+			printf("down at %u, %u\n", a0, a1);
+			break;
+		case EV_MUP:
+			printf("up at %u, %u\n", a0, a1);
+			break;			
 		}
 	}
 	

@@ -20,10 +20,10 @@ ssize_t write(int fildes, const void *buf, size_t nbyte)
     msg.send_size = nbyte;
 
   do{
-    msg.a0 = FS_CMD_WRITE;
+    msg.arg[0] = FS_CMD_WRITE;
     msg.recv_size = 0;
-    msg.a1 = fd->inode;
-    msg.a2 = fd->offset;
+    msg.arg[1] = fd->inode;
+    msg.arg[2] = fd->offset;
     msg.flags = 0;
     msg.tid = fd->thread;
 
@@ -32,12 +32,12 @@ ssize_t write(int fildes, const void *buf, size_t nbyte)
     if(do_send(&msg) != RES_SUCCESS) /* получатель не найден! */
       return -1;
 
-    if(msg.a2 == ERR_UNKNOWN_CMD)
+    if(msg.arg[2] == ERR_UNKNOWN_CMD)
       return -2;
     
-    offset += msg.a0;
+    offset += msg.arg[0];
 
-    if((msg.a2 == ERR_EOF) || offset >= nbyte)
+    if((msg.arg[2] == ERR_EOF) || offset >= nbyte)
       return offset;
    
     

@@ -50,11 +50,11 @@ void vesafb_srv()
     msg.recv_size = 0;
     receive(&msg);
 
-    switch(msg.a0){
+    switch(msg.arg[0]){
     case FS_CMD_ACCESS:
-      msg.a0 = 1;
-      msg.a1 = 0;
-      msg.a2 = NO_ERR;
+      msg.arg[0] = 1;
+      msg.arg[1] = 0;
+      msg.arg[2] = NO_ERR;
       msg.send_size = 0;
       break;
 
@@ -62,7 +62,7 @@ void vesafb_srv()
       system->mt_disable();
       system->cli();
       system->pic->lock(); /* обязательно необходимо запретить все IRQ */
-      vbeinfo = vbe_set_video_mode(msg.a1);
+      vbeinfo = vbe_set_video_mode(msg.arg[1]);
       system->pic->unlock();
       system->sti();
       system->mt_enable();
@@ -71,18 +71,18 @@ void vesafb_srv()
 	vbeinfo_l = new vbe_mode_info_block;
 	memcpy(vbeinfo_l, vbeinfo, sizeof(vbe_mode_info_block));
 	msg.send_buf = vbeinfo_l;
-	msg.a0 = 1;
+	msg.arg[0] = 1;
 	msg.send_size = 256; // sizeof(vbe_mode_info_block);
       } else {
-	msg.a0 = 0;
+	msg.arg[0] = 0;
 	msg.send_size = 0;
       }
 
       break;
 
     default:
-      msg.a0 = 0;
-      msg.a2 = ERR_UNKNOWN_CMD;
+      msg.arg[0] = 0;
+      msg.arg[2] = ERR_UNKNOWN_CMD;
       msg.send_size = 0;
     }
     reply(&msg);

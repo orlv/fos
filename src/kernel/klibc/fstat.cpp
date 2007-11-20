@@ -14,8 +14,8 @@ int fstat(int fildes, struct stat *buf)
     return -1;
 
   struct message msg;
-  msg.a0 = FS_CMD_FSTAT;
-  msg.a1 = fd->inode;
+  msg.arg[0] = FS_CMD_FSTAT;
+  msg.arg[1] = fd->inode;
   msg.send_size = 0;
   msg.recv_buf = buf;
   msg.recv_size = sizeof(struct stat);
@@ -23,7 +23,7 @@ int fstat(int fildes, struct stat *buf)
   msg.tid = fd->thread;
 
   if(send((struct message *)&msg) == RES_SUCCESS &&
-     msg.a2 == NO_ERR)
+     msg.arg[2] == NO_ERR)
     return 0;
   else
     return -1;

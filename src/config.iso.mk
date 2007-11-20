@@ -2,12 +2,14 @@
 # Copyright (C) 2007 Oleg Fedorov
 # -----------------------------------------------------------------------------
 
-ISO_BUILD_DIR   = $(SYSTEM_ROOT)/tmp/iso.tmp
-ISO_RELEASE_DIR = $(SYSTEM_ROOT)/tmp/iso
+TMP_DIR         = $(SYSTEM_ROOT)/tmp
+ISO_BUILD_DIR   = $(TMP_DIR)/iso.tmp
+ISO_RELEASE_DIR = $(TMP_DIR)/iso
 ISO_NAME	= $(SYSTEM_NAME)-current.iso
 ISO_OUTPUT	= $(ISO_RELEASE_DIR)/$(ISO_NAME)
 
 iso: clean_iso
+	mkdir -p $(TMP_DIR)
 	mkdir $(ISO_BUILD_DIR)
 	mkdir $(ISO_RELEASE_DIR)
 	cp -r $(SYSTEM_ROOT)/boot $(ISO_BUILD_DIR)/

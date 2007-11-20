@@ -30,6 +30,8 @@
 
 #define MSG_MEM_TAKE  2 /* готовность получить страницу памяти */
 
+#define MSG_ARGS_CNT  4
+typedef u32_t arg_t;
 
 struct message {
   const void * send_buf;
@@ -40,11 +42,7 @@ struct message {
 
   tid_t  tid;
   u32_t  flags;
-  
-  u32_t  a0;
-  u32_t  a1;
-  u32_t  a2;
-  u32_t  a3;
+  arg_t  arg[MSG_ARGS_CNT];
 } __attribute__ ((packed));
 
 #ifdef iKERNEL
@@ -55,11 +53,7 @@ struct kmessage {
   size_t reply_size;
   class Thread * volatile thread;
   u32_t flags;
-
-  u32_t  a0;
-  u32_t  a1;
-  u32_t  a2;
-  u32_t  a3;
+  arg_t  arg[MSG_ARGS_CNT];
 };
 
 #endif

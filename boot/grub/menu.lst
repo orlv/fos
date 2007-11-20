@@ -2,7 +2,7 @@
 timeout 0
 default 0
 hiddenmenu
-title FOS - FOS is Operating System (VERSION 0.0.45.3, BUILD 20071119)
+title FOS - FOS is Operating System (VERSION 0.0.45.3, BUILD 20071120)
 	root(cd0)
 	kernel /boot/fos
 	module /boot/modules/test.txt
@@ -18,4 +18,5 @@ title FOS - FOS is Operating System (VERSION 0.0.45.3, BUILD 20071119)
 	module /boot/modules/pgs
 	module /boot/modules/ipctest
 	module /boot/modules/i8042
+	module /boot/modules/stty
 

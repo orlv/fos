@@ -63,14 +63,14 @@ int main() {
  
       receive(&msg);
  
-      switch(msg.a0) {
+      switch(msg.arg[0]) {
          case PCS_BEEP:
-            beep(msg.a1, msg.a2);
+            beep(msg.arg[1], msg.arg[2]);
             break;
  
          default:
-            msg.a0 = 0;
-            msg.a2 = ERR_UNKNOWN_CMD;
+            msg.arg[0] = 0;
+            msg.arg[2] = ERR_UNKNOWN_CMD;
             break;
       }
  

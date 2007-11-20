@@ -34,7 +34,7 @@ tid_t exec(const char * filename, const char * args)
   }
   
   struct message msg;
-  msg.a0 = PROCMAN_CMD_EXEC;
+  msg.arg[0] = PROCMAN_CMD_EXEC;
   msg.send_buf = send_data;
   msg.send_size = send_size;
   msg.recv_size = 0;
@@ -45,7 +45,7 @@ tid_t exec(const char * filename, const char * args)
   if(args_len) free(send_data);
   
   if(res == RES_SUCCESS)
-    return (tid_t) msg.a0;
+    return (tid_t) msg.arg[0];
   else
     return 0;
 }

@@ -8,7 +8,7 @@
 void exit(int status)
 {
   struct message msg;
-  msg.a0 = PROCMAN_CMD_EXIT;
+  msg.arg[0] = PROCMAN_CMD_EXIT;
   msg.send_size = 0;
   msg.recv_size = 0;
   msg.flags = 0;

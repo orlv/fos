@@ -34,7 +34,7 @@ THREAD(floppy_timer_thread)
     alarm(1000);
     receive(&msg);
 
-    switch(msg.a0){
+    switch(msg.arg[0]){
     case 0:
       if (motor_ticks)
 	motor_ticks--;
@@ -45,7 +45,7 @@ THREAD(floppy_timer_thread)
       break;
 	
     default:
-      printf("floppy handler: unknown signal received! (0x%X)\n", msg.a0);
+      printf("floppy handler: unknown signal received! (0x%X)\n", msg.arg[0]);
     }
   }
 }
@@ -78,7 +78,7 @@ asmlinkage int main()
     receive(&msg);
 
     if(msg.tid == _MSG_SENDER_SIGNAL){
-      switch(msg.a0){
+      switch(msg.arg[0]){
       case FLOPPY_IRQ_NUM:
 	unmask_interrupt(FLOPPY_IRQ_NUM);
 	irq_done = 1;
@@ -87,39 +87,39 @@ asmlinkage int main()
 	break;
     
       default:
-	printf("floppy: unknown signal received! (%d)\n", msg.a0);
+	printf("floppy: unknown signal received! (%d)\n", msg.arg[0]);
       }
     } else {
-      switch(msg.a0){
+      switch(msg.arg[0]){
       case FS_CMD_ACCESS:
-	msg.a0 = 1;
-	msg.a1 = FLOPPY_XCHG_BUF_SIZE;
-	msg.a2 = NO_ERR;
+	msg.arg[0] = 1;
+	msg.arg[1] = FLOPPY_XCHG_BUF_SIZE;
+	msg.arg[2] = NO_ERR;
 	msg.send_size = 0;
 	break;
 
       case FS_CMD_WRITE:
-	msg.a0 = floppy->write(msg.a2, buffer, msg.recv_size);
+	msg.arg[0] = floppy->write(msg.arg[2], buffer, msg.recv_size);
 	msg.send_size = 0;
-	if(msg.a0 < msg.recv_size)
-	  msg.a2 = ERR_EOF;
+	if(msg.arg[0] < msg.recv_size)
+	  msg.arg[2] = ERR_EOF;
 	else
-	  msg.a2 = NO_ERR;
+	  msg.arg[2] = NO_ERR;
 	break;
 
       case FS_CMD_READ:
-	msg.a0 = floppy->read(msg.a2, buffer, msg.send_size);
-	if(msg.a0 < msg.send_size) {
-	  msg.send_size = msg.a0;
-	  msg.a2 = ERR_EOF;
+	msg.arg[0] = floppy->read(msg.arg[2], buffer, msg.send_size);
+	if(msg.arg[0] < msg.send_size) {
+	  msg.send_size = msg.arg[0];
+	  msg.arg[2] = ERR_EOF;
 	} else
-	  msg.a2 = NO_ERR;
+	  msg.arg[2] = NO_ERR;
 	msg.send_buf = buffer;
 	break;
 
       default:
-	msg.a0 = 0;
-	msg.a2 = ERR_UNKNOWN_CMD;
+	msg.arg[0] = 0;
+	msg.arg[2] = ERR_UNKNOWN_CMD;
 	msg.send_size = 0;
       }
       reply(&msg);
@@ -203,7 +203,7 @@ bool wait_irq_tmout(u32_t tmout)
     msg.tid = _MSG_SENDER_SIGNAL;
     receive(&msg);
     
-    switch(msg.a0){
+    switch(msg.arg[0]){
     case FLOPPY_IRQ_NUM:
       unmask_interrupt(FLOPPY_IRQ_NUM);
       if(!alarm(0))
@@ -215,7 +215,7 @@ bool wait_irq_tmout(u32_t tmout)
       return 1;
     
     default:
-      printf("floppy: unknown signal received! (%d)\n", msg.a0);
+      printf("floppy: unknown signal received! (%d)\n", msg.arg[0]);
     }
   }
 
@@ -231,7 +231,7 @@ void wait_tmout(u32_t tmout)
     msg.tid = _MSG_SENDER_SIGNAL;
     receive(&msg);
 
-    switch(msg.a0){
+    switch(msg.arg[0]){
       case FLOPPY_IRQ_NUM:
 	unmask_interrupt(FLOPPY_IRQ_NUM);
 	irq_done = 1;

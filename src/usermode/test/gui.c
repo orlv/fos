@@ -3,7 +3,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-
+#include <sys/mman.h>
 #include <fos/message.h>
 #include <fos/fs.h>
 
@@ -52,12 +52,12 @@ int CreateWindow(int parent, int x, int y, int w, int h, char *caption, int flag
 	msg.recv_size = 0;
 	msg.tid = gui->thread;
 	msg.flags = 0;
-	msg.a0 = WIN_CMD_CREATEWINDOW;
+	msg.arg[0] = WIN_CMD_CREATEWINDOW;
 	msg.send_size = sizeof(create_win_t) + MAX_TITLE_LEN;
 	msg.send_buf = buf;
 	send(&msg);
-	int bpp = msg.a1;
-	int hndl = msg.a0;
+	int bpp = msg.arg[1];
+	int hndl = msg.arg[0];
 	printf("Videobuffer: %ux%ux%u (%u bytes)\n", w, h, bpp * 8, w * h * bpp);
 
 	char *canvas = kmmap(0, w * h * bpp, 0, 0);
@@ -67,8 +67,8 @@ int CreateWindow(int parent, int x, int y, int w, int h, char *caption, int flag
 	msg.send_size = w * h * bpp;
 	msg.send_buf = canvas;
 	msg.flags = MSG_MEM_SHARE;
-	msg.a0 = WIN_CMD_MAPBUF;
-	msg.a1 = hndl;
+	msg.arg[0] = WIN_CMD_MAPBUF;
+	msg.arg[1] = hndl;
 	send(&msg);
 	printf("%x\n", *canvas);
 	int i;
@@ -89,7 +89,7 @@ void WaitEvent(int *class, int *handle, int *a0, int *a1, int *a2, int *a3) {
 	event_t event;
 	struct message msg;
 	msg.flags = 0;
-	msg.a0 = WIN_CMD_WAIT_EVENT;
+	msg.arg[0] = WIN_CMD_WAIT_EVENT;
 	msg.tid = gui->thread;
 	msg.send_size = 0;
 	msg.recv_size = sizeof(event_t);
@@ -110,8 +110,8 @@ void DestroyWindow(int handle) {
 	msg.send_size = 0;
 	msg.recv_size = 0;
 	msg.tid = gui->thread;
-	msg.a0 = WIN_CMD_DESTROYWINDOW;
-	msg.a1 = handle;
+	msg.arg[0] = WIN_CMD_DESTROYWINDOW;
+	msg.arg[1] = handle;
 	send(&msg);
 }
 void GuiEnd() {
@@ -120,7 +120,7 @@ void GuiEnd() {
 	msg.send_size = 0;
 	msg.recv_size = 0;
 	msg.tid = gui->thread;
-	msg.a0 = WIN_CMD_CLEANUP;
+	msg.arg[0] = WIN_CMD_CLEANUP;
 	send(&msg);
 	gui = NULL;
 	gui_canvas = NULL;

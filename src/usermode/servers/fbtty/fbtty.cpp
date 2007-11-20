@@ -43,38 +43,38 @@ asmlinkage int main()
     msg.recv_size = RECV_BUF_SIZE;
     msg.recv_buf = buffer;
     receive(&msg);
-    switch(msg.a0){
+    switch(msg.arg[0]){
     case FS_CMD_ACCESS:
-      msg.a0 = 1;
-      msg.a1 = RECV_BUF_SIZE;
-      msg.a2 = NO_ERR;
+      msg.arg[0] = 1;
+      msg.arg[1] = RECV_BUF_SIZE;
+      msg.arg[2] = NO_ERR;
       break;
 
     case FBTTY_CMD_SET_MODE:
-      msg.a0 = fb->set_videomode(msg.a1);
+      msg.arg[0] = fb->set_videomode(msg.arg[1]);
       break;
 
     case FBTTY_LOAD_FONT:
-      msg.a0 = fb->load_font(buffer);
+      msg.arg[0] = fb->load_font(buffer);
       break;
 
     case FS_CMD_WRITE:
-      msg.a0 = fb->write(0 /*msg.a2*/, buffer, msg.recv_size);
-      msg.a2 = NO_ERR;
+      msg.arg[0] = fb->write(0 /*msg.arg[2]*/, buffer, msg.recv_size);
+      msg.arg[2] = NO_ERR;
       break;
     case 0xfffe:
-	msg.a2 = NO_ERR;
-	fb->lock(msg.a1);
+	msg.arg[2] = NO_ERR;
+	fb->lock(msg.arg[1]);
 	break;
     case 0xffff:
-        msg.a2 = NO_ERR;
-	msg.a0 = fb->get_info()->phys_base_addr;
-	msg.a1 = fb->get_info()->x_resolution;
-	msg.a3 = fb->get_info()->y_resolution;
+        msg.arg[2] = NO_ERR;
+	msg.arg[0] = fb->get_info()->phys_base_addr;
+	msg.arg[1] = fb->get_info()->x_resolution;
+	msg.arg[3] = fb->get_info()->y_resolution;
 	break;
     default:
-      msg.a0 = 0;
-      msg.a2 = ERR_UNKNOWN_CMD;
+      msg.arg[0] = 0;
+      msg.arg[2] = ERR_UNKNOWN_CMD;
     }
 
     msg.send_size = 0;

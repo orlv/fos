@@ -8,7 +8,7 @@ echo -n "Updating package list: "
 
 rm -f packages.lst
 
-if wget -q http://grindars.org.ru/fosports/packages.lst; then
+if wget http://grindars.org.ru/fosports/packages.lst; then
 	echo ok
 else
 	echo failed.
@@ -20,7 +20,7 @@ cat packages.lst | while read fn; do
 		echo "Installing package $fn"
 		if [ ! -e tarballs/$fn.tar.bz2 ]; then
 			echo -n " Downloading precompiled tarball: "
-			if wget -q http://grindars.org.ru/fosports/precompiled/$fn.tar.bz2 -O tarballs/$fn.tar.bz2 ; then
+			if wget http://grindars.org.ru/fosports/precompiled/$fn.tar.bz2 -O tarballs/$fn.tar.bz2 ; then
 				echo ok
 			else
 				echo failed.

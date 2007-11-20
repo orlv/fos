@@ -29,49 +29,49 @@ void grub_modulefs_srv()
     msg.recv_size = MODULEFS_BUFF_SIZE;
     receive(&msg);
 
-    switch(msg.a0){
+    switch(msg.arg[0]){
     case FS_CMD_ACCESS:
       buffer[msg.recv_size] = 0;
       //printk("modulefs: access to [%s]\n", buffer);
-      msg.a0 = initrb->access(buffer) + 1;
-      msg.a1 = MODULEFS_BUFF_SIZE;
-      msg.a2 = NO_ERR;
-      //printk("[a0=%d]", msg.a0);
+      msg.arg[0] = initrb->access(buffer) + 1;
+      msg.arg[1] = MODULEFS_BUFF_SIZE;
+      msg.arg[2] = NO_ERR;
+      //printk("[a0=%d]", msg.arg[0]);
       msg.send_size = 0;
       break;
 
     case FS_CMD_READ:
-      //printk("modulefs: reading %d, offset=%d, bytes=%d\n", msg.a1-1, msg.a2, msg.send_size);
-      msg.a0 = initrb->read(msg.a1 - 1, msg.a2, buffer, msg.send_size);
-      if(msg.a0 < msg.send_size) {
-	msg.send_size = msg.a0;
-	msg.a2 = ERR_EOF;
+      //printk("modulefs: reading %d, offset=%d, bytes=%d\n", msg.arg[1]-1, msg.arg[2], msg.send_size);
+      msg.arg[0] = initrb->read(msg.arg[1] - 1, msg.arg[2], buffer, msg.send_size);
+      if(msg.arg[0] < msg.send_size) {
+	msg.send_size = msg.arg[0];
+	msg.arg[2] = ERR_EOF;
       } else
-	msg.a2 = NO_ERR;
+	msg.arg[2] = NO_ERR;
       msg.send_buf = buffer;
       break;
 
     case FS_CMD_STAT:
       buffer[msg.recv_size] = 0;
       //printk("modulefs: stat of [%s]\n", buffer);
-      msg.a0 = msg.a1 = initrb->access(buffer) + 1;
-      if(!msg.a0) {
+      msg.arg[0] = msg.arg[1] = initrb->access(buffer) + 1;
+      if(!msg.arg[0]) {
 	msg.send_size = 0;
 	break;
       }
 
     case FS_CMD_FSTAT:
-      //printk("modulefs: fstat(%d)\n", msg.a1);
-      initrb->stat(statbuf, msg.a1-1);
-      msg.a1 = MODULEFS_BUFF_SIZE;
-      msg.a2 = NO_ERR;
+      //printk("modulefs: fstat(%d)\n", msg.arg[1]);
+      initrb->stat(statbuf, msg.arg[1]-1);
+      msg.arg[1] = MODULEFS_BUFF_SIZE;
+      msg.arg[2] = NO_ERR;
       msg.send_size = sizeof(struct stat);
       msg.send_buf = statbuf;
       break;
       
     default:
-      msg.a0 = 0;
-      msg.a2 = ERR_UNKNOWN_CMD;
+      msg.arg[0] = 0;
+      msg.arg[2] = ERR_UNKNOWN_CMD;
       msg.send_size = 0;
     }
     reply(&msg);

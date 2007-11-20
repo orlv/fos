@@ -15,8 +15,8 @@ void vbe_set_mode(u16_t mode) {
 	do {
   		fd = open("/dev/vbe", 0);
 	} while(fd == -1);
-	msg.a0 = VBESRV_CMD_SET_MODE;
-	msg.a1 = mode;
+	msg.arg[0] = VBESRV_CMD_SET_MODE;
+	msg.arg[1] = mode;
 	msg.send_size = 0;
 	msg.recv_size = sizeof(struct vbe_mode_info_block);
 	msg.recv_buf = vbe;
@@ -24,7 +24,7 @@ void vbe_set_mode(u16_t mode) {
 	msg.flags = 0;
 	send((struct message *)&msg);
 	close(fd);
-	if(!msg.a0) {
+	if(!msg.arg[0]) {
 		printf("Setting mode failed. :(\n");
 		exit(1);
 	}

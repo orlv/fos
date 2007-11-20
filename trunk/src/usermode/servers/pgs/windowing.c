@@ -138,7 +138,9 @@ int CreateWindow(int tid, int x, int y, int w, int h, char *caption, int class) 
 	DrawRect(0, 0, w, h, 0xc3c3c3, c);
 
 	line(1, 1, 1, h - 3, 0xffffff, c);
+
 	line(1, 1, w - 3, 1, 0xffffff, c); 
+
 	line(1, h - 2, w - 2, h - 2, 0x828282, c);
 	line(w - 2, h - 1, w - 2, 1, 0x828282, c);
 	line(0, h - 1, w - 1, h - 1, 0x000000, c);

@@ -4,6 +4,7 @@
  * Copyright (c) 2007 Grindars
  */
 #include <gui/al.h>
+#include <fos/fos.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -12,7 +13,6 @@
 #include "cursor.h"
 #include "close.h"
 extern int need_cursor;
-extern mode_definition_t mode;
 
 extern node *front;
 extern node *back;
@@ -24,24 +24,23 @@ int last_handle = 0;
 
 context_t *backbuf;
 context_t *locate;
+extern context_t screen;
 int CreateWindow(int tid, int x, int y, int w, int h, char *caption, int flags);
 
 void init_windowing() {
 
-	char *backbuf_mem = RequestMemory(mode.width  * mode.height * mode.bpp);
 	backbuf = malloc(sizeof(context_t));
-	backbuf->w =  mode.width;
-	backbuf->h = mode.height;
-	backbuf->bpp = mode.bpp;
-	backbuf->data = backbuf_mem;
+	backbuf->w =  screen.w;
+	backbuf->h = screen.h;
+	backbuf->bpp = screen.h;
+	backbuf->data = RequestMemory(screen.w  * screen.h * screen.bpp);
 	backbuf->native_pixels = 0;
 
-	char *locate_mem = RequestMemory(mode.width  * mode.height * mode.bpp);
 	locate = malloc(sizeof(context_t));
-	locate->w = mode.width;
-	locate->h = mode.height;
-	locate->bpp = mode.bpp;
-	locate->data = locate_mem;
+	locate->w = screen.w;
+	locate->h = screen.h;
+	locate->bpp = screen.bpp;
+	locate->data = RequestMemory(screen.w  * screen.h * screen.bpp);
 	locate->native_pixels = 1;
 
 	need_refresh = 1;
@@ -65,10 +64,10 @@ char version[] = { "Portable Graphics System version " VERSION };
 void Redraw() {
 
 	refreshing = 1;
-	DrawRect(0, 0, mode.width, mode.height, 0xb6c2ff, backbuf);
-	memset(locate->data, 0,  (mode.width  * mode.height * mode.bpp));
-	PutString(mode.width - sizeof(version) * 8, mode.height - 16, version, 0, backbuf);
-	PutString(mode.width - sizeof(version) * 8 - 3, mode.height - 18, version, 0xffffff, backbuf);
+	DrawRect(0, 0, screen.w, screen.h, 0xb6c2ff, backbuf);
+	memset(locate->data, 0,  (screen.w  * screen.h * screen.bpp));
+	PutString(screen.w - sizeof(version) * 8, screen.h - 16, version, 0, backbuf);
+	PutString(screen.w - sizeof(version) * 8 - 3, screen.h - 18, version, 0xffffff, backbuf);
 	if(front != NULL) {
 
 	for(node *n = front; n; n = n->next) {
@@ -87,25 +86,49 @@ void Redraw() {
 		FlushContext(p->context, p->w, p->h, p->x, p->y, 0, 0, backbuf);
 	}
 	}
-	FlushBackBuffer(backbuf->data);
+	FlushContext(backbuf, screen.w, screen.h, 0, 0, 0, 0, &screen);
 	need_cursor = 1;
 	refreshing = 0;
 }
+#define RAND_MAX 	0x7ffffffe
+#define	M	((1U<<31) -1)
+#define	A	48271
+#define	Q	44488		// M/A
+#define	R	3399		// M%A; R < Q !!!
+
+// FIXME: ISO C/SuS want a longer period
+int seed = -1;
+int rand(int limit)
+{
+	if(seed == -1) seed = uptime();
+   unsigned long X;
+
+    X = seed;
+    X = A*(X%Q) - R * (unsigned long) (X/Q);
+    if (X < 0)
+	X += M;
+
+    seed = X;
+	return X & limit;
+}
+
 
 int CreateWindow(int tid, int x, int y, int w, int h, char *caption, int class) {
-	char *video = RequestMemory(h  * w * mode.bpp);
+
 	struct window_t *win = malloc(sizeof(struct window_t));
 	context_t *c = malloc(sizeof(context_t));
 	char * title = malloc(strlen(caption));
 	strcpy(title, caption);
 	c->w = w;
 	c->h = h;
-	c->bpp = mode.bpp;
-	c->data = video;
+	c->bpp = screen.bpp;
+	c->data = RequestMemory(h  * w * screen.bpp);
 	c->native_pixels = 0;
 	win->handle = ++last_handle;
-	win->x = x;
-	win->y = y;
+	//win->x = x;
+	//win->y = y;
+	win->x = rand(screen.w - w);
+	win->y = rand(screen.h - h);
 	win->w = w;
 	win->h = h;
 	win->context = c;

@@ -8,16 +8,12 @@
 
 void thread_handler()
 {
-  if(interrupt_attach(1) == RES_SUCCESS)
-    printf("keyboard: interrupt attached\n");
-  else {
+  if(interrupt_attach(1) != RES_SUCCESS) {
     printf("keyboard: can't attach interrupt!\n");
     exit(1);
   }
   unmask_interrupt(1);
-  if(interrupt_attach(12) == RES_SUCCESS)
-    printf("mouse: interrupt attached\n");
-  else {
+  if(interrupt_attach(12) != RES_SUCCESS) {
     printf("mouse: can't attach interrupt!\n");
     exit(1);
   }
@@ -39,18 +35,13 @@ void thread_handler()
 
 int main(int argc, char *argv[])
 {
-  printf("i8042: starting up\n");
-  printf("i8042: keyboard init\n");
   keyboard_ps2_init();
   
-  printf("i8042: mouse init\n");
   mouse_ps2_init();
-  printf("i8042: interface init\n");
   
   struct message msg;
   char *buffer = malloc(KB_CHARS_BUFF_SIZE);
   
-  printf("i8042: daemonized\n");
   thread_create((off_t) &MouseHandlerThread);
   thread_create((off_t) &thread_handler);
   resmgr_attach("/dev/keyboard");

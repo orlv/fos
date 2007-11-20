@@ -14,8 +14,8 @@
 #include "vbe.h"
 #include "psf.h"
 
-#include "fos-logo.h"
-#include "corner-left.h"
+//#include "fos-logo.h"
+//#include "corner-left.h"
 
 #define FONTBUF_SIZE 0x5000
 #define CH_SPACE 0

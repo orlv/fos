@@ -10,7 +10,7 @@ all: $(PGS_CUSTOM) al $(OBJECTS)
 	echo \ Linking pgs
 	$(LD) $(LDFLAGS) $(LIB)/crt0.o $(OBJECTS) --entry=_start --oformat=elf32-i386  --Ttext=$(USER_MEM_BASE) -o pgs -lc -lcpp -lfos
 	nm pgs | sort > pgs.sym
-	#strip pgs
+	strip pgs
 
 install:
 	cp pgs $(INSTALLDIR)/$(OUTPUT)

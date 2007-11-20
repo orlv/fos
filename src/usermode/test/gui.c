@@ -10,16 +10,21 @@
 #include <string.h>
 #include "gui.h"
 static fd_t gui;
+static fd_t gui_canvas;
 void GUIInit() {
-	int iterations = 0;
 	int gui_handle;
 	do {
-		iterations++;
 		gui_handle = open("/dev/pgs", 0);
 		sched_yield();
 	} while(!gui_handle);
-	//printf("Attached to PGS in %u iterations\n", iterations);
-	gui = (fd_t )gui_handle; 
+	gui = (fd_t )gui_handle;
+
+	int gui_canvas_h;
+	do {
+		gui_canvas_h = open("/dev/pgs_canvas", 0);
+		sched_yield();
+	} while(!gui_handle);
+	gui_canvas = (fd_t )gui_canvas_h; 
 }
 typedef struct {
 	int parent;
@@ -52,19 +57,24 @@ int CreateWindow(int parent, int x, int y, int w, int h, char *caption, int flag
 	msg.send_buf = buf;
 	send(&msg);
 	int bpp = msg.a1;
+	int hndl = msg.a0;
 	printf("Videobuffer: %ux%ux%u (%u bytes)\n", w, h, bpp * 8, w * h * bpp);
 
-	/*char *canvas = kmmap(0, w * h * msg.a1, 0, 0);
-	msg.recv_size =  w * h * msg.a1;
+	char *canvas = kmmap(0, w * h * bpp, 0, 0);
+	msg.tid = gui_canvas->thread;
+	msg.recv_size =  w * h * bpp;
 	msg.recv_buf = canvas;
-	msg.send_size = w * h * msg.a1;
+	msg.send_size = w * h * bpp;
 	msg.send_buf = canvas;
 	msg.flags = MSG_MEM_SHARE;
 	msg.a0 = WIN_CMD_MAPBUF;
+	msg.a1 = hndl;
 	send(&msg);
-	canvas[256] = 0xAA;
-*/
-	return msg.a0;
+	printf("%x\n", *canvas);
+	int i;
+	for(i = 0; i <  w * h * bpp;i++) canvas[i] = 0xAA;
+
+	return hndl;
 }
 typedef struct {
 	void * reserved[2];
@@ -84,9 +94,7 @@ void WaitEvent(int *class, int *handle, int *a0, int *a1, int *a2, int *a3) {
 	msg.send_size = 0;
 	msg.recv_size = sizeof(event_t);
 	msg.recv_buf = &event;
-	//printf("sent\n");
 	send(&msg);
-	//printf("received.\n");
 	*class = event.class;
 	*handle = event.handle;
 	*a0 = event.a0;
@@ -115,4 +123,5 @@ void GuiEnd() {
 	msg.a0 = WIN_CMD_CLEANUP;
 	send(&msg);
 	gui = NULL;
+	gui_canvas = NULL;
 }

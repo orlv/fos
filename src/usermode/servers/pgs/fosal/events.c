@@ -137,13 +137,6 @@ void EventsThread()
 	reply(&msg);
 	break;
       }
-      case WIN_CMD_MAPBUF: {
-	window_t *w = GetWindowInfo(msg.a0);
-	msg.send_size = w->context->w * w->context->h * w->context->bpp;
-	msg.send_buf = w->context->data;
-	msg.flags = MSG_MEM_SHARE;
-	break;
-	}
       case WIN_CMD_DESTROYWINDOW:
 	DestroyWindow(msg.a1);
 	msg.a2 = NO_ERR;
@@ -214,7 +207,7 @@ void EventsThread()
       }
 	
       default:
-	printf("message: %u %u %u %u\n", msg.a0, msg.a1, msg.a2, msg.a3);
+	printf("main events thread received message: %u %u %u %u\n", msg.a0, msg.a1, msg.a2, msg.a3);
 	msg.a0 = 0;
 	msg.a2 = ERR_UNKNOWN_CMD;
 	msg.send_size = 0;
@@ -243,7 +236,6 @@ void EventsThread()
     }
     mutex_unlock(q_locked);
   }
-  printf("WARNING: EXIT FROM INFINITE LOOP!\n");
 }
 
 void mouse_thread()
@@ -287,9 +279,46 @@ void mouse_thread()
     
   }
 } 
-
+void MappingThread() {
+	resmgr_attach("/dev/pgs_canvas");
+	struct message msg;
+	while(1) {
+		msg.tid = _MSG_SENDER_ANY;
+		msg.recv_buf  = NULL;
+		msg.flags = MSG_MEM_SHARE;
+		msg.recv_size = screen_width * screen_height * 2;
+		receive(&msg);
+		switch(msg.a0) {
+		case FS_CMD_ACCESS:
+			msg.a0 = 1;
+			msg.a1 = screen_width * screen_height * 2;
+			msg.a2 = NO_ERR;
+			msg.send_size = 0;
+			reply(&msg);
+			break;
+		case WIN_CMD_MAPBUF: {
+			window_t *w = GetWindowInfo(msg.a1);
+			msg.send_size = w->context->w * w->context->h * w->context->bpp;
+		//	msg.recv_size = msg.send_size;
+			msg.send_buf = w->context->data;
+			msg.recv_buf = msg.send_buf;
+			msg.a0 = NO_ERR;
+			msg.flags = MSG_MEM_SHARE;
+			reply(&msg);
+			break;
+		}
+		default:
+			printf("message: %u %u %u %u\n", msg.a0, msg.a1, msg.a2, msg.a3);
+			msg.a0 = 0;
+			msg.a2 = ERR_UNKNOWN_CMD;
+			msg.send_size = 0;
+			reply(&msg);
+		}
+	}
+}
 void StartEventHandling()
 {
   thread_create((off_t)&mouse_thread);
   thread_create((off_t)&EventsThread);
+  thread_create((off_t)&MappingThread);
 }

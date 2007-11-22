@@ -25,9 +25,9 @@ int romfs_init() {
 		return 1;
 	printf("Loaded ROMFS image: '%s'\n", sb->volume);
 
-	printf("Trying to read /etc/test\n");
+	printf("Trying to read /etc/RLY/test\n");
 	char *buf = malloc(256);
-	int readed = romfs_read("/etc/test", buf, 256, 0);
+	int readed = romfs_read("/etc/RLY/test", buf, 256, 0);
 	printf("Readed %u bytes\n", readed);
 	if(!readed) {
 		printf("Reading failure.\n");
@@ -62,9 +62,7 @@ int romfs_read(char *path, char *buf, int size, int offset) {
 		return 0;
 	if(size > in.size)
 		size = in.size;
-	printf("%u\n", *buf);
 	memcpy(buf, ptr + offset, size - offset);
-	printf("%u\n", *ptr + offset);
 	return size - offset;
 }
 
@@ -74,13 +72,14 @@ static int load_fs(char *filename) {
 	if(!hndl) 
 		return 1;
 	fstat(hndl, &st);
-	romfs = malloc(st.st_size);
+	romfs = malloc(st.st_size * 3);
 	if(!romfs)
 		return 1;
+	memset(romfs, 0x01, st.st_size * 3);
 	int readed = read(hndl, romfs, st.st_size);
-	char *foo = (char *)  romfs;
-	for(int i=0; i<1024; i++)
-	  printf("%c",foo[i]);
+//	char *foo = (char *)  romfs;
+//	for(int i=0; i<1024; i++)
+//	  printf("%c",foo[i]);
 	close(hndl);
 	printf("Readed %d bytes vs %d\n", readed, st.st_size);
 	return 0;
@@ -106,6 +105,7 @@ static char * search_path(char *name, romfs_inode_t *inode) {
 		ptr = search_file(part, in, parent);
 		if(ptr == NULL)
 			return NULL;
+		printf("part %s found\n", part);
 scan_inode:					// да, я знаю что goto - 3,14здец. но это короче, чем куча вложенных циклов.
 		type = ROMFS_TYPE(in->next);
 		if(type == ROMFS_DIRECTORY) {
@@ -133,7 +133,18 @@ static char * search_file(char *name, romfs_inode_t *in, romfs_inode_t *parent) 
 	for(romfs_inode_t *ptr = parent;
 			ptr != (romfs_inode_t *) romfs;
 			ptr = (romfs_inode_t *)(romfs + ROMFS_NEXT(ptr->next)), i++) {
+		printf("%s:%s\n", ptr->name, name);
 		if(!strcmp(ptr->name, name)) {
+			for(int i = 0; i < 256; i++) {
+				if(!(i % 16))
+					printf("\n0x%x: 0x%02x: ", ptr + i, i);
+				if(((char *) ptr + i) ==  ROMFS_ALIGN(ptr + sizeof(*in) + strlen(name))) 
+					printf("\033[0;38;40m>\033[0m");
+				else
+					printf(" ");
+				printf("%02x", *((char *) ptr + i) & 0xFF);
+			}
+			printf("\n ---- Data ptr: %x ----\n", ROMFS_ALIGN(ptr + sizeof(*in) + strlen(name)));
 			memcpy(in, ptr, sizeof(*in));
 			return (char *)ROMFS_ALIGN(ptr + sizeof(*in) + strlen(name));
 		}

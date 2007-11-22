@@ -75,7 +75,7 @@ static int load_fs(char *filename) {
 		return 1;
 
 	fstat(hndl, &st);
-	romfs = malloc(st.st_size + 4096 * 2);
+	romfs = malloc(st.st_size);
 	if(!romfs)
 		return 1;
 	int readed = read(hndl, romfs, st.st_size);

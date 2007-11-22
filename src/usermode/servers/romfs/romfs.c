@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include "romfs.h"
 
@@ -68,29 +69,19 @@ int romfs_read(char *path, char *buf, int size, int offset) {
 }
 
 static int load_fs(char *filename) {
+	struct stat st;
 	int hndl = open(filename, 0);
 	if(!hndl) 
 		return 1;
 
-
-	sb = malloc(sizeof(romfs_superblock_t));
-	if(!sb)
-		return 1;
-	read(hndl, sb,sizeof(romfs_superblock_t));
-
-	int size = sb->size;
-	free(sb);
-
-	romfs = malloc(size);
+	fstat(hndl, &st);
+	romfs = malloc(st.st_size + 4096 * 2);
 	if(!romfs)
 		return 1;
-
-	lseek(hndl, 0, SEEK_SET);
-
-	int readed = read(hndl, romfs, size);
+	int readed = read(hndl, romfs, st.st_size);
 
 	close(hndl);
-	printf("Readed %d bytes vs %d\n", readed, size);
+	printf("Readed %d bytes vs %d\n", readed, st.st_size);
 	return 0;
 }
 

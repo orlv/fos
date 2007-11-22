@@ -5,12 +5,13 @@
 #       Grindassov Sergey 
 #	 17-10-2007 Portable GUI System added
 #        18-10-2007 New i8042 server added
+#	 22-11-2007 ROMFS server added
 #       
 # -----------------------------------------------------------------------------
 
 include config.mk
 
-SERVERS = namer fbtty pgs tty speaker hw i8042 stty
+SERVERS = namer fbtty pgs tty speaker hw i8042 stty romfs
 #SERVERS += floppy
 
 all: 

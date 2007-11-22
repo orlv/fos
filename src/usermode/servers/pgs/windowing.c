@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <sched.h>
 #include "windowing.h"
 #include "list.h"
 #include "cursor.h"

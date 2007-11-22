@@ -59,7 +59,10 @@ clean_kernel:
 clean_user:
 	@$(MAKE) -s -C usermode clean uninstall
 
-clean: clean_kernel clean_user
+clean_initrd:
+	@$(MAKE) -s -C initrd clean uninstall
+
+clean: clean_kernel clean_user clean_initrd
 
 #--------------------------------- Install -----------------------------------
 
@@ -92,7 +95,11 @@ grub_tftp_menu:
 	@$(ECHO) "	root	(nd)" >> $(GRUB_TFTP_MENU)
 	@$(ECHO) "	kernel $(GRUB_KERNEL)" >> $(GRUB_TFTP_MENU)
 	@$(ECHO) $(GRUB_MODULES) | awk 'BEGIN {RS = " "} {a = "\tmodule "$$0; print a}' >> $(GRUB_TFTP_MENU)
+create_initrd:
+	@$(YELLOW) $(ECHO) \#---------------------------- Create initrd ----------------------------------- ; $(GREY)
+	@$(MAKE) -s -C initrd
 
-install: install_kernel install_user grub_menu grub_tftp_menu iso
+# clean_initrd приходится вставлять :( make не детектит изменений в содержимом.
+install: install_kernel install_user clean_initrd create_initrd grub_menu grub_tftp_menu iso
 
 #-----------------------------------------------------------------------------

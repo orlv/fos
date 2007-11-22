@@ -1,3 +1,8 @@
+Thu Nov 22 20:43:39 2007 [20071122] (kernel version 0.0.45.3)
+Oleg S Fedorov <o.s.fedorov@gmail.com>:
+	- libc read() fix
+	- kernel modulefs update
+
 Mon Nov  5 23:08:57 2007 [20071105] (kernel version 0.0.45.3)
 	- Различные мелкие исправления
 Oleg S Fedorov <o.s.fedorov@gmail.com>:

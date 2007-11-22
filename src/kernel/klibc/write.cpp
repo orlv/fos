@@ -21,9 +21,9 @@ ssize_t write(int fildes, const void *buf, size_t nbyte)
 
   do{
     msg.arg[0] = FS_CMD_WRITE;
-    msg.recv_size = 0;
     msg.arg[1] = fd->inode;
     msg.arg[2] = fd->offset;
+    msg.recv_size = 0;
     msg.flags = 0;
     msg.tid = fd->thread;
 
@@ -39,8 +39,7 @@ ssize_t write(int fildes, const void *buf, size_t nbyte)
 
     if((msg.arg[2] == ERR_EOF) || offset >= nbyte)
       return offset;
-   
-    
+       
     if(offset + msg.send_size > nbyte)
       msg.send_size = nbyte - offset;
   } while(1);

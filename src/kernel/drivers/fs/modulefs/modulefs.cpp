@@ -47,11 +47,12 @@ void grub_modulefs_srv()
       if(size > MODULEFS_BUFF_SIZE)
 	size = MODULEFS_BUFF_SIZE;
       msg.arg[0] = initrb->read(msg.arg[1] - 1, msg.arg[2], buffer, size);
-      if(msg.arg[0] < msg.send_size) {
-	msg.send_size = msg.arg[0];
+      if(msg.arg[0] < size)
 	msg.arg[2] = ERR_EOF;
-      } else
+      else
 	msg.arg[2] = NO_ERR;
+
+      msg.send_size = msg.arg[0];
       msg.send_buf = buffer;
       break;
 

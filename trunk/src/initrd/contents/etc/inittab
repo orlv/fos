@@ -1,0 +1,3 @@
+/bin/Keyboard;service;Starting up keyboard driver
+/bin/cat;/etc/ascii;[silent]
+/bin/gsh;-l;Starting shell

@@ -61,7 +61,9 @@ GRUB_MODULES =	/boot/modules/test.txt		\\
 		/boot/modules/pgs		\\
 		/boot/modules/ipctest           \\
 		/boot/modules/i8042		\\
-		/boot/modules/stty
+		/boot/modules/stty		\\
+		/boot/modules/romfs		\\
+		/boot/modules/initrd.gz
 
 #		/boot/modules/ext2.img          \\
 #		/boot/modules/ext2test

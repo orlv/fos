@@ -1,0 +1,150 @@
+#include <fcntl.h>
+#include <stdio.h>
+#include <types.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "romfs.h"
+
+static char *romfs;
+static romfs_superblock_t *sb;
+static int load_fs(char *filename);
+static int check_superblock();
+static int sb_size;
+static char * search_path(char *name, romfs_inode_t *inode);
+static char * search_file(char *name, romfs_inode_t *in, romfs_inode_t *parent);
+
+int romfs_init() {
+	if(load_fs("/mnt/modules/initrd.gz")) {
+		printf("Loading FS image failed\n");
+		return 1;
+	}
+	if(check_superblock())
+		return 1;
+	printf("Loaded ROMFS image: '%s'\n", sb->volume);
+
+	printf("Trying to read /etc/test\n");
+	char *buf = malloc(256);
+	int readed = romfs_read("/etc/test", buf, 256, 0);
+	printf("Readed %u bytes\n", readed);
+	if(!readed) {
+		printf("Reading failure.\n");
+		return 1;
+	}
+	buf[readed] = 0;
+	printf("contents:\n%s\n", buf);
+	printf("completed.\n");
+	return 0;
+} 
+
+static int check_superblock() {
+	sb = (romfs_superblock_t *) romfs;
+	sb_size = ROMFS_ALIGN(sizeof(romfs_superblock_t) + strlen(sb->volume));
+	if(!strncmp("-rom1fs-", sb->signature, 8)) {
+		printf("Use patched (little-endian) ROMFS. Sorry.\n");
+		return 1;
+	}
+	if(strncmp("mor--sf1", sb->signature, 8)) {
+		printf("Invalid signature\n");
+		return 1;
+	}
+	return 0;
+}
+
+int romfs_read(char *path, char *buf, int size, int offset) {
+	romfs_inode_t in;
+	char *ptr = search_path(path, &in);
+	if(ptr == NULL)
+		return 0;
+	if(offset > in.size)
+		return 0;
+	if(size > in.size)
+		size = in.size;
+	printf("%u\n", *buf);
+	memcpy(buf, ptr + offset, size - offset);
+	printf("%u\n", *ptr + offset);
+	return size - offset;
+}
+
+static int load_fs(char *filename) {
+	int hndl = open(filename, 0);
+	if(!hndl) 
+		return 1;
+
+
+	sb = malloc(sizeof(romfs_superblock_t));
+	if(!sb)
+		return 1;
+	read(hndl, sb,sizeof(romfs_superblock_t));
+
+	int size = sb->size;
+	free(sb);
+
+	romfs = malloc(size);
+	if(!romfs)
+		return 1;
+
+	lseek(hndl, 0, SEEK_SET);
+
+	int readed = read(hndl, romfs, size);
+
+	close(hndl);
+	printf("Readed %d bytes vs %d\n", readed, size);
+	return 0;
+}
+
+static char * search_path(char *name, romfs_inode_t *inode) {
+	char *part = malloc(256);
+	int i = 1;
+	romfs_inode_t inl;
+	romfs_inode_t *in = &inl;
+	romfs_inode_t *parent = NULL;
+	int type;
+	char *ptr;
+	while(1) {
+		for(int j = 0; j < 256; j++, i++) {
+			part[j] = name[i];
+			if(part[j] == '/' || part[j] == 0) {
+				i++;
+				part[j] = 0;
+				break;
+			}
+		}
+		ptr = search_file(part, in, parent);
+		if(ptr == NULL)
+			return NULL;
+scan_inode:					// да, я знаю что goto - 3,14здец. но это короче, чем куча вложенных циклов.
+		type = ROMFS_TYPE(in->next);
+		if(type == ROMFS_DIRECTORY) {
+			parent = (romfs_inode_t *)(romfs + in->info);
+			continue;
+		}
+		if(type == ROMFS_FILE) {
+			memcpy(inode, in, sizeof(*in));
+			return ptr;
+		}
+		if(type == ROMFS_HARDLINK) {
+			in = (romfs_inode_t *)(romfs + inl.info);
+			ptr = (char *)ROMFS_ALIGN(in + sizeof(*in) + strlen(in->name));
+			goto scan_inode;
+		}
+		printf("unknown type - %x\n", type);
+		break;
+	}
+	return NULL;
+}
+
+static char * search_file(char *name, romfs_inode_t *in, romfs_inode_t *parent) {
+	if(parent == NULL) parent = (romfs_inode_t *)(romfs + sb_size);
+	int i = 0;
+	for(romfs_inode_t *ptr = parent;
+			ptr != (romfs_inode_t *) romfs;
+			ptr = (romfs_inode_t *)(romfs + ROMFS_NEXT(ptr->next)), i++) {
+		if(!strcmp(ptr->name, name)) {
+			memcpy(in, ptr, sizeof(*in));
+			return (char *)ROMFS_ALIGN(ptr + sizeof(*in) + strlen(name));
+		}
+	}
+	return NULL;
+}

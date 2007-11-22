@@ -76,6 +76,8 @@ static int load_fs(char *filename) {
 
 	fstat(hndl, &st);
 	romfs = malloc(st.st_size);
+	printf("romfs=[0x%X], size=0x%X\n", romfs, st.st_size);
+	memset(romfs, 1, st.st_size);
 	if(!romfs)
 		return 1;
 	int readed = read(hndl, romfs, st.st_size);

@@ -78,7 +78,9 @@ static int load_fs(char *filename) {
 	if(!romfs)
 		return 1;
 	int readed = read(hndl, romfs, st.st_size);
-
+	char *foo = (char *)  romfs;
+	for(int i=0; i<1024; i++)
+	  printf("%c",foo[i]);
 	close(hndl);
 	printf("Readed %d bytes vs %d\n", readed, st.st_size);
 	return 0;

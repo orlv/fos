@@ -22,6 +22,7 @@ void grub_modulefs_srv()
   while(resmgr_attach("/mnt/modules") != RES_SUCCESS);
   printk("modulefs: started\n");
   struct stat *statbuf = new struct stat;
+  size_t size;
 
   while (1) {
     msg.tid = _MSG_SENDER_ANY;
@@ -41,8 +42,11 @@ void grub_modulefs_srv()
       break;
 
     case FS_CMD_READ:
-      //printk("modulefs: reading %d, offset=%d, bytes=%d\n", msg.arg[1]-1, msg.arg[2], msg.send_size);
-      msg.arg[0] = initrb->read(msg.arg[1] - 1, msg.arg[2], buffer, msg.send_size);
+      printk("modulefs: reading %d, offset=%d, bytes=%d\n", msg.arg[1]-1, msg.arg[2], msg.send_size);
+      size = msg.send_size;
+      if(size > MODULEFS_BUFF_SIZE)
+	size = MODULEFS_BUFF_SIZE;
+      msg.arg[0] = initrb->read(msg.arg[1] - 1, msg.arg[2], buffer, size);
       if(msg.arg[0] < msg.send_size) {
 	msg.send_size = msg.arg[0];
 	msg.arg[2] = ERR_EOF;

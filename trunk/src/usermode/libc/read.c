@@ -14,21 +14,17 @@ ssize_t read(int fildes, void *buf, size_t nbyte)
   struct message msg;
   size_t offset = 0;
 
-  if(fd->buf_size < nbyte)
-    msg.recv_size = fd->buf_size;
-  else
-    msg.recv_size = nbyte;
-
   do{
     msg.arg[0] = FS_CMD_READ;
-    msg.send_size = 0;
     msg.arg[1] = fd->inode;
     msg.arg[2] = fd->offset;
+    msg.flags = 0;
+    msg.send_size = 0;
+    msg.recv_size = nbyte - offset; /* учитываем уже прочитанные данные */
     msg.tid = fd->thread;
-
     msg.recv_buf = &((char *)buf)[offset];
 
-    if(do_send(&msg) != RES_SUCCESS) /* получатель не найден! */
+    if(do_send(&msg) != RES_SUCCESS) /* получатель не найден, запрос не отправлен! */
       return -1;
 
     if(msg.arg[2] == ERR_UNKNOWN_CMD)
@@ -37,10 +33,7 @@ ssize_t read(int fildes, void *buf, size_t nbyte)
     offset += msg.arg[0];
     fd->offset = offset;
     
-    if((msg.arg[2] == ERR_EOF) || offset >= nbyte)
+    if((msg.arg[2] == ERR_EOF) || offset >= nbyte) /* мы достигли конца файла, или прочитали всё что хотели */
       return offset;
-
-    if(offset + msg.send_size > nbyte)
-      msg.send_size = nbyte - offset;
   } while(1);
 }

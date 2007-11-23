@@ -72,10 +72,9 @@ static int load_fs(char *filename) {
 	if(!hndl) 
 		return 1;
 	fstat(hndl, &st);
-	romfs = malloc(st.st_size * 3);
+	romfs = malloc(st.st_size * 4);
 	if(!romfs)
 		return 1;
-	memset(romfs, 0x01, st.st_size * 3);
 	int readed = read(hndl, romfs, st.st_size);
 //	char *foo = (char *)  romfs;
 //	for(int i=0; i<1024; i++)
@@ -135,14 +134,16 @@ static char * search_file(char *name, romfs_inode_t *in, romfs_inode_t *parent) 
 			ptr = (romfs_inode_t *)(romfs + ROMFS_NEXT(ptr->next)), i++) {
 		printf("%s:%s\n", ptr->name, name);
 		if(!strcmp(ptr->name, name)) {
+			printf("               00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F");
+			char *p = ROMFS_ALIGN(ptr) - 16;
 			for(int i = 0; i < 256; i++) {
 				if(!(i % 16))
-					printf("\n0x%x: 0x%02x: ", ptr + i, i);
-				if(((char *) ptr + i) ==  ROMFS_ALIGN(ptr + sizeof(*in) + strlen(name))) 
+					printf("\n%06x: %03x: ", p + i, i);
+				if(((char *) p + i) ==  ROMFS_ALIGN(ptr + sizeof(*in) + strlen(name))) 
 					printf("\033[0;38;40m>\033[0m");
 				else
 					printf(" ");
-				printf("%02x", *((char *) ptr + i) & 0xFF);
+				printf("%02x", *((char *) p + i) & 0xFF);
 			}
 			printf("\n ---- Data ptr: %x ----\n", ROMFS_ALIGN(ptr + sizeof(*in) + strlen(name)));
 			memcpy(in, ptr, sizeof(*in));

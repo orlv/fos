@@ -54,7 +54,6 @@ GRUB_MODULES =	/boot/modules/test.txt		\\
 		/boot/modules/int16b		\\
 		/boot/modules/shell		\\
 		/boot/modules/tty		\\
-		/boot/modules/fbtty		\\
 		/boot/modules/test		\\
 		/boot/modules/font.psf		\\
 		/boot/modules/pci_server	\\
@@ -116,7 +115,7 @@ LIB		= $TOPDIR/lib
 FLAGS		= -Wall -nostdlib -nostdinc -I\$(INCLUDE) -fno-stack-protector -O2 $DEBUG
 
 ASFLAGS		= \$(FLAGS)
-CFLAGS		= \$(FLAGS) -ffreestanding -fno-leading-underscore
+CFLAGS		= \$(FLAGS) -ffreestanding -fno-leading-underscore --std=gnu99
 CXXFLAGS	= \$(FLAGS) -nostdinc++ -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin
 LDFLAGS		= -nostdlib -L\$(LIB)
 ifeq (\$(shell uname -m), x86_64)
@@ -179,7 +178,7 @@ LIB		= $TOPDIR/lib
 FLAGS		= -Wall -nostdlib -nostdinc -I\$(INCLUDE) -fno-stack-protector -O2 $DEBUG
 
 ASFLAGS		= \$(FLAGS)
-CFLAGS		= \$(FLAGS) -ffreestanding -fno-leading-underscore
+CFLAGS		= \$(FLAGS) -ffreestanding -fno-leading-underscore --std=gnu99
 CXXFLAGS	= \$(FLAGS) -nostdinc++ -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin
 LDFLAGS		= -nostdlib -L\$(LIB)
 

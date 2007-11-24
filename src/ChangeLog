@@ -1,3 +1,8 @@
+Sat Nov 24 17:06:10 2007 [20071124] (kernel version 0.0.45.3.2)
+Oleg S Fedorov <o.s.fedorov@gmail.com>:
+	- в ядре и в пользовательских библиотеках изменено выравнивание
+	  выделяемого malloc() блока с 8 до 16 байт
+
 Thu Nov 22 20:43:39 2007 [20071122] (kernel version 0.0.45.3)
 Oleg S Fedorov <o.s.fedorov@gmail.com>:
 	- libc read() fix

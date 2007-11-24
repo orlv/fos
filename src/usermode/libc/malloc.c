@@ -3,6 +3,10 @@
  *
  * malloc основан на примере из книги "Язык программирования Си" (C) Б.Керниган, Д.Ритчи
  * :)
+
+     (Sat Nov 24 17:04:33 2007) Oleg Fedorov
+    - выравнивание блока по 16 бит
+
  */
 
 #include <stdlib.h>
@@ -13,8 +17,13 @@
 #define MM_MINALLOC getpagesize() /* размер выделяемой единицы */
 
 struct HeapMemBlock{
-  struct HeapMemBlock *ptr;
-  size_t  size;
+  union {
+    struct{
+      struct HeapMemBlock *ptr;
+      size_t  size;
+    };
+    u8_t align[16];
+  };
 };
 
 static struct HeapMemBlock *free_ptr=0;

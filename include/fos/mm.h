@@ -79,9 +79,14 @@
 //#define USER_PAGETABLE_DATA_SIZE (((SYSTEM_PAGES_MAX-(KERNEL_MEM_LIMIT/PAGE_SIZE))/1024)*4096) /* 3,875 Mb */
 //#define USER_PAGETABLE_DATA (KERNEL_MEM_LIMIT-USER_PAGETABLE_DATA_SIZE)
 
-struct HeapMemBlock {
-  HeapMemBlock *next;
-  size_t size;
+struct HeapMemBlock{
+  union {
+    struct{
+      struct HeapMemBlock *next;
+      size_t  size;
+    };
+    u8_t align[16];
+  };
 };
 
 struct memstack {

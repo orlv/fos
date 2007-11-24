@@ -155,7 +155,7 @@ static char * search_file(char *name, romfs_inode_t *in, romfs_inode_t *parent) 
 
 int romfs_access(char *filename) {
 	romfs_inode_t in;
-	char *data = search_path(filename, in);
+	char *data = search_path(filename, &in);
 	if(!data) return 0;
 	
 	

@@ -211,4 +211,5 @@ USER_MEM_BASE = 0x8000000
 # -----------------------------------------------------------------------------
 EOF
 
-cp Makefile.in Makefile
+echo "# Automatically generated, do not edit!" > Makefile
+cat Makefile.in >> Makefile

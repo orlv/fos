@@ -100,12 +100,22 @@ asmlinkage int main()
       memset(path_tail, 0, MAX_PATH_LEN);
       break;
 
-    case NAMER_CMD_RESOLVE:
-      printf("namer: resolving [%s]\n", pathname);
-      msg->send_size = msg->arg[0] = namer->resolve(pathname);
-      msg->send_buf = pathname;
+    case NAMER_CMD_RESOLVE: {
+      //printf("namer: resolving [%s]\n", pathname);
+      sid_t sid = namer->resolve(pathname);
+      if(sid) {
+	msg->send_size = msg->arg[0] = strlen(pathname);
+	msg->send_buf = pathname;
+	msg->arg[1] = sid;
+	msg->arg[2] = NO_ERR;
+      } else {
+	msg->send_size = 0;
+	msg->arg[1] = 0;
+	msg->arg[2] = ERR_NO_SUCH_FILE;
+      }
       reply(msg);
       break;
+    }
 
     default:
       msg->send_size = 0;
@@ -224,7 +234,7 @@ Tobject * Tobject::access(const string name)
 
 Namer::Namer()
 {
-  rootdir = new Tobject("/");
+  rootdir = new Tobject(".");
 }
 
 /* режет строку пути на список из элементов пути */
@@ -273,9 +283,13 @@ Tobject * Namer::access(const string name, string name_tail)
 
 sid_t Namer::resolve(const string name)
 {
+  if(strlen(name) == 1 && (strcmp(name, ".") || strcmp(name, "/"))){
+    return rootdir->sid;
+  }
+
   List<string> *path = path_strip(name);
   List<string> *entry = path;
-  List<string> *e;
+  List<string> *e = path;
   Tobject * object = rootdir;
   sid_t sid = rootdir->sid;
 
@@ -290,18 +304,26 @@ sid_t Namer::resolve(const string name)
     entry = entry->next;
   } while (entry != path);
 
-  /* создадим строку с окончанием пути (необходимо передать
-     её конечному серверу) */
-  e = e->next;
   name[0] = 0;
-  if (e == path)
-    strcat(name, ".");
-  else
-    do {
-      strcat(name, "/");
-      strcat(name, e->item);
-      e = e->next;
-    } while (e != path);
+
+  /* создадим строку с окончанием пути */
+  if(sid != rootdir->sid) {
+    e = e->next;
+    if (e == path)
+      strcat(name, ".");
+    else
+      do {
+	strcat(name, "/");
+	strcat(name, e->item);
+	e = e->next;
+      } while (e != path);
+  } else {
+      do {
+	strcat(name, "/");
+	strcat(name, e->item);
+	e = e->next;
+      } while (e != path);
+  }
 
   list_for_each_safe(entry, e, path){
     delete entry->item;
@@ -319,10 +341,15 @@ sid_t Namer::resolve(const string name)
  */
 Tobject *Namer::add(const string name, sid_t sid)
 {
+  if(strlen(name) == 1 && (strcmp(name, ".") || strcmp(name, "/"))){
+    rootdir->sid = sid;
+    return rootdir;
+  }
+
   List<string> *path = path_strip(name);
   List<string> *entry = path;
   string n;
-
+ 
   Tobject * object = rootdir;
   Tobject * obj;
 

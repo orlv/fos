@@ -10,7 +10,6 @@ title FOS - FOS is Operating System (VERSION 0.0.45.3.2, BUILD 20071124)
 	module /boot/modules/int16b
 	module /boot/modules/shell
 	module /boot/modules/tty
-	module /boot/modules/fbtty
 	module /boot/modules/test
 	module /boot/modules/font.psf
 	module /boot/modules/pci_server

@@ -25,7 +25,7 @@ int romfs_init() {
 		return 1;
 	printf("Loaded ROMFS image: '%s'\n", sb->volume);
 
-	printf("Trying to read /etc/RLY/test\n");
+/*	printf("Trying to read /etc/RLY/test\n");
 	char *buf = malloc(256);
 	int readed = romfs_read("/etc/RLY/test", buf, 256, 0);
 	printf("Readed %u bytes\n", readed);
@@ -35,7 +35,7 @@ int romfs_init() {
 	}
 	buf[readed] = 0;
 	printf("contents:\n%s\n", buf);
-	printf("completed.\n");
+	printf("completed.\n");*/
 	return 0;
 } 
 
@@ -151,4 +151,12 @@ static char * search_file(char *name, romfs_inode_t *in, romfs_inode_t *parent) 
 		}
 	}
 	return NULL;
+}
+
+int romfs_access(char *filename) {
+	romfs_inode_t in;
+	char *data = search_path(filename, in);
+	if(!data) return 0;
+	
+	
 }

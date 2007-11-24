@@ -100,12 +100,12 @@ asmlinkage int main()
       memset(path_tail, 0, MAX_PATH_LEN);
       break;
 
-      /*case NAMER_CMD_RESOLVE:
-      //printf("namer: resolving [%s]\n", m->data3.buf);
-      msg->arg[0] = hal->namer->resolve(pathname);
-      msg->send_size = 0;
+    case NAMER_CMD_RESOLVE:
+      printf("namer: resolving [%s]\n", pathname);
+      msg->send_size = msg->arg[0] = namer->resolve(pathname);
+      msg->send_buf = pathname;
       reply(msg);
-      break;*/
+      break;
 
     default:
       msg->send_size = 0;
@@ -283,12 +283,25 @@ sid_t Namer::resolve(const string name)
   do {
     if(!(object = object->access(entry->item)))
       break;
-
-    if(object->sid)
+    if(object->sid) {
       sid = object->sid;
-
+      e = entry;
+    }
     entry = entry->next;
   } while (entry != path);
+
+  /* создадим строку с окончанием пути (необходимо передать
+     её конечному серверу) */
+  e = e->next;
+  name[0] = 0;
+  if (e == path)
+    strcat(name, ".");
+  else
+    do {
+      strcat(name, "/");
+      strcat(name, e->item);
+      e = e->next;
+    } while (e != path);
 
   list_for_each_safe(entry, e, path){
     delete entry->item;

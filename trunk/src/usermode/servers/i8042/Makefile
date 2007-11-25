@@ -8,7 +8,7 @@ OUTPUT		=	i8042
 
 OBJECTS		=	main.o i8042.o keyboard.o mouse.o
 
-LDLIBS		=	-lc -lcpp -lfos
+LDLIBS		=	-\( -lc -lcpp -lfos -\)
 
 all:	$(OBJECTS)
 	@echo \ Linking $(OUTPUT)

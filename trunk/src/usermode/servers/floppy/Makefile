@@ -9,7 +9,8 @@ OUTPUT		=	floppy
 OBJECTS		=	floppy.o	\
 			dma.o
 
-LDLIBS		=	 -lcpp -lc -lfos
+LDLIBS		=	-\( -lc -lcpp -lfos -\)
+
 
 all:	$(OBJECTS)
 	@echo \ Linking $(OUTPUT)

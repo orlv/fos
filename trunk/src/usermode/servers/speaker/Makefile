@@ -8,7 +8,7 @@ OUTPUT		=	speaker
 
 OBJECTS		=	speaker.o
 
-LDLIBS		=	-lcpp -lc -lfos
+LDLIBS		=	-\( -lc -lcpp -lfos -\)
 
 all:	$(OBJECTS)
 	@echo \ Linking $(OUTPUT)

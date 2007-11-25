@@ -1,19 +1,17 @@
-#include <types.h>
+#include <stdio.h>
 #include <fos/fos.h>
 #include <fos/message.h>
 #include <sys/stat.h>
-#include <stdlib.h>
+#include "romfs.h"
 #define ROMFS_BUF_SIZE	0x2000
 
-#include "romfs.h"
-int main(int argc, char *argv[]) {
-	if(romfs_init())
-		return 1;
-	resmgr_attach("/initrd");
+asmlinkage int main(int argc, char *argv[]) {
+	romfs *rfs = new romfs("/mnt/modules/initrd.gz");
+	resmgr_attach("/");
 
-	char *buffer = malloc(ROMFS_BUF_SIZE);
+	char *buffer = new char[ROMFS_BUF_SIZE];
 	
-	struct stat *statbuf = malloc(sizeof(struct stat));
+	struct stat *statbuf = new struct stat;
 	size_t size;
 
 	struct message msg;
@@ -43,4 +41,5 @@ int main(int argc, char *argv[]) {
 		reply(&msg);
 	}
 	return 0;
+	
 }

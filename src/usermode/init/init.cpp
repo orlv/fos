@@ -19,7 +19,7 @@ asmlinkage int main()
   exec("/mnt/modules/i8042", NULL);
 //  exec("/mnt/modules/pgs", NULL);
   exec("/mnt/modules/shell", NULL);
-//  exec("/mnt/modules/romfs", NULL);
+  exec("/mnt/modules/romfs", NULL);
   //exec("/mnt/modules/speaker", NULL);
    exec("/mnt/modules/test", NULL);
   //exec("/mnt/modules/pci_server", NULL);

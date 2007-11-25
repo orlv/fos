@@ -1,21 +1,6 @@
 #ifndef ROMFS_H
 #define ROMFS_H
-typedef struct {
-	char signature[8];	// -rom1fs-
-	u32_t size;
-	u32_t checksum;
-	char volume[];
-} romfs_superblock_t;
-
-typedef struct {
-	u32_t next;
-	u32_t info;
-	u32_t size;
-	u32_t checksum;
-	char name[];
-// data follow
-} romfs_inode_t;
-
+#include <types.h>
 #define ROMFS_TYPE(a)	(a & 7)
 #define ROMFS_EXECUTABLE(a)	(a & 8)
 #define ROMFS_NEXT(a)	(a & 0xFFFFFFF0)
@@ -31,6 +16,37 @@ typedef struct {
 
 #define ROMFS_ALIGN(a)	(((u32_t)a + 15) & ~15)
 
-int romfs_init(void);
-int romfs_read(char *path, char *buf, int size, int offset);
+class romfs
+{
+private:
+	typedef struct {
+		char signature[8];	// -rom1fs-
+		u32_t size;
+		u32_t checksum;
+		char volume[];
+	} romfs_superblock_t;
+
+	typedef struct {
+		u32_t next;
+		u32_t info;
+		u32_t size;
+		u32_t checksum;
+		char name[];
+	// data follow
+	} romfs_inode_t;
+
+
+	char *fs;
+	romfs_superblock_t *sb;
+	int sb_size;
+	
+	int load_fs(char *filename);
+	int check_superblock();
+	char *search_path(char *name, romfs_inode_t *inode);
+	char *search_file(char *name, romfs_inode_t *in, romfs_inode_t *parent);
+public:
+	romfs(char *filename);
+	int read(char *path, char *buf, size_t size, off_t offset);
+	~romfs();
+};
 #endif

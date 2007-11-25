@@ -8,7 +8,7 @@ OUTPUT		=	romfs
 
 OBJECTS		=	main.o romfs.o
 
-LDLIBS		=	-lc -lcpp -lfos
+LDLIBS		=	-\( -lc -lcpp -lfos -\)
 
 all:	$(OBJECTS)
 	@echo \ Linking $(OUTPUT)

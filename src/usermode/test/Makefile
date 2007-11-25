@@ -6,7 +6,7 @@ include ../config.mk
 
 OUTPUT		=	test
 OBJECTS		=	gui.o main.o
-LDLIBS		=	-lc -lcpp -lfos
+LDLIBS		=	-\( -lc -lcpp -lfos -\)
 
 all:	$(OBJECTS)
 	@echo \ Linking $(OUTPUT)

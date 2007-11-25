@@ -6,7 +6,7 @@ include ../config.mk
 
 OUTPUT		=	namer
 OBJECTS		=	namer.o
-LDLIBS		=	-lcpp -lc -lfos
+LDLIBS		=	-\( -lc -lcpp -lfos -\)
 
 all:	$(OBJECTS)
 	@echo \ Linking $(OUTPUT)

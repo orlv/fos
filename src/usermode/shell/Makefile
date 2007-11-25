@@ -8,7 +8,7 @@ OUTPUT		=	shell
 
 OBJECTS		=	main.o
 
-LDLIBS		=	-lc -lcpp -lfos
+LDLIBS		=	-\( -lc -lcpp -lfos -\)
 
 all:	$(OBJECTS)
 	@echo \ Linking $(OUTPUT)

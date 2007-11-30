@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 
+#include <fos/fos.h>
 #include <fos/namer.h>
 #include <fos/message.h>
 
@@ -37,10 +38,12 @@ int resolve(const char *pathname, char **pathtail)
 
 asmlinkage int main(int argc, char ** argv)
 {
-  printf("test\n");
+  printf("test: my TID=0x%X\n", my_tid());
 
+  resmgr_attach("/");
+  
   char *pathtail;
-  int sid = resolve(".", &pathtail);
+  int sid = resolve("/test.txt", &pathtail);
   if(sid)
     printf("test: sid=0x%X, p=[%s]", sid, pathtail);
   else

@@ -71,11 +71,15 @@ int CreateWindow(int parent, int x, int y, int w, int h, char *caption, int flag
 	msg.flags = MSG_MEM_SHARE;
 	msg.arg[0] = WIN_CMD_MAPBUF;
 	msg.arg[1] = hndl;
+
+	((int *)msg.send_buf)[6] = 0;
+	  
 	send(&msg);
+	while(1) ((int *)msg.send_buf)[6]++;
 	int i;
 	for(;;) {
 		for(i = 0; i <  w * h * bpp;i++) canvas[i]++;
-		printf(".");
+		//printf(".");
 	}
 
 	return hndl;

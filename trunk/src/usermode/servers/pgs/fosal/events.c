@@ -297,6 +297,14 @@ void MappingThread() {
 			reply(&msg);
 			break;
 		case WIN_CMD_MAPBUF: {
+		  printf("pgs: rcvd mapbuf\n");
+		  printf("pgs: rcvb=0x%X\n", msg.recv_buf);
+		  msg.send_size = 0;
+		  msg.flags = 0;
+		  reply(&msg);
+
+		  while(1) printf("%d", ((int *)msg.recv_buf)[6]);
+		  while(1);
 			window_t *w = GetWindowInfo(msg.arg[1]);
 			msg.recv_size = w->context->w * w->context->h * w->context->bpp;
 			msg.recv_buf = w->context->data;

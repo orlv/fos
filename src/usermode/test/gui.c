@@ -6,7 +6,7 @@
 #include <sys/mman.h>
 #include <fos/message.h>
 #include <fos/fs.h>
-
+#include <sched.h>
 #include <string.h>
 #include "gui.h"
 static fd_t gui;
@@ -58,11 +58,9 @@ int CreateWindow(int parent, int x, int y, int w, int h, char *caption, int flag
 	send(&msg);
 	int bpp = msg.arg[1];
 	int hndl = msg.arg[0];
-	printf("Videobuffer: %ux%ux%u (%u bytes)\n", w, h, bpp * 8, w * h * bpp);
+	printf("Videobuffer: %ux%ux%u (%u bytes)\n", w, h, bpp, w * h * bpp);
 
 	char *canvas = kmmap(0, w * h * bpp, 0, 0);
-	memset(canvas, 0x55, w * h * bpp);
-	printf("buf: 0x%x, size: %d\n", canvas, w * h * bpp);
 	msg.tid = gui_canvas->thread;
 	msg.recv_size =  w * h * bpp;
 	msg.recv_buf = canvas;
@@ -72,14 +70,13 @@ int CreateWindow(int parent, int x, int y, int w, int h, char *caption, int flag
 	msg.arg[0] = WIN_CMD_MAPBUF;
 	msg.arg[1] = hndl;
 
-	((int *)msg.send_buf)[6] = 0;
-	  
 	send(&msg);
 	int i;
 	for(;;) {
-		for(i = 0; i <  w * h * bpp;i++) canvas[i]++;
-		//printf(".");
+		for(i = 0; i <  w * h * bpp ;i++) canvas[i]++;
+		sched_yield();
 	}
+
 
 	return hndl;
 }

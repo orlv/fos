@@ -63,6 +63,7 @@ proc_t proc_head = {
 void DestroyWindow(int handle);
 
 int CreateWindow(int tid, int x, int y, int w, int h, char *caption, int class);
+void WindowMapped(struct window_t *win);
 
 void PostEvent(int tid, int handle, int class, int a0, int a1, int a2, int a3)
 {
@@ -297,24 +298,17 @@ void MappingThread() {
 			reply(&msg);
 			break;
 		case WIN_CMD_MAPBUF: {
-		  printf("pgs: rcvd mapbuf\n");
-		  printf("pgs: rcvb=0x%X\n", msg.recv_buf);
+		  window_t *w = GetWindowInfo(msg.arg[1]);
+		  if(msg.recv_size < w->context->w * w->context->h * w->context->bpp) {
+			printf("invalid size: %d, must be %d\n", msg.recv_size, w->context->w * w->context->h * w->context->bpp);
+			break;
+		}
 		  msg.send_size = 0;
 		  msg.flags = 0;
 		  reply(&msg);
+		  w->context->data = msg.recv_buf;
+		  WindowMapped(w);
 
-	//	  while(1) printf("%d", ((int *)msg.recv_buf)[6]);
-	//	  while(1);
-	/*		window_t *w = GetWindowInfo(msg.arg[1]);
-			msg.recv_size = w->context->w * w->context->h * w->context->bpp;
-			msg.recv_buf = w->context->data;
-			msg.send_size = w->context->w * w->context->h * w->context->bpp;
-			msg.send_buf = w->context->data;
-			msg.arg[0] = NO_ERR;
-			msg.flags = MSG_MEM_SHARE;
-			printf("replying..\n");
-			reply(&msg);
-			printf("replyed..\n");*/
 			break;
 		}
 		default:

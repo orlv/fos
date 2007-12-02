@@ -73,18 +73,20 @@ void Redraw() {
 
 	for(node *n = front; n; n = n->next) {
 		window_t *p = (window_t *) n->data;
+		if(!p->visible)
+			continue;
 		if(n == back) {
 			p->active = 1;
-//			DrawRect(3, 3, p->w - 6, 18, 0x000082, p->context);
-//			PutString(4,4, p->title, 0xffffff, p->context);
+			DrawRect(3, 3, p->w - 6, 18, 0x000082, p->context);
+			PutString(4,4, p->title, 0xffffff, p->context);
 		}else{
 			p->active = 0;
-//			DrawRect(3, 3, p->w - 6, 18, 0x808080, p->context);
-//			PutString(4, 4, p->title, 0xc0c0c0,  p->context);
+			DrawRect(3, 3, p->w - 6, 18, 0x808080, p->context);
+			PutString(4, 4, p->title, 0xc0c0c0,  p->context);
 		}
 		DrawImage(p->w - 21, 5, &close_button,  p->context);
 		DrawRect(p->x, p->y, p->w, p->h, p->handle, locate);
-		FlushContext(p->context, p->w, p->h, p->x, p->y, 0, 0, backbuf);
+		FlushContext(p->context, p->context->w, p->context->h, p->x, p->y, 0, 0, backbuf);
 	}
 	}
 	FlushContext(backbuf, screen.w, screen.h, 0, 0, 0, 0, &screen);
@@ -113,7 +115,26 @@ int rand(int limit)
 	return X % limit;
 }
 
+void WindowMapped(struct window_t *win) {
+/*	printf("Must be mapped - %d\n", win->w * win->h * 2);
+	//while(1);
+	for(int i = 53240; i <  win->w * win->h *2; i++) {
+		printf("%u in page %u\n", i, i / 4096);
+		win->context->data[i] = 0xAA;
+	}
+	while(1);
+	win->visible = 1;
+*/	DrawRect(0, 0, win->w, win->h, 0xc3c3c3, win->context);
 
+	line(1, 1, 1, win->h - 3, 0xffffff, win->context);
+
+	line(1, 1, win->w - 3, 1, 0xffffff, win->context); 
+
+	line(1, win->h - 2, win->w - 2, win->h - 2, 0x828282, win->context);
+	line(win->w - 2, win->h - 1, win->w - 2, 1, 0x828282, win->context);
+	line(0, win->h - 1, win->w - 1, win->h - 1, 0x000000, win->context);
+	line(win->w - 1, win->h - 1, win->w - 1, 0, 0x000000, win->context);
+}
 int CreateWindow(int tid, int x, int y, int w, int h, char *caption, int class) {
 
 	struct window_t *win = malloc(sizeof(struct window_t));
@@ -123,11 +144,8 @@ int CreateWindow(int tid, int x, int y, int w, int h, char *caption, int class) 
 	c->w = w;
 	c->h = h;
 	c->bpp = screen.bpp;
-	c->data = RequestMemory(h  * w * screen.bpp);
 	c->native_pixels = 0;
 	win->handle = ++last_handle;
-	//win->x = x;
-	//win->y = y;
 	win->x = rand(screen.w - w);
 	win->y = rand(screen.h - h);
 	win->w = w;
@@ -135,23 +153,12 @@ int CreateWindow(int tid, int x, int y, int w, int h, char *caption, int class) 
 	win->context = c;
 	win->title = title;
 	win->tid = tid;
+	win->visible = 0;
 	insertBack(win);
-	DrawRect(0, 0, w, h, 0xc3c3c3, c);
-
-	line(1, 1, 1, h - 3, 0xffffff, c);
-
-	line(1, 1, w - 3, 1, 0xffffff, c); 
-
-	line(1, h - 2, w - 2, h - 2, 0x828282, c);
-	line(w - 2, h - 1, w - 2, 1, 0x828282, c);
-	line(0, h - 1, w - 1, h - 1, 0x000000, c);
-	line(w - 1, h - 1, w - 1, 0, 0x000000, c);
-	need_refresh = 1;
 	return win->handle;
 }
 
 void SetFocusTo(int handle) {
-//	printf("focus set to %u\n", handle);
 	for(node *n = front; n; n = n->next) {
 		window_t *win = (window_t *)n->data;
 		if(win->handle == handle) {

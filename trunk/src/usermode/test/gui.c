@@ -75,7 +75,6 @@ int CreateWindow(int parent, int x, int y, int w, int h, char *caption, int flag
 	((int *)msg.send_buf)[6] = 0;
 	  
 	send(&msg);
-	while(1) ((int *)msg.send_buf)[6]++;
 	int i;
 	for(;;) {
 		for(i = 0; i <  w * h * bpp;i++) canvas[i]++;

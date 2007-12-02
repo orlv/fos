@@ -206,7 +206,7 @@ kernel: recv_buf=0x%X, pd=0x%X, count=0x%X\n", message->recv_buf, pagedir, count
     count = (OFFSET(message->send_buf)%PAGE_SIZE + message->send_size + PAGE_SIZE - 1)/PAGE_SIZE;
     if(!check_pages(PAGE(OFFSET(message->send_buf)), pagedir, count)){
       printk("kernel: check_pages() on message->send_buf failed \n\
-kernel: send_buf=0x%X, pd=0x%X, count=0x%X\n", message->send_buf, pagedir, count);
+kernel: send_buf=0x%X, pd=0x%X, count=0x%X\n", OFFSET(message->send_buf), pagedir, count);
       return 1;
     }
   }

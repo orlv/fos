@@ -11,7 +11,7 @@ asmlinkage int main(int argc, char ** argv)
 		for(i=1; i<argc; i++)
 			strcat(title, argv[i]);
 
-	int winhandle = CreateWindow(0, 10, 10, 400, 50, title, WC_WINDOW);
+	int winhandle = CreateWindow(0, 10, 10, 400,70, title, WC_WINDOW);
 	int class, handle, a0, a1, a2, a3;
 	while(1) {
 		WaitEvent(&class, &handle, &a0, &a1, &a2, &a3);

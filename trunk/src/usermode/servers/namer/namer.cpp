@@ -39,6 +39,7 @@ asmlinkage int main()
 
   while(1){
     msg->recv_size = MAX_PATH_LEN;
+
     msg->recv_buf  = pathname;
     msg->tid = _MSG_SENDER_ANY;
     receive(msg);

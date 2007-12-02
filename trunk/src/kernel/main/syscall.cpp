@@ -176,8 +176,8 @@ void kill_message(kmessage *message)
 static inline bool check_message(message *message, int flags)
 {
   if(OFFSET(message) < system->procman->current_thread->process->memory->mem_base) {
-    printk("foo #1\n");
-    //while(1);
+    printk("kernel: message check base failed (0x%X < 0x%X)\n",
+	   OFFSET(message), system->procman->current_thread->process->memory->mem_base);
     return 1;
   }
   
@@ -188,8 +188,7 @@ static inline bool check_message(message *message, int flags)
 
   /* страницы должны быть присоединены в адресное пространство процесса */
   if(!check_pages(PAGE(OFFSET(message)), pagedir, count)){
-    printk("foo #2\n");
-    //while(1);
+    printk("kernel: check_pages() on message failed\n");
     return 1;
   }
 
@@ -197,8 +196,8 @@ static inline bool check_message(message *message, int flags)
   if((flags & MSG_CHK_RECVBUF) && message->recv_size && !(message->flags & (MSG_MEM_SEND | MSG_MEM_SHARE))) {
     count = (OFFSET(message->recv_buf)%PAGE_SIZE + message->recv_size + PAGE_SIZE - 1)/PAGE_SIZE;
     if(!check_pages(PAGE(OFFSET(message->recv_buf)), pagedir, count)) {
-      printk("recv_buf=0x%X, pd=0x%X, count=0x%X\n", message->recv_buf, pagedir, count);
-      //while(1);
+      printk("kernel: check_pages() on message->recv_buf failed \n\
+kernel: recv_buf=0x%X, pd=0x%X, count=0x%X\n", message->recv_buf, pagedir, count);
       return 1;
     }
   }
@@ -206,9 +205,8 @@ static inline bool check_message(message *message, int flags)
   if((flags & MSG_CHK_SENDBUF) && message->send_size) {
     count = (OFFSET(message->send_buf)%PAGE_SIZE + message->send_size + PAGE_SIZE - 1)/PAGE_SIZE;
     if(!check_pages(PAGE(OFFSET(message->send_buf)), pagedir, count)){
-      printk("send_buf=0x%X, pd=0x%X, count=0x%X\n", message->send_buf, pagedir, count);
-      printk("foo #3\n");
-      //while(1);
+      printk("kernel: check_pages() on message->send_buf failed \n\
+kernel: send_buf=0x%X, pd=0x%X, count=0x%X\n", message->send_buf, pagedir, count);
       return 1;
     }
   }
@@ -218,7 +216,8 @@ static inline bool check_message(message *message, int flags)
 
   /* если используется разделение или передача разделяемых страниц - проверяем выравнивание */
   if((flags & MSG_CHK_FLAGS) && (message->flags & (MSG_MEM_SEND | MSG_MEM_SHARE)) && (OFFSET(message->send_buf) & 0xfff)) {
-    printk("SHM align failed\n");
+    printk("kernel: SHM buffer not aligned!\n\
+kernel: message->send_buf=0x%X\n", OFFSET(message->send_buf));
     return 1;
   }
 

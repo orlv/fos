@@ -9,6 +9,8 @@
 #include <sched.h>
 #include <string.h>
 #include "gui.h"
+#define ALIGN(a, b)  ((a + (b - 1)) & ~(b - 1))
+
 static fd_t gui;
 static fd_t gui_canvas;
 void GUIInit() {
@@ -60,11 +62,12 @@ int CreateWindow(int parent, int x, int y, int w, int h, char *caption, int flag
 	int hndl = msg.arg[0];
 	printf("Videobuffer: %ux%ux%u (%u bytes)\n", w, h, bpp, w * h * bpp);
 
-	char *canvas = kmmap(0, w * h * bpp, 0, 0);
+	int size = ALIGN(w * h * bpp, 4096);
+	char *canvas = kmmap(0, size, 0, 0);
 	msg.tid = gui_canvas->thread;
-	msg.recv_size =  w * h * bpp;
+	msg.recv_size =  size;
 	msg.recv_buf = canvas;
-	msg.send_size = w * h * bpp;
+	msg.send_size = size;
 	msg.send_buf = canvas;
 	msg.flags = MSG_MEM_SHARE;
 	msg.arg[0] = WIN_CMD_MAPBUF;

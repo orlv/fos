@@ -23,9 +23,9 @@ int main(int argc, char *argv) {
 	StartEventHandling();
 	//printf("I'am alive!\n");
 	exec("/mnt/modules/test", "1");
-	//exec("/mnt/modules/test", "2");
-	//exec("/mnt/modules/test", "3");
-	//exec("/mnt/modules/test", "4");
+	exec("/mnt/modules/test", "2");
+	exec("/mnt/modules/test", "3");
+	exec("/mnt/modules/test", "4");
 	for(;;) {
 		if (need_refresh)
 		{

@@ -5,6 +5,7 @@ int CreateWindow(int parent, int x, int y, int w, int h, char *caption, int flag
 void WaitEvent(int *class, int *handle, int *a0, int *a1, int *a2, int *a3) ;
 void DestroyWindow(int handle) ;
 void GuiEnd();
+void pixel(int handle, int x, int y, int color);
 #define WC_WINDOW 0
 #define WIN_CMD_CREATEWINDOW 1
 #define WIN_CMD_DESTROYWINDOW 2

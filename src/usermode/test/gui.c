@@ -36,6 +36,14 @@ typedef struct {
 	int h;
 	int class;
 } create_win_t;
+
+struct win_hndl{
+	int handle;
+	char *data;
+	int w;
+	int h;
+	int bpp;
+} ;
 #define MAX_TITLE_LEN 64
 
 int CreateWindow(int parent, int x, int y, int w, int h, char *caption, int flags) {
@@ -74,14 +82,14 @@ int CreateWindow(int parent, int x, int y, int w, int h, char *caption, int flag
 	msg.arg[1] = hndl;
 
 	send(&msg);
-	int i;
-	for(;;) {
-		for(i = 0; i <  w * h * bpp ;i++) canvas[i]++;
-		sched_yield();
-	}
 
-
-	return hndl;
+	struct win_hndl *wh = malloc(sizeof(struct win_hndl));
+	wh->handle = hndl;
+	wh->data = canvas;
+	wh->w = w;
+	wh->h = h;
+	wh->bpp = bpp;
+	return (int) wh;
 }
 typedef struct {
 	void * reserved[2];
@@ -112,14 +120,17 @@ void WaitEvent(int *class, int *handle, int *a0, int *a1, int *a2, int *a3) {
 
 }
 void DestroyWindow(int handle) {
+	struct win_hndl *wh  = (struct win_hndl *) handle;
 	struct message msg;
 	msg.flags = 0;
 	msg.send_size = 0;
 	msg.recv_size = 0;
 	msg.tid = gui->thread;
 	msg.arg[0] = WIN_CMD_DESTROYWINDOW;
-	msg.arg[1] = handle;
+	msg.arg[1] = wh->handle;
 	send(&msg);
+	free(wh);
+	kmunmap(wh->data, ALIGN(wh->w * wh->h * wh->bpp, 4096));
 }
 void GuiEnd() {
 	struct message msg;
@@ -131,4 +142,13 @@ void GuiEnd() {
 	send(&msg);
 	gui = NULL;
 	gui_canvas = NULL;
+}
+#define RED(x, bits)	((x >> (16 + 8 - bits)) & ((1 << bits) - 1))
+#define GREEN(x, bits)	((x >> (8 + 8 - bits)) & ((1 << bits) - 1))
+#define BLUE(x, bits)	((x >> (8 - bits)) & ((1 << bits) - 1))
+void pixel(int handle, int x, int y, int color) {
+	struct win_hndl *wh  = (struct win_hndl *) handle;
+	if(x > wh->w || y > wh->h || y < 0 || x < 0) return;
+	unsigned short *ptr = (unsigned short *) wh->data;
+	ptr[x + y * wh->w] =  RED(color, 5) << 11 | GREEN(color, 6) << 5 | BLUE(color, 5);
 }

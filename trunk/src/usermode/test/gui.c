@@ -61,6 +61,8 @@ int CreateWindow(int parent, int x, int y, int w, int h, char *caption, int flag
 	printf("Videobuffer: %ux%ux%u (%u bytes)\n", w, h, bpp * 8, w * h * bpp);
 
 	char *canvas = kmmap(0, w * h * bpp, 0, 0);
+	memset(canvas, 0x55, w * h * bpp);
+	printf("buf: 0x%x, size: %d\n", canvas, w * h * bpp);
 	msg.tid = gui_canvas->thread;
 	msg.recv_size =  w * h * bpp;
 	msg.recv_buf = canvas;

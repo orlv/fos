@@ -298,10 +298,8 @@ void MappingThread() {
 			break;
 		case WIN_CMD_MAPBUF: {
 			window_t *w = GetWindowInfo(msg.arg[1]);
-			msg.send_size = w->context->w * w->context->h * w->context->bpp;
-		//	msg.recv_size = msg.send_size;
-			msg.send_buf = w->context->data;
-			msg.recv_buf = msg.send_buf;
+			msg.recv_size = w->context->w * w->context->h * w->context->bpp;
+			msg.recv_buf = w->context->data;
 			msg.arg[0] = NO_ERR;
 			msg.flags = MSG_MEM_SHARE;
 			reply(&msg);

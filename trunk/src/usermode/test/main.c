@@ -21,10 +21,9 @@ asmlinkage int main(int argc, char ** argv)
 			GuiEnd();
 			return 1;
 		case EV_MDOWN:
-			printf("down at %u, %u\n", a0, a1);
+			pixel(winhandle, a0 + 3, a1 + 21, 0xFF0000);
 			break;
 		case EV_MUP:
-			printf("up at %u, %u\n", a0, a1);
 			break;			
 		}
 	}

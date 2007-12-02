@@ -85,8 +85,10 @@ void event_handler(event_t *event) {
 			PostEvent(win->tid, handle, EV_WINCLOSE, 0, 0, 0, 0);
 			break;
 		}
-		SetFocusTo(handle);
-		need_cursor = 1;
+		if(!win->active) {
+			SetFocusTo(handle);
+			need_cursor = 1;
+		}
 		break;
 	}
 }

@@ -303,9 +303,9 @@ void MappingThread() {
 		  msg.flags = 0;
 		  reply(&msg);
 
-		  while(1) printf("%d", ((int *)msg.recv_buf)[6]);
-		  while(1);
-			window_t *w = GetWindowInfo(msg.arg[1]);
+	//	  while(1) printf("%d", ((int *)msg.recv_buf)[6]);
+	//	  while(1);
+	/*		window_t *w = GetWindowInfo(msg.arg[1]);
 			msg.recv_size = w->context->w * w->context->h * w->context->bpp;
 			msg.recv_buf = w->context->data;
 			msg.send_size = w->context->w * w->context->h * w->context->bpp;
@@ -314,7 +314,7 @@ void MappingThread() {
 			msg.flags = MSG_MEM_SHARE;
 			printf("replying..\n");
 			reply(&msg);
-			printf("replyed..\n");
+			printf("replyed..\n");*/
 			break;
 		}
 		default:

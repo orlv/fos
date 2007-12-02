@@ -326,16 +326,8 @@ res_t receive(message *message)
       rcv_size &= ~0xfff;
       if(rcv_size) {
 	/* монтируем буфер в свободное место адр. пр-ва сервера */
-	//printk("buf=[0x%X] rcv_size=[0x%X]", received_message->buffer, rcv_size);
-	message->recv_buf = system->procman->current_thread->process->memory->mmap(0, rcv_size, 0, OFFSET(received_message->buffer), received_message->thread->process->memory); //system->procman->current_thread->process->memory->mmap(0, rcv_size, 0, 0, 0);
-
-	//	u32_t *pagedir = received_message->thread->process->memory->pager->pagedir;
-	//u32_t phys = OFFSET(phys_addr_from(PAGE(OFFSET(received_message->buffer)), pagedir));
-	//	printk("{0x%X}", pagetable_addr(0x8005, pagedir));
-	//printk("[%s]", received_message->thread->process->name);
-	//	u32_t phys = OFFSET(phys_addr_from(0x8005, pagedir));
-	//	printk("phys=0x%X\n", phys);
-	  //system->procman->current_thread->process->memory->mmap(0, rcv_size, 0, OFFSET(received_message->buffer), received_message->thread->process->memory);
+	//printk("kernel: buf=[0x%X] rcv_size=[0x%X]", received_message->buffer, rcv_size);
+	message->recv_buf = system->procman->current_thread->process->memory->mmap(0, rcv_size, 0, OFFSET(received_message->buffer), received_message->thread->process->memory);
 	
 	if(message->flags & MSG_MEM_SEND) /* демонтируем буфер из памяти клиента */
 	  received_message->thread->process->memory->munmap(OFFSET(received_message->buffer), received_message->size);

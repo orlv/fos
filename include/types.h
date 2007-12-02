@@ -61,4 +61,6 @@ typedef u32_t pid_t;
 typedef u32_t tid_t; /* Thread ID */
 typedef tid_t sid_t; /* Server ID (пока что равняется Thread ID) */
 
+#define ALIGN(a, b)	((a + (b - 1)) & ~(b - 1))
+
 #endif

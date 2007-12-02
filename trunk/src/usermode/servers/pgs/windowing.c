@@ -75,12 +75,12 @@ void Redraw() {
 		window_t *p = (window_t *) n->data;
 		if(n == back) {
 			p->active = 1;
-			DrawRect(3, 3, p->w - 6, 18, 0x000082, p->context);
-			PutString(4,4, p->title, 0xffffff, p->context);
+//			DrawRect(3, 3, p->w - 6, 18, 0x000082, p->context);
+//			PutString(4,4, p->title, 0xffffff, p->context);
 		}else{
 			p->active = 0;
-			DrawRect(3, 3, p->w - 6, 18, 0x808080, p->context);
-			PutString(4, 4, p->title, 0xc0c0c0,  p->context);
+//			DrawRect(3, 3, p->w - 6, 18, 0x808080, p->context);
+//			PutString(4, 4, p->title, 0xc0c0c0,  p->context);
 		}
 		DrawImage(p->w - 21, 5, &close_button,  p->context);
 		DrawRect(p->x, p->y, p->w, p->h, p->handle, locate);
@@ -110,7 +110,7 @@ int rand(int limit)
 	X += M;
 
     seed = X;
-	return X & limit;
+	return X % limit;
 }
 
 

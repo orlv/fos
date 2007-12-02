@@ -116,15 +116,8 @@ int rand(int limit)
 }
 
 void WindowMapped(struct window_t *win) {
-/*	printf("Must be mapped - %d\n", win->w * win->h * 2);
-	//while(1);
-	for(int i = 53240; i <  win->w * win->h *2; i++) {
-		printf("%u in page %u\n", i, i / 4096);
-		win->context->data[i] = 0xAA;
-	}
-	while(1);
 	win->visible = 1;
-*/	DrawRect(0, 0, win->w, win->h, 0xc3c3c3, win->context);
+	DrawRect(0, 0, win->w, win->h, 0xc3c3c3, win->context);
 
 	line(1, 1, 1, win->h - 3, 0xffffff, win->context);
 
@@ -134,6 +127,7 @@ void WindowMapped(struct window_t *win) {
 	line(win->w - 2, win->h - 1, win->w - 2, 1, 0x828282, win->context);
 	line(0, win->h - 1, win->w - 1, win->h - 1, 0x000000, win->context);
 	line(win->w - 1, win->h - 1, win->w - 1, 0, 0x000000, win->context);
+	need_refresh = 1;
 }
 int CreateWindow(int tid, int x, int y, int w, int h, char *caption, int class) {
 

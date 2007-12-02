@@ -72,9 +72,11 @@ int CreateWindow(int parent, int x, int y, int w, int h, char *caption, int flag
 	msg.arg[0] = WIN_CMD_MAPBUF;
 	msg.arg[1] = hndl;
 	send(&msg);
-	printf("%x\n", *canvas);
 	int i;
-	for(i = 0; i <  w * h * bpp;i++) canvas[i] = 0xAA;
+	for(;;) {
+		for(i = 0; i <  w * h * bpp;i++) canvas[i]++;
+		printf(".");
+	}
 
 	return hndl;
 }

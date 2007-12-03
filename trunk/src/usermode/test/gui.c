@@ -144,7 +144,7 @@ void DestroyWindow(int handle) {
 	msg.arg[1] = wh->handle;
 	send(&msg);
 	free(wh);
-	kmunmap(wh->data, ALIGN(wh->w * wh->h * wh->bpp, 4096));
+	kmunmap((off_t) wh->data, ALIGN(wh->w * wh->h * wh->bpp, 4096));
 }
 void RefreshWindow(int handle) {
 	struct win_hndl *wh  = (struct win_hndl *) handle;

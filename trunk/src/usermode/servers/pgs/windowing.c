@@ -26,7 +26,7 @@ int last_handle = 0;
 context_t *backbuf;
 context_t *locate;
 extern context_t screen;
-int CreateWindow(int tid, int x, int y, int w, int h, char *caption, int flags);
+int CreateWindow(int tid, int w, int h, char *caption, int flags);
 
 void init_windowing() {
 
@@ -129,7 +129,7 @@ void WindowMapped(struct window_t *win) {
 	line(win->w - 1, win->h - 1, win->w - 1, 0, 0x000000, win->context);
 	need_refresh = 1;
 }
-int CreateWindow(int tid, int x, int y, int w, int h, char *caption, int class) {
+int CreateWindow(int tid, int w, int h, char *caption, int class) {
 
 	struct window_t *win = malloc(sizeof(struct window_t));
 	context_t *c = malloc(sizeof(context_t));
@@ -186,4 +186,14 @@ void DestroyWindow(int handle) {
 		}
 	}
 	
+}
+void RefreshWindow(int handle) {
+	struct window_t *win = GetWindowInfo(handle);
+	if(win->active) {
+		FlushContext(win->context, win->context->w, win->context->h, win->x, win->y, 0, 0, &screen);
+		FlushContext(win->context, win->context->w, win->context->h, win->x, win->y, 0, 0, backbuf);
+		need_cursor = 1;
+		return;
+	}
+	need_refresh = 1;
 }

@@ -155,6 +155,7 @@ void RefreshWindow(int handle) {
 	msg.tid = gui->thread;
 	msg.arg[0] = WIN_CMD_REFRESHWINDOW;
 	msg.arg[1] = wh->handle;
+	send(&msg);
 }
 void GuiEnd() {
 	struct message msg;

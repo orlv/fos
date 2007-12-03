@@ -190,6 +190,7 @@ void DestroyWindow(int handle) {
 void RefreshWindow(int handle) {
 	struct window_t *win = GetWindowInfo(handle);
 	if(win->active) {
+		while(refreshing) sched_yield();
 		FlushContext(win->context, win->context->w, win->context->h, win->x, win->y, 0, 0, &screen);
 		FlushContext(win->context, win->context->w, win->context->h, win->x, win->y, 0, 0, backbuf);
 		need_cursor = 1;

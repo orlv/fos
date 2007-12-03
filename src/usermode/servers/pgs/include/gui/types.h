@@ -63,4 +63,5 @@ struct win_info {
 #define EV_WINCLOSE 1
 #define EV_MDOWN 2
 #define EV_MUP 3
+#define EV_KEY 4
 #endif

@@ -10,10 +10,14 @@
 
 #include "vbe.h"
 
+#define MODE_1280x1024x16	0x411a
+#define MODE_1024x768x16	0x4117
+#define MODE_800x600x16		0x4114
+#define MODE_640x480x16		0x4111
 int screen_width, screen_height;
 context_t graphics_init() {
 	printf("Configuring VBE\n");
-	vbe_set_mode(0x4117);
+	vbe_set_mode(MODE_800x600x16);
 	unsigned short *lfb;
 	context_t screen;
 	lfb = (unsigned short *) kmmap(0, vbe->x_resolution * vbe->y_resolution * 2, 0, vbe->phys_base_addr);
@@ -25,7 +29,7 @@ context_t graphics_init() {
 	screen.h = vbe->y_resolution;
 	screen.bpp = 2;
 	screen.native_pixels = 0;
-	screen.data = lfb;
+	screen.data = (char *) lfb;
 	screen_width = vbe->x_resolution;
 	screen_height = vbe->y_resolution;
 	return screen;

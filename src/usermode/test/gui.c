@@ -29,9 +29,6 @@ void GUIInit() {
 	gui_canvas = (fd_t )gui_canvas_h; 
 }
 typedef struct {
-	int parent;
-	int x;
-	int y;
 	int w;
 	int h;
 	int class;
@@ -43,34 +40,47 @@ struct win_hndl{
 	int w;
 	int h;
 	int bpp;
+	int margin_up;
+	int margin_down;
+	int margin_left;
+	int margin_right;
 } ;
+
+struct win_info {
+	int bpp;
+	int handle;
+	int margin_up;
+	int margin_down;
+	int margin_left;
+	int margin_right;
+};
 #define MAX_TITLE_LEN 64
 
-int CreateWindow(int parent, int x, int y, int w, int h, char *caption, int flags) {
+int CreateWindow(int w, int h, char *caption, int flags) {
 	char *buf = malloc(sizeof(create_win_t) + MAX_TITLE_LEN);
 	create_win_t *struc = (create_win_t *) buf;
 	char *title = buf + sizeof(create_win_t);
 	strcpy(title, caption);
-	struc->parent = parent;
-	struc->x = x;
-	struc->y = y;
 	struc->w = w;
 	struc->h = h;
 	struc->class = flags;
 	
+
+	struct win_info wi;
+
 	struct message msg;
-	msg.recv_size = 0;
+	msg.recv_size = sizeof(wi);
+	msg.recv_buf = &wi;
 	msg.tid = gui->thread;
 	msg.flags = 0;
 	msg.arg[0] = WIN_CMD_CREATEWINDOW;
 	msg.send_size = sizeof(create_win_t) + MAX_TITLE_LEN;
 	msg.send_buf = buf;
 	send(&msg);
-	int bpp = msg.arg[1];
-	int hndl = msg.arg[0];
-	printf("Videobuffer: %ux%ux%u (%u bytes)\n", w, h, bpp, w * h * bpp);
+	int hndl = wi.handle;
+	printf("Videobuffer: %ux%ux%u (%u bytes)\n", w, h, wi.bpp, w * h * wi.bpp);
 
-	int size = ALIGN(w * h * bpp, 4096);
+	int size = ALIGN(w * h * wi.bpp, 4096);
 	char *canvas = kmmap(0, size, 0, 0);
 	msg.tid = gui_canvas->thread;
 	msg.recv_size =  size;
@@ -84,11 +94,15 @@ int CreateWindow(int parent, int x, int y, int w, int h, char *caption, int flag
 	send(&msg);
 
 	struct win_hndl *wh = malloc(sizeof(struct win_hndl));
+	wh->margin_up = wi.margin_up;
+	wh->margin_down = wi.margin_down;
+	wh->margin_left = wi.margin_left;
+	wh->margin_right = wi.margin_right;
 	wh->handle = hndl;
 	wh->data = canvas;
 	wh->w = w;
 	wh->h = h;
-	wh->bpp = bpp;
+	wh->bpp = wi.bpp;
 	return (int) wh;
 }
 typedef struct {
@@ -132,6 +146,16 @@ void DestroyWindow(int handle) {
 	free(wh);
 	kmunmap(wh->data, ALIGN(wh->w * wh->h * wh->bpp, 4096));
 }
+void RefreshWindow(int handle) {
+	struct win_hndl *wh  = (struct win_hndl *) handle;
+	struct message msg;
+	msg.flags = 0;
+	msg.send_size = 0;
+	msg.recv_size = 0;
+	msg.tid = gui->thread;
+	msg.arg[0] = WIN_CMD_REFRESHWINDOW;
+	msg.arg[1] = wh->handle;
+}
 void GuiEnd() {
 	struct message msg;
 	msg.flags = 0;
@@ -148,7 +172,9 @@ void GuiEnd() {
 #define BLUE(x, bits)	((x >> (8 - bits)) & ((1 << bits) - 1))
 void pixel(int handle, int x, int y, int color) {
 	struct win_hndl *wh  = (struct win_hndl *) handle;
-	if(x > wh->w || y > wh->h || y < 0 || x < 0) return;
+	x += wh->margin_left;
+	y += wh->margin_up;
+	if(x > wh->w - wh->margin_right || y > wh->h - wh->margin_down || y < 0 || x < 0) return;
 	unsigned short *ptr = (unsigned short *) wh->data;
 	ptr[x + y * wh->w] =  RED(color, 5) << 11 | GREEN(color, 6) << 5 | BLUE(color, 5);
 }

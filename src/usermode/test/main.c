@@ -11,7 +11,7 @@ asmlinkage int main(int argc, char ** argv)
 		for(i=1; i<argc; i++)
 			strcat(title, argv[i]);
 
-	int winhandle = CreateWindow(0, 10, 10, 400,70, title, WC_WINDOW);
+	int winhandle = CreateWindow(400,70, title, WC_WINDOW);
 	int class, handle, a0, a1, a2, a3;
 	while(1) {
 		WaitEvent(&class, &handle, &a0, &a1, &a2, &a3);
@@ -21,7 +21,8 @@ asmlinkage int main(int argc, char ** argv)
 			GuiEnd();
 			return 1;
 		case EV_MDOWN:
-			pixel(winhandle, a0 + 3, a1 + 21, 0xFF0000);
+			pixel(winhandle, a0, a1, 0xFF0000);
+			RefreshWindow(winhandle);
 			break;
 		case EV_MUP:
 			break;			

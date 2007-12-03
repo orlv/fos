@@ -62,8 +62,10 @@ proc_t proc_head = {
 
 void DestroyWindow(int handle);
 
-int CreateWindow(int tid, int x, int y, int w, int h, char *caption, int class);
+int CreateWindow(int tid, int w, int h, char *caption, int class);
 void WindowMapped(struct window_t *win);
+
+void RefreshWindow(int handle);
 
 void PostEvent(int tid, int handle, int class, int a0, int a1, int a2, int a3)
 {
@@ -127,13 +129,18 @@ void EventsThread()
 
       case WIN_CMD_CREATEWINDOW: {
 	create_win_t *win = (create_win_t *) buffer;
+	struct win_info wi;
 	char *caption = buffer + sizeof(create_win_t);
-	msg.arg[0] = CreateWindow(msg.tid, win->x, win->y, win->w, win->h, caption, win->class);
+	wi.handle = CreateWindow(msg.tid, win->w, win->h, caption, win->class);
 	window_t *w = GetWindowInfo(msg.arg[0]);
-//	printf("handle %u , ptr %u\n", msg.arg[0], w);
-	msg.arg[1] = w->context->bpp;
+	wi.bpp = w->context->bpp;
 	msg.arg[2] = NO_ERR;
-	msg.send_size = 0;
+	wi.margin_up = 21;
+	wi.margin_left = 3;
+	wi.margin_right = 3;
+	wi.margin_down = 3;
+	msg.send_size = sizeof(wi);
+	msg.send_buf = &wi;
 	msg.flags = 0;
 	reply(&msg);
 	break;
@@ -145,7 +152,13 @@ void EventsThread()
 	msg.flags = 0;
 	reply(&msg);
 	break;
-
+      case WIN_CMD_REFRESHWINDOW:
+	RefreshWindow(msg.arg[1]);
+	msg.arg[2] = NO_ERR;
+	msg.send_size = 0;
+	msg.flags = 0;
+	reply(&msg);
+	break;
       case WIN_CMD_WAIT_EVENT: {
 	while(!mutex_try_lock(q_locked))
 	  sched_yield();

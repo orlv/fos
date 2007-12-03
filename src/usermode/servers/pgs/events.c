@@ -28,6 +28,7 @@ void event_handler(event_t *event) {
 			if (handle)
 			{
 			    window_t *win = GetWindowInfo(handle);
+				if(!win) break;
 			    int win_x = mousex-win->x;
 			    int win_y = mousey-win->y;
 

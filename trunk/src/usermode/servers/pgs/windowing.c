@@ -128,8 +128,11 @@ void WindowMapped(struct window_t *win) {
 	line(0, win->h - 1, win->w - 1, win->h - 1, 0x000000, win->context);
 	line(win->w - 1, win->h - 1, win->w - 1, 0, 0x000000, win->context);
 	need_refresh = 1;
+	while(need_refresh || refreshing) sched_yield();
 }
 int CreateWindow(int tid, int w, int h, char *caption, int class) {
+	h += 21 + 3;
+	w += 3 + 3;
 
 	struct window_t *win = malloc(sizeof(struct window_t));
 	context_t *c = malloc(sizeof(context_t));
@@ -197,4 +200,12 @@ void RefreshWindow(int handle) {
 		return;
 	}
 	need_refresh = 1;
+}
+window_t * GetActiveWindow() {
+	for(node *n = front; n; n = n->next) {
+		window_t *win = (window_t *)n->data;
+		if(win->active)
+			return win;
+	}
+	return NULL;
 }

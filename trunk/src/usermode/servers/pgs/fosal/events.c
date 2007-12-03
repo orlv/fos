@@ -43,6 +43,8 @@ typedef struct proc_q {
   int waiting;
   int tid;
   event_q_t events;
+  int timer_interval;
+  int timer_counter;
 } proc_t;
 
 mutex_t q_locked = 0;
@@ -59,6 +61,7 @@ proc_t proc_head = {
   .events.a2 = 0,
   .events.a3 = 0 
 };
+window_t * GetActiveWindow();
 
 void DestroyWindow(int handle);
 
@@ -71,7 +74,6 @@ void PostEvent(int tid, int handle, int class, int a0, int a1, int a2, int a3)
 {
   while(!mutex_try_lock(q_locked))
     sched_yield();
-
   struct list_head *entry;
   proc_t *p = &proc_head;
 
@@ -88,10 +90,10 @@ void PostEvent(int tid, int handle, int class, int a0, int a1, int a2, int a3)
     if(p->tid == tid)
       break;
   }
-  
   if(p->tid != tid) { /* запись процесса не найдена, создаем */
     p = malloc(sizeof(proc_t));
     p->waiting = 0;
+    p->timer_interval = 0;
     INIT_LIST_HEAD(&p->events.list);
     p->tid = tid;
     list_add_tail(&p->list, &proc_head.list);
@@ -293,6 +295,25 @@ void mouse_thread()
     
   }
 } 
+void kb_thread() {
+	int kbd;
+	do {
+		kbd = open("/dev/keyboard", 0);
+		sched_yield();
+	} while(!kbd);
+	char ch;
+	int extended = 0;
+	while(1) {
+		read(kbd, &ch, 1);
+		if(ch == 0x01) { // расширенный символ
+			extended = 1;
+			continue;
+		}
+		window_t *w = GetActiveWindow();
+		PostEvent(w->tid, w->handle, EV_KEY, ch & 0xFF, extended, 0, 0);
+		extended = 0;
+	}
+}
 void MappingThread() {
 	resmgr_attach("/dev/pgs_canvas");
 	struct message msg;
@@ -333,9 +354,12 @@ void MappingThread() {
 		}
 	}
 }
+
 void StartEventHandling()
 {
   thread_create((off_t)&mouse_thread);
+  thread_create((off_t)&kb_thread);
   thread_create((off_t)&EventsThread);
   thread_create((off_t)&MappingThread);
+
 }

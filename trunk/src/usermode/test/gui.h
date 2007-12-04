@@ -9,6 +9,7 @@ void pixel(int handle, int x, int y, int color);
 void RefreshWindow(int handle);
 void rect(int handle, int x, int y, int width, int height, int color);
 void line(int handle, int x0, int y0, int x1, int y1, int color);
+void pstring(int handle, int x, int y, int color, char *str);
 #define WC_WINDOW 0
 #define WIN_CMD_CREATEWINDOW 1
 #define WIN_CMD_DESTROYWINDOW 2

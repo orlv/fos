@@ -11,6 +11,7 @@
 #include "gui.h"
 #define ALIGN(a, b)  ((a + (b - 1)) & ~(b - 1))
 
+static volatile char *fnt = NULL;
 static fd_t gui;
 static fd_t gui_canvas;
 void GUIInit() {
@@ -166,6 +167,8 @@ void GuiEnd() {
 	send(&msg);
 	gui = NULL;
 	gui_canvas = NULL;
+	if(fnt)
+		free(fnt);
 }
 #define RED(x, bits)	((x >> (16 + 8 - bits)) & ((1 << bits) - 1))
 #define GREEN(x, bits)	((x >> (8 + 8 - bits)) & ((1 << bits) - 1))
@@ -195,6 +198,25 @@ void rect(int handle, int x, int y, int width, int height, int color)
 			*(dot++) = modecolor;
 	}
 	
+}
+void pstring(int handle, int x, int y, int color, char *str) {
+	if(!fnt) {
+		printf("Loading on request\n");
+		fnt = malloc(4096);
+		int h = open("/mnt/modules/font.psf", 0);
+		lseek(h, 4, SEEK_SET);
+		read(h, fnt, 4096);
+		close(h);
+		
+	}
+	for(;*str; str++) {
+		for(int i = 0; i < 16; i++)
+		for(int j = 0; j < 8; j++) 
+			if(fnt[16 * (unsigned char)*str + i] & (1<<j))
+				//__asm__("nop");
+				pixel(handle, x + 8 - j, y + i, color);
+		x += 8;
+	}
 }
 #define SetPixel(a, b, c, d) pixel(d, a, b, c)
 void line(int handle, int x0, int y0, int x1, int y1, int color) {

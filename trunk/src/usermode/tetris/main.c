@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "gui.h"
 #include "shapes.h"
 #define KUP 1
@@ -18,14 +19,19 @@ struct shape *curshape;
 int seed = -1;
 int score = 0;
 void redraw() {
-	rect(winhandle, 8, 8, 192, 368, 0x7F7F7F);
-	for(int j = 0; j < B_ROWS; j++)
+	rect(winhandle, 8, 8, 192, 352, 0x7F7F7F);
+	for(int j = 0; j < B_ROWS - 1; j++)
 	for(int i = 0; i < B_COLS; i++) 
 		if(board[j * B_COLS + i])
 			rect(winhandle, 8 + i * 16, 8 + j * 16, 16, 16, board[j * B_COLS + i]);
 
+	pstring(winhandle, 192 + 16, 8, 0x000000, "Score");
+	char buf[128];
+	sprintf((char *) &buf, "%u", score);
+	int x = (5 * 8 - strlen((char *) &buf) * 8) / 2;
+	rect(winhandle, 192 + 16, 8 + 16, 5 * 8, 16, 0xC3C3C3);
+	pstring(winhandle, 192 + 16 + x, 8 + 16, 0x000000, (char *)&buf);
 	RefreshWindow(winhandle);
-	
 }
 static void setup_board()
 {
@@ -42,11 +48,18 @@ int tsleep() {
 	msg.recv_buf = NULL;
 	msg.recv_size = 0;
 	msg.flags = 0;
-	alarm(200);
+	alarm(200);	//200
 	receive(&msg);
 	alarm(0);
 	reply(&msg);
 	return !(msg.tid == _MSG_SENDER_SIGNAL);
+}
+void gameover() {
+	rect(winhandle, 8, 8, 192, 352, 0x7F7F7F);
+	pstring(winhandle, (192 - 4 * 8) / 2 + 16, (352 - 3 * 16) / 2 + 8, 0x000000, "GAME");
+	pstring(winhandle, (192 - 4 * 8) / 2 + 16, (352 - 3 * 16) / 2 + 8 + 16, 0x000000, "OVER");
+	pstring(winhandle, (192 - 10 * 8) / 2 + 16, (352 - 3 * 16) / 2 + 8 + 16 * 2, 0x000000, "Try again.");
+	RefreshWindow(winhandle);
 }
 void game_thread() {
 	int pos;
@@ -109,13 +122,13 @@ void game_thread() {
 			key = 0;
 		}
 	}
-	printf("game over.\n");
+	gameover();
 	exit(1);
 }
 asmlinkage int main(int argc, char ** argv)
 {
 	GUIInit();
-	winhandle = CreateWindow(192 + 16,368 + 16, "Tetris - use arrows", WC_WINDOW);
+	winhandle = CreateWindow(192 + 16 + 40 + 8,352 + 16, "Tetris - use arrows", WC_WINDOW);
 	RefreshWindow(winhandle);
 	int game = thread_create((off_t) game_thread);
 

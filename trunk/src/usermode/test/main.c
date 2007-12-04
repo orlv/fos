@@ -4,8 +4,10 @@
 asmlinkage int main(int argc, char ** argv)
 {
         GUIInit();
-
-        int winhandle = CreateWindow(400, 70, "Hello World", WC_WINDOW);
+        int winhandle = CreateWindow(220, 64, "Fonts", WC_WINDOW);
+	pstring(winhandle, 8, 8, 0x000000, "Hello, World!");
+	pstring(winhandle, 8, 16 + 8, 0x00007F, "This is microkernel GUI!");
+	RefreshWindow(winhandle);
         int class, handle, a0, a1, a2, a3;
         while(1) {
                 WaitEvent(&class, &handle, &a0, &a1, &a2, &a3);
@@ -15,11 +17,9 @@ asmlinkage int main(int argc, char ** argv)
                         GuiEnd();
                         return 1;
                 case EV_MDOWN:
-                        pixel(winhandle, a0, a1, 0xFF0000);
-                        RefreshWindow(winhandle);
                         break;
                 case EV_MUP:
-                        break;                  
+                        break;
                 }
         }
         

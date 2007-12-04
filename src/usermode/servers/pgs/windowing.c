@@ -18,7 +18,7 @@ extern int need_cursor;
 extern node *front;
 extern node *back;
 
-int refreshing = 0;
+volatile int refreshing = 0;
 volatile int need_refresh = 0;
 
 int last_handle = 0;

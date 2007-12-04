@@ -128,7 +128,6 @@ void EventsThread()
 	msg.send_size = 0;
 	reply(&msg);
 	break;
-
       case WIN_CMD_CREATEWINDOW: {
 	create_win_t *win = (create_win_t *) buffer;
 	struct win_info wi;

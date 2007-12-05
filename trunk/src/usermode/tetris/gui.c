@@ -168,7 +168,7 @@ void GuiEnd() {
 	gui = NULL;
 	gui_canvas = NULL;
 	if(fnt)
-		free(fnt);
+	  free((void *)fnt);
 }
 #define RED(x, bits)	((x >> (16 + 8 - bits)) & ((1 << bits) - 1))
 #define GREEN(x, bits)	((x >> (8 + 8 - bits)) & ((1 << bits) - 1))
@@ -205,7 +205,7 @@ void pstring(int handle, int x, int y, int color, char *str) {
 		fnt = malloc(4096);
 		int h = open("/mnt/modules/font.psf", 0);
 		lseek(h, 4, SEEK_SET);
-		read(h, fnt, 4096);
+		read(h, (void *)fnt, 4096);
 		close(h);
 		
 	}

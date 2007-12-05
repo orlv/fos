@@ -96,7 +96,7 @@ u32_t scancodes_shifted[] = {
 };
 #undef CONSTRUCTION_KEYCODES
 
-u32_t * code_table = &scancodes;
+u32_t * code_table = scancodes;
 int extended = 0;
   struct keys {
     int shift;

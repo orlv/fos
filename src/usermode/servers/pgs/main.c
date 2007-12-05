@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <gui/types.h>
 #include <gui/al.h>
+#include <fos/fos.h>
 
 #include "windowing.h"
 #include "cursor.h"

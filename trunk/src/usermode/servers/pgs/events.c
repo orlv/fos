@@ -51,11 +51,11 @@ void event_handler(event_t *event) {
 		{
 		    if (curr_window)
 		    {
-			DrawBorder(0);
 			curr_window->x_drag += (mousex-last_x);
 			curr_window->y_drag += (mousey-last_y);
 			last_x = mousex;
 			last_y = mousey;
+			DrawBorder(0);
 		    }
 		}
 

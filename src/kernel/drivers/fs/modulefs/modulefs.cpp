@@ -42,7 +42,7 @@ void grub_modulefs_srv()
       break;
 
     case FS_CMD_READ:
-      printk("modulefs: reading %d, offset=%d, bytes=%d\n", msg.arg[1]-1, msg.arg[2], msg.send_size);
+      //printk("modulefs: reading %d, offset=%d, bytes=%d\n", msg.arg[1]-1, msg.arg[2], msg.send_size);
       size = msg.send_size;
       if(size > MODULEFS_BUFF_SIZE)
 	size = MODULEFS_BUFF_SIZE;
@@ -140,7 +140,7 @@ size_t ModuleFS::size(u32_t n)
 
 size_t ModuleFS::read(u32_t n, off_t offset, void *buf, size_t count)
 {
-  printk("filename=%s\n", (const char *)((module_t *) mbi->mods_addr)[n].string);
+//  printk("filename=%s\n", (const char *)((module_t *) mbi->mods_addr)[n].string);
   u8_t *file = (u8_t *) ((module_t *) mbi->mods_addr)[n].mod_start;
   size_t size =
       ((module_t *) mbi->mods_addr)[n].mod_end -

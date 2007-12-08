@@ -9,6 +9,8 @@
 typedef struct window_t {
 	int x;
 	int y;
+	int x_drag;
+	int y_drag;
 	int w;
 	int h;
 	int handle;
@@ -30,4 +32,5 @@ void HandleDragAndDrop(int x, int y);
 
 int get_window_handle(int x, int y);
 window_t *GetWindowInfo(int handle);
+void DrawBorder(int reset);
 #endif

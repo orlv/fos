@@ -209,3 +209,26 @@ window_t * GetActiveWindow() {
 	}
 	return NULL;
 }
+extern window_t *curr_window;
+volatile int borderx = -1;
+volatile int bordery = -1;
+void DrawBorder(int reset) {
+	if(reset) {
+		FlushContext(backbuf, curr_window->w,  curr_window->h, borderx, bordery,  0, 0, &screen);
+		borderx = -1;
+		bordery = -1;
+		curr_window->x = curr_window->x_drag;
+		curr_window->y = curr_window->y_drag;
+		return;
+	}
+	if(borderx != -1) 
+		FlushContext(backbuf, curr_window->w + 1,  curr_window->h + 1, borderx, bordery, borderx, bordery, &screen);
+	
+	//DrawRect(curr_window->x_drag, curr_window->y_drag, curr_window->w, curr_window->h, 0x00007F, &screen);
+	line(curr_window->x_drag, curr_window->y_drag, curr_window->x_drag + curr_window->w, curr_window->y_drag, 0xFFFFFF, &screen);
+	line(curr_window->x_drag, curr_window->y_drag, curr_window->x_drag, curr_window->y_drag +  curr_window->h, 0xFFFFFF, &screen);
+	line(curr_window->x_drag + curr_window->w, curr_window->y_drag, curr_window->x_drag + curr_window->w, curr_window->y_drag +  curr_window->h, 0xFFFFFF, &screen);
+	line(curr_window->x_drag, curr_window->y_drag + curr_window->h, curr_window->x_drag + curr_window->w, curr_window->y_drag + curr_window->h, 0xFFFFFF, &screen);
+	borderx = curr_window->x_drag;
+	bordery = curr_window->y_drag;
+}

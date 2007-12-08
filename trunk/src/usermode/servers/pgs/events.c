@@ -17,6 +17,7 @@ void event_handler(event_t *event) {
 
 	switch(event->type) {
 	case EVENT_TYPE_MOUSEMOVE:
+
 		mousex = event->mousemove->x;
 		mousey = event->mousemove->y;
 		need_cursor = 1;
@@ -31,36 +32,35 @@ void event_handler(event_t *event) {
 				if(!win) break;
 			    int win_x = mousex-win->x;
 			    int win_y = mousey-win->y;
-
 			    if ((win_x>=3) && (win_y>=3) && (win_y<=18) && (win_y<=(win->w-6)))
 			    {
 				curr_window = win;
 				last_x = mousex;
 				last_y = mousey;
 				SetFocusTo(handle);
+				dragging = 1;
+				win->x_drag = win->x;
+				win->y_drag = win->y;
+				DrawBorder(0);
+				
 			    }
 			}
-			dragging = 1;
 		    }
-			need_refresh = 1;
-		}
-		else
-		{
-		    dragging = 0;
-		    curr_window = 0;
-		}
 		
 		if (dragging)
 		{
 		    if (curr_window)
 		    {
-			curr_window->x += (mousex-last_x);
-			curr_window->y += (mousey-last_y);
+			DrawBorder(0);
+			curr_window->x_drag += (mousex-last_x);
+			curr_window->y_drag += (mousey-last_y);
 			last_x = mousex;
 			last_y = mousey;
 		    }
 		}
+
 		need_cursor = 1;
+		}
 		break;
 	case EVENT_TYPE_MOUSEDOWN: {
 		down = 1;
@@ -76,6 +76,13 @@ void event_handler(event_t *event) {
 		break;
 	}
 	case EVENT_TYPE_MOUSEUP:
+		if(curr_window && dragging) {
+			DrawBorder(-1);
+			need_refresh = 1;
+			need_cursor = 1;
+			dragging = 0;
+			curr_window = 0;
+		}
 		down = 0;
 		int handle = get_window_handle(mousex, mousey);
 		if(!handle) break; 

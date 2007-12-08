@@ -22,8 +22,8 @@ int main(int argc, char *argv) {
 
 	init_windowing();
 	StartEventHandling();
-	exec("/mnt/modules/tetris", NULL);
-	//exec("/mnt/modules/test", NULL);
+	//exec("/mnt/modules/tetris", NULL);
+	exec("/mnt/modules/test", NULL);
 	for(;;) {
 		if (need_refresh)
 		{

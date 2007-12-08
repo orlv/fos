@@ -153,8 +153,7 @@ static inline size_t strlen(const char *s)
   return __res;
 }
 
-#if 0
-static __always_inline void *__memcpy(void *to, const void *from, size_t n)
+static inline void *memcpy(void *to, const void *from, size_t n)
 {
   int d0, d1, d2;
   __asm__ __volatile__("rep ; movsl\n\t" "movl %4,%%ecx\n\t" "andl $3,%%ecx\n\t"
@@ -166,8 +165,8 @@ static __always_inline void *__memcpy(void *to, const void *from, size_t n)
 		       :"memory");
   return (to);
 }
-#endif
 
+#if 0
 /*
  * This looks ugly, but the compiler can optimize it totally,
  * as the count is constant.
@@ -246,7 +245,7 @@ static inline void *memcpy(void *to, const void *from, size_t n)
     return to;
   }
 }
-
+#endif
 static inline void * memset(void * s, char c, size_t count)
 {
   int d0, d1;

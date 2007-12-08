@@ -65,7 +65,7 @@ char version[] = { "Portable Graphics System version " VERSION };
 void Redraw() {
 
 	refreshing = 1;
-	DrawRect(0, 0, screen.w, screen.h, 0xb6c2ff, backbuf);
+	DrawRect(0, 0, screen.w, screen.h, 0x003082, backbuf);
 	memset(locate->data, 0,  (screen.w  * screen.h * screen.bpp));
 	PutString(screen.w - sizeof(version) * 8, screen.h - 16, version, 0, backbuf);
 	PutString(screen.w - sizeof(version) * 8 - 3, screen.h - 18, version, 0xffffff, backbuf);
@@ -214,7 +214,7 @@ volatile int borderx = -1;
 volatile int bordery = -1;
 void DrawBorder(int reset) {
 	if(reset) {
-		FlushContext(backbuf, curr_window->w,  curr_window->h, borderx, bordery,  0, 0, &screen);
+		FlushContext(backbuf, curr_window->w + 1,  curr_window->h + 1, borderx, bordery, borderx, bordery, &screen);
 		borderx = -1;
 		bordery = -1;
 		curr_window->x = curr_window->x_drag;
@@ -224,7 +224,6 @@ void DrawBorder(int reset) {
 	if(borderx != -1) 
 		FlushContext(backbuf, curr_window->w + 1,  curr_window->h + 1, borderx, bordery, borderx, bordery, &screen);
 	
-	//DrawRect(curr_window->x_drag, curr_window->y_drag, curr_window->w, curr_window->h, 0x00007F, &screen);
 	line(curr_window->x_drag, curr_window->y_drag, curr_window->x_drag + curr_window->w, curr_window->y_drag, 0xFFFFFF, &screen);
 	line(curr_window->x_drag, curr_window->y_drag, curr_window->x_drag, curr_window->y_drag +  curr_window->h, 0xFFFFFF, &screen);
 	line(curr_window->x_drag + curr_window->w, curr_window->y_drag, curr_window->x_drag + curr_window->w, curr_window->y_drag +  curr_window->h, 0xFFFFFF, &screen);

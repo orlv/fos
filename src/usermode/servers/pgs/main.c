@@ -20,7 +20,8 @@ int main(int argc, char *argv) {
 	printf("Portable Graphics System version " VERSION " started up\n");
 	screen = graphics_init();	
 	printf("Mode set: %ux%ux%u\n",screen.w, screen.h, screen.bpp * 8);
-
+	mousex = screen.w / 2;
+	mousey = screen.h / 2;
 	init_windowing();
 	StartEventHandling();
 //	exec("/mnt/modules/tetris", NULL);

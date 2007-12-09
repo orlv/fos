@@ -255,10 +255,10 @@ void EventsThread()
 
 void mouse_thread()
 {
-  int x = 0;
-  int y = 0;
-  int oldx = 0;
-  int oldy = 0;
+//  int x = 0;
+//  int y = 0;
+//  int oldx = 0;
+//  int oldy = 0;
   int oldb = 0;
   int psaux;
   do {
@@ -268,16 +268,16 @@ void mouse_thread()
   struct mouse_pos move;
   while(1) {
     read(psaux, &move, sizeof(struct mouse_pos));
-    x += move.dx;
-    y += move.dy;
-    if(x < 0) x = 0;
-    if(y < 0) y = 0;
-    if(x > screen_width) x = screen_width;
-    if(y > screen_height) y = screen_height;
-    if(x != oldx || y != oldy) { // мышь сдвинули
-      oldx = x;
-      oldy = y;
-      mousemove_event_t mouse = { x, y};
+//    x += move.dx;
+//    y += move.dy;
+//    if(x < 0) x = 0;
+//    if(y < 0) y = 0;
+//    if(x > screen_width) x = screen_width;
+//    if(y > screen_height) y = screen_height;
+    if(move.dx || move.dy) { // мышь сдвинули
+//      oldx = x;
+//      oldy = y;
+      mousemove_event_t mouse = { move.dx, move.dy};
       event_t event = { EVENT_TYPE_MOUSEMOVE, &mouse };
       event_handler(&event);
     }

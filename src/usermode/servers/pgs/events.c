@@ -19,8 +19,12 @@ void event_handler(event_t *event) {
 	switch(event->type) {
 	case EVENT_TYPE_MOUSEMOVE:
 
-		mousex = event->mousemove->x;
-		mousey = event->mousemove->y;
+		mousex += event->mousemove->x;
+		mousey += event->mousemove->y;
+		if(mousex < 0) mousex = 0;
+		if(mousey < 0) mousey = 0;
+		if(mousex > screen.w) mousex = screen.w;
+		if(mousey > screen.h) mousey = screen.h;
 		need_cursor = 1;
 		if (down)
 		{

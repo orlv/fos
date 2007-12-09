@@ -4,16 +4,27 @@
 
 include ../config.mk
 
-OUTPUT		=	tetris
-OBJECTS		=	main.o shapes.o
-LDLIBS		=	-\( -lc -lcpp -lfos -lpgs -\)
+INSTALLDIR	=	$(LIB)
+OUTPUT		=	libpgs.a
+OBJECTS		=	GUIInit.o \
+			CreateWindow.o \
+			WaitEvent.o \
+			DestroyWindow.o \
+			RefreshWindow.o \
+			GuiEnd.o \
+			pixel.o \
+			rect.o \
+			pstring.o \
+			line.o
 
 all:	$(OBJECTS)
-	@echo \ Linking $(OUTPUT)
-	@$(LD) $(LDFLAGS) -o $(OUTPUT) $(LIB)/crt0.o $(OBJECTS) $(LDLIBS) --entry=_start --oformat=elf32-i386  --Ttext=$(USER_MEM_BASE)
+	$(AR) rcs $(OUTPUT) $(OBJECTS)
+	cp $(OUTPUT) $(INSTALLDIR)/$(OUTPUT)
 
 install:
 	cp $(OUTPUT) $(INSTALLDIR)/$(OUTPUT)
+
+#--------------------------------- Clean -------------------------------------#
 
 clean:
 	@rm -f $(OBJECTS)

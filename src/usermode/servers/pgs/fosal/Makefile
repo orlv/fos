@@ -8,8 +8,7 @@ include config.mk
 CFLAGS+=-I../include --std=c99
 
 all: $(OBJECTS_AL) #$(addsuffix .S,$(basename $(OBJECTS_AL)))
-	echo $^
-	#false
+
 clean:
 	rm -f $(OBJECTS_AL)
 

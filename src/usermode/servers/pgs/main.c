@@ -8,6 +8,7 @@
 #include <gui/types.h>
 #include <gui/al.h>
 #include <fos/fos.h>
+#include <sched.h>
 
 #include "windowing.h"
 #include "cursor.h"
@@ -22,7 +23,8 @@ int main(int argc, char *argv) {
 
 	init_windowing();
 	StartEventHandling();
-	//exec("/mnt/modules/tetris", NULL);
+//	exec("/mnt/modules/tetris", NULL);
+	sched_yield();
 	exec("/mnt/modules/test", NULL);
 	for(;;) {
 		if (need_refresh)

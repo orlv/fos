@@ -118,11 +118,8 @@ int rand(int limit)
 void WindowMapped(struct window_t *win) {
 	win->visible = 1;
 	DrawRect(0, 0, win->w, win->h, 0xc3c3c3, win->context);
-
 	line(1, 1, 1, win->h - 3, 0xffffff, win->context);
-
 	line(1, 1, win->w - 3, 1, 0xffffff, win->context); 
-
 	line(1, win->h - 2, win->w - 2, win->h - 2, 0x828282, win->context);
 	line(win->w - 2, win->h - 1, win->w - 2, 1, 0x828282, win->context);
 	line(0, win->h - 1, win->w - 1, win->h - 1, 0x000000, win->context);
@@ -194,8 +191,8 @@ void RefreshWindow(int handle) {
 	struct window_t *win = GetWindowInfo(handle);
 	if(win->active) {
 		while(refreshing) sched_yield();
-		FlushContext(win->context, win->context->w, win->context->h, win->x, win->y, 0, 0, &screen);
-		FlushContext(win->context, win->context->w, win->context->h, win->x, win->y, 0, 0, backbuf);
+		FlushContext(win->context, win->context->w - 6, win->context->h - 24, win->x + 3, win->y + 21, 3, 21, &screen);
+		FlushContext(win->context, win->context->w - 6, win->context->h - 24, win->x + 3, win->y + 21, 3, 21, backbuf);
 		need_cursor = 1;
 		return;
 	}
@@ -224,10 +221,12 @@ void DrawBorder(int reset) {
 	if(borderx != -1) 
 		FlushContext(backbuf, curr_window->w + 1,  curr_window->h + 1, borderx, bordery, borderx, bordery, &screen);
 	
-	line(curr_window->x_drag, curr_window->y_drag, curr_window->x_drag + curr_window->w, curr_window->y_drag, 0xFFFFFF, &screen);
+/*	line(curr_window->x_drag, curr_window->y_drag, curr_window->x_drag + curr_window->w, curr_window->y_drag, 0xFFFFFF, &screen);
 	line(curr_window->x_drag, curr_window->y_drag, curr_window->x_drag, curr_window->y_drag +  curr_window->h, 0xFFFFFF, &screen);
 	line(curr_window->x_drag + curr_window->w, curr_window->y_drag, curr_window->x_drag + curr_window->w, curr_window->y_drag +  curr_window->h, 0xFFFFFF, &screen);
 	line(curr_window->x_drag, curr_window->y_drag + curr_window->h, curr_window->x_drag + curr_window->w, curr_window->y_drag + curr_window->h, 0xFFFFFF, &screen);
+*/	
+	border(curr_window->x_drag, curr_window->y_drag, curr_window->w, curr_window->h, &screen);
 	borderx = curr_window->x_drag;
 	bordery = curr_window->y_drag;
 }

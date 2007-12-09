@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "gui.h"
+#include <pgs.h>
 #include "shapes.h"
 #define KUP 1
 #define KDOWN 2

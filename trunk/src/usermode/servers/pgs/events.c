@@ -12,6 +12,7 @@ window_t *curr_window = 0;
 int last_x, last_y;
 int dragging = 0;
 int down = 0;
+extern context_t screen;
 extern int need_cursor;
 void event_handler(event_t *event) {
 
@@ -53,6 +54,22 @@ void event_handler(event_t *event) {
 		    {
 			curr_window->x_drag += (mousex-last_x);
 			curr_window->y_drag += (mousey-last_y);
+			if(curr_window->x_drag < 0) {
+				mousex -= curr_window->x_drag;
+				curr_window->x_drag = 0;
+			}
+			if(curr_window->y_drag < 0) {
+				mousey -= curr_window->y_drag;
+				curr_window->y_drag = 0;
+			}
+			if(curr_window->x_drag + curr_window->w > screen.w) {
+				mousex += screen.w - (curr_window->x_drag + curr_window->w);
+				curr_window->x_drag = screen.w - curr_window->w;
+			}
+			if(curr_window->y_drag + curr_window->h > screen.h) {
+				mousey += screen.h - (curr_window->y_drag + curr_window->h);
+				curr_window->y_drag = screen.h - curr_window->h;
+			}
 			last_x = mousex;
 			last_y = mousey;
 			DrawBorder(0);

@@ -35,9 +35,21 @@ struct fd {
   off_t offset;
   ino_t  inode;
   size_t  buf_size;
+  char *fullname;
+  char *name;
 };
 
 typedef struct fd* fd_t;
+
+
+struct xfer_databuf {
+  size_t data_size;
+  off_t name_offs;
+};
+
+#define xfer_databuf_of(ptr, size) ({\
+      (struct xfer_databuf *)((char *) ptr + size - sizeof(struct xfer_databuf));})
+
 
 #if 0
 struct dirent {

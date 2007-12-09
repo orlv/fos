@@ -4,7 +4,7 @@
 
 include ../config.mk
 
-OUTPUT		=	test
+OUTPUT		=	test2
 OBJECTS		=	main.o
 LDLIBS		=	-\( -lc -lcpp -lfos -\)
 

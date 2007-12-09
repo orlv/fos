@@ -1,6 +1,8 @@
 #include <gui/types.h>
 void border(int x, int y, int w, int h, context_t *context) {
 	unsigned short *ptr;
+	w--;
+	h--;
 	int pitch = context->w;
 	ptr = (unsigned short *) context->data + x + y * pitch;
 	for(int i = 0; i < w; i ++) {

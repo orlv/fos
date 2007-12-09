@@ -8,46 +8,20 @@
 #include <fos/namer.h>
 #include <fos/message.h>
 
-int resolve(const char *pathname, char **pathtail)
-{
-  volatile struct message msg;
-  msg.arg[0] = NAMER_CMD_RESOLVE;
-  size_t len = strlen(pathname);
-  if(len > MAX_PATH_LEN)
-    return 0;
-
-  char *pt = malloc(len+1);
-  
-  msg.send_buf = pathname;
-  msg.send_size = len+1;
-  msg.recv_buf = pt;
-  msg.recv_size = len+1;
-  msg.flags = 0;
-  msg.tid = SYSTID_NAMER;
-
-  u32_t result = send((struct message *)&msg);
-  if(result == RES_SUCCESS && msg.arg[0] && msg.arg[2] == NO_ERR) {
-    *pathtail = pt;
-    return msg.arg[1];
-  } else {
-    free(pt);
-    *pathtail = 0;
-    return 0;
-  }
-}
+#include <fos/fs.h>
 
 asmlinkage int main(int argc, char ** argv)
 {
-  printf("test: my TID=0x%X\n", my_tid());
+  printf("test2: my TID=0x%X\n", my_tid());
 
   resmgr_attach("/");
   
-  char *pathtail;
-  int sid = resolve("/test.txt", &pathtail);
-  if(sid)
-    printf("test: sid=0x%X, p=[%s]", sid, pathtail);
-  else
-    printf("test: sid=0");
+  int fd = open2("/mnt/modules/test.txt", 0);
+  if(fd) {
+    fd_t foo = (fd_t) fd;
+    printf("test2: sid=0x%X, f=[%s], t=[%s]", foo->thread, foo->fullname, foo->name);
+  } else
+    printf("test2: fd=0");
   /*
   int fd = open("/mnt/modules/test.txt", 0);
   char *buf = malloc(512);

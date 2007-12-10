@@ -38,17 +38,14 @@ int romfs::check_superblock() {
 	return 0;
 }
 
-int romfs::read(char *path, char *buf, size_t size, off_t offset) {
-	romfs_inode_t in;
-	char *ptr = search_path(path, &in);
-	if(ptr == NULL)
+unsigned int romfs::read(romfs_inode_t *in, char *ptr, char *buf, size_t size, off_t offset) {
+	if(offset > in->size)
 		return 0;
-	if(offset > in.size)
-		return 0;
-	if(size > in.size)
-		size = in.size;
-	memcpy(buf, ptr + offset, size - offset);
-	return size - offset;
+	if(size > in->size)
+		size = in->size;
+	printf("read %x %x %x %u %u\n", in, ptr, buf, size, offset);
+	memcpy(buf, ptr + offset, size);
+	return size;
 }
 char * romfs::search_file(char *name, romfs_inode_t *in, romfs_inode_t *parent) {
 	if(parent == NULL) parent = (romfs_inode_t *)(fs + sb_size);
@@ -109,5 +106,23 @@ scan_inode:
 	}
 	delete part;
 	return NULL;
+}
+
+void romfs::stat(romfs_inode_t *inode, struct stat* st) {
+	st->st_dev     = 0;
+	st->st_ino     = inode->checksum;
+	st->st_mode    = 0777;
+	st->st_nlink   = 1;
+	st->st_uid     = 0;
+	st->st_gid     = 0;
+	st->st_rdev    = 0;
+      
+	st->st_size    = inode->size;
+      
+	st->st_blksize = 1;
+	st->st_blocks  = inode->size;
+	st->st_atime   = 0;
+	st->st_mtime   = 0;
+	st->st_ctime   = 0;
 }
 

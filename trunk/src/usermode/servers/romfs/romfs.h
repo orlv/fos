@@ -15,6 +15,14 @@
 #define ROMFS_FIFO	7
 
 #define ROMFS_ALIGN(a)	(((u32_t)a + 15) & ~15)
+	typedef struct {
+		u32_t next;
+		u32_t info;
+		u32_t size;
+		u32_t checksum;
+		char name[];
+	// data follow
+	} romfs_inode_t;
 
 class romfs
 {
@@ -26,15 +34,6 @@ private:
 		char volume[];
 	} romfs_superblock_t;
 
-	typedef struct {
-		u32_t next;
-		u32_t info;
-		u32_t size;
-		u32_t checksum;
-		char name[];
-	// data follow
-	} romfs_inode_t;
-
 
 	char *fs;
 	romfs_superblock_t *sb;
@@ -42,11 +41,12 @@ private:
 	
 	int load_fs(char *filename);
 	int check_superblock();
-	char *search_path(char *name, romfs_inode_t *inode);
 	char *search_file(char *name, romfs_inode_t *in, romfs_inode_t *parent);
 public:
 	romfs(char *filename);
-	int read(char *path, char *buf, size_t size, off_t offset);
+	unsigned int read(romfs_inode_t *in, char *ptr, char *buf, size_t size, off_t offset);
+	char *search_path(char *name, romfs_inode_t *inode);
+	void stat(romfs_inode_t *inode, struct stat *st);
 	~romfs();
 };
 #endif

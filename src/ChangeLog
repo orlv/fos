@@ -1,3 +1,7 @@
+Mon Dec 10 19:01:36 2007 [20071210] (kernel version 0.0.45.4)
+Oleg S Fedorov <o.s.fedorov@gmail.com>:
+	- Оптимизирован namer, а также полностью реализовано монтирование на /
+
 Mon Dec 10 18:26:35 2007 [20071210] (kernel version 0.0.45.4)
 Oleg S Fedorov <o.s.fedorov@gmail.com>:
 	- В функции read()/write() добавлена возможность восстановления соединения,

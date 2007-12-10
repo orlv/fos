@@ -35,7 +35,7 @@ asmlinkage int main()
   Tobject *obj;
   message *msg = new message;
   char *pathname = new char[MAX_PATH_LEN];
-  char *path_tail = new char[MAX_PATH_LEN];
+  //char *path_tail = new char[MAX_PATH_LEN];
 
   while(1){
     msg->recv_size = MAX_PATH_LEN;
@@ -59,10 +59,10 @@ asmlinkage int main()
 
     case FS_CMD_ACCESS:
       //printf("namer: requested access to [%s]\n", pathname);
-      obj = namer->access(pathname, path_tail);
+      obj = namer->resolve(pathname);
       //printf("[0x%X]", obj);
       if(obj->sid){
-	strcpy(pathname, path_tail);
+	//strcpy(pathname, path_tail);
 	//printf("namer: access granted [%s]\n", pathname);
 	msg->send_size = strlen(pathname);
 	msg->send_buf = pathname;
@@ -78,13 +78,13 @@ asmlinkage int main()
 	msg->arg[2] = ERR_NO_SUCH_FILE;
 	reply(msg);
       }
-      memset(path_tail, 0, MAX_PATH_LEN);
+      //memset(path_tail, 0, MAX_PATH_LEN);
       break;
 
     case FS_CMD_STAT:
-      obj = namer->access(pathname, path_tail);
+      obj = namer->resolve(pathname);
       if(obj->sid){
-	strcpy(pathname, path_tail);
+	//strcpy(pathname, path_tail);
 	msg->send_size = strlen(pathname);
 	msg->send_buf = pathname;
 	if(forward(msg, obj->sid) != RES_SUCCESS){
@@ -98,16 +98,16 @@ asmlinkage int main()
 	msg->arg[2] = ERR_NO_SUCH_FILE;
 	reply(msg);
       }
-      memset(path_tail, 0, MAX_PATH_LEN);
+      //memset(path_tail, 0, MAX_PATH_LEN);
       break;
 
     case NAMER_CMD_RESOLVE: {
       //printf("namer: resolving [%s]\n", pathname);
-      sid_t sid = namer->resolve(pathname);
-      if(sid) {
+      obj = namer->resolve(pathname);
+      if(obj->sid) {
 	msg->send_size = msg->arg[0] = strlen(pathname);
 	msg->send_buf = pathname;
-	msg->arg[1] = sid;
+	msg->arg[1] = obj->sid;
 	msg->arg[2] = NO_ERR;
       } else {
 	msg->send_size = 0;
@@ -118,6 +118,7 @@ asmlinkage int main()
       break;
     }
 
+      
     default:
       msg->send_size = 0;
       msg->arg[0] = 0;
@@ -241,8 +242,12 @@ Namer::Namer()
 /* режет строку пути на список из элементов пути */
 List<string> * path_strip(const string path);
 
-Tobject * Namer::access(const string name, string name_tail)
+Tobject * Namer::resolve(string name)
 {
+  if(strlen(name) == 1 && (strcmp(name, ".") || strcmp(name, "/"))){
+    return rootdir;
+  }
+
   List<string> *path = path_strip(name);
   List<string> *entry = path;
   Tobject * object = rootdir;
@@ -259,56 +264,12 @@ Tobject * Namer::access(const string name, string name_tail)
     }
     entry = entry->next;
   } while (entry != path);
-  
-  /* создадим строку с окончанием пути (необходимо передать
-     её конечному серверу) */
-  e = e->next;
-  if (e == path)
-    strcat(name_tail, ".");
-  else
-    do {
-      strcat(name_tail, "/");
-      strcat(name_tail, e->item);
-      e = e->next;
-    } while (e != path);
-
-  list_for_each_safe(entry, e, path){
-    delete entry->item;
-    delete entry;
-  }
-  delete path->item;
-  delete path;
-
-  return obj;
-}
-
-sid_t Namer::resolve(const string name)
-{
-  if(strlen(name) == 1 && (strcmp(name, ".") || strcmp(name, "/"))){
-    return rootdir->sid;
-  }
-
-  List<string> *path = path_strip(name);
-  List<string> *entry = path;
-  List<string> *e = path;
-  Tobject * object = rootdir;
-  sid_t sid = rootdir->sid;
-
-  /* отыщем сервер */
-  do {
-    if(!(object = object->access(entry->item)))
-      break;
-    if(object->sid) {
-      sid = object->sid;
-      e = entry;
-    }
-    entry = entry->next;
-  } while (entry != path);
 
   name[0] = 0;
-
-  /* создадим строку с окончанием пути */
-  if(sid != rootdir->sid) {
+    
+  /* создадим строку с окончанием пути (необходимо передать
+     её конечному серверу) */
+  if(obj->sid != rootdir->sid) {
     e = e->next;
     if (e == path)
       strcat(name, ".");
@@ -330,10 +291,10 @@ sid_t Namer::resolve(const string name)
     delete entry->item;
     delete entry;
   }
-  delete entry->item;
-  delete entry;
+  delete path->item;
+  delete path;
 
-  return sid;
+  return obj;
 }
 
 /*

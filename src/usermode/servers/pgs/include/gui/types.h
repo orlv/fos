@@ -60,6 +60,7 @@ struct win_info {
 #define WIN_CMD_CLEANUP 4
 #define WIN_CMD_MAPBUF 5
 #define WIN_CMD_REFRESHWINDOW 6
+#define WIN_CMD_SETVISIBLE 7
 #define EV_WINCLOSE 1
 #define EV_MDOWN 2
 #define EV_MUP 3

@@ -114,6 +114,9 @@ void event_handler(event_t *event) {
 			PostEvent(win->tid, handle, EV_WINCLOSE, 0, 0, 0, 0);
 			break;
 		}
+		if(win_x > 3 && win_x < win->w - 3 && win_y > 21 && win_y < win->h - 3)
+			PostEvent(win->tid, handle, EV_MUP,  win_x - 3 , win_y - 21, 0, 0);
+
 		if(!win->active) {
 			SetFocusTo(handle);
 			need_cursor = 1;

@@ -69,6 +69,7 @@ int CreateWindow(int tid, int w, int h, char *caption, int class);
 void WindowMapped(struct window_t *win);
 
 void RefreshWindow(int handle);
+void SetVisible(int handle, int visible);
 
 void PostEvent(int tid, int handle, int class, int a0, int a1, int a2, int a3)
 {
@@ -148,6 +149,13 @@ void EventsThread()
       }
       case WIN_CMD_DESTROYWINDOW:
 	DestroyWindow(msg.arg[1]);
+	msg.arg[2] = NO_ERR;
+	msg.send_size = 0;
+	msg.flags = 0;
+	reply(&msg);
+	break;
+      case WIN_CMD_SETVISIBLE:
+	SetVisible(msg.arg[1], msg.arg[2]);
 	msg.arg[2] = NO_ERR;
 	msg.send_size = 0;
 	msg.flags = 0;
@@ -255,10 +263,6 @@ void EventsThread()
 
 void mouse_thread()
 {
-//  int x = 0;
-//  int y = 0;
-//  int oldx = 0;
-//  int oldy = 0;
   int oldb = 0;
   int psaux;
   do {
@@ -268,15 +272,7 @@ void mouse_thread()
   struct mouse_pos move;
   while(1) {
     read(psaux, &move, sizeof(struct mouse_pos));
-//    x += move.dx;
-//    y += move.dy;
-//    if(x < 0) x = 0;
-//    if(y < 0) y = 0;
-//    if(x > screen_width) x = screen_width;
-//    if(y > screen_height) y = screen_height;
     if(move.dx || move.dy) { // мышь сдвинули
-//      oldx = x;
-//      oldy = y;
       mousemove_event_t mouse = { move.dx, move.dy};
       event_t event = { EVENT_TYPE_MOUSEMOVE, &mouse };
       event_handler(&event);
@@ -309,7 +305,8 @@ void kb_thread() {
 			continue;
 		}
 		window_t *w = GetActiveWindow();
-		PostEvent(w->tid, w->handle, EV_KEY, ch & 0xFF, extended, 0, 0);
+		if(w)
+			PostEvent(w->tid, w->handle, EV_KEY, ch & 0xFF, extended, 0, 0);
 		extended = 0;
 	}
 }

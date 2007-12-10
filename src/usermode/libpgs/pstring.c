@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <pgs.h>
+#include <pgs/pgs.h>
 extern char *__fnt;
 void pstring(int handle, int x, int y, int color, char *str) {
 	if(!__fnt) {

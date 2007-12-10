@@ -7,7 +7,7 @@
 
 extern fd_t __gui;
 extern fd_t __gui_canvas;
-int CreateWindow(int w, int h, char *caption, int flags) {
+int CreateWindow(int w, int h, char *caption, int flags, int *evhndl) {
 	char *buf = malloc(sizeof(create_win_t) + MAX_TITLE_LEN);
 	create_win_t *struc = (create_win_t *) buf;
 	char *title = buf + sizeof(create_win_t);
@@ -29,7 +29,7 @@ int CreateWindow(int w, int h, char *caption, int flags) {
 	msg.send_buf = buf;
 	send(&msg);
 	int hndl = wi.handle;
-
+	*evhndl = hndl;
 	int size = ALIGN((w + wi.margin_left + wi.margin_right) * (h + wi.margin_up + wi.margin_down) * wi.bpp, 4096);
 	char *canvas = kmmap(0, size, 0, 0);
 	msg.tid = __gui_canvas->thread;

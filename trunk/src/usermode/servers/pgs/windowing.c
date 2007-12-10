@@ -73,7 +73,7 @@ void Redraw() {
 
 	for(node *n = front; n; n = n->next) {
 		window_t *p = (window_t *) n->data;
-		if(!p->visible)
+		if(p->visible == 0 || p->visible == -1)
 			continue;
 		if(n == back) {
 			p->active = 1;
@@ -116,7 +116,7 @@ int rand(int limit)
 }
 
 void WindowMapped(struct window_t *win) {
-	win->visible = 1;
+//	win->visible = 1;
 	DrawRect(0, 0, win->w, win->h, 0xc3c3c3, win->context);
 	line(1, 1, 1, win->h - 3, 0xffffff, win->context);
 	line(1, 1, win->w - 3, 1, 0xffffff, win->context); 
@@ -124,10 +124,9 @@ void WindowMapped(struct window_t *win) {
 	line(win->w - 2, win->h - 1, win->w - 2, 1, 0x828282, win->context);
 	line(0, win->h - 1, win->w - 1, win->h - 1, 0x000000, win->context);
 	line(win->w - 1, win->h - 1, win->w - 1, 0, 0x000000, win->context);
-	need_refresh = 1;
-	while(need_refresh || refreshing) sched_yield();
 }
 int CreateWindow(int tid, int w, int h, char *caption, int class) {
+	SetBusy(1);
 	h += 21 + 3;
 	w += 3 + 3;
 
@@ -147,11 +146,23 @@ int CreateWindow(int tid, int w, int h, char *caption, int class) {
 	win->context = c;
 	win->title = title;
 	win->tid = tid;
-	win->visible = 0;
+	win->visible = -1;
 	insertBack(win);
 	return win->handle;
 }
-
+void SetVisible(int handle, int visible) {
+	window_t *win = GetWindowInfo(handle);
+	if(!win) return;
+	if(visible && win->visible == -1) {
+		SetBusy(-1);
+		need_cursor = 1;
+	}
+	if(win->visible != visible) {
+		while(refreshing) sched_yield();
+		win->visible = visible;
+		need_refresh = 1;
+	}
+}
 void SetFocusTo(int handle) {
 	for(node *n = front; n; n = n->next) {
 		window_t *win = (window_t *)n->data;
@@ -189,6 +200,7 @@ void DestroyWindow(int handle) {
 }
 void RefreshWindow(int handle) {
 	struct window_t *win = GetWindowInfo(handle);
+	if(win->visible == 0 || win->visible == -1) return;
 	if(win->active) {
 		while(refreshing) sched_yield();
 		FlushContext(win->context, win->context->w - 6, win->context->h - 24, win->x + 3, win->y + 21, 3, 21, &screen);
@@ -221,11 +233,7 @@ void DrawBorder(int reset) {
 	if(borderx != -1) 
 		FlushContext(backbuf, curr_window->w + 1,  curr_window->h + 1, borderx, bordery, borderx, bordery, &screen);
 	
-/*	line(curr_window->x_drag, curr_window->y_drag, curr_window->x_drag + curr_window->w, curr_window->y_drag, 0xFFFFFF, &screen);
-	line(curr_window->x_drag, curr_window->y_drag, curr_window->x_drag, curr_window->y_drag +  curr_window->h, 0xFFFFFF, &screen);
-	line(curr_window->x_drag + curr_window->w, curr_window->y_drag, curr_window->x_drag + curr_window->w, curr_window->y_drag +  curr_window->h, 0xFFFFFF, &screen);
-	line(curr_window->x_drag, curr_window->y_drag + curr_window->h, curr_window->x_drag + curr_window->w, curr_window->y_drag + curr_window->h, 0xFFFFFF, &screen);
-*/	
+
 	border(curr_window->x_drag, curr_window->y_drag, curr_window->w, curr_window->h, &screen);
 	borderx = curr_window->x_drag;
 	bordery = curr_window->y_drag;

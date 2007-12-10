@@ -8,4 +8,5 @@
 extern int mousex;
 extern int mousey;
 void RedrawCursor();
+void SetBusy(int state);
 #endif

@@ -1,4 +1,4 @@
-#include <pgs.h>
+#include <pgs/pgs.h>
 #define SetPixel(a, b, c, d) pixel(d, a, b, c)
 void line(int handle, int x0, int y0, int x1, int y1, int color) {
 	int dy = y1 - y0;

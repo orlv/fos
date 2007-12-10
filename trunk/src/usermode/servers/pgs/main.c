@@ -24,6 +24,7 @@ int main(int argc, char *argv) {
 	mousey = screen.h / 2;
 	init_windowing();
 	StartEventHandling();
+	SetBusy(-1);
 //	exec("/mnt/modules/tetris", NULL);
 	sched_yield();
 	exec("/mnt/modules/test", NULL);

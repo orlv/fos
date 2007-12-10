@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <pgs.h>
+#include <pgs/pgs.h>
 #include "shapes.h"
 #define KUP 1
 #define KDOWN 2
@@ -128,7 +128,8 @@ void game_thread() {
 asmlinkage int main(int argc, char ** argv)
 {
 	GUIInit();
-	winhandle = CreateWindow(192 + 16 + 40 + 8,352 + 16, "Tetris - use arrows", WC_WINDOW);
+	int tmp;
+	winhandle = CreateWindow(192 + 16 + 40 + 8,352 + 16, "Tetris - use arrows", WC_WINDOW, &tmp);
 	RefreshWindow(winhandle);
 	int game = thread_create((off_t) game_thread);
 

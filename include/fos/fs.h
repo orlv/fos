@@ -18,6 +18,7 @@
 #define FS_CMD_LIST   3
 #define FS_CMD_STAT   4
 #define FS_CMD_FSTAT  5
+#define FS_CMD_CLOSE  6
 
 #define BASE_CMD_N 64
 

@@ -2,6 +2,7 @@
 #include <fos/fos.h>
 #include <fos/message.h>
 #include <sys/stat.h>
+#include <mutex.h>
 #include "romfs.h"
 #define ROMFS_BUF_SIZE	0x2000
 
@@ -26,7 +27,7 @@ asmlinkage int main(int argc, char *argv[]) {
 
 		switch(msg.arg[0]) {
 		case FS_CMD_ACCESS:
-			buffer[msg.recv_size] = 0;
+			//buffer[msg.recv_size] = 0;
 			printf("romfs: access to [%s]\n", buffer);
 			msg.arg[0] = 0;
 			msg.arg[1] = ROMFS_BUF_SIZE;

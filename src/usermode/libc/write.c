@@ -4,6 +4,8 @@
 
 #include <fos/message.h>
 #include <fos/fs.h>
+#include <fcntl.h>
+#include <stdlib.h>
 
 asmlinkage ssize_t write(int fildes, const void *buf, size_t nbyte)
 {
@@ -19,7 +21,7 @@ asmlinkage ssize_t write(int fildes, const void *buf, size_t nbyte)
   else
     msg.send_size = nbyte;
 
-  do{
+  while(1) {
     msg.arg[0] = FS_CMD_WRITE;
     msg.arg[1] = fd->inode;
     msg.arg[2] = fd->offset;
@@ -34,7 +36,20 @@ asmlinkage ssize_t write(int fildes, const void *buf, size_t nbyte)
 
     if(msg.arg[2] == ERR_UNKNOWN_CMD)
       return -2;
-    
+
+    if(msg.arg[2] == ERR_TIMEOUT) {
+      fildes = open(fd->fullname,  O_FOS_DNTCOPY_NAME);
+      if(fildes && (fildes > 0)) {
+	fd_t fd1 = (fd_t) fildes;
+	fd->inode = fd1->inode;
+	fd->thread = fd1->thread;
+	fd->buf_size = fd1->buf_size;
+	free(fd1);
+	continue;
+      } else
+	return -3;
+    }    
+
     offset += msg.arg[0];
 
     if((msg.arg[2] == ERR_EOF) || offset >= nbyte)
@@ -42,7 +57,7 @@ asmlinkage ssize_t write(int fildes, const void *buf, size_t nbyte)
        
     if(offset + msg.send_size > nbyte)
       msg.send_size = nbyte - offset;
-  } while(1);
+  }
 }
 
 asmlinkage ssize_t write2(int fildes, const void *buf, size_t nbyte)

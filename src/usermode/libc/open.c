@@ -6,8 +6,10 @@
 #include <fos/fs.h>
 #include <string.h>
 #include <stdlib.h>
+#include <fcntl.h>
 #include <fos/namer.h>
 
+#if 0
 int resolve(const char *pathname, char **pathtail)
 {
   volatile struct message msg;
@@ -53,6 +55,7 @@ int open2(const char *pathname, int flags)
     return -1;
   }
 }
+#endif
 
 int open(const char *pathname, int flags)
 {
@@ -70,10 +73,19 @@ int open(const char *pathname, int flags)
 
   u32_t result = send((struct message *)&msg);
   if(result == RES_SUCCESS && msg.arg[0] && msg.arg[2] == NO_ERR) {
-    struct fd *fd = malloc(sizeof(struct fd));
+    struct fd *fd = (struct fd *) malloc(sizeof(struct fd));
+
+
+    if(!(flags & O_FOS_DNTCOPY_NAME)) {
+      fd->fullname = (const char *) malloc(len+1);
+      strcpy((char *)fd->fullname, pathname);
+    } else
+      fd->fullname = pathname;
+
     fd->thread = msg.tid;
     fd->inode = msg.arg[0];
     fd->buf_size = msg.arg[1];
+    
     return (int) fd;
   } else
     return -1;

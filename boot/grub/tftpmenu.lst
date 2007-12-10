@@ -1,7 +1,7 @@
 # GRUB Config: generated automatically - do not edit!
 timeout 1
 default 0
-title FOS - FOS is Operating System (VERSION 0.0.45.3.3, BUILD 20071210)
+title FOS - FOS is Operating System (VERSION 0.0.45.4, BUILD 20071210)
 	root	(nd)
 	kernel /boot/fos
 	module /boot/modules/test.txt
@@ -11,7 +11,6 @@ title FOS - FOS is Operating System (VERSION 0.0.45.3.3, BUILD 20071210)
 	module /boot/modules/shell
 	module /boot/modules/tty
 	module /boot/modules/test
-	module /boot/modules/test2
 	module /boot/modules/font.psf
 	module /boot/modules/pci_server
 	module /boot/modules/pgs

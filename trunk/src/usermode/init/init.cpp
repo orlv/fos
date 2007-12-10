@@ -21,7 +21,7 @@ asmlinkage int main()
   exec("/mnt/modules/shell", NULL);
   exec("/mnt/modules/romfs", NULL);
   //exec("/mnt/modules/speaker", NULL);
-//  exec("/mnt/modules/test2", NULL);
+  //exec("/mnt/modules/test2", NULL);
   //exec("/mnt/modules/pci_server", NULL);
   //exec("/mnt/modules/ext2test", "/mnt/modules/ext2.img");
   //exec("/mnt/modules/floppy");

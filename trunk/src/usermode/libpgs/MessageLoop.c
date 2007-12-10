@@ -26,19 +26,26 @@ void ControlsMessageLoop() {
 				Draw3D(control->x, control->y, control->w, control->h, win->handle, STYLE_BUTTON_DOWN);
 				pstring(win->handle,(control->w - 8 * strlen(control->text)) / 2 + control->x, (control->h - 16) / 2 + control->y, 0x000000, control->text);
 				RefreshWindow(win->handle);
+				control->down = 1;
 			}
 			break;
 		case EV_MUP:
+			for(control_t *ptr = win->control; ptr; ptr=ptr->next) {
+				if(ptr->down) {
+					ptr->down = 0;
+					if(ptr->class == CONTROL_BUTTON) {
+						Draw3D(ptr->x, ptr->y, ptr->w, ptr->h, win->handle, STYLE_BUTTON_NORMAL);
+						pstring(win->handle,(ptr->w - 8 * strlen(ptr->text)) / 2 + ptr->x, (ptr->h - 16) / 2 + ptr->y, 0x000000, ptr->text);
+						RefreshWindow(win->handle);
+					}
+				}
+			}
 			control = ResolveMouseCoord(win, a0, a1);
 			if(!control)
 				break;
 			if(control->class == CONTROL_BUTTON) {
-				Draw3D(control->x, control->y, control->w, control->h, win->handle, STYLE_BUTTON_NORMAL);
-				pstring(win->handle,(control->w - 8 * strlen(control->text)) / 2 + control->x, (control->h - 16) / 2 + control->y, 0x000000, control->text);
-				RefreshWindow(win->handle);
 				if(!(win->handler)((int) control, EVC_CLICK, a0 - control->x, a1 - control->y, 0, 0)) break;
 			}
-
 			
 			break;
 		default:

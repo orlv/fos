@@ -59,6 +59,7 @@ typedef struct cntrl {
 	int h;
 	char *text;
 	void* win;
+	int down;
 } control_t;
 typedef struct rw{
 	int handle;

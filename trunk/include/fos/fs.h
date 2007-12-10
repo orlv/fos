@@ -27,6 +27,7 @@
 #define ERR_NO_SUCH_FILE      3
 #define ERR_UNKNOWN_CMD       4
 #define ERR_ACCESS_DENIED     5
+#define ERR_TIMEOUT           6
 
 typedef u32_t ino_t;
 
@@ -35,12 +36,11 @@ struct fd {
   off_t offset;
   ino_t  inode;
   size_t  buf_size;
-  char *fullname;
-  char *name;
+  const char *fullname;
+  //  char *name;
 };
 
 typedef struct fd* fd_t;
-
 
 struct xfer_databuf {
   size_t data_size;

@@ -4,6 +4,8 @@
 
 #include <fos/message.h>
 #include <fos/fs.h>
+#include <fcntl.h>
+#include <stdlib.h>
 
 ssize_t read(int fildes, void *buf, size_t nbyte)
 {
@@ -14,7 +16,7 @@ ssize_t read(int fildes, void *buf, size_t nbyte)
   struct message msg;
   size_t offset = 0;
 
-  do{
+  while(1) {
     msg.arg[0] = FS_CMD_READ;
     msg.arg[1] = fd->inode;
     msg.arg[2] = fd->offset;
@@ -29,11 +31,24 @@ ssize_t read(int fildes, void *buf, size_t nbyte)
 
     if(msg.arg[2] == ERR_UNKNOWN_CMD)
       return -2;
+
+    if(msg.arg[2] == ERR_TIMEOUT) {
+      fildes = open(fd->fullname,  O_FOS_DNTCOPY_NAME);
+      if(fildes && (fildes > 0)) {
+	fd_t fd1 = (fd_t) fildes;
+	fd->inode = fd1->inode;
+	fd->thread = fd1->thread;
+	fd->buf_size = fd1->buf_size;
+	free(fd1);
+	continue;
+      } else
+	return -3;
+    }
     
     offset += msg.arg[0];
     fd->offset = offset;
     
     if((msg.arg[2] == ERR_EOF) || offset >= nbyte) /* мы достигли конца файла, или прочитали всё что хотели */
       return offset;
-  } while(1);
+  }
 }

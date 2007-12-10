@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "privatetypes.h"
+control_t *focused = NULL;
 void SetControlText(int handle, char *text) {
 	control_t *c = (control_t *)handle;
 	rootwindow_t *rw = c->win;
@@ -30,6 +31,7 @@ int CreateButton(int window, int x, int y, int w, int h, char *caption) {
 	strcpy(c->text, caption);
 	c->next = rw->control;
 	c->win=rw;
+	c->down = 0;
 	rw->control = c;
 	DrawLocateRect(rw->locate, x, y, w, h, (int) c, rw->w);
 	Draw3D(x, y, w, h, rw->handle, STYLE_BUTTON_NORMAL);

@@ -143,7 +143,7 @@ int CreateWindow(int x, int y, int tid, int w, int h, char *caption, int class) 
 		h += 21 + 3;
 		w += 3 + 3;
 		win->x = rand(screen.w - w);
-		win->y = rand(screen.h - h);
+		win->y = rand(screen.h - h - 28);
 	} else {
 		win->x = x;
 		win->y = y;

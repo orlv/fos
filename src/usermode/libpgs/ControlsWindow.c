@@ -4,19 +4,7 @@
 #include "privatetypes.h"
 rootwindow_t *head = NULL;
 int CreateControlsWindow(int x, int y, int w, int h, char *title,  int (*handler)(int, int, int, int, int, int), int style) {
-	rootwindow_t *rw = malloc(sizeof(rootwindow_t));
-	int hndl = CreateWindow(x, y, w, h, title, style, &rw->evhandle);
-	int *locatebuf = malloc(sizeof(int) * w * h);
-	memset(locatebuf, 0, sizeof(int) * w * h);
-	rw->handle = hndl;
-	rw->locate = locatebuf;
-	rw->w = w;
-	rw->h = h;
-	rw->control = NULL;
-	rw->next = head;
-	rw->handler = handler;
-	head = rw;
-	return (int) rw;
+	return (int) InternalCreateWindow(x, y, w, h, title, handler, style, 0, NULL);
 }
 
 void DestroyControlsWindow(int hndl) {

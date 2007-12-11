@@ -1,6 +1,9 @@
 #ifndef PRIVATETYPES_H
 #define PRIVATETYPES_H
 #include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+#include <pgs/pgs.h>
 typedef struct {
 	int x;
 	int y;
@@ -51,8 +54,15 @@ typedef struct {
 #define GREEN(x, bits)	((x >> (8 + 8 - bits)) & ((1 << bits) - 1))
 #define BLUE(x, bits)	((x >> (8 - bits)) & ((1 << bits) - 1))
 
-#define CONTROL_BUTTON 1
-#define CONTROL_STATIC 2
+#define CONTROL_BUTTON	1
+#define CONTROL_STATIC	2
+#define CONTROL_MENU	3
+typedef struct {
+	int count;
+	int selected;
+	struct rw *win;
+	char **items;
+} menu_t;
 typedef struct cntrl {
 	struct cntrl *next;
 	int class;
@@ -63,6 +73,7 @@ typedef struct cntrl {
 	char *text;
 	void* win;
 	int down;
+	menu_t *menu;
 } control_t;
 typedef struct rw{
 	int handle;
@@ -73,6 +84,8 @@ typedef struct rw{
 	control_t *control;
 	struct rw *next;
 	int (*handler)(int, int, int, int, int, int);
+	int menu_of;
+	menu_t* menu;
 } rootwindow_t;
 extern rootwindow_t *head;
 #define STYLE_BUTTON_NORMAL 1
@@ -96,5 +109,21 @@ static inline void DrawLocateRect(int *locate, int x, int y, int w, int h, int c
 }
 void Draw3D(int x, int y, int w, int h, int handle, int style);
 extern int screen_width, screen_height;
-
+static inline rootwindow_t *InternalCreateWindow(int x, int y, int w, int h, char *title, int (*handler)(int, int, int, int, int, int), int style, int menu_of, menu_t *menu) {
+	rootwindow_t *rw = malloc(sizeof(rootwindow_t));
+	int hndl = CreateWindow(x, y, w, h, title, style, &rw->evhandle);
+	int *locatebuf = malloc(sizeof(int) * w * h);
+	memset(locatebuf, 0, sizeof(int) * w * h);
+	rw->handle = hndl;
+	rw->locate = locatebuf;
+	rw->w = w;
+	rw->h = h;
+	rw->control = NULL;
+	rw->next = head;
+	rw->handler = handler;
+	rw->menu_of = menu_of;
+	rw->menu = menu;
+	head = rw;
+	return rw;
+}
 #endif

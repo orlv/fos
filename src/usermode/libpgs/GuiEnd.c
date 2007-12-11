@@ -11,9 +11,7 @@ void GuiEnd() {
 	msg.recv_size = 0;
 	msg.tid = __gui->thread;
 	msg.arg[0] = WIN_CMD_CLEANUP;
-	printf("sending ");
 	send(&msg);
-	printf("ok\n");
 	close((int) __gui);
 	close((int) __gui_canvas);
 	__gui = NULL;

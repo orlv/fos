@@ -7,11 +7,13 @@
 
 extern fd_t __gui;
 extern fd_t __gui_canvas;
-int CreateWindow(int w, int h, char *caption, int flags, int *evhndl) {
+int CreateWindow(int x, int y, int w, int h, char *caption, int flags, int *evhndl) {
 	char *buf = malloc(sizeof(create_win_t) + MAX_TITLE_LEN);
 	create_win_t *struc = (create_win_t *) buf;
 	char *title = buf + sizeof(create_win_t);
 	strcpy(title, caption);
+	struc->x = x;
+	struc->y = y;
 	struc->w = w;
 	struc->h = h;
 	struc->class = flags;

@@ -65,7 +65,7 @@ window_t * GetActiveWindow();
 
 void DestroyWindow(int handle);
 
-int CreateWindow(int tid, int w, int h, char *caption, int class);
+int CreateWindow(int x, int y, int tid, int w, int h, char *caption, int class);
 void WindowMapped(struct window_t *win);
 
 void RefreshWindow(int handle);
@@ -109,7 +109,7 @@ void EventsThread()
   struct message msg;
   char *buffer = malloc( sizeof(create_win_t) + MAX_TITLE_LEN);
 	int buf_size = sizeof(create_win_t) + MAX_TITLE_LEN;
-  resmgr_attach("/dev/pgs");
+  resmgr_attach("/dev/pgs/main");
   while(1) {
     msg.tid = _MSG_SENDER_ANY;
     msg.recv_buf  = buffer;
@@ -133,14 +133,21 @@ void EventsThread()
 	create_win_t *win = (create_win_t *) buffer;
 	struct win_info wi;
 	char *caption = buffer + sizeof(create_win_t);
-	wi.handle = CreateWindow(msg.tid, win->w, win->h, caption, win->class);
-	window_t *w = GetWindowInfo(msg.arg[0]);
+	wi.handle = CreateWindow(win->x, win->y, msg.tid, win->w, win->h, caption, win->class);
+	window_t *w = GetWindowInfo(wi.handle);
 	wi.bpp = w->context->bpp;
 	msg.arg[2] = NO_ERR;
-	wi.margin_up = 21;
-	wi.margin_left = 3;
-	wi.margin_right = 3;
-	wi.margin_down = 3;
+	if(win->class & WC_NODECORATIONS) {
+		wi.margin_up = 0;
+		wi.margin_left = 0;
+		wi.margin_right = 0;
+		wi.margin_down = 0;
+	} else {
+		wi.margin_up = 21;
+		wi.margin_left = 3;
+		wi.margin_right = 3;
+		wi.margin_down = 3;
+	}
 	msg.send_size = sizeof(wi);
 	msg.send_buf = &wi;
 	msg.flags = 0;
@@ -228,7 +235,14 @@ void EventsThread()
 	mutex_unlock(q_locked);
 	break;
       }
-	
+	case WIN_CMD_SCREEN_INFO:
+		msg.arg[0] = screen_width;
+		msg.arg[1] = screen_height;
+		msg.arg[2] = 2;
+		msg.send_size = 0;
+		msg.flags = 0;
+		reply(&msg);
+		break;	
       default:
 	printf("main events thread received message: %u %u %u %u\n", msg.arg[0], msg.arg[1], msg.arg[2], msg.arg[3]);
 	msg.arg[0] = 0;
@@ -311,7 +325,7 @@ void kb_thread() {
 	}
 }
 void MappingThread() {
-	resmgr_attach("/dev/pgs_canvas");
+	resmgr_attach("/dev/pgs/mapping");
 	struct message msg;
 	while(1) {
 		msg.tid = _MSG_SENDER_ANY;

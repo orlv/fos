@@ -3,9 +3,9 @@
 #include <string.h>
 #include "privatetypes.h"
 rootwindow_t *head = NULL;
-int CreateControlsWindow(int w, int h, char *title,  int (*handler)(int, int, int, int, int, int)) {
+int CreateControlsWindow(int x, int y, int w, int h, char *title,  int (*handler)(int, int, int, int, int, int), int style) {
 	rootwindow_t *rw = malloc(sizeof(rootwindow_t));
-	int hndl = CreateWindow(w, h, title, WC_WINDOW, &rw->evhandle);
+	int hndl = CreateWindow(x, y, w, h, title, style, &rw->evhandle);
 	int *locatebuf = malloc(sizeof(int) * w * h);
 	memset(locatebuf, 0, sizeof(int) * w * h);
 	rw->handle = hndl;

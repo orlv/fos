@@ -41,6 +41,8 @@ typedef struct {
 	char *data;
 } context_t;
 typedef struct {
+	int x;
+	int y;
 	int w;
 	int h;
 	int class;
@@ -54,13 +56,15 @@ struct win_info {
 	int margin_right;
 };
 #define MAX_TITLE_LEN 64
-#define WIN_CMD_CREATEWINDOW 1
-#define WIN_CMD_DESTROYWINDOW 2
-#define WIN_CMD_WAIT_EVENT 3
-#define WIN_CMD_CLEANUP 4
-#define WIN_CMD_MAPBUF 5
-#define WIN_CMD_REFRESHWINDOW 6
-#define WIN_CMD_SETVISIBLE 7
+#define WIN_CMD_CREATEWINDOW	(1 + 256)
+#define WIN_CMD_DESTROYWINDOW	(2 + 256)
+#define WIN_CMD_WAIT_EVENT	(3 + 256)
+#define WIN_CMD_CLEANUP		(4 + 256)
+#define WIN_CMD_MAPBUF		(5 + 256)
+#define WIN_CMD_REFRESHWINDOW	(6 + 256)
+#define WIN_CMD_SETVISIBLE	(7 + 256)
+#define WIN_CMD_SCREEN_INFO	(8 + 256)
+#define WC_NODECORATIONS	1
 #define EV_WINCLOSE 1
 #define EV_MDOWN 2
 #define EV_MUP 3

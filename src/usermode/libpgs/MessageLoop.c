@@ -16,7 +16,10 @@ void ControlsMessageLoop() {
 		}
 		switch(class) {
 		case EV_WINCLOSE:
-			if(!(win->handler)((int) win, class, a0, a1, a2, a3)) return;
+			if(!(win->handler)((int) win, class, a0, a1, a2, a3)) {
+				printf("Window destroying!\n");
+				return;
+			}
 			break;
 		case EV_MDOWN:
 			control = ResolveMouseCoord(win, a0, a1);

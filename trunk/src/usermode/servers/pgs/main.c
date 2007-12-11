@@ -27,7 +27,7 @@ int main(int argc, char *argv) {
 	SetBusy(-1);
 //	exec("/mnt/modules/tetris", NULL);
 	sched_yield();
-	exec("/mnt/modules/test", NULL);
+	exec("/bin/test", NULL);
 	for(;;) {
 		if (need_refresh)
 		{

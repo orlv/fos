@@ -13,14 +13,14 @@ all: $(PGS_CUSTOM) al $(OBJECTS)
 	strip pgs
 
 install:
-	cp pgs $(INSTALLDIR)/$(OUTPUT)
+	cp pgs $(INITRDDIR)/usr/bin/$(OUTPUT)
 
 clean:
 	rm -f pgs $(OBJECTS)
 	make -C $(TARGET)al clean
 
 uninstall:
-	rm -f $(INSTALLDIR)/pgs
+	rm -f $(INITRDDIR)/usr/bin/pgs
 al:
 	make -C $(TARGET)al
 

@@ -84,7 +84,6 @@ char * romfs::search_path(char *name, romfs_inode_t *inode) {
 			delete part;
 			return NULL;
 		}
-		printf("part %s found\n", part);
 scan_inode:
 		type = ROMFS_TYPE(in->next);
 		if(type == ROMFS_DIRECTORY) {
@@ -99,6 +98,7 @@ scan_inode:
 		if(type == ROMFS_HARDLINK) {
 			in = (romfs_inode_t *)(fs + inl.info);
 			ptr = (char *)ROMFS_ALIGN(in + sizeof(*in) + strlen(in->name));
+			printf("hardlink to inode %x\n", in);
 			goto scan_inode;
 		}
 		printf("unknown type - %x\n", type);

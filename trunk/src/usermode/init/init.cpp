@@ -16,10 +16,11 @@ asmlinkage int main()
   while(!exec("/mnt/modules/stty", NULL));
 //  while(!exec("/mnt/modules/tty", NULL));	
   printf("Init started! If you see this text - all work fine.\n");
-  exec("/mnt/modules/i8042", NULL);
- // exec("/mnt/modules/pgs", NULL);
-  exec("/mnt/modules/shell", NULL);
   exec("/mnt/modules/romfs", NULL);
+  for(int i=0; i<50; i++) sched_yield();
+  exec("/bin/i8042", NULL);
+ exec("/usr/bin/pgs", NULL);
+//  exec("/bin/shell", NULL);
   //exec("/mnt/modules/speaker", NULL);
   //exec("/mnt/modules/test2", NULL);
   //exec("/mnt/modules/pci_server", NULL);

@@ -61,6 +61,7 @@ typedef struct {
 	int count;
 	int selected;
 	struct rw *win;
+	struct cntrl *control;
 	char **items;
 } menu_t;
 typedef struct cntrl {

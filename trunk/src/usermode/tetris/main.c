@@ -130,6 +130,7 @@ asmlinkage int main(int argc, char ** argv)
 	GUIInit();
 	int tmp;
 	winhandle = CreateWindow(0, 0, 192 + 16 + 40 + 8,352 + 16, "Tetris - use arrows", WC_WINDOW, &tmp);
+	SetVisible(winhandle, 1);
 	RefreshWindow(winhandle);
 	int game = thread_create((off_t) game_thread);
 

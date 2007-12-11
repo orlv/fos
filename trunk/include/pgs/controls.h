@@ -12,5 +12,7 @@ void ControlsWindowVisible(int handle, int visible);
 int CreateStatic(int window, int x, int y, int w, int h, char *caption);
 void SetControlText(int handle, char *text);
 int GetDrawingHandle(int handle);
-#define EVC_CLICK 0xF0000001
+int CreateMenu(int hndl, int x, int y, int count, char *items[]);
+#define EVC_CLICK	0xF0000001
+#define EVC_MENU	0xF0000002
 #endif

@@ -18,9 +18,11 @@ void pstring(int handle, int x, int y, int color, char *str);
 void SetVisible(int handle, int visible);
 void ScreenInfo(int *width, int *height);
 #define WC_WINDOW 0
+#define WC_MOUSEMOVE		2
 #define WC_NODECORATIONS	1
 #define EV_WINCLOSE 1
 #define EV_MDOWN 2
 #define EV_MUP 3
 #define EV_KEY 4
+#define EV_MMOVE 5
 #endif

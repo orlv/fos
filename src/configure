@@ -48,7 +48,7 @@ RED		= $RED
 GREY		= $GREY
 
 # -- Modules ------------------------------------------------------------------
-GRUB_MODULES =	/boot/modules/test.txt		\\
+GRUB_MODULES =	/boot/modules/int16b		\\
 		/boot/modules/namer		\\
 		/boot/modules/init		\\
 		/boot/modules/int16b		\\
@@ -56,10 +56,6 @@ GRUB_MODULES =	/boot/modules/test.txt		\\
 		/boot/modules/stty		\\
 		/boot/modules/romfs		\\
 		/boot/modules/initrd.gz
-
-#		/boot/modules/ext2.img          \\
-#		/boot/modules/ext2test
-
 
 GRUB_MENU    = $TOPDIR/boot/grub/menu.lst
 GRUB_TFTP_MENU = $TOPDIR/boot/grub/tftpmenu.lst

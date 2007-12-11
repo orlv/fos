@@ -104,6 +104,7 @@ tid_t execute(char *pathname, char *args)
     delete statbuf;
     delete elf_image;
   }
+  close(fd);
   return result;
 }
 

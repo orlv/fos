@@ -131,6 +131,7 @@ asmlinkage int main(int argc, char *argv[]) {
 				sched_yield();
 			for(handle_t *p = head, *prev = NULL; p; prev = p, p = p->next) {
 				if(p->handle == msg.arg[1]) {
+					printf("Handle %u closed.\n", p->handle);
 					if(prev) 
 						prev->next = p->next;
 					else
@@ -158,14 +159,13 @@ void outdated() {
 		msg.recv_buf = NULL;
 		msg.recv_size = 0;
 		msg.flags = 0;
-		alarm(60000);
+		alarm(20000);	// это в районе минуты на самом деле.
 		receive(&msg);
 		reply(&msg);
 		while(!mutex_try_lock(q_locked))
 	 		sched_yield();
 		for(handle_t *ptr = head, *prev = NULL; ptr; prev = ptr, ptr = ptr->next) {
-			if(ptr->touched < uptime() - 60000) {
-				printf("removing outdated item\n");
+			if(ptr->touched < uptime() - 20000) {
 				if(prev)
 					prev->next = ptr->next;
 				else

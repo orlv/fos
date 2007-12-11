@@ -1,23 +1,15 @@
 # GRUB Config: generated automatically - do not edit!
 timeout 1
 default 0
-title FOS - FOS is Operating System (VERSION 0.0.45.4, BUILD 20071210)
+title FOS - FOS is Operating System (VERSION 0.0.45.4, BUILD 20071211)
 	root	(nd)
 	kernel /boot/fos
-	module /boot/modules/test.txt
+	module /boot/modules/int16b
 	module /boot/modules/namer
 	module /boot/modules/init
 	module /boot/modules/int16b
-	module /boot/modules/shell
 	module /boot/modules/tty
-	module /boot/modules/test
-	module /boot/modules/font.psf
-	module /boot/modules/pci_server
-	module /boot/modules/pgs
-	module /boot/modules/ipctest
-	module /boot/modules/i8042
 	module /boot/modules/stty
 	module /boot/modules/romfs
-	module /boot/modules/tetris
 	module /boot/modules/initrd.gz
 

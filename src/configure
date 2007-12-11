@@ -52,17 +52,9 @@ GRUB_MODULES =	/boot/modules/test.txt		\\
 		/boot/modules/namer		\\
 		/boot/modules/init		\\
 		/boot/modules/int16b		\\
-		/boot/modules/shell		\\
 		/boot/modules/tty		\\
-		/boot/modules/test		\\
-		/boot/modules/font.psf		\\
-		/boot/modules/pci_server	\\
-		/boot/modules/pgs		\\
-		/boot/modules/ipctest           \\
-		/boot/modules/i8042		\\
 		/boot/modules/stty		\\
 		/boot/modules/romfs		\\
-		/boot/modules/tetris		\\
 		/boot/modules/initrd.gz
 
 #		/boot/modules/ext2.img          \\
@@ -110,6 +102,7 @@ SYSTEM_ROOT	= $TOPDIR
 SYSTEM_SRC	= $TOPDIR/src
 BINDIR		= $TOPDIR/boot/modules
 INSTALLDIR	= $TOPDIR/boot/modules
+INITRDDIR	= $TOPDIR/src/initrd/contents
 INCLUDE		= $TOPDIR/include
 LIB		= $TOPDIR/lib
 #DEBUG		= -g
@@ -173,6 +166,7 @@ SYSTEM_ROOT	= $TOPDIR
 SYSTEM_SRC	= $TOPDIR/src
 BINDIR		= $TOPDIR/boot/modules
 INSTALLDIR	= $TOPDIR/boot/modules
+INITRDDIR	= $TOPDIR/src/initrd/contents
 INCLUDE		= $TOPDIR/include
 LIB		= $TOPDIR/lib
 #DEBUG		= -g

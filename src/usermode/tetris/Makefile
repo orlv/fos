@@ -13,13 +13,13 @@ all:	$(OBJECTS)
 	@$(LD) $(LDFLAGS) -o $(OUTPUT) $(LIB)/crt0.o $(OBJECTS) $(LDLIBS) --entry=_start --oformat=elf32-i386  --Ttext=$(USER_MEM_BASE)
 
 install:
-	cp $(OUTPUT) $(INSTALLDIR)/$(OUTPUT)
+	cp $(OUTPUT) $(INITRDDIR)/usr/bin/$(OUTPUT)
 
 clean:
 	@rm -f $(OBJECTS)
 	@rm -f $(OUTPUT)
 
 uninstall:
-	rm -f $(INSTALLDIR)/$(OUTPUT)
+	rm -f $(INITRDDIR)/usr/bin/$(OUTPUT)
 
 #-----------------------------------------------------------------------------#

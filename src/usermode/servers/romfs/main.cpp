@@ -131,7 +131,7 @@ asmlinkage int main(int argc, char *argv[]) {
 				sched_yield();
 			for(handle_t *p = head, *prev = NULL; p; prev = p, p = p->next) {
 				if(p->handle == msg.arg[1]) {
-					printf("Handle %u closed.\n", p->handle);
+				//	printf("Handle %u closed.\n", p->handle);
 					if(prev) 
 						prev->next = p->next;
 					else

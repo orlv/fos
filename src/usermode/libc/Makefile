@@ -18,7 +18,11 @@ OBJECTS		=	close.o		\
 			printf.o	\
 			time.o		\
 			stat.o		\
-			fstat.o
+			fstat.o	\
+			strspn.o \
+			strcspn.o \
+			strtok_r.o \
+			strsep.o
 
 all:	$(OBJECTS)
 	$(AR) rcs $(OUTPUT) $(OBJECTS)

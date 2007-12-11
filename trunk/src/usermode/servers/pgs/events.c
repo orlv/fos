@@ -35,6 +35,7 @@ void event_handler(event_t *event) {
 			{
 			    window_t *win = GetWindowInfo(handle);
 				if(!win) break;
+				if(win->class & WC_NODECORATIONS) break;
 			    int win_x = mousex-win->x;
 			    int win_y = mousey-win->y;
 			    if ((win_x>=3) && (win_y>=3) && (win_y<=18) && (win_y<=(win->w-6)))
@@ -91,9 +92,12 @@ void event_handler(event_t *event) {
 		window_t *win = GetWindowInfo(handle);
 		int win_x = mousex-win->x;
 		int win_y = mousey-win->y;
-		if(win_x > 3 && win_x < win->w - 3 && win_y > 21 && win_y < win->h - 3)
-			PostEvent(win->tid, handle, EV_MDOWN,  win_x - 3 , win_y - 21, 0, 0);
-
+		if(win->class & WC_NODECORATIONS) {
+			PostEvent(win->tid, handle, EV_MDOWN,  win_x , win_y, 0, 0);
+		} else {
+			if(win_x > 3 && win_x < win->w - 3 && win_y > 21 && win_y < win->h - 3)
+				PostEvent(win->tid, handle, EV_MDOWN,  win_x - 3 , win_y - 21, 0, 0);
+		}
 		break;
 	}
 	case EVENT_TYPE_MOUSEUP:
@@ -110,13 +114,16 @@ void event_handler(event_t *event) {
 		window_t *win = GetWindowInfo(handle);
 		int win_x = mousex-win->x;
 		int win_y = mousey-win->y;
-		if((win_x >= win->w - 21) && (win_y >= 5) && (win_x <= win->w - 5) && (win_y <= 19)) {
-			PostEvent(win->tid, handle, EV_WINCLOSE, 0, 0, 0, 0);
-			break;
+		if(win->class & WC_NODECORATIONS) {
+			PostEvent(win->tid, handle, EV_MUP,  win_x , win_y, 0, 0);
+		} else {
+			if((win_x >= win->w - 21) && (win_y >= 5) && (win_x <= win->w - 5) && (win_y <= 19)) {
+				PostEvent(win->tid, handle, EV_WINCLOSE, 0, 0, 0, 0);
+				break;
+			}
+			if(win_x > 3 && win_x < win->w - 3 && win_y > 21 && win_y < win->h - 3)
+				PostEvent(win->tid, handle, EV_MUP,  win_x - 3 , win_y - 21, 0, 0);
 		}
-		if(win_x > 3 && win_x < win->w - 3 && win_y > 21 && win_y < win->h - 3)
-			PostEvent(win->tid, handle, EV_MUP,  win_x - 3 , win_y - 21, 0, 0);
-
 		if(!win->active) {
 			SetFocusTo(handle);
 			need_cursor = 1;

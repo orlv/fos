@@ -2,6 +2,8 @@
 #define PRIVATETYPES_H
 #include <stddef.h>
 typedef struct {
+	int x;
+	int y;
 	int w;
 	int h;
 	int class;
@@ -37,13 +39,14 @@ typedef struct {
 } event_t;
 
 #define MAX_TITLE_LEN 64
-#define WIN_CMD_CREATEWINDOW 1
-#define WIN_CMD_DESTROYWINDOW 2
-#define WIN_CMD_WAIT_EVENT 3
-#define WIN_CMD_CLEANUP 4
-#define WIN_CMD_MAPBUF 5
-#define WIN_CMD_REFRESHWINDOW 6
-#define WIN_CMD_SETVISIBLE 7
+#define WIN_CMD_CREATEWINDOW	(1 + 256)
+#define WIN_CMD_DESTROYWINDOW	(2 + 256)
+#define WIN_CMD_WAIT_EVENT	(3 + 256)
+#define WIN_CMD_CLEANUP		(4 + 256)
+#define WIN_CMD_MAPBUF		(5 + 256)
+#define WIN_CMD_REFRESHWINDOW	(6 + 256)
+#define WIN_CMD_SETVISIBLE	(7 + 256)
+#define WIN_CMD_SCREEN_INFO	(8 + 256)
 #define RED(x, bits)	((x >> (16 + 8 - bits)) & ((1 << bits) - 1))
 #define GREEN(x, bits)	((x >> (8 + 8 - bits)) & ((1 << bits) - 1))
 #define BLUE(x, bits)	((x >> (8 - bits)) & ((1 << bits) - 1))
@@ -92,4 +95,6 @@ static inline void DrawLocateRect(int *locate, int x, int y, int w, int h, int c
 	}
 }
 void Draw3D(int x, int y, int w, int h, int handle, int style);
+extern int screen_width, screen_height;
+
 #endif

@@ -31,7 +31,7 @@ int EventHandler(int hwnd, int class, int a0, int a1, int a2, int a3) {
 asmlinkage int main(int argc, char ** argv)
 {
         GUIInit();
-	hndl = CreateControlsWindow(280, 70, "Hello, World", EventHandler);
+	hndl = CreateControlsWindow(0, 0, 280, 70, "Hello, World", EventHandler, WC_WINDOW);
 	button[0] = CreateButton(hndl, 10, 10, 90, 25, "Click me!");
 	button[1] = CreateButton(hndl, 110, 10, 70, 25, "Exit");
 	button[2] = CreateButton(hndl, 190, 10, 80, 25, "Destroy");

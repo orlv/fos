@@ -6,14 +6,12 @@ include ../config.mk
 
 INSTALLDIR	=	$(LIB)
 OUTPUT		=	libpgs.a
-OBJECTS		=	GUIInit.o CreateWindow.o \
-			WaitEvent.o DestroyWindow.o \
-			RefreshWindow.o GuiEnd.o \
-			pixel.o rect.o \
-			pstring.o line.o	\
-			SetVisible.o ControlsWindow.o \
-			MessageLoop.o drawing.o \
-			Controls.o
+OBJECTS		=	GUIInit.o CreateWindow.o WaitEvent.o \
+			DestroyWindow.o RefreshWindow.o GuiEnd.o \
+			pixel.o rect.o pstring.o \
+			line.o	SetVisible.o ControlsWindow.o \
+			MessageLoop.o drawing.o Controls.o \
+			ScreenInfo.o GetDrawingHandle.o
 
 all:	$(OBJECTS)
 	$(AR) rcs $(OUTPUT) $(OBJECTS)

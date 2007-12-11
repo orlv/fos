@@ -3,6 +3,7 @@
  *       GUI system
  * Copyright (c) 2007 Grindars
  */
+#include <stddef.h>
 #include <gui/al.h>
 
 #include "cursor.h"
@@ -17,8 +18,7 @@ extern int need_cursor;
 void event_handler(event_t *event) {
 
 	switch(event->type) {
-	case EVENT_TYPE_MOUSEMOVE:
-
+	case EVENT_TYPE_MOUSEMOVE: {
 		mousex += event->mousemove->x;
 		mousey += event->mousemove->y;
 		if(mousex < 0) mousex = 0;
@@ -26,32 +26,41 @@ void event_handler(event_t *event) {
 		if(mousex > screen.w) mousex = screen.w;
 		if(mousey > screen.h) mousey = screen.h;
 		need_cursor = 1;
+		int handle = get_window_handle(mousex, mousey);
+		int win_x = 0, win_y = 0;
+		window_t *win = NULL;
+		if(handle) {
+			win = GetWindowInfo(handle);
+			if(!win) break;
+			win_x = mousex-win->x;
+			win_y = mousey-win->y;
+			if(win->class & WC_MOUSEMOVE) {
+				if(win->class & WC_NODECORATIONS) 
+					PostEvent(win->tid, handle, EV_MMOVE,  win_x , win_y, 0, 0);
+				else {
+					if(win_x > 3 && win_x < win->w - 3 && win_y > 21 && win_y < win->h - 3)
+					PostEvent(win->tid, handle, EV_MMOVE,  win_x - 3 , win_y - 21, 0, 0);
+					}
+			}
+		}
 		if (down)
 		{
 		    if (!dragging)
 		    {
-			int handle = get_window_handle(mousex, mousey);
-			if (handle)
-			{
-			    window_t *win = GetWindowInfo(handle);
-				if(!win) break;
-				if(win->class & WC_NODECORATIONS) break;
-			    int win_x = mousex-win->x;
-			    int win_y = mousey-win->y;
-			    if ((win_x>=3) && (win_y>=3) && (win_y<=18) && (win_y<=(win->w-6)))
-			    {
-				curr_window = win;
-				last_x = mousex;
-				last_y = mousey;
-				SetFocusTo(handle);
-				dragging = 1;
-				win->x_drag = win->x;
-				win->y_drag = win->y;
-				DrawBorder(0);
-				
-			    }
-			}
+		if(win->class & WC_NODECORATIONS) break;
+		    if ((win_x>=3) && (win_y>=3) && (win_y<=18) && (win_y<=(win->w-6)))
+		    {
+			curr_window = win;
+			last_x = mousex;
+			last_y = mousey;
+			SetFocusTo(handle);
+			dragging = 1;
+			win->x_drag = win->x;
+			win->y_drag = win->y;
+			DrawBorder(0);
+			
 		    }
+		}
 		
 		if (dragging)
 		{
@@ -71,9 +80,9 @@ void event_handler(event_t *event) {
 				mousex += screen.w - (curr_window->x_drag + curr_window->w);
 				curr_window->x_drag = screen.w - curr_window->w;
 			}
-			if(curr_window->y_drag + curr_window->h > screen.h) {
-				mousey += screen.h - (curr_window->y_drag + curr_window->h);
-				curr_window->y_drag = screen.h - curr_window->h;
+			if(curr_window->y_drag + curr_window->h > screen.h - 28) {
+				mousey += screen.h - (curr_window->y_drag + curr_window->h + 28);
+				curr_window->y_drag = screen.h - curr_window->h - 28;
 			}
 			last_x = mousex;
 			last_y = mousey;
@@ -81,9 +90,9 @@ void event_handler(event_t *event) {
 		    }
 		}
 
-		need_cursor = 1;
 		}
 		break;
+	}
 	case EVENT_TYPE_MOUSEDOWN: {
 		down = 1;
 		need_cursor = 1;

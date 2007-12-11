@@ -16,7 +16,7 @@ typedef struct {
 #define EVENT_TYPE_MOUSEMOVE 1
 #define EVENT_TYPE_MOUSEDOWN 2
 #define EVENT_TYPE_MOUSEUP 3
-
+#define EV_MMOVE 5
 typedef struct {
 	int x;
 	int y;
@@ -65,6 +65,7 @@ struct win_info {
 #define WIN_CMD_SETVISIBLE	(7 + 256)
 #define WIN_CMD_SCREEN_INFO	(8 + 256)
 #define WC_NODECORATIONS	1
+#define WC_MOUSEMOVE		2
 #define EV_WINCLOSE 1
 #define EV_MDOWN 2
 #define EV_MUP 3

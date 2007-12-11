@@ -2,11 +2,16 @@
 #include <string.h>
 #include <pgs/pgs.h>
 #include <pgs/controls.h>
+int menu;
 int EventHandler(int hwnd, int class, int a0, int a1, int a2, int a3) {
 	switch(class) {
 	case EV_WINCLOSE:
 		DestroyControlsWindow(hwnd);
 		return 0;
+	case EVC_CLICK:
+		if(menu) DestroyControl(menu);
+		menu = 0;
+		return 1;
 	}
 
 	return 1;
@@ -21,8 +26,9 @@ asmlinkage int main(int argc, char ** argv)
 	int drawing = GetDrawingHandle(hndl);
 	line(drawing, 0, 0, width, 0, 0xD8D8D8);
 	line(drawing, 0, 1, width, 1, 0xF8F8F8);
-
 	int button = CreateButton(hndl, 3, 4, 56, 22, "Start");
+	char *items[] = { "Item 1", "Item 2", "Item 3" };
+	menu = CreateMenu(hndl, width, height - 28 + 4, 3, items); // hndl, 3
 	ControlsWindowVisible(hndl, 1);
 	ControlsMessageLoop();
         GuiEnd();

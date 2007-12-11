@@ -33,6 +33,10 @@ void ControlsMessageLoop() {
 			}
 			break;
 		case EV_MUP:
+			if(win->menu_of) {
+				(win->handler)((int) win, EVC_CLICK, a0, a1 , 0, 0);
+				 break;
+			}
 			for(control_t *ptr = win->control; ptr; ptr=ptr->next) {
 				if(ptr->down) {
 					ptr->down = 0;

@@ -89,6 +89,13 @@ void DestroyControl(int handle) {
 	}
 }
 int MenuEventHandler(int hwnd, int class, int a0, int a1, int a2, int a3) {
+	rootwindow_t *win = (rootwindow_t *) hwnd;
+	rootwindow_t *parent = (rootwindow_t *)win->menu_of;
+	if(class != EVC_CLICK) return 1;
+	if(a0 < 4 || a1 < 4 || a0 > win->w - 4 || a1 > win->h - 4) return 1;
+	int item = a1 / 18;
+	if(item + 1 > win->menu->count) return 1;
+	(parent->handler)((int)  win->menu->control, EVC_MENU, item, 0, 0, 0);
 	return 1;
 }
 int CreateMenu(int hndl, int x, int y, int count, char *items[]) {
@@ -127,6 +134,7 @@ int CreateMenu(int hndl, int x, int y, int count, char *items[]) {
 		y -= height;
 	rootwindow_t *menu = InternalCreateWindow(x, y, width, height, "menu", MenuEventHandler, WC_NODECORATIONS | WC_MOUSEMOVE, hndl, menudt);
 	menudt->win = menu;
+	menudt->control = c;
 	int drawing = GetDrawingHandle((int) menu);
 	line(drawing, 0, 0, width - 2, 0, 0xD8D8D8);
 	line(drawing, 1, 1, width - 3, 1, 0xF8F8F8);

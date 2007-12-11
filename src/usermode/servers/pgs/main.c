@@ -35,8 +35,6 @@ int main(int argc, char *argv) {
 	StartEventHandling();
 	SetBusy(-1);
 	exec("/usr/bin/taskbar", NULL);
-	sched_yield();
-	exec("/bin/test", NULL);
 	for(;;) {
 		if (need_refresh)
 		{

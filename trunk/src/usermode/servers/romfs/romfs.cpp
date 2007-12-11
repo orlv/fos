@@ -43,7 +43,7 @@ unsigned int romfs::read(romfs_inode_t *in, char *ptr, char *buf, size_t size, o
 		return 0;
 	if(size > in->size)
 		size = in->size;
-	printf("read %x %x %x %u %u\n", in, ptr, buf, size, offset);
+//	printf("read %x %x %x %u %u\n", in, ptr, buf, size, offset);
 	memcpy(buf, ptr + offset, size);
 	return size;
 }

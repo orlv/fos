@@ -177,5 +177,14 @@ static inline void * memset(void * s, char c, size_t count)
 		       :"memory");
   return s;
 }
-
+#ifdef __cplusplus
+extern "C" {
+#endif
+char*strtok_r(char*s,const char*delim,char**ptrptr);
+size_t strspn(const char *s, const char *accept);
+size_t strcspn(const char *s, const char *reject);
+char *strsep(char **stringp, const char *delim);
+#ifdef __cplusplus
+}
+#endif
 #endif

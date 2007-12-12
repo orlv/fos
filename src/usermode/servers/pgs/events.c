@@ -43,8 +43,9 @@ void event_handler(event_t *event) {
 					}
 			}
 		}
-		if (down && !win->class & WC_NODECORATIONS)
+		if (down && handle && win)
 		{
+			if(win->class & WC_NODECORATIONS) break;
 		    if (!dragging)
 		    {
 		    if ((win_x>=3) && (win_y>=3) && (win_y<=18) && (win_y<=(win->w-6)))

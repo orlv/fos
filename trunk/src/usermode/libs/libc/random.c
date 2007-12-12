@@ -20,5 +20,5 @@ long int random(void)
 }
 
 void srandom(unsigned int seed) {
-	seed = sd;
+	sd = seed;
 }

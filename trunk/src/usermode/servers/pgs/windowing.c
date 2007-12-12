@@ -121,8 +121,8 @@ int CreateWindow(int x, int y, int tid, int w, int h, char *caption, int class) 
 	if(!class & WC_NODECORATIONS) {
 		h += 21 + 3;
 		w += 3 + 3;
-		win->x = random() % screen.w - w;
-		win->y = random() % screen.h - h - 28;
+		win->x = random() % (screen.w - w);
+		win->y = random() % (screen.h - h - 28);
 	} else {
 		win->x = x;
 		win->y = y;

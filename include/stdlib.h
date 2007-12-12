@@ -14,4 +14,7 @@ userlinkage void *malloc(size_t size);
 userlinkage void free(void *ptr);
 userlinkage void *realloc(void *ptr, size_t size);
 
+#define RAND_MAX 	0x7ffffffe
+userlinkage long int random(void);
+userlinkage void srandom(unsigned int seed);
 #endif

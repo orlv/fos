@@ -99,27 +99,6 @@ void Redraw() {
 	need_cursor = 1;
 	refreshing = 0;
 }
-#define RAND_MAX 	0x7ffffffe
-#define	M	((1U<<31) -1)
-#define	A	48271
-#define	Q	44488		// M/A
-#define	R	3399		// M%A; R < Q !!!
-
-// FIXME: ISO C/SuS want a longer period
-int seed = -1;
-int rand(int limit)
-{
-	if(seed == -1) seed = uptime();
-   unsigned long X;
-
-    X = seed;
-    X = A*(X%Q) - R * (unsigned long) (X/Q);
-    if (X < 0)
-	X += M;
-
-    seed = X;
-	return X % limit;
-}
 
 void WindowMapped(struct window_t *win) {
 //	win->visible = 1;
@@ -142,8 +121,8 @@ int CreateWindow(int x, int y, int tid, int w, int h, char *caption, int class) 
 	if(!class & WC_NODECORATIONS) {
 		h += 21 + 3;
 		w += 3 + 3;
-		win->x = rand(screen.w - w);
-		win->y = rand(screen.h - h - 28);
+		win->x = random() % screen.w - w;
+		win->y = random() % screen.h - h - 28;
 	} else {
 		win->x = x;
 		win->y = y;

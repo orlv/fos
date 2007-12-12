@@ -93,7 +93,7 @@ int MenuEventHandler(int hwnd, int class, int a0, int a1, int a2, int a3) {
 	rootwindow_t *parent = (rootwindow_t *)win->menu_of;
 	if(class != EVC_CLICK) return 1;
 	if(a0 < 4 || a1 < 4 || a0 > win->w - 4 || a1 > win->h - 4) return 1;
-	int item = a1 / 18;
+	int item = a1 / 20;
 	if(item + 1 > win->menu->count) return 1;
 	(parent->handler)((int)  win->menu->control, EVC_MENU, item, 0, 0, 0);
 	return 1;
@@ -126,7 +126,7 @@ int CreateMenu(int hndl, int x, int y, int count, char *items[]) {
 	menudt->selected = 0;
 	menudt->items = itms;
 	int width = maxlen * 8 + 12;
-	int height = count * 18 + 7;
+	int height = count * 20 + 7;
 	if(x + width >= scr_width)
 		x -= width;
 
@@ -145,7 +145,7 @@ int CreateMenu(int hndl, int x, int y, int count, char *items[]) {
 	line(drawing, 0, height - 1, width - 1, height - 1, 0x000000);
 	line(drawing, 1, height - 2, width - 2, height - 2, 0x787878);
 	for(int i = 0; i < count; i++) {
-		pstring(drawing, 3, 4 + i * 16, 0x000000, items[i]);
+		pstring(drawing, 3, 6 + i * 20, 0x000000, items[i]);
 	}
 	ControlsWindowVisible((int) menu, 1);
 	return (int) c;

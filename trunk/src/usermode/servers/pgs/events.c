@@ -43,11 +43,10 @@ void event_handler(event_t *event) {
 					}
 			}
 		}
-		if (down)
+		if (down && !win->class & WC_NODECORATIONS)
 		{
 		    if (!dragging)
 		    {
-		if(win->class & WC_NODECORATIONS) break;
 		    if ((win_x>=3) && (win_y>=3) && (win_y<=18) && (win_y<=(win->w-6)))
 		    {
 			curr_window = win;

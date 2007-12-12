@@ -58,20 +58,20 @@ void ControlsMessageLoop() {
 			if(win->menu_of) {
 				if(a0 < 4 || a1 < 4 || a0 > win->w - 4 || a1 > win->h - 4) {
 					if(win->menu->selected) {
-						rect(win->handle, 4, 4 + (win->menu->selected - 1) * 16, win->w - 8, 16, 0xC3C3C3);
-						pstring(win->handle, 4, 4 + (win->menu->selected - 1) * 16, 0, win->menu->items[win->menu->selected - 1]);
+						rect(win->handle, 4, 4 + (win->menu->selected - 1) * 20, win->w - 8, 20, 0xC3C3C3);
+						pstring(win->handle, 4, 6 + (win->menu->selected - 1) * 20, 0, win->menu->items[win->menu->selected - 1]);
 						RefreshWindow(win->handle);
 						win->menu->selected = 0;
 					}
 					break;
 				}
-				int item = a1 / 18;
+				int item = a1 / 20;
 				if(item + 1 > win->menu->count) break;
-				rect(win->handle, 4, 4 + item * 16, win->w - 8, 16, 0x78);
-				pstring(win->handle, 4, 4 + item * 16, 0xFFFFFF, win->menu->items[item]);
+				rect(win->handle, 4, 4 + item * 20, win->w - 8, 20, 0x78);
+				pstring(win->handle, 4, 6 + item * 20, 0xFFFFFF, win->menu->items[item]);
 				if(win->menu->selected != item + 1 && win->menu->selected) {
-					rect(win->handle, 4, 4 + (win->menu->selected - 1) * 16, win->w - 8, 16, 0xC3C3C3);
-					pstring(win->handle, 4, 4 + (win->menu->selected - 1) * 16, 0, win->menu->items[win->menu->selected - 1]);
+					rect(win->handle, 4, 4 + (win->menu->selected - 1) * 20, win->w - 8, 20, 0xC3C3C3);
+					pstring(win->handle, 4, 6 + (win->menu->selected - 1) * 20, 0, win->menu->items[win->menu->selected - 1]);
 				}
 				win->menu->selected = item + 1;
 				RefreshWindow(win->handle);

@@ -9,6 +9,7 @@
 #include <gui/al.h>
 #include <fos/fos.h>
 #include <sched.h>
+#include <stdlib.h>
 
 #include "windowing.h"
 #include "cursor.h"
@@ -19,6 +20,7 @@ extern context_t *backbuf;
 context_t screen;
 int main(int argc, char *argv) {
 	printf("Portable Graphics System version " VERSION " started up\n");
+	srandom(uptime());
 	printf("Loading resources..\n");
 	cursor = load_file("/usr/share/cursors/cursor.pct");
 	busy = load_file("/usr/share/cursors/busy.pct");

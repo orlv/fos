@@ -22,7 +22,8 @@ OBJECTS		=	close.o		\
 			strspn.o \
 			strcspn.o \
 			strtok_r.o \
-			strsep.o
+			strsep.o \
+			random.o
 
 all:	$(OBJECTS)
 	$(AR) rcs $(OUTPUT) $(OBJECTS)

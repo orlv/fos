@@ -8,16 +8,19 @@ static char *cmds[ITEMS_COUNT] = { "/usr/bin/tetris", "/bin/test" };
 int width, height;
 int hndl;
 int displayed = 0;
+		int menu;
 int EventHandler(int hwnd, int class, int a0, int a1, int a2, int a3) {
 	switch(class) {
 	case EV_WINCLOSE:
 		DestroyControlsWindow(hwnd);
 		return 0;
 	case EVC_CLICK: {
-		int menu;
 		if(!displayed) {
 			menu = CreateMenu(hndl, 0, height - 28, ITEMS_COUNT, items); // hndl, 3
 			displayed = 1;
+		} else {
+			DestroyControl(menu);
+			displayed = 0;
 		}
 		return 1;
 	}

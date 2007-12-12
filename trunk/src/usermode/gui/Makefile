@@ -4,7 +4,7 @@
 
 include config.mk
 
-ITEMS =  libs consoletools gui servers
+ITEMS = taskbar test tetris
 
 # -----------------------------------------------------------------------------
 

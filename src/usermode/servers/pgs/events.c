@@ -43,25 +43,24 @@ void event_handler(event_t *event) {
 					}
 			}
 		}
-		if (down && handle && win)
+		if (down)
 		{
-			if(win->class & WC_NODECORATIONS) break;
-		    if (!dragging)
-		    {
-		    if ((win_x>=3) && (win_y>=3) && (win_y<=18) && (win_y<=(win->w-6)))
-		    {
-			curr_window = win;
-			last_x = mousex;
-			last_y = mousey;
-			SetFocusTo(handle);
-			dragging = 1;
-			win->x_drag = win->x;
-			win->y_drag = win->y;
-			DrawBorder(0);
+			if(handle && win) {
+				if(win->class & WC_NODECORATIONS) break;
+			if (!dragging)  {
+				if ((win_x>=3) && (win_y>=3) && (win_y<=18) && (win_y<=(win->w-6))) {
+					curr_window = win;
+					last_x = mousex;
+					last_y = mousey;
+					SetFocusTo(handle);
+					dragging = 1;
+					win->x_drag = win->x;
+					win->y_drag = win->y;
+					DrawBorder(0);
 			
-		    }
+				}
+			}
 		}
-		
 		if (dragging)
 		{
 		    if (curr_window)

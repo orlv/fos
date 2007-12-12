@@ -51,7 +51,7 @@ void ControlsMessageLoop() {
 			if(!control)
 				break;
 			if(control->class == CONTROL_BUTTON) {
-				if(!(win->handler)((int) control, EVC_CLICK, a0 - control->x, a1 - control->y, 0, 0)) break;
+				if(!(win->handler)((int) control, EVC_CLICK, a0 - control->x, a1 - control->y, 0, 0)) return;
 			}
 			break;
 		case EV_MMOVE:
@@ -65,7 +65,7 @@ void ControlsMessageLoop() {
 					}
 					break;
 				}
-				int item = a1 / 20;
+				int item = (a1 - 4) / 20;
 				if(item + 1 > win->menu->count) break;
 				rect(win->handle, 4, 4 + item * 20, win->w - 8, 20, 0x78);
 				pstring(win->handle, 4, 6 + item * 20, 0xFFFFFF, win->menu->items[item]);

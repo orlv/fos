@@ -243,6 +243,12 @@ void EventsThread()
 		msg.flags = 0;
 		reply(&msg);
 		break;	
+	case FS_CMD_CLOSE:
+		msg.arg[0] = 0;
+		msg.arg[2] = NO_ERR;
+		msg.send_size = 0;
+		reply(&msg);	
+		break;
       default:
 	printf("main events thread received message: %u %u %u %u\n", msg.arg[0], msg.arg[1], msg.arg[2], msg.arg[3]);
 	msg.arg[0] = 0;
@@ -355,6 +361,12 @@ void MappingThread() {
 
 			break;
 		}
+	case FS_CMD_CLOSE:
+		msg.arg[0] = 0;
+		msg.arg[2] = NO_ERR;
+		msg.send_size = 0;
+		reply(&msg);	
+		break;
 		default:
 			printf("message: %u %u %u %u\n", msg.arg[0], msg.arg[1], msg.arg[2], msg.arg[3]);
 			msg.arg[0] = 0;

@@ -21,7 +21,8 @@ userlinkage ssize_t write(int fildes, const void *buf, size_t bytes);
 
 userlinkage off_t lseek(int fildes, off_t offset, int whence);
 
-asmlinkage ssize_t write2(int fildes, const void *buf, size_t nbyte);
-asmlinkage ssize_t read2(int fildes, void *buf, size_t nbyte);
+int getopt(int argc, char * const argv[], const char *optstring);
+extern char *optarg;
+extern int optind, opterr, optopt;
 
 #endif

@@ -18,12 +18,19 @@ OBJECTS		=	close.o		\
 			printf.o	\
 			time.o		\
 			stat.o		\
-			fstat.o	\
+			fstat.o		\
 			strspn.o \
 			strcspn.o \
 			strtok_r.o \
 			strsep.o \
-			random.o
+			random.o \
+			opendir.o \
+			getopt.o \
+			readdir.o \
+			closedir.o \
+			rewinddir.o \
+			seekdir.o \
+			telldir.o
 
 all:	$(OBJECTS)
 	$(AR) rcs $(OUTPUT) $(OBJECTS)

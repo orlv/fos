@@ -4,7 +4,7 @@
 
 include config.mk
 
-ITEMS = init ipctest shell fortune
+ITEMS = init ipctest shell fortune coreutils
 
 # -----------------------------------------------------------------------------
 

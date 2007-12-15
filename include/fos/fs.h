@@ -20,6 +20,10 @@
 #define FS_CMD_FSTAT  5
 #define FS_CMD_CLOSE  6
 
+#define FS_CMD_DIROPEN	7
+#define FS_CMD_DIRCLOSE	8
+#define FS_CMD_DIRREAD	9
+
 #define BASE_CMD_N 64
 
 #define NO_ERR                0
@@ -46,6 +50,18 @@ typedef struct fd* fd_t;
 struct xfer_databuf {
   size_t data_size;
   off_t name_offs;
+};
+
+#include <dirent.h>
+
+struct dirfd {
+  tid_t	thread;
+  ino_t	inode;
+  off_t	offset;
+  size_t	inodes;
+  const char *fullname;
+  struct dirent ent;
+  //  char *name;
 };
 
 #define xfer_databuf_of(ptr, size) ({\

@@ -1,20 +1,16 @@
-/*
-  Copyright (C) 2007 Oleg Fedorov
- */
-
-#include <fos/message.h>
 #include <fos/fs.h>
+#include <unistd.h>
+#include <fos/message.h>
 #include <stdlib.h>
-
-int close(int fildes)
+int closedir(DIR *dir)
 {
-  if(!fildes || fildes < 0)
+  if(!dir)
     return -1;
 
-  fd_t fd = (fd_t) fildes;
+  struct dirfd *fd = (struct dirfd *) dir;
   
   struct message msg;
-  msg.arg[0] = FS_CMD_CLOSE;
+  msg.arg[0] = FS_CMD_DIRCLOSE;
   msg.arg[1] = fd->inode;
   msg.send_size = 0;
   msg.recv_size = 0;
@@ -22,7 +18,7 @@ int close(int fildes)
   msg.tid = fd->thread;
   
   free(fd->fullname);
-  free((fd_t) fildes);
+  free(fd);
 
   do_send(&msg);
   

@@ -7,7 +7,7 @@
 #include <string.h>
 #include <fos/message.h>
 DIR *opendir(const char *name) {
-	volatile struct message msg;
+	struct message msg;
 	msg.arg[0] = FS_CMD_DIROPEN;
 	size_t len = strlen(name);
 	if(len > MAX_PATH_LEN)

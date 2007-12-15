@@ -2,13 +2,15 @@
 #include <string.h>
 #include <pgs/pgs.h>
 #include <pgs/controls.h>
+#include <fos/fos.h>
+
 #define ITEMS_COUNT 2
 static char *items[ITEMS_COUNT] = { "Tetris", "Test" };
 static char *cmds[ITEMS_COUNT] = { "/usr/bin/tetris", "/bin/test" };
 int width, height;
 int hndl;
 int displayed = 0;
-		int menu;
+int menu;
 int EventHandler(int hwnd, int class, int a0, int a1, int a2, int a3) {
 	switch(class) {
 	case EV_WINCLOSE:

@@ -81,7 +81,7 @@ void gameover()
 void game_thread()
 {
   int pos;
-
+  srandom(uptime());
   setup_board();
   redraw();
   curshape = randshape();

@@ -1,5 +1,8 @@
 #include <string.h>
+#include <stdlib.h>
 #include "shapes.h"
+
+
 #define	TL	-B_COLS-1	/* top left */
 #define	TC	-B_COLS		/* top center */
 #define	TR	-B_COLS+1	/* top right */
@@ -8,6 +11,7 @@
 #define	BL	B_COLS-1	/* bottom left */
 #define	BC	B_COLS		/* bottom center */
 #define	BR	B_COLS+1	/* bottom right */
+
 struct shape shapes[] = {
 	/* 0*/	{ 7,	{ TL, TC, MR, } },
 	/* 1*/	{ 8,	{ TC, TR, ML, } },

@@ -59,6 +59,7 @@ asmlinkage int main()
       break;
 
     case FS_CMD_ACCESS:
+    case FS_CMD_DIROPEN:
       //printf("namer: requested access to [%s]\n", pathname);
       obj = namer->resolve(pathname);
       //printf("[0x%X]", obj);

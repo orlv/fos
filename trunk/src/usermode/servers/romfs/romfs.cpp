@@ -49,6 +49,10 @@ unsigned int romfs::read(romfs_inode_t *in, char *ptr, char *buf, size_t size, o
 }
 char * romfs::search_file(char *name, romfs_inode_t *in, romfs_inode_t *parent) {
 	if(parent == NULL) parent = (romfs_inode_t *)(fs + sb_size);
+	if(!strlen(name)) {
+		memcpy(in, parent, sizeof(*in));
+		return (char *)in;
+	}
 	int i = 0;
 	for(romfs_inode_t *ptr = parent;
 			ptr != (romfs_inode_t *) fs;
@@ -62,7 +66,7 @@ char * romfs::search_file(char *name, romfs_inode_t *in, romfs_inode_t *parent) 
 	return NULL;
 }
 
-char * romfs::search_path(char *name, romfs_inode_t *inode) {
+char * romfs::search_path(char *name, romfs_inode_t *inode, int need_directory) {
 	char *part = new char[256];
 	int i = 1;
 	romfs_inode_t inl;
@@ -82,6 +86,10 @@ char * romfs::search_path(char *name, romfs_inode_t *inode) {
 		ptr = search_file(part, in, parent);
 		if(ptr == NULL) {
 			delete part;
+			if(need_directory) {
+				memcpy(inode, parent, sizeof(*parent));
+				return (char *)inode;
+			}
 			return NULL;
 		}
 scan_inode:
@@ -96,9 +104,16 @@ scan_inode:
 			return ptr;
 		}
 		if(type == ROMFS_HARDLINK) {
+			if((romfs_inode_t *)(fs + inl.info) == in) {
+				delete part;
+				if(need_directory) {
+					memcpy(inode, parent, sizeof(*parent));
+					return (char *)inode;
+				}
+				return NULL;
+			}
 			in = (romfs_inode_t *)(fs + inl.info);
 			ptr = (char *)ROMFS_ALIGN(in + sizeof(*in) + strlen(in->name));
-			printf("hardlink to inode %x\n", in);
 			goto scan_inode;
 		}
 		printf("unknown type - %x\n", type);
@@ -126,3 +141,20 @@ void romfs::stat(romfs_inode_t *inode, struct stat* st) {
 	st->st_ctime   = 0;
 }
 
+int romfs::get_ent_count(romfs_inode_t *inode) {
+	int i = 0;
+	for(romfs_inode_t *ptr = inode;
+			ptr != (romfs_inode_t *) fs;
+			ptr = (romfs_inode_t *)(fs + ROMFS_NEXT(ptr->next)), i++);
+	return i;
+}
+romfs_inode_t *romfs::get_inode(romfs_inode_t *parent, int offset) {
+	int i = 0;
+	for(romfs_inode_t *ptr = parent;
+		ptr != (romfs_inode_t *) fs;
+		ptr = (romfs_inode_t *)(fs + ROMFS_NEXT(ptr->next)), i++) {
+		if(i == offset)
+			return ptr;
+	}
+	return NULL;
+}

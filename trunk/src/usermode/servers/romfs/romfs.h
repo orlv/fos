@@ -45,8 +45,10 @@ private:
 public:
 	romfs(char *filename);
 	unsigned int read(romfs_inode_t *in, char *ptr, char *buf, size_t size, off_t offset);
-	char *search_path(char *name, romfs_inode_t *inode);
+	char *search_path(char *name, romfs_inode_t *inode, int need_directory);
 	void stat(romfs_inode_t *inode, struct stat *st);
+	int get_ent_count(romfs_inode_t *inode);
+	romfs_inode_t *get_inode(romfs_inode_t *parent, int offset);
 	~romfs();
 };
 #endif

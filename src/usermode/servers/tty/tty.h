@@ -11,9 +11,8 @@
 #define TTY_MODE_BLOCK  0
 #define TTY_MODE_CHAR   1
 
-class TTY
-{
- private:
+class TTY {
+private:
   size_t bufsize;
 
   u8_t textcolor;
@@ -22,7 +21,7 @@ class TTY
 
   off_t offs;
   u32_t mode;
-  
+
   struct TTY_GEOMETRY {
     size_t width;
     size_t height;
@@ -32,13 +31,12 @@ class TTY
   void out_ch(const char ch);
   u16_t *buffer;
 
- public:
-  TTY(u16_t width, u16_t height);
+public:
+   TTY(u16_t width, u16_t height);
   ~TTY();
 
   size_t read(off_t offset, void *buf, size_t count);
   size_t write(off_t offset, const void *buf, size_t count);
-
 
   void refresh();
   void set_mode(u32_t mode);

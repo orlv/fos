@@ -1,13 +1,20 @@
+/*
+  Copyright (C) 2007 Serge Gridassov
+ */
+
 #ifndef SHAPES_H
 #define SHAPES_H
+
 #include <fos/fos.h>
+
 struct shape {
-	int	rot;	/* index of rotated version of this shape */
-	int	off[3];	/* offsets to other blots if center is at (0,0) */
-	unsigned long color;
+  int rot;			/* index of rotated version of this shape */
+  int off[3];			/* offsets to other blots if center is at (0,0) */
+  unsigned long color;
 };
+
 extern unsigned long board[];
-extern  struct shape *curshape;
+extern struct shape *curshape;
 void place(struct shape *shape, int pos, int onoff);
 extern struct shape shapes[];
 
@@ -24,4 +31,5 @@ extern int tsleep();
 int fits_in(struct shape *shape, int pos);
 void elide();
 void pcolor(struct shape *shape);
+
 #endif

@@ -35,20 +35,21 @@ asmlinkage int main()
   Tobject *obj;
   message *msg = new message;
   char *pathname = new char[MAX_PATH_LEN];
+
   //char *path_tail = new char[MAX_PATH_LEN];
 
-  while(1){
+  while (1) {
     msg->recv_size = MAX_PATH_LEN;
 
-    msg->recv_buf  = pathname;
+    msg->recv_buf = pathname;
     msg->tid = _MSG_SENDER_ANY;
     receive(msg);
-    switch(msg->arg[0]){
+    switch (msg->arg[0]) {
     case NAMER_CMD_ADD:
       //printf("namer: adding [%s]\n", pathname);
       obj = namer->add(pathname, msg->tid);
 
-      if(obj)
+      if (obj)
 	msg->arg[0] = RES_SUCCESS;
       else
 	msg->arg[0] = RES_FAULT;
@@ -61,12 +62,12 @@ asmlinkage int main()
       //printf("namer: requested access to [%s]\n", pathname);
       obj = namer->resolve(pathname);
       //printf("[0x%X]", obj);
-      if(obj->sid){
+      if (obj->sid) {
 	//strcpy(pathname, path_tail);
 	//printf("namer: access granted [%s]\n", pathname);
 	msg->send_size = strlen(pathname);
 	msg->send_buf = pathname;
-	if(forward(msg, obj->sid) != RES_SUCCESS){
+	if (forward(msg, obj->sid) != RES_SUCCESS) {
 	  msg->arg[0] = 0;
 	  msg->arg[2] = ERR_NO_SUCH_FILE;
 	  reply(msg);
@@ -83,11 +84,11 @@ asmlinkage int main()
 
     case FS_CMD_STAT:
       obj = namer->resolve(pathname);
-      if(obj->sid){
+      if (obj->sid) {
 	//strcpy(pathname, path_tail);
 	msg->send_size = strlen(pathname);
 	msg->send_buf = pathname;
-	if(forward(msg, obj->sid) != RES_SUCCESS){
+	if (forward(msg, obj->sid) != RES_SUCCESS) {
 	  msg->arg[0] = 0;
 	  msg->arg[2] = ERR_NO_SUCH_FILE;
 	  reply(msg);
@@ -101,24 +102,23 @@ asmlinkage int main()
       //memset(path_tail, 0, MAX_PATH_LEN);
       break;
 
-    case NAMER_CMD_RESOLVE: {
-      //printf("namer: resolving [%s]\n", pathname);
-      obj = namer->resolve(pathname);
-      if(obj->sid) {
-	msg->send_size = msg->arg[0] = strlen(pathname);
-	msg->send_buf = pathname;
-	msg->arg[1] = obj->sid;
-	msg->arg[2] = NO_ERR;
-      } else {
-	msg->send_size = 0;
-	msg->arg[1] = 0;
-	msg->arg[2] = ERR_NO_SUCH_FILE;
+    case NAMER_CMD_RESOLVE:{
+	//printf("namer: resolving [%s]\n", pathname);
+	obj = namer->resolve(pathname);
+	if (obj->sid) {
+	  msg->send_size = msg->arg[0] = strlen(pathname);
+	  msg->send_buf = pathname;
+	  msg->arg[1] = obj->sid;
+	  msg->arg[2] = NO_ERR;
+	} else {
+	  msg->send_size = 0;
+	  msg->arg[1] = 0;
+	  msg->arg[2] = ERR_NO_SUCH_FILE;
+	}
+	reply(msg);
+	break;
       }
-      reply(msg);
-      break;
-    }
 
-      
     default:
       msg->send_size = 0;
       msg->arg[0] = 0;
@@ -131,31 +131,35 @@ asmlinkage int main()
 static inline size_t p_len(string p)
 {
   size_t i = 0;
+
   while (p[i] && (p[i] != '/'))
     i++;
   return i;
 }
 
-List<string> * path_strip(const string path)
+List < string > *path_strip(const string path)
 {
   string name;
   size_t len;
   string p = path;
-  List<string> *lpath = 0;
 
-  while(1){
-    while (*p == '/') p++;
-    
-    if((len = p_len(p))){
+  List < string > *lpath = 0;
+
+  while (1) {
+    while (*p == '/')
+      p++;
+
+    if ((len = p_len(p))) {
       name = new char[len + 1];
+
       strncpy(name, p, len);
-      if(lpath)
+      if (lpath)
 	lpath->add_tail(name);
       else
-	lpath = new List<string>(name);
+	lpath = new List < string > (name);
       p += len;
-    }
-    else break;
+    } else
+      break;
   }
 
   return lpath;
@@ -174,14 +178,14 @@ Tobject::Tobject(const string name, sid_t sid)
 
 Tobject::~Tobject()
 {
-  List<Tobject *> *entry, *n;
+  List < Tobject * >*entry, *n;
   delete name;
-  
-  list_for_each_safe(entry, n, sub_objects){
+
+  list_for_each_safe(entry, n, sub_objects) {
     delete entry->item;
     delete entry;
   }
-  
+
   delete sub_objects;
 }
 
@@ -189,48 +193,51 @@ void Tobject::set_name(const string name)
 {
   delete this->name;
   this->name = new char[strlen(name) + 1];
+
   strcpy(this->name, name);
 }
 
-Tobject * Tobject::add_sub(const string name, sid_t sid)
+Tobject *Tobject::add_sub(const string name, sid_t sid)
 {
   Tobject *object = new Tobject(name, sid);
-  if(sub_objects){
+
+  if (sub_objects) {
     sub_objects->add_tail(object);
   } else {
-    sub_objects = new List<Tobject *>(object);
+    sub_objects = new List < Tobject * >(object);
   }
   return object;
 }
 
-Tobject * Tobject::add_sub(const string name)
+Tobject *Tobject::add_sub(const string name)
 {
   Tobject *object = new Tobject(name);
-  if(sub_objects){
+
+  if (sub_objects) {
     sub_objects->add_tail(object);
   } else {
-    sub_objects = new List<Tobject *>(object);
+    sub_objects = new List < Tobject * >(object);
   }
   return object;
 }
 
-Tobject * Tobject::access(const string name)
+Tobject *Tobject::access(const string name)
 {
-  if(!sub_objects)
+  if (!sub_objects)
     return 0;
 
-  List<Tobject *> *entry = sub_objects;
-  Tobject * object;
+  List < Tobject * >*entry = sub_objects;
+  Tobject *object;
 
   /* Пытаемся найти объект */
   do {
     object = entry->item;
-    if(!strcmp(object->name, name)) {
+    if (!strcmp(object->name, name)) {
       return object;
     }
     entry = entry->next;
   } while (entry != sub_objects);
-  
+
   return 0;
 }
 
@@ -240,25 +247,26 @@ Namer::Namer()
 }
 
 /* режет строку пути на список из элементов пути */
-List<string> * path_strip(const string path);
+List < string > *path_strip(const string path);
 
-Tobject * Namer::resolve(string name)
+Tobject *Namer::resolve(string name)
 {
-  if(strlen(name) == 1 && (strcmp(name, ".") || strcmp(name, "/"))){
+  if (strlen(name) == 1 && (strcmp(name, ".") || strcmp(name, "/"))) {
     return rootdir;
   }
 
-  List<string> *path = path_strip(name);
-  List<string> *entry = path;
-  Tobject * object = rootdir;
-  Tobject * obj = object;
-  List<string> *e = path;
+  List < string > *path = path_strip(name);
+  List < string > *entry = path;
+  Tobject *object = rootdir;
+  Tobject *obj = object;
+
+  List < string > *e = path;
 
   /* отыщем сервер */
   do {
-    if(!(object = object->access(entry->item)))
+    if (!(object = object->access(entry->item)))
       break;
-    if(object->sid){
+    if (object->sid) {
       obj = object;
       e = entry;
     }
@@ -266,10 +274,10 @@ Tobject * Namer::resolve(string name)
   } while (entry != path);
 
   name[0] = 0;
-    
+
   /* создадим строку с окончанием пути (необходимо передать
      её конечному серверу) */
-  if(obj->sid != rootdir->sid) {
+  if (obj->sid != rootdir->sid) {
     e = e->next;
     if (e == path)
       strcat(name, ".");
@@ -280,14 +288,14 @@ Tobject * Namer::resolve(string name)
 	e = e->next;
       } while (e != path);
   } else {
-      do {
-	strcat(name, "/");
-	strcat(name, e->item);
-	e = e->next;
-      } while (e != path);
+    do {
+      strcat(name, "/");
+      strcat(name, e->item);
+      e = e->next;
+    } while (e != path);
   }
 
-  list_for_each_safe(entry, e, path){
+  list_for_each_safe(entry, e, path) {
     delete entry->item;
     delete entry;
   }
@@ -303,32 +311,32 @@ Tobject * Namer::resolve(string name)
  */
 Tobject *Namer::add(const string name, sid_t sid)
 {
-  if(strlen(name) == 1 && (strcmp(name, ".") || strcmp(name, "/"))){
+  if (strlen(name) == 1 && (strcmp(name, ".") || strcmp(name, "/"))) {
     rootdir->sid = sid;
     return rootdir;
   }
 
-  List<string> *path = path_strip(name);
-  List<string> *entry = path;
+  List < string > *path = path_strip(name);
+  List < string > *entry = path;
   string n;
- 
-  Tobject * object = rootdir;
-  Tobject * obj;
+
+  Tobject *object = rootdir;
+  Tobject *obj;
 
   do {
     n = entry->item;
-    if(!(obj = object->access(n))){
+    if (!(obj = object->access(n))) {
       obj = object->add_sub(n);
     }
     object = obj;
 
     delete n;
-    
+
     entry = entry->next;
   } while (entry != path);
 
-  List<string> *e;
-  list_for_each_safe(entry, e, path){
+  List < string > *e;
+  list_for_each_safe(entry, e, path) {
     delete entry;
   }
   delete path;

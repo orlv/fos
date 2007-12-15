@@ -12,32 +12,32 @@
 #include <types.h>
 #include <c++/list.h>
 
-class Tobject{
- public:
+class Tobject {
+public:
   Tobject(const string name, sid_t sid);
-  Tobject(const string name);
+   Tobject(const string name);
   ~Tobject();
 
   sid_t sid;
   string name;
-  List<Tobject *> *sub_objects; /* объект может содержать в себе другие объекты */
+   List < Tobject * >*sub_objects;	/* объект может содержать в себе другие объекты */
 
-  void set_name(const string name); /* меняет имя объекта */
+  void set_name(const string name);	/* меняет имя объекта */
 
-  Tobject * add_sub(const string name, sid_t sid);
-  Tobject * add_sub(const string name);
+  Tobject *add_sub(const string name, sid_t sid);
+  Tobject *add_sub(const string name);
 
-  Tobject * access(const string name);
+  Tobject *access(const string name);
 };
 
 class Namer {
- public:
-  Tobject *rootdir;
+public:
+  Tobject * rootdir;
   Namer();
 
-  Tobject * resolve(const string name);
-  Tobject * add(const string name, sid_t sid);
-  
+  Tobject *resolve(const string name);
+  Tobject *add(const string name, sid_t sid);
+
   //res_t remove(const string name);
   //obj_info_t *list(off_t offset);  
 };

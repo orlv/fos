@@ -6,7 +6,6 @@
    - (Thu Jun 28 02:11:53 2007) Немного упрощено. Олег.
 */
 
-
 #include "vga.h"
 #include "tty.h"
 #include <string.h>
@@ -35,6 +34,7 @@ TTY::~TTY()
 void TTY::scroll_up()
 {
   off_t i;
+
   for (i = 0; i < geom.width * (geom.height - 1); i++) {
     buffer[i] = buffer[i + geom.width];
   }
@@ -65,14 +65,14 @@ void TTY::out_ch(const char ch)
     break;
 
   case 0x08:
-    if(offs % geom.width) {
+    if (offs % geom.width) {
       offs--;
       buffer[offs] = ' ' | color;
     }
     break;
 
   default:
-    if (ch >= 0x20){
+    if (ch >= 0x20) {
       offs++;
       if (offs > bufsize / 2) {
 	scroll_up();
@@ -85,7 +85,7 @@ void TTY::out_ch(const char ch)
 
 size_t TTY::write(off_t offset, const void *buf, size_t count)
 {
-  if(mode == TTY_MODE_BLOCK){
+  if (mode == TTY_MODE_BLOCK) {
     for (size_t i = 0; i < count; i++)
       out_ch(((const char *)buf)[i]);
     refresh();
@@ -97,17 +97,18 @@ size_t TTY::write(off_t offset, const void *buf, size_t count)
 
 size_t TTY::read(off_t offset, void *buf, size_t count)
 {
-  if(count + offset > bufsize/2)
-    count = bufsize/2 - offset;
+  if (count + offset > bufsize / 2)
+    count = bufsize / 2 - offset;
 
   char ch;
   size_t i, j;
-  for(i=offset, j=0; (i < (offset + count)) && (i < offs) ; i++){
+
+  for (i = offset, j = 0; (i < (offset + count)) && (i < offs); i++) {
     ch = buffer[i] & 0xff;
-    if(ch){
+    if (ch) {
       ((char *)buf)[j] = ch;
       j++;
-    } else if(!((i+1)%geom.width)){
+    } else if (!((i + 1) % geom.width)) {
       ((char *)buf)[j] = '\n';
       j++;
     }

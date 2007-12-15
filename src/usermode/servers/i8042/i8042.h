@@ -1,3 +1,6 @@
+#ifndef _i8042_H
+#define _i8042_H
+
 /*
  * 8042 - PC/AT Keyboard Controller
  *
@@ -19,81 +22,81 @@
  *                   command, otherwise the data is written directly to the
  *                   keyboard.
  */
-#define KBD_DATA        0x60    /* read/write keyboard data/commands */
-#define KBDC_XT_CTL     0x61    /* read/write XT keyboard control */
-#define KBDC_AT_CTL     0x64    /* read status, write AT kbdc cmds */
+#define KBD_DATA        0x60	/* read/write keyboard data/commands */
+#define KBDC_XT_CTL     0x61	/* read/write XT keyboard control */
+#define KBDC_AT_CTL     0x64	/* read status, write AT kbdc cmds */
 
 /*
  * XT Keyboard Control Register (port 61h read/write)
  */
-#define KBDC_XT_ENABLE  0x40    /* enable KBCLK as an output */
-#define KBDC_XT_CLEAR   0x80    /* clear XT keyboard data register */
+#define KBDC_XT_ENABLE  0x40	/* enable KBCLK as an output */
+#define KBDC_XT_CLEAR   0x80	/* clear XT keyboard data register */
 
 /*
  * 8042 Status Register (port 64h read)
  */
-#define KBSTS_DATAVL    0x01    /* output reg (60h) has data for system */
-#define KBSTS_CMDBSY    0x02    /* input reg (60h/64h) has data for 8042 */
-#define KBSTS_SYSFLG    0x04    /* system flag (0=cold, 1=warm boot) */
-#define KBSTS_INCMD     0x08    /* data in input reg. is 1=command or 0=data */
-#define KBSTS_UNLOCKED  0x10    /* keyboard key 1=unlocked or 0=locked */
+#define KBSTS_DATAVL    0x01	/* output reg (60h) has data for system */
+#define KBSTS_CMDBSY    0x02	/* input reg (60h/64h) has data for 8042 */
+#define KBSTS_SYSFLG    0x04	/* system flag (0=cold, 1=warm boot) */
+#define KBSTS_INCMD     0x08	/* data in input reg. is 1=command or 0=data */
+#define KBSTS_UNLOCKED  0x10	/* keyboard key 1=unlocked or 0=locked */
 #define KBSTS_AUX_DATAVL 0x20	/* output reg (60h) has aux data for system */
-#define KBSTS_RTIMO     0x40    /* 1=receive timeout error */
-#define KBSTS_PERR      0x80    /* receive parity error */
+#define KBSTS_RTIMO     0x40	/* 1=receive timeout error */
+#define KBSTS_PERR      0x80	/* receive parity error */
 
 /*
  * 8042 Command Byte format
  */
-#define KBCB_ENINTR	0x01    /* 1=enable `output register full' interrupt */
-#define KBCB_AUXINTR	0x02    /* 1=enable `aux register full' interrupt */
-#define KBCB_SYSFLG	0x04    /* system flag (0=cold, 1=warm boot) */
-#define KBCB_IGNLOCK	0x08    /* ignore keyboard lock (inhibit override) */
-#define KBCB_DISKBD	0x10    /* disable keyboard, drives clock line low */
-#define KBCB_AUXDIS	0x20    /* disable aux device */
-#define KBCB_TRANSL	0x40    /* 1=translate codes to Set 1, 0=pass Set 2 codes */
+#define KBCB_ENINTR	0x01	/* 1=enable `output register full' interrupt */
+#define KBCB_AUXINTR	0x02	/* 1=enable `aux register full' interrupt */
+#define KBCB_SYSFLG	0x04	/* system flag (0=cold, 1=warm boot) */
+#define KBCB_IGNLOCK	0x08	/* ignore keyboard lock (inhibit override) */
+#define KBCB_DISKBD	0x10	/* disable keyboard, drives clock line low */
+#define KBCB_AUXDIS	0x20	/* disable aux device */
+#define KBCB_TRANSL	0x40	/* 1=translate codes to Set 1, 0=pass Set 2 codes */
 
 /*
  * 8042 Keyboard Test Reply Bytes
  */
-#define KBTEST_OK       0x00    /* no error */
-#define KBTEST_CLKLOW   0x01    /* keyboard clock line is stuck low */
-#define KBTEST_CLKHIGH  0x02    /* keyboard clock line is stuck high */
-#define KBTEST_DATLOW   0x03    /* keyboard data line is stuck low */
-#define KBTEST_DATHIGH  0x04    /* keyboard data line is stuck high */
+#define KBTEST_OK       0x00	/* no error */
+#define KBTEST_CLKLOW   0x01	/* keyboard clock line is stuck low */
+#define KBTEST_CLKHIGH  0x02	/* keyboard clock line is stuck high */
+#define KBTEST_DATLOW   0x03	/* keyboard data line is stuck low */
+#define KBTEST_DATHIGH  0x04	/* keyboard data line is stuck high */
 
 /*
  * 8042 Input Port Bits
  */
-#define KBINP_JSET      0x01    /* manufacturer jumper set */
-#define KBINP_RAM       0x10    /* motherboard RAM size */
-#define KBINP_VMONO     0x40    /* monochrome video adapter */
-#define KBINP_UNLOCKED  0x80    /* keyboard lock opened */
+#define KBINP_JSET      0x01	/* manufacturer jumper set */
+#define KBINP_RAM       0x10	/* motherboard RAM size */
+#define KBINP_VMONO     0x40	/* monochrome video adapter */
+#define KBINP_UNLOCKED  0x80	/* keyboard lock opened */
 
 /*
  * 8042 Output Port Bits
  */
-#define KBOUTP_SYSRST   0x01    /* system reset line inverted */
-#define KBOUTP_A20      0x02    /* gate A20 */
-#define KBOUTP_OUTFULL  0x10    /* output buffer full */
-#define KBOUTP_INEMPTY  0x20    /* input buffer empty */
-#define KBOUTP_KBDCLK   0x40    /* keyboard clock (output) */
-#define KBOUTP_KBDDAT   0x80    /* keyboard data (output) */
+#define KBOUTP_SYSRST   0x01	/* system reset line inverted */
+#define KBOUTP_A20      0x02	/* gate A20 */
+#define KBOUTP_OUTFULL  0x10	/* output buffer full */
+#define KBOUTP_INEMPTY  0x20	/* input buffer empty */
+#define KBOUTP_KBDCLK   0x40	/* keyboard clock (output) */
+#define KBOUTP_KBDDAT   0x80	/* keyboard data (output) */
 
 /*
  * 8042 Commands Related to PC Systems  (Port 64h)
  */
-#define KBDC_RCMD	0x20    /* Read 8042 Command Byte via port 60h */
-#define KBDC_WCMD	0x60    /* Write 8042 Command Byte via port 60h */
-#define KBDC_DISAUX	0xA7    /* Disable Auxiliary Interface */
-#define KBDC_ENAUX	0xA8    /* Enable Auxiliary Interface */
-#define KBDC_SELFTEST	0xAA    /* Self Test: result at port 60h, 55h=OK, kbd disabled */
-#define KBDC_KBDTEST	0xAB    /* Keyboard Interface Test: see KBTEST_XX results */
-#define KBDC_DISKBD	0xAD    /* Disable Keyboard Interface: drive clock low */
-#define KBDC_ENKBD	0xAE    /* Enable Keyboard Interface: enable clock */
-#define KBDC_RINP	0xC0    /* Read Input Port */
-#define KBDC_ROUTP	0xD0    /* Read Output Port */
-#define KBDC_WOUTP	0xD1    /* Write Output Port, only bit A20 is writable */
-#define KBDC_WAUX	0xD4    /* Send byte to auxiliary device */
+#define KBDC_RCMD	0x20	/* Read 8042 Command Byte via port 60h */
+#define KBDC_WCMD	0x60	/* Write 8042 Command Byte via port 60h */
+#define KBDC_DISAUX	0xA7	/* Disable Auxiliary Interface */
+#define KBDC_ENAUX	0xA8	/* Enable Auxiliary Interface */
+#define KBDC_SELFTEST	0xAA	/* Self Test: result at port 60h, 55h=OK, kbd disabled */
+#define KBDC_KBDTEST	0xAB	/* Keyboard Interface Test: see KBTEST_XX results */
+#define KBDC_DISKBD	0xAD	/* Disable Keyboard Interface: drive clock low */
+#define KBDC_ENKBD	0xAE	/* Enable Keyboard Interface: enable clock */
+#define KBDC_RINP	0xC0	/* Read Input Port */
+#define KBDC_ROUTP	0xD0	/* Read Output Port */
+#define KBDC_WOUTP	0xD1	/* Write Output Port, only bit A20 is writable */
+#define KBDC_WAUX	0xD4	/* Send byte to auxiliary device */
 
 /*
  * Commands System Issues to Keyboard (via 8042 port 60h)
@@ -149,34 +152,36 @@
  * Read data from keyboard controller.
  * Return 1 on success, 0 when no data is available.
  */
-int i8042_read (unsigned char *val);
+int i8042_read(unsigned char *val);
 
 /*
  * Send two-byte command to the device on a primary port.
  */
-int i8042_kbd_command (int cmd, int param);
+int i8042_kbd_command(int cmd, int param);
 
 /*
  * Look to see if we can find a device on the primary port.
  */
-int i8042_kbd_probe (void);
+int i8042_kbd_probe(void);
 
 /*
  * Enable keyboard device and interrupt.
  */
-void i8042_kbd_enable (void);
+void i8042_kbd_enable(void);
 
 /*
  * Write to auxiliary device.
  */
-void i8042_aux_write (int val);
+void i8042_aux_write(int val);
 
 /*
  * Look to see if we can find a device on the aux port.
  */
-int i8042_aux_probe (void);
+int i8042_aux_probe(void);
 
 /*
  * Enable auxiliary device and interrupt.
  */
-void i8042_aux_enable (void);
+void i8042_aux_enable(void);
+
+#endif

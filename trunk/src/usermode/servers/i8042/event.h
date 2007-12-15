@@ -2,8 +2,8 @@
 #define __EVENT_H
 
 typedef struct _mouse_move_t {
-	unsigned short buttons;			/* current button state */
-	signed short int dx, dy, dz;		/* change in position */
+  unsigned short buttons;	/* current button state */
+  signed short int dx, dy, dz;	/* change in position */
 } mouse_move_t;
 
 #define MOUSE_BTN_LEFT		01
@@ -14,10 +14,11 @@ typedef struct _mouse_move_t {
  * Generic keyboard interface.
  */
 typedef struct _keyboard_event_t {
-	unsigned short key;		/* Unicode symbol */
-	unsigned short modifiers;	/* ctrl, alt etc. */
-	unsigned short release;		/* 0 - press, 1 - release */
+  unsigned short key;		/* Unicode symbol */
+  unsigned short modifiers;	/* ctrl, alt etc. */
+  unsigned short release;	/* 0 - press, 1 - release */
 } keyboard_event_t;
+
 /*
  * Keysyms 0..126 are mapped to ASCII
  */
@@ -74,7 +75,7 @@ typedef struct _keyboard_event_t {
 #define KEY_F11			0xF825
 #define KEY_F12			0xF827
 
-#define KEY_NUMLOCK		0xF828	/* key state modifier keys*/
+#define KEY_NUMLOCK		0xF828	/* key state modifier keys */
 #define KEY_CAPSLOCK		0xF829
 #define KEY_SCROLLOCK		0xF82A
 #define KEY_LSHIFT		0xF82B
@@ -209,8 +210,8 @@ typedef struct _keyboard_event_t {
 #define KEYMOD_RCTRL 		0x0080
 #define KEYMOD_LALT  		0x0100
 #define KEYMOD_RALT  		0x0200
-#define KEYMOD_LMETA 		0x0400		/* windows/apple key */
-#define KEYMOD_RMETA 		0x0800		/* windows/apple key */
+#define KEYMOD_LMETA 		0x0400	/* windows/apple key */
+#define KEYMOD_RMETA 		0x0800	/* windows/apple key */
 #define KEYMOD_NUM   		0x1000
 #define KEYMOD_CAPS  		0x2000
 #define KEYMOD_ALTGR 		0x4000
@@ -229,22 +230,22 @@ typedef struct _keyboard_event_t {
 #define KEYLED_SCROLL		04
 
 typedef struct _keyboard_t {
-	struct _keyboard_interface_t *interface;
+  struct _keyboard_interface_t *interface;
 #ifdef __KERNEL_UOS_H_
-	lock_t lock;
+  lock_t lock;
 #endif
 } keyboard_t;
 
 typedef struct _keyboard_interface_t {
-	void (*wait_event) (keyboard_t *u, keyboard_event_t *data);
-	int (*get_event) (keyboard_t *u, keyboard_event_t *data);
-	int (*get_modifiers) (keyboard_t *u);
-	int (*get_leds) (keyboard_t *u);
-	void (*set_leds) (keyboard_t *u, int leds);
-	int (*get_rate) (keyboard_t *u);
-	void (*set_rate) (keyboard_t *u, int cps);
-	int (*get_delay) (keyboard_t *u);
-	void (*set_delay) (keyboard_t *u, int msec);
+  void (*wait_event) (keyboard_t * u, keyboard_event_t * data);
+  int (*get_event) (keyboard_t * u, keyboard_event_t * data);
+  int (*get_modifiers) (keyboard_t * u);
+  int (*get_leds) (keyboard_t * u);
+  void (*set_leds) (keyboard_t * u, int leds);
+  int (*get_rate) (keyboard_t * u);
+  void (*set_rate) (keyboard_t * u, int cps);
+  int (*get_delay) (keyboard_t * u);
+  void (*set_delay) (keyboard_t * u, int msec);
 } keyboard_interface_t;
 
 /*
@@ -268,5 +269,5 @@ typedef struct _keyboard_interface_t {
  * shift and caps lock, and num lock modifiers.
  * Do not process alt and meta modifiers.
  */
-void keyboard_translate (keyboard_event_t *m);
+void keyboard_translate(keyboard_event_t * m);
 #endif

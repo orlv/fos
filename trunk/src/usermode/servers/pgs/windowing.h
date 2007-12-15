@@ -3,23 +3,24 @@
  *       GUI system
  * Copyright (c) 2007 Grindars
  */
+
 #ifndef __WINDOWING_H
 #define __WINDOWING_H
 
 typedef struct window_t {
-	int x;
-	int y;
-	int x_drag;
-	int y_drag;
-	int w;
-	int h;
-	int handle;
-	int active;
-	context_t *context;
-	char *title;
-	int tid;
-	int visible;
-	int class;
+  int x;
+  int y;
+  int x_drag;
+  int y_drag;
+  int w;
+  int h;
+  int handle;
+  int active;
+  context_t *context;
+  char *title;
+  int tid;
+  int visible;
+  int class;
 } window_t;
 
 extern int _down;
@@ -34,4 +35,5 @@ void HandleDragAndDrop(int x, int y);
 int get_window_handle(int x, int y);
 window_t *GetWindowInfo(int handle);
 void DrawBorder(int reset);
+
 #endif

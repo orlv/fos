@@ -4,8 +4,8 @@
 
 #ifndef _VBE_H
 #define _VBE_H
-struct vbe_mode_info_block
-{
+
+struct vbe_mode_info_block {
   /* Mandory information for all VBE revisions.  */
   u16_t mode_attributes;
   u8_t win_a_attributes;
@@ -66,6 +66,8 @@ struct vbe_mode_info_block
      added here.  */
   u8_t reserved4[189 + 1];
 } __attribute__ ((packed));
+
 extern struct vbe_mode_info_block *vbe;
 void vbe_set_mode(u16_t mode);
+
 #endif

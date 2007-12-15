@@ -3,9 +3,12 @@
  *       GUI system
  * Copyright (c) 2007 Grindars
  */
+
 // общие структуры
+
 #ifndef GUI_TYPES_H
 #define GUI_TYPES_H
+
 /*
 typedef struct {
 	int width;
@@ -13,48 +16,54 @@ typedef struct {
 	int bpp; // bytes per pixel
 } mode_definition_t;
 */
+
 #define EVENT_TYPE_MOUSEMOVE 1
 #define EVENT_TYPE_MOUSEDOWN 2
 #define EVENT_TYPE_MOUSEUP 3
 #define EV_MMOVE 5
+
 typedef struct {
-	int x;
-	int y;
+  int x;
+  int y;
 } mousemove_event_t;
+
 typedef struct {
-	int type;
-	mousemove_event_t *mousemove;
+  int type;
+  mousemove_event_t *mousemove;
 } event_t;
 
 typedef struct {
-	int width;
-	int height;
-	int keycolor;
-	int data[];
+  int width;
+  int height;
+  int keycolor;
+  int data[];
 } picture_t;
 
 typedef struct {
-	int w;
-	int h;
-	int bpp;
-	int native_pixels;
-	char *data;
+  int w;
+  int h;
+  int bpp;
+  int native_pixels;
+  char *data;
 } context_t;
+
 typedef struct {
-	int x;
-	int y;
-	int w;
-	int h;
-	int class;
+  int x;
+  int y;
+  int w;
+  int h;
+  int class;
 } create_win_t;
+
 struct win_info {
-	int bpp;
-	int handle;
-	int margin_up;
-	int margin_down;
-	int margin_left;
-	int margin_right;
+  int bpp;
+  int handle;
+  int margin_up;
+  int margin_down;
+  int margin_left;
+  int margin_right;
 };
+
 #define MAX_TITLE_LEN 64
 #define WIN_CMD_CREATEWINDOW	(1 + 256)
 #define WIN_CMD_DESTROYWINDOW	(2 + 256)
@@ -70,4 +79,5 @@ struct win_info {
 #define EV_MDOWN 2
 #define EV_MUP 3
 #define EV_KEY 4
+
 #endif

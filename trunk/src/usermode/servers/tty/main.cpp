@@ -8,7 +8,6 @@
 #include "vga.h"
 #include "tty.h"
 
-
 #define RECV_BUF_SIZE 2048
 
 asmlinkage int main()
@@ -17,23 +16,25 @@ asmlinkage int main()
   char *buffer = new char[RECV_BUF_SIZE];
 
   VGA *vga = new VGA;
+
   vga->init();
   TTY *tty = new TTY(80, 25);
+
   tty->stdout = vga;
 
   size_t len = dmesg(buffer, RECV_BUF_SIZE);
 
   tty->write(0, buffer, len);
 
-  if(resmgr_attach("/dev/tty") != RES_SUCCESS)
+  if (resmgr_attach("/dev/tty") != RES_SUCCESS)
     return -1;
-  
+
   while (1) {
     msg.tid = _MSG_SENDER_ANY;
     msg.recv_size = RECV_BUF_SIZE;
     msg.recv_buf = buffer;
     receive(&msg);
-    switch(msg.arg[0]){
+    switch (msg.arg[0]) {
     case FS_CMD_ACCESS:
       msg.arg[0] = 1;
       msg.arg[1] = RECV_BUF_SIZE;
@@ -41,7 +42,7 @@ asmlinkage int main()
       break;
 
     case FS_CMD_WRITE:
-      msg.arg[0] = tty->write(0 /*msg.arg[2]*/, buffer, msg.recv_size);
+      msg.arg[0] = tty->write(0 /*msg.arg[2] */ , buffer, msg.recv_size);
       msg.arg[2] = NO_ERR;
       break;
 
@@ -49,7 +50,7 @@ asmlinkage int main()
       msg.arg[0] = 0;
       msg.arg[2] = ERR_UNKNOWN_CMD;
     }
-    
+
     msg.send_size = 0;
     reply(&msg);
   }

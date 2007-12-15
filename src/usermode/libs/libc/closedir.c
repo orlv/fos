@@ -17,7 +17,7 @@ int closedir(DIR *dir)
   msg.flags = 0;
   msg.tid = fd->thread;
   
-  free(fd->fullname);
+  free((char *)fd->fullname);
   free(fd);
 
   do_send(&msg);

@@ -21,7 +21,7 @@ int close(int fildes)
   msg.flags = 0;
   msg.tid = fd->thread;
   
-  free(fd->fullname);
+  free((char *) fd->fullname);
   free((fd_t) fildes);
 
   do_send(&msg);

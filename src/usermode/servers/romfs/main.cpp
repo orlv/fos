@@ -59,7 +59,7 @@ asmlinkage int main(int argc, char *argv[]) {
 			if(!data) {
 				msg.arg[0] = 0;
 				msg.arg[1] = ROMFS_BUF_SIZE;
-				msg.arg[2] = NO_ERR;
+				msg.arg[2] = ERR_NO_SUCH_FILE;
 				msg.send_size = 0;
 				delete hndl;
 				break;
@@ -86,6 +86,7 @@ asmlinkage int main(int argc, char *argv[]) {
 			buffer[msg.recv_size] = 0;
 			if(!rfs->search_path(buffer, &in, 0)) {
 				msg.send_size = 0;
+				msg.arg[2] =ERR_NO_SUCH_FILE;
 				break;
 			}
 			rfs->stat(&in, statbuf);
@@ -99,6 +100,7 @@ asmlinkage int main(int argc, char *argv[]) {
 			handle_t *h = resolve_handle(msg.arg[1], HANDLE_FILE);
 			if(!h) {
 				msg.send_size = 0;
+				msg.arg[2] = ERR_NO_SUCH_FILE;
 				break;
 			}
 			h->touched = uptime();		
@@ -115,7 +117,7 @@ asmlinkage int main(int argc, char *argv[]) {
 				size = ROMFS_BUF_SIZE;
 			handle_t *h = resolve_handle(msg.arg[1], HANDLE_FILE);
 			if(!h) {
-				msg.arg[2] = ERR_EOF;
+				msg.arg[2] = ERR_NO_SUCH_FILE;
 				msg.send_size = 0;
 				break;
 			}
@@ -153,7 +155,7 @@ asmlinkage int main(int argc, char *argv[]) {
 			if(!data) {
 				msg.arg[0] = 0;
 				msg.arg[1] = 0;
-				msg.arg[2] = NO_ERR;
+				msg.arg[2] = ERR_NO_SUCH_FILE;
 				msg.send_size = 0;
 				delete hndl;
 				break;
@@ -178,7 +180,7 @@ asmlinkage int main(int argc, char *argv[]) {
 		case FS_CMD_DIRREAD: {
 			handle_t *h = resolve_handle(msg.arg[1], HANDLE_DIR);
 			if(!h) {
-				msg.arg[2] = ERR_EOF;
+				msg.arg[2] = ERR_NO_SUCH_FILE;
 				msg.send_size = 0;
 				break;
 			}

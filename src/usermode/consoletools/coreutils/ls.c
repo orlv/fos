@@ -61,6 +61,7 @@ void usage() {
 #endif
 	);
 }
+void format_permissions(char *buf, mode_t mode);
 void ls(char *dir) {
 	DIR *dr = opendir(dir);
 	if(!dr) {
@@ -79,12 +80,33 @@ void ls(char *dir) {
 			if(dir[strlen(dir) - 1] != '/') 
 				strcat(name, "/");
 			strcat(name, ptr->d_name);
-			stat(name, &st);
-			printf("---------- 1 root root %8u %s\n", st.st_size, ptr->d_name);
+			char buf[11];
+			if(stat(name, &st) == -1)
+				printf("---------- 1 root root %8u %s\n", 0, ptr->d_name);
+			else {
+				format_permissions((char *)&buf, st.st_mode);
+				printf("%s 1 root root %8u %s\n", &buf, st.st_size, ptr->d_name);
+			}
 		} else
 			printf("%s\n", ptr->d_name);
 	}
 	closedir(dr);
+}
+void format_permissions(char *buf, mode_t mode) {
+	buf[0] = '-';
+	buf[1] = (mode & S_IRUSR) ? 'r' : '-';
+	buf[2] = (mode & S_IWUSR) ? 'w' : '-';
+	buf[3] = (mode & S_IXUSR) ? 'x' : '-';
+
+	buf[4] = (mode & S_IRGRP) ? 'r' : '-';
+	buf[5] = (mode & S_IWGRP) ? 'w' : '-';
+	buf[6] = (mode & S_IXGRP) ? 'x' : '-';
+
+	buf[7] = (mode & S_IROTH) ? 'r' : '-';
+	buf[8] = (mode & S_IWOTH) ? 'w' : '-';
+	buf[9] = (mode & S_IXOTH) ? 'x' : '-';
+
+	buf[10] = 0;
 }
 void version() {
 	printf("ls (FOS tiny coreutils) 0.1\n");

@@ -74,10 +74,15 @@ char * romfs::search_path(char *name, romfs_inode_t *inode, int need_directory) 
 	romfs_inode_t *parent = NULL;
 	int type;
 	char *ptr;
+	int last_part = 0;
 	while(1) {
 		for(int j = 0; j < 256; j++, i++) {
 			part[j] = name[i];
 			if(part[j] == '/' || part[j] == 0) {
+				if(part[j] == '/')
+					last_part = 0;
+				else
+					last_part = 1;
 				i++;
 				part[j] = 0;
 				break;
@@ -86,30 +91,33 @@ char * romfs::search_path(char *name, romfs_inode_t *inode, int need_directory) 
 		ptr = search_file(part, in, parent);
 		if(ptr == NULL) {
 			delete part;
-			if(need_directory) {
-				memcpy(inode, parent, sizeof(*parent));
-				return (char *)inode;
-			}
 			return NULL;
 		}
 scan_inode:
 		type = ROMFS_TYPE(in->next);
 		if(type == ROMFS_DIRECTORY) {
-			parent = (romfs_inode_t *)(fs + in->info);
-			continue;
+			if(!last_part) {
+				parent = (romfs_inode_t *)(fs + in->info);
+				continue;
+			} else {
+				memcpy(inode, (fs + in->info), sizeof(*inode));
+				delete part;
+				return (fs + in->info);
+			}
 		}
 		if(type == ROMFS_FILE) {
-			memcpy(inode, in, sizeof(*in));
-			delete part;
-			return ptr;
+			if(last_part) {
+				memcpy(inode, in, sizeof(*in));
+				delete part;
+				return ptr;
+			} else {
+				delete part;
+				return NULL;
+			}
 		}
 		if(type == ROMFS_HARDLINK) {
 			if((romfs_inode_t *)(fs + inl.info) == in) {
 				delete part;
-				if(need_directory) {
-					memcpy(inode, parent, sizeof(*parent));
-					return (char *)inode;
-				}
 				return NULL;
 			}
 			in = (romfs_inode_t *)(fs + inl.info);

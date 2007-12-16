@@ -99,10 +99,13 @@ scan_inode:
 			if(!last_part) {
 				parent = (romfs_inode_t *)(fs + in->info);
 				continue;
-			} else {
+			} else if(need_directory) {
 				memcpy(inode, (fs + in->info), sizeof(*inode));
 				delete part;
 				return (fs + in->info);
+			} else {
+				delete part;
+				return NULL;
 			}
 		}
 		if(type == ROMFS_FILE) {

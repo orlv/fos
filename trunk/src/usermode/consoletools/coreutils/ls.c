@@ -55,7 +55,8 @@ void usage() {
 	"  -A, --almost-all do not list implied . and ..\n"
 	"  -l               use a long listing format\n"
         "  -h               display this help and exit\n"
-	"  -V               output version information and exit\n"
+	"  -V               output version information and exit\n\n"
+	"Report bugs to <grindars@grindars.org.ru>.\n"
 	);
 }
 void ls(char *dir) {

@@ -4,13 +4,15 @@
 
 include ../config.mk
 
-TARGETS=ls uname
+TARGETS=ls uname cat
 LDLIBS		=	-\( -lc -lfos -\)
 all: $(TARGETS)
 
 ls: ls.o
 	$(LD) $(LDFLAGS) -o $@ $(LIB)/crt0.o $^ $(LDLIBS)
 uname: uname.o
+	$(LD) $(LDFLAGS) -o $@ $(LIB)/crt0.o $^ $(LDLIBS)
+cat: cat.o
 	$(LD) $(LDFLAGS) -o $@ $(LIB)/crt0.o $^ $(LDLIBS)
 
 install:

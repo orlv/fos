@@ -50,6 +50,7 @@ userlinkage int main(int argc, char *argv[]) {
 }
 void usage() {
 	printf("Usage: ls [OPTION]... [FILE]\n"
+#ifndef NOT_INCLUDE_HELP
 	"List information about the FILEs (the current directory by default)\n\n"
 	"  -a, --all        do not ignore entries starting with .\n"
 	"  -A, --almost-all do not list implied . and ..\n"
@@ -57,6 +58,7 @@ void usage() {
         "  -h               display this help and exit\n"
 	"  -V               output version information and exit\n\n"
 	"Report bugs to <grindars@grindars.org.ru>.\n"
+#endif
 	);
 }
 void ls(char *dir) {

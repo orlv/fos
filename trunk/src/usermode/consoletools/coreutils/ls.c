@@ -78,7 +78,7 @@ void ls(char *dir) {
 				strcat(name, "/");
 			strcat(name, ptr->d_name);
 			stat(name, &st);
-			printf("%u %s\n", st.st_size, ptr->d_name);
+			printf("---------- 1 root root %8u %s\n", st.st_size, ptr->d_name);
 		} else
 			printf("%s\n", ptr->d_name);
 	}

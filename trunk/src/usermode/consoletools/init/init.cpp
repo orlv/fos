@@ -51,6 +51,7 @@ asmlinkage int main()
 
 void ParseLine(char *line)
 {
+	if(!strlen(line)) return;
   char *tmp = new char[strlen(line)];
 
   strcpy(tmp, line);

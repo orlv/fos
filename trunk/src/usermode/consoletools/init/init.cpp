@@ -19,7 +19,7 @@ asmlinkage int main()
   for (int i = 0; i < 15; i++)
     sched_yield();
 
-  while (!exec("/mnt/modules/tty", NULL)) ;
+  while (!exec("/mnt/modules/stty", NULL)) ;
 
   printf("Init started! If you see this text - all work fine.\n");
   exec("/mnt/modules/romfs", NULL);
@@ -28,8 +28,10 @@ asmlinkage int main()
     sched_yield();
 
   int hndl = open("/etc/inittab", 0);
-
-  printf("Parsing config\n");
+  if(!hndl) {
+	printf("init: Fatal error, not found config file.\n");
+	return 1;
+  }
   struct stat st;
 
   fstat(hndl, &st);

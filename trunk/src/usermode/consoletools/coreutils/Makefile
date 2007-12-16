@@ -4,7 +4,7 @@
 
 include ../config.mk
 
-TARGETS=ls uname cat
+TARGETS=ls uname cat echo
 LDLIBS		=	-\( -lc -lfos -\)
 all: $(TARGETS)
 
@@ -14,7 +14,8 @@ uname: uname.o
 	$(LD) $(LDFLAGS) -o $@ $(LIB)/crt0.o $^ $(LDLIBS)
 cat: cat.o
 	$(LD) $(LDFLAGS) -o $@ $(LIB)/crt0.o $^ $(LDLIBS)
-
+echo: echo.o
+	$(LD) $(LDFLAGS) -o $@ $(LIB)/crt0.o $^ $(LDLIBS)
 install:
 	cp -t $(INITRDDIR)/bin $(TARGETS)
 uninstall:

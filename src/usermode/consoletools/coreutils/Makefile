@@ -6,6 +6,9 @@ include ../config.mk
 
 TARGETS=ls uname cat echo
 LDLIBS		=	-\( -lc -lfos -\)
+
+# если надо место сэкономить
+# CFLAGS += -DNOT_INCLUDE_HELP
 all: $(TARGETS)
 
 ls: ls.o

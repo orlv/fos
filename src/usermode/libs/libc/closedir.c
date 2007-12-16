@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <fos/message.h>
 #include <stdlib.h>
+
 int closedir(DIR *dir)
 {
   if(!dir)

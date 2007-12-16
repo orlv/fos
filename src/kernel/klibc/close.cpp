@@ -20,7 +20,8 @@ int close(int fildes)
   msg.recv_size = 0;
   msg.flags = 0;
   msg.tid = fd->thread;
-  
+
+  free((void *)fd->fullname);
   free((fd_t) fildes);
 
   do_send(&msg);

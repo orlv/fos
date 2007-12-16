@@ -167,10 +167,14 @@ EXCEPTION_HANDLER(machine_depend_error_exception)
   exception("[0x12] machine depend error", cs, address, errorcode);
 }
 
-EXCEPTION_HANDLER(interrupt_hdl_not_present_exception)
-{
-  exception("interrupt_hdl_not_present", cs, address, errorcode);
-}
+
+asm(".globl empty_interrupt \n"						\
+    "empty_interrupt: \n"						\
+    "mov $0x20, %al \n"							\
+    "outb $0x20 \n"							\
+    "iret");
+
+asmlinkage void empty_interrupt();
 
 void common_interrupt(u8_t n)
 {
@@ -262,5 +266,5 @@ void setup_idt()
   system->idt->set_trap_gate(0x30, (off_t) & sys_call_handler, 3); /* системный вызов */
 
   for (i = 0x31; i < 0x100; i++)
-    system->idt->set_trap_gate(i, (off_t) & interrupt_hdl_not_present_exception, 0);
+    system->idt->set_trap_gate(i, (off_t) & empty_interrupt, 0);
 }

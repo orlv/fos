@@ -57,6 +57,7 @@ static inline void unmask_interrupt(u32_t int_num)
 
 asmlinkage u32_t kill(tid_t tid);
 asmlinkage tid_t exec(const char * filename, const char * args);
+asmlinkage tid_t exece(const char * filename, const char * args, const char * envp);
 
 #ifndef iKERNEL
 

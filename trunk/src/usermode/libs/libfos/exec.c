@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-tid_t exec(const char * filename, const char * args)
+tid_t exece(const char * filename, const char * args, const char * envp)
 {
   char *send_data = (char *) filename;
   size_t len = strlen(filename);
@@ -20,17 +20,26 @@ tid_t exec(const char * filename, const char * args)
 
   size_t send_size = len + 1;
   size_t args_len = 0;
+  size_t envp_len = 0;
   
   if(args) {
     args_len = strlen(args);
     if(args_len > ARG_MAX)
       return -1;
-    if(args_len) {
-      send_size += args_len + 1;
-      send_data = (char *) malloc(send_size);
-      memcpy(send_data, filename, len+1);
-      memcpy(&send_data[len+1], args, args_len);
-    }
+  }
+
+  if(envp) {
+    envp_len = strlen(envp);
+    if(envp_len > ENVP_MAX)
+      return -1;
+  }
+    
+  if(args_len + envp_len) {
+    send_size += args_len + 1 + envp_len + 1;
+    send_data = (char *) malloc(send_size);
+    memcpy(send_data, filename, len+1);
+    if(args_len) memcpy(&send_data[len+1], args, args_len);
+    if(envp_len) memcpy(&send_data[len+1+args_len+1], envp, envp_len);
   }
   
   struct message msg;
@@ -48,4 +57,9 @@ tid_t exec(const char * filename, const char * args)
     return (tid_t) msg.arg[0];
   else
     return 0;
+}
+
+tid_t exec(const char * filename, const char * args)
+{
+  return exece(filename, args, 0);
 }

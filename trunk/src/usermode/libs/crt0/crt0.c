@@ -6,14 +6,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+char **__ARGV = 0;
+int __ARGC = 0;
+char **__ENVP = 0;
+
 int main(int argc, char ** argv);
 
 asm(".globl _start \n"
     "_start:       \n"
     "push %eax     \n"
+    "push %ebx     \n"
     "call _startup");
 
-void _startup(char *args)
+void _startup(char *args, char *evnp)
 {
   int argc = 0;
   char **argv;
@@ -33,6 +38,9 @@ void _startup(char *args)
     while(*p && (*p != ' ')) p++;
     if(*p == ' ') *p=0;
   }
-    
+
+  __ARGC = argc;
+  __ARGV = argv;
+
   exit(main(argc, argv));
 }

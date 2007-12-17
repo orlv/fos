@@ -153,6 +153,26 @@ static inline size_t strlen(const char *s)
   return __res;
 }
 
+static inline size_t strnlen(const char * s, size_t count)
+{
+  int d0;
+  register int __res;
+  __asm__ __volatile__(
+		       "movl %2,%0\n\t"
+		       "jmp 2f\n"
+		       "1:\tcmpb $0,(%0)\n\t"
+		       "je 3f\n\t"
+		       "incl %0\n"
+		       "2:\tdecl %1\n\t"
+		       "cmpl $-1,%1\n\t"
+		       "jne 1b\n"
+		       "3:\tsubl %2,%0"
+		       :"=a" (__res), "=&d" (d0)
+		       :"c" (s),"1" (count)
+		       :"memory");
+  return __res;
+}
+
 static inline void *memcpy(void *to, const void *from, size_t n)
 {
   int d0, d1, d2;

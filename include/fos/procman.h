@@ -44,7 +44,9 @@ public:
   void reg_thread(register Thread *thread);
   void unreg_thread(register List<Thread *> *thread);
 
-  u32_t exec(register void *image, const string name, const string args);
+  u32_t exec(register void *image, const string name,
+	     const string args, size_t args_len,
+	     const string envp, size_t envp_len);
   void scheduler();
   List<Thread *> *do_kill(List<Thread *> *thread);
   res_t kill(register tid_t tid, u16_t flag);

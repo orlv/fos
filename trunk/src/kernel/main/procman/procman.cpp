@@ -309,13 +309,15 @@ tid_t TProcMan::exec(register void *image, const string name,
     char *args_buf = (char *) kmalloc(args_len);
     memcpy(args_buf, args, args_len);
     thread->tss->eax = (u32_t)process->memory->mmap(0, args_len, 0, (off_t)args_buf, system->kmem);
+    thread->tss->ebx = args_len;
     kfree(args_buf, args_len);
   }
 
   if(envp) {
     char *envp_buf = (char *) kmalloc(envp_len);
     memcpy(envp_buf, envp, envp_len);
-    thread->tss->ebx = (u32_t)process->memory->mmap(0, envp_len, 0, (off_t)envp_buf, system->kmem);
+    thread->tss->ecx = (u32_t)process->memory->mmap(0, envp_len, 0, (off_t)envp_buf, system->kmem);
+    thread->tss->edx = envp_len;
     kfree(envp_buf, envp_len);
   }
   

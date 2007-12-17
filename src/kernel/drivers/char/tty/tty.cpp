@@ -51,6 +51,7 @@ TTY::TTY(u16_t width, u16_t height)
   OutPortByte(BASE + LCR, 0);
   
   OutPortByte(BASE + LCR,  Wls8);
+	OutPortByte(BASE + 6, InPortByte(BASE + 6) | (1 << 5) | (1 << 4));
 #endif
   geom.width = width;
   geom.height = height;

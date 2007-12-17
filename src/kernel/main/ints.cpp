@@ -181,7 +181,9 @@ void common_interrupt(u8_t n)
   system->pic->mask(n); /* Демаскировку должен производить обработчик */
   if(system->user_int_handler[n]){
     system->user_int_handler[n]->set_signal(n);
-  } else
+  } else if(n == 7 || n == 15) {
+	printk("Spurious interrupt %u\n", n);
+  } else 
     system->panic("Unhandled interrupt received!\n");
 
   if(n>7)

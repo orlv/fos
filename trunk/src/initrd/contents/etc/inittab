@@ -4,6 +4,6 @@
 # но нужно сохранить все разделители.
 #
 /bin/i8042::Starting keyboard/mouse driver
-#/usr/bin/pgs::Starting up GUI
-/bin/shell::Starting up shell
+/usr/bin/pgs::Starting up GUI
+#/bin/shell::Starting up shell
 #/bin/ls:-la /bin:

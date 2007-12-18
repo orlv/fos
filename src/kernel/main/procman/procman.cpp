@@ -124,7 +124,7 @@ void procman_srv()
   execute_module("init", "init", 5);
 
   while (1) {
-    //asm("incb 0xb8000+154\n" "movb $0x2f,0xb8000+155 ");
+  //  asm("incb 0xb8000+154\n" "movb $0x2f,0xb8000+155 ");
     msg->recv_size = MAX_PATH_LEN + ARG_MAX + ENVP_MAX;
     msg->recv_buf = data;
     msg->tid = _MSG_SENDER_ANY;
@@ -138,11 +138,10 @@ void procman_srv()
       size_t pathlen = 0;
       char *args = 0;
       char *envp = 0;
-
-      if(((pathlen = strnlen(data, MAX_PATH_LEN)) < MAX_PATH_LEN) && /* размер пути не превышает допустимый */
+      if(((pathlen = strnlen(data, MAX_PATH_LEN) + 1) < MAX_PATH_LEN) && /* размер пути не превышает допустимый */
 	 ((pathlen + msg->arg[1] + msg->arg[2]) == msg->recv_size) && /* заявленный размер данных соответствует полученному */
 	 (msg->arg[1] <= ARG_MAX) && /* размер аргументов не больше максимально допустимого */
-	 (msg->arg[2] > ENVP_MAX)) { /* ошибка: размер переменных окружения больше максимально допустимого */ 
+	 (msg->arg[2] <= ENVP_MAX)) { /* ошибка: размер переменных окружения больше максимально допустимого */ 
 
 	path = data;
 	if(msg->arg[1])

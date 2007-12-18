@@ -10,42 +10,47 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
-tid_t exece(const char * filename, const char * args, const char * envp)
+tid_t exece(const char * filename, const char * args, const char **envp)
 {
+
   char *send_data = (char *) filename;
-  size_t len = strlen(filename);
-  if(len+1 > MAX_PATH_LEN)
+  size_t len = strlen(filename) + 1;
+  if(len > MAX_PATH_LEN)
     return 0;
 
-  size_t send_size = len + 1;
+  size_t send_size = len;
   size_t args_len = 0;
   size_t envp_len = 0;
   
   if(args) {
-    args_len = strlen(args);
-    if(args_len > ARG_MAX)
+    args_len = strlen(args) + 1;
+    if(args_len + len > ARG_MAX)
       return -1;
   }
 
   if(envp) {
-    envp_len = strlen(envp);
+#warning варнинг строкой ниже исправлю, когда функции среды будут. Тут надо правильный замер длины строки.
+    envp_len = strlen(envp) + 1; // TODO: здесь мерять надо иначе! будет среда, будет и это.
     if(envp_len > ENVP_MAX)
       return -1;
   }
-    
-  if(args_len + envp_len) {
-    send_size += args_len + 1 + envp_len + 1;
-    send_data = (char *) malloc(send_size);
-    memcpy(send_data, filename, len+1);
-    if(args_len) memcpy(&send_data[len+1], args, args_len);
-    if(envp_len) memcpy(&send_data[len+1+args_len+1], envp, envp_len);
-  }
+  send_size += args_len + envp_len;
+  send_size += len;
+  send_data = (char *) malloc(send_size);
+  memcpy(send_data, filename, len);
+  memcpy(&send_data[len], filename, len);
+  args_len += len;
+  if(args_len - len) memcpy(&send_data[len + len], args, args_len);
+  if(envp_len) memcpy(&send_data[len + args_len + len], envp, envp_len);
   
   struct message msg;
   msg.arg[0] = PROCMAN_CMD_EXEC;
   msg.send_buf = send_data;
   msg.send_size = send_size;
+  msg.arg[1] = args_len;
+  msg.arg[2] = envp_len;
   msg.recv_size = 0;
   msg.flags = 0;
   msg.tid = SYSTID_PROCMAN;
@@ -61,5 +66,5 @@ tid_t exece(const char * filename, const char * args, const char * envp)
 
 tid_t exec(const char * filename, const char * args)
 {
-  return exece(filename, args, 0);
+  return exece(filename, args, (const char **)environ);
 }

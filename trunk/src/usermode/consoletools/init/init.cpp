@@ -11,22 +11,20 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <stdlib.h>
-
+#include <sys/mman.h>
 void ParseLine(char *line);
 
 asmlinkage int main()
 {
+
   for (int i = 0; i < 15; i++)
     sched_yield();
 
-  while (!exec("/mnt/modules/stty", NULL)) ;
-
+while(!exec("/mnt/modules/stty", NULL));
   printf("Init started! If you see this text - all work fine.\n");
   exec("/mnt/modules/romfs", NULL);
-
   for (int i = 0; i < 50; i++)
     sched_yield();
-
   int hndl = open("/etc/inittab", 0);
   if(!hndl) {
 	printf("init: Fatal error, not found config file.\n");

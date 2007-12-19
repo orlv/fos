@@ -102,7 +102,7 @@ INITRDDIR	= $TOPDIR/src/initrd/contents
 INCLUDE		= $TOPDIR/include
 LIB		= $TOPDIR/lib
 #DEBUG		= -g
-FLAGS		= -Wall -nostdlib -nostdinc -I\$(INCLUDE) -fno-stack-protector -O2 $DEBUG
+FLAGS		= -Wall -nostdlib -nostdinc -I\$(INCLUDE) -fno-stack-protector -O2 $DEBUG -pipe
 
 ASFLAGS		= \$(FLAGS)
 CFLAGS		= \$(FLAGS) -ffreestanding -fno-leading-underscore --std=gnu99
@@ -166,7 +166,7 @@ INITRDDIR	= $TOPDIR/src/initrd/contents
 INCLUDE		= $TOPDIR/include
 LIB		= $TOPDIR/lib
 #DEBUG		= -g
-FLAGS		= -Wall -nostdlib -nostdinc -I\$(INCLUDE) -fno-stack-protector -O2 $DEBUG
+FLAGS		= -Wall -nostdlib -nostdinc -I\$(INCLUDE) -fno-stack-protector -O2 $DEBUG -pipe
 
 ASFLAGS		= \$(FLAGS)
 CFLAGS		= \$(FLAGS) -ffreestanding -fno-leading-underscore --std=gnu99

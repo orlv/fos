@@ -11,7 +11,7 @@
 
 include config.mk
 
-SERVERS = namer pgs tty speaker hw i8042 stty romfs
+SERVERS = namer fgs tty speaker hw i8042 stty romfs
 #SERVERS += floppy
 
 all: 

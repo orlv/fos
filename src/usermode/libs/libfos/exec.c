@@ -66,5 +66,6 @@ tid_t exece(const char * filename, const char * args, const char **envp)
 
 tid_t exec(const char * filename, const char * args)
 {
-  return exece(filename, args, (const char **)environ);
+//  return exece(filename, args, (const char **)environ);
+	return exece(filename, args, NULL);
 }

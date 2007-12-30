@@ -53,12 +53,13 @@ asmlinkage void init()
   out_banner();
 
   printk("Memory size: %d Kb, free %dK (%dK high/%dK low)\n", system->pages_cnt*4, system->free_pages.read()*4 + system->free_pages_DMA16.read()*4, system->free_pages.read()*4, system->free_pages_DMA16.read()*4);
-
+  extern multiboot_info_t *__mbi;
+  initrb = new ModuleFS(__mbi);
   system->procman = new TProcMan;
 
   SysTimer = new Timer;
-  extern multiboot_info_t *__mbi;
-  initrb = new ModuleFS(__mbi);
+//  extern multiboot_info_t *__mbi;
+//  initrb = new ModuleFS(__mbi);
   
   printk("Kernel: start task switching\n");
  

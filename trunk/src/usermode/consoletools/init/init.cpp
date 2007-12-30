@@ -19,8 +19,7 @@ asmlinkage int main()
 
   for (int i = 0; i < 15; i++)
     sched_yield();
-
-while(!exec("/mnt/modules/stty", NULL));
+  while(!exec("/mnt/modules/tty", NULL));
   printf("Init started! If you see this text - all work fine.\n");
   exec("/mnt/modules/romfs", NULL);
   for (int i = 0; i < 50; i++)

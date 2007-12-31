@@ -5,7 +5,7 @@
 include ../config.mk
 
 INSTALLDIR	=	$(LIB)
-OUTPUT		=	libpgs.a
+OUTPUT		=	libfgs.a
 OBJECTS		=	GUIInit.o CreateWindow.o WaitEvent.o \
 			DestroyWindow.o RefreshWindow.o GuiEnd.o \
 			pixel.o rect.o pstring.o \

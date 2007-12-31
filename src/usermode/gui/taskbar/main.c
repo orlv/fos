@@ -4,8 +4,8 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <pgs/pgs.h>
-#include <pgs/controls.h>
+#include <fgs/fgs.h>
+#include <fgs/controls.h>
 #include <fos/fos.h>
 
 #define ITEMS_COUNT 2

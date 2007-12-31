@@ -9,7 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <pgs/pgs.h>
+#include <fgs/fgs.h>
 #include "shapes.h"
 
 #define KUP 1
@@ -71,7 +71,7 @@ int tsleep()
 
 void gameover()
 {
-  rect(winhandle, 8, 8, 192, 352, 0x7F7F7F);
+//  rect(winhandle, 8, 8, 192, 352, 0x7F7F7F);
   pstring(winhandle, (192 - 4 * 8) / 2 + 16, (352 - 3 * 16) / 2 + 8, 0x000000, "GAME");
   pstring(winhandle, (192 - 4 * 8) / 2 + 16, (352 - 3 * 16) / 2 + 8 + 16, 0x000000, "OVER");
   pstring(winhandle, (192 - 10 * 8) / 2 + 16, (352 - 3 * 16) / 2 + 8 + 16 * 2, 0x000000, "Try again.");
@@ -144,7 +144,7 @@ void game_thread()
     }
   }
   gameover();
-  exit(1);
+  for(;;) sched_yield();
 }
 
 asmlinkage int main(int argc, char **argv)

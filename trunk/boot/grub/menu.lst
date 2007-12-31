@@ -2,7 +2,7 @@
 timeout 0
 default 0
 hiddenmenu
-title FOS - FOS is Operating System (VERSION 0.0.45.4, BUILD 20071218)
+title FOS - FOS is Operating System (VERSION 0.0.45.4, BUILD 20071231)
 	root(cd0)
 	kernel /boot/fos
 	module /boot/modules/int16b

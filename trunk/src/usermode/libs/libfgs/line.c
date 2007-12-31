@@ -2,7 +2,7 @@
   Copyright (C) 2007 Serge Gridassov
  */
 
-#include <pgs/pgs.h>
+#include <fgs/fgs.h>
 
 #define SetPixel(a, b, c, d) pixel(d, a, b, c)
 

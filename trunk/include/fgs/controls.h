@@ -3,6 +3,9 @@
  */
 #ifndef CONTROLS_H
 #define CONTROLS_H
+#if defined(__cplusplus)
+extern "C" {
+#endif
 int CreateControlsWindow(int x, int y, int w, int h, char *title,  int (*handler)(int, int, int, int, int, int), int style);
 void DestroyControlsWindow(int hndl);
 void ControlsMessageLoop();
@@ -15,4 +18,7 @@ int GetDrawingHandle(int handle);
 int CreateMenu(int hndl, int x, int y, int count, char *items[]);
 #define EVC_CLICK	0xF0000001
 #define EVC_MENU	0xF0000002
+#if defined(__cplusplus)
+}
+#endif
 #endif

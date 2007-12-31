@@ -2,7 +2,7 @@
   Copyright (C) 2007 Serge Gridassov
  */
 
-#include <pgs/pgs.h>
+#include <fgs/fgs.h>
 #include "privatetypes.h"
 
 void Draw3D(int x, int y, int w, int h, int handle, int style)

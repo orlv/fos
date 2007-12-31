@@ -6,7 +6,7 @@ include ../config.mk
 
 OUTPUT		=	tetris
 OBJECTS		=	main.o shapes.o
-LDLIBS		=	-\( -lc -lcpp -lfos -lpgs -\)
+LDLIBS		=	-\( -lc -lcpp -lfos -lfgs -\)
 
 all:	$(OBJECTS)
 	@echo \ Linking $(OUTPUT)

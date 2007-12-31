@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
-#include <pgs/pgs.h>
-#include <pgs/controls.h>
+#include <fgs/fgs.h>
+#include <fgs/controls.h>
 int button[3];
 int hndl;
 int st;

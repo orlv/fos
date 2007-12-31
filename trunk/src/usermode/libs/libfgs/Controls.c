@@ -2,8 +2,8 @@
   Copyright (C) 2007 Serge Gridassov
  */
 
-#include <pgs/pgs.h>
-#include <pgs/controls.h>
+#include <fgs/fgs.h>
+#include <fgs/controls.h>
 #include <stdlib.h>
 #include <string.h>
 #include "privatetypes.h"

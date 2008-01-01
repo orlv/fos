@@ -82,8 +82,6 @@ Extended LDFLAGS:
 	$XLDFLAGS
 Top directory:
 	$TOPDIR
-User login:
-	$(whoami)
 System locale:
 	$LANG
 EOF
@@ -251,3 +249,18 @@ USER_MEM_BASE = 0x8000000
 EOF
 echo Creating Makefile
 echo "# Automatically generated, do not edit!" | cat - Makefile.in > Makefile
+
+if [ ! -f .platform_report_sent ]; then
+	read -p "Do you want to send anonymous platform information to server (this is one-time action) ? [Y/n]" -n 1 PROMPT
+	touch .platform_report_sent
+	echo
+	if [ "$PROMPT" == "" ] || [ "$PROMPT" == "y" ]; then
+		echo -n Sending...
+		if wget -O /dev/null -o /dev/null http://grindars.org.ru/platform.php --post-file platform; then
+			echo Data sent. Thank you!
+		else
+			echo Error while sending data.
+		fi
+	fi
+fi
+

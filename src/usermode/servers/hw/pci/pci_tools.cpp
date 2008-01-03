@@ -61,11 +61,11 @@ void print_pci_conf(t_pci_item* item){
 
 	item->enable = TRUE;
 
-	printf("PCI Conf for (%x,%x,%x)\n", item->bus_id, item->func_id, item->slot_id);
+//	printf("PCI Conf for (%x,%x,%x)\n", item->bus_id, item->func_id, item->slot_id);
 
-	for(offset = 0x0; offset < 0x40; offset+= 4){
+	for(offset = 0x0; offset < 0x40; offset+= 1){
 		item->reg_id = offset;
-		value = read_pci_conf(item,4);
-		printf("\t%x\n", value);
+		value = read_pci_conf(item,1);
+//		printf("[%02x] %02x\n", offset, value);
 	}
 }

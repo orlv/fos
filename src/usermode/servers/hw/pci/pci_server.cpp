@@ -36,11 +36,12 @@ asmlinkage int main()
 	const char *resource_name = RESOURCE_NAME;
 	char *buffer = new char[RECV_BUF_SIZE];
 
+/*
 	alarm(2000);
     msg.recv_size = 0;
     msg.tid = _MSG_SENDER_SIGNAL;
     receive(&msg);
-
+*/
 	printf("Resource allocation: %s \n", resource_name);
 
 	if(resmgr_attach(resource_name) != RES_SUCCESS){

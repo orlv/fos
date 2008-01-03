@@ -5,36 +5,16 @@
 include ../config.mk
 
 INSTALLDIR	=	$(LIB)
-OUTPUT		=	libc.a
-OBJECTS		=	close.o		\
-			malloc.o	\
-			exit.o		\
-			lseek.o		\
-			open.o		\
-			read.o		\
-			write.o		\
-			sprintf.o	\
-			vsprintf.o	\
-			printf.o	\
-			time.o		\
-			stat.o		\
-			fstat.o		\
-			strspn.o \
-			strcspn.o \
-			strtok_r.o \
-			strsep.o \
-			random.o \
-			opendir.o \
-			getopt.o \
-			readdir.o \
-			closedir.o \
-			rewinddir.o \
-			seekdir.o \
-			telldir.o \
-			strtoul.o
+
+OUTPUT		=	libpci.a
+
+OBJECTS		=	pci_outb.o	pci_outw.o	\
+			pci_outl.o	pci_inb.o	\
+			pci_inw.o	pci_inl.o	\
+			pci_check.o
 
 all:	$(OBJECTS)
-	$(AR) rcs $(OUTPUT) $(OBJECTS)
+	$(AR) rc $(OUTPUT) $(OBJECTS)
 	cp $(OUTPUT) $(INSTALLDIR)/$(OUTPUT)
 
 install:

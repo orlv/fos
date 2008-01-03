@@ -19,10 +19,10 @@ asmlinkage int main()
 
   for (int i = 0; i < 15; i++)
     sched_yield();
-  while(!exec("/mnt/modules/tty", NULL));
+  while(!exec("/mnt/modules/stty", NULL));
   printf("Init started! If you see this text - all work fine.\n");
   exec("/mnt/modules/romfs", NULL);
-  for (int i = 0; i < 50; i++)
+  for (int i = 0; i < 100; i++)
     sched_yield();
   int hndl = open("/etc/inittab", 0);
   if(!hndl) {

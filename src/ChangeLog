@@ -1,3 +1,12 @@
+Thu Jan 03 20:11:26 2008 [20080103]
+Sergey Gridassov <grindars@grindars.org.ru>
+	- Библиотека libpci
+	- Сканер PCI pci_scan с конфигом
+	- Скелет сервера сети
+	- (частично) Драйвер Realtek 8139
+	- Исправление багов
+	- PGS переименована в FGS
+
 Mon Dec 10 19:01:36 2007 [20071210] (kernel version 0.0.45.4)
 Oleg S Fedorov <o.s.fedorov@gmail.com>:
 	- Оптимизирован namer, а также полностью реализовано монтирование на /

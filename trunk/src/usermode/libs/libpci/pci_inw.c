@@ -10,7 +10,7 @@
 
 int pci_inw(pci_addr_t *addr, int reg) {
 	// FIXME: мутексы!
-	u32_t cmd = cmdByItem(addr, reg);
+	u32_t cmd = pci_cmdByItem(addr, reg);
 	if(!cmd)
 		return -1;
 	outl(cmd, PCI_CONFIG_CMD);

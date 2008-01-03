@@ -18,4 +18,6 @@ userlinkage void *realloc(void *ptr, size_t size);
 userlinkage long int random(void);
 userlinkage void srandom(unsigned int seed);
 
+userlinkage unsigned long int strtoul(const char *nptr, char **endptr, int base);
+
 #endif

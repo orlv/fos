@@ -4,7 +4,7 @@
 
 include config.mk
 
-ITEMS = crt0 int16b libc libcpp libfos libfgs
+ITEMS = crt0 int16b libc libcpp libfos libfgs libpci
 
 # -----------------------------------------------------------------------------
 

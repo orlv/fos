@@ -112,7 +112,7 @@ void scan_pci(){
 		}
 
 		delete dev_info;
-//		print_pci_conf(dev_item);
+		print_pci_conf(dev_item);
 	}
 
 	dev_item->enable= FALSE;

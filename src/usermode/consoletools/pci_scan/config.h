@@ -4,6 +4,7 @@
 
 #ifndef CONFIG_H
 #define CONFIG_H
+#include <sys/pci.h>
 void parse_config();
 typedef struct hndl {
 	struct hndl *next;

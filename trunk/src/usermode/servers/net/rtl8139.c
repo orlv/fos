@@ -6,6 +6,8 @@
 #include <sched.h>
 #include <fos/message.h>
 #include <fos/fos.h>
+#include <sys/mman.h>
+#include <fos/page.h>
 #include "nettypes.h"
 
 #define TX_FIFO_THRESH	256
@@ -101,12 +103,10 @@ int rtl8139_init(net_callbacks_t *callbacks, struct dev *dev) {
 	printf("IRQ %u, ", mydata->irq); 
 	outb(0x00, io + CONFIG1);
 	
-	int rx_buf_len_idx = RX_BUF_LEN_IDX;
-	do {
-		mydata->rx_buf_len = 8192 << rx_buf_len_idx;
-		//FIXME: выравнивать на страницу, получать ФИЗИЧЕСКИЙ АДРЕС
-		mydata->rx_ring = malloc(mydata->rx_buf_len + 16 + (TX_BUF_SIZE * NUM_TX_DESC));
-	} while (mydata->rx_ring == NULL  &&  --rx_buf_len_idx >= 0);
+	mydata->rx_buf_len = 8192 << RX_BUF_LEN_IDX;
+	//FIXME: выравнивать на страницу, получать ФИЗИЧЕСКИЙ АДРЕС
+	printf("ring %u bytes, ", mydata->rx_buf_len + 16 + (TX_BUF_SIZE * NUM_TX_DESC));
+	mydata->rx_ring = kmmap(0, mydata->rx_buf_len + 16 + (TX_BUF_SIZE * NUM_TX_DESC), 0, 0);
 
 
 	int addr_len = read_eeprom(io, 0, 8) == 0x8129 ? 8 : 6;
@@ -126,7 +126,7 @@ int rtl8139_init(net_callbacks_t *callbacks, struct dev *dev) {
 	if(inb(io + MEDIASTATUS) & MSRLINKFAIL) {
 		printf("Link failure, aboring!\n");
 		mask_interrupt(mydata->irq);
-		free(mydata->rx_ring); // FIXME: см выше
+		kmunmap((off_t) mydata->rx_ring, mydata->rx_buf_len + 16 + (TX_BUF_SIZE * NUM_TX_DESC)); // FIXME: см выше
 		free(mydata);
 		return -1;
 	}else {
@@ -138,6 +138,7 @@ int rtl8139_init(net_callbacks_t *callbacks, struct dev *dev) {
 
 }
 static void rtl8139_reset(int ioaddr, dev_t *dev) {
+	rtl8139_data *data = dev->custom;
 	outb(CMDRESET, ioaddr + CHIPCMD);
 	int start = uptime();
 	while(inb(ioaddr + CHIPCMD) & CMDRESET && (uptime() - start) < 10) sched_yield();
@@ -150,8 +151,11 @@ static void rtl8139_reset(int ioaddr, dev_t *dev) {
 	outl((RX_FIFO_THRESH << 13) | (RX_BUF_LEN_IDX << 11) | (RX_DMA_BURST << 8), ioaddr + RXCONFIG);
 	outl((TX_DMA_BURST << 8) | 0x03000000, ioaddr + TXCONFIG);	
 
-	// TODO:
-	// outl(PHYS_ADDR(((rtl8139_data *)(dev->custom))->rx_ring), ioaddr + RXBUF);
+	printf("%x resolving to ", data->rx_ring);
+	printf("%x\n", getpagephysaddr((off_t) data->rx_ring));
+	printf("!");
+	 outl(getpagephysaddr((off_t) data->rx_ring), ioaddr + RXBUF);
+	printf("!");
 	outl(0, ioaddr + RXMISSED);
 	outb(ACCEPT_BROADCAST | ACCEPT_MY_PHYS | ((rtl8139_data *)(dev->custom))->promisc ? ACCEPT_ALL_PHYS : 0, ioaddr + RXCONFIG);
 	outb(CMD_RX_ENB | CMD_TX_ENB, ioaddr + CHIPCMD);

@@ -1,3 +1,7 @@
+Fri Jan 04 12:06:54 2008 [20080104]
+Sergey Gridassov <grindars@grindars.org.ru>
+	- Исправил сломанные аргументы
+
 Thu Jan 03 20:11:26 2008 [20080103]
 Sergey Gridassov <grindars@grindars.org.ru>
 	- Библиотека libpci

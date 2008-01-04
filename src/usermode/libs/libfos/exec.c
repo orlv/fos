@@ -24,8 +24,7 @@ tid_t exece(const char * filename, const char * args, const char **envp)
   size_t args_len = 0;
   size_t envp_len = 0;
   
-  if(args) {
-    args_len = strlen(args) + 1;
+  if(args) {    args_len = strlen(args) + 1;
     if(args_len + len > ARG_MAX)
       return -1;
   }
@@ -42,7 +41,10 @@ tid_t exece(const char * filename, const char * args, const char **envp)
   memcpy(send_data, filename, len);
   memcpy(&send_data[len], filename, len);
   args_len += len;
-  if(args_len - len) memcpy(&send_data[len + len], args, args_len);
+  if(args_len - len) {
+	send_data[len + len - 1] = ' ';
+	memcpy(&send_data[len + len], args, args_len);
+  }
   if(envp_len) memcpy(&send_data[len + args_len + len], envp, envp_len);
   
   struct message msg;

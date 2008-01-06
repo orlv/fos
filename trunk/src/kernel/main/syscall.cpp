@@ -692,7 +692,7 @@ SYSCALL_HANDLER(sys_call_handler)
 
   case _FOS_GET_PAGE_PHYS_ADDR:
     if(arg1 > USER_MEM_BASE)
-      result = OFFSET(phys_addr_from(arg1, system->procman->current_thread->process->
+      result = OFFSET(phys_addr_from(PAGE(arg1), system->procman->current_thread->process->
 				     memory->pager->pagedir));
     else
       result = 0;

@@ -65,8 +65,8 @@ void Thread::set_tss(register off_t eip,
   tss->eflags = X86_EFLAGS_IOPL|X86_EFLAGS_IF|X86_EFLAGS;
 
   stack_pl0 = (off_t) kernel_stack;
-  tss->esp0 = (off_t) kernel_stack + STACK_SIZE - 1;
-  tss->esp = tss->ebp = (off_t) user_stack + STACK_SIZE - 1;
+  tss->esp0 = (off_t) kernel_stack + STACK_SIZE - 4;
+  tss->esp = tss->ebp = (off_t) user_stack + STACK_SIZE - 4;
   tss->cs = (u16_t) code_segment;
   tss->es = (u16_t) data_segment;
   tss->ss = (u16_t) data_segment;

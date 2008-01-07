@@ -1,3 +1,7 @@
+Mon Jan  7 18:28:21 2008 [20080107] (kernel version 0.0.45.5)
+Oleg S Fedorov <o.s.fedorov@gmail.com>:
+	- Добавил дамп стека процесса
+
 Fri Jan 04 12:06:54 2008 [20080104]
 Sergey Gridassov <grindars@grindars.org.ru>
 	- Исправил сломанные аргументы

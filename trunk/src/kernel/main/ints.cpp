@@ -12,7 +12,25 @@
 
 asmlinkage void sys_call_handler();
 
-void exception(string str, unsigned int cs,  unsigned int address, unsigned int errorcode)
+void dump_stack(u32_t ebp)
+{
+  u32_t *s;
+  if((ebp + 36*sizeof(u32_t)) < (ebp|0xfff))
+    s = (u32_t *) (ebp + 36*sizeof(u32_t));
+    else
+  s = (u32_t *) ((ebp | 0xfff) - 3);
+
+  printk("Memory dump from 0x%08X to ebp=0x%08X:\n", (u32_t)s, ebp);
+  int n=0;
+  while((u32_t)s > ebp) {
+    s--;
+    printk("0x%08X ", *s);
+    n++; if(n==4) { n=0; printk("\n"); }
+  }
+  printk("\n");
+}
+
+void exception(string str, unsigned int cs,  unsigned int address, unsigned int errorcode, unsigned int ebp)
 {
 #if 0
   printk("\n--------------------------------------------------------------------------------" \
@@ -24,30 +42,21 @@ void exception(string str, unsigned int cs,  unsigned int address, unsigned int 
   system->panic("fault in kernel task!");
 #endif
 
-  if(system->procman->current_thread->flags & FLAG_TSK_KERN){
-    printk("\n-------------------------------------------------------------------------------\n" \
-	   "Exception: %s \n"						\
-	   "At addr: 0x%02X:0x%08X\n"					\
-	   "Thread: 0x%X, Process: 0x%X \n"				\
-	   "Name: [%s]\n"						\
-	   "Errorcode: 0x%X",
-	   str, cs, address, system->procman->current_thread, system->procman->current_thread->process, system->procman->current_thread->process->name, errorcode);
+  printk("\n-------------------------------------------------------------------------------\n" \
+	 "Exception: %s \n"						\
+	 "At addr: 0x%02X:0x%08X\n"					\
+	 "Thread: 0x%X, Process: 0x%X \n"				\
+	 "Name: [%s]\n"							\
+	 "Errorcode: 0x%X\n"						\
+	 "-------------------------------------------------------------------------------\n", \
+	 str, cs, address, system->procman->current_thread, system->procman->current_thread->process, system->procman->current_thread->process->name, errorcode);
+  
+  if((system->procman->current_thread->flags & FLAG_TSK_KERN) ||
+     (address < USER_MEM_BASE)){
     system->panic("fault in kernel task!");
   } else {
-    printk("\n-------------------------------------------------------------------------------\n" \
-	   "Exception: %s \n"						\
-	   "At addr: 0x%02X:0x%08X\n"					\
-	   "Thread: 0x%X, Process: 0x%X \n"				\
-	   "Name: [%s]\n"						\
-	   "Errorcode: 0x%X\n"						\
-	   "-------------------------------------------------------------------------------\n", \
-	   str, cs, address, system->procman->current_thread, system->procman->current_thread->process, system->procman->current_thread->process->name, errorcode);
-
-    if(address < USER_MEM_BASE) {
-      system->panic("fault in kernel code!\n");
-    }
-
     printk("fault in user task! task terminated\n");
+    dump_stack(ebp);
     system->procman->current_thread->flags |= FLAG_TSK_TERM;
     system->procman->current_thread->flags &= ~FLAG_TSK_READY;
     while(1) sched_yield();
@@ -56,73 +65,73 @@ void exception(string str, unsigned int cs,  unsigned int address, unsigned int 
 
 EXCEPTION_HANDLER2(divide_error_exception)
 {
-  exception("[0x00] Divide Error", cs, address, 0);
+  exception("[0x00] Divide Error", cs, address, 0, ebp);
 }
 
 EXCEPTION_HANDLER(debug_exception)
 {
-  exception("[0x01] Debug", cs, address, errorcode);
+  exception("[0x01] Debug", cs, address, errorcode, ebp);
 }
 
 EXCEPTION_HANDLER(NMI_exception)
 {
-  exception("[0x02] NMI", cs, address, errorcode);
+  exception("[0x02] NMI", cs, address, errorcode, ebp);
 }
 
 EXCEPTION_HANDLER(int3_exception)
 {
   /* NONE */
-  //exception("int3", cs, address, errorcode);
+  //exception("int3", cs, address, errorcode, ebp);
 }
 
 EXCEPTION_HANDLER(overflow_exception)
 {
-  exception("[0x04] overflow", cs, address, errorcode);
+  exception("[0x04] overflow", cs, address, errorcode, ebp);
 }
 
 EXCEPTION_HANDLER(bound_exception)
 {
-  exception("[0x05] bound", cs, address, errorcode);
+  exception("[0x05] bound", cs, address, errorcode, ebp);
 }
 
 EXCEPTION_HANDLER(invalid_operation_exception)
 {
-  exception("[0x06] invalid operation", cs, address, errorcode);
+  exception("[0x06] invalid operation", cs, address, errorcode, ebp);
 }
 
 EXCEPTION_HANDLER(FPU_not_present_exception)
 {
-  exception("[0x07] FPU not present", cs, address, errorcode);
+  exception("[0x07] FPU not present", cs, address, errorcode, ebp);
 }
 
 EXCEPTION_HANDLER(double_fault_exception)
 {
-  exception("[0x08] double fault", cs, address, errorcode);
+  exception("[0x08] double fault", cs, address, errorcode, ebp);
 }
 
 EXCEPTION_HANDLER(reserved_exception)
 {
-  exception("reserved interrupt", cs, address, errorcode);
+  exception("reserved interrupt", cs, address, errorcode, ebp);
 }
 
 EXCEPTION_HANDLER(invalid_TSS_exception)
 {
-  exception("[0x0A] invalid TSS", cs, address, errorcode);
+  exception("[0x0A] invalid TSS", cs, address, errorcode, ebp);
 }
 
 EXCEPTION_HANDLER(segment_not_present_exception)
 {
-  exception("[0x0B] segment not present", cs, address, errorcode);
+  exception("[0x0B] segment not present", cs, address, errorcode, ebp);
 }
 
 EXCEPTION_HANDLER(stack_fault_exception)
 {
-  exception("[0x0C] stack fault", cs, address, errorcode);
+  exception("[0x0C] stack fault", cs, address, errorcode, ebp);
 }
 
 EXCEPTION_HANDLER(general_protection_fault_exception)
 {
-  exception("[0x0D] general protection fault", cs, address, errorcode);
+  exception("[0x0D] general protection fault", cs, address, errorcode, ebp);
 }
 
 EXCEPTION_HANDLER(page_fault_exception)
@@ -149,22 +158,22 @@ EXCEPTION_HANDLER(page_fault_exception)
   else
     printk("page not found");
 
-  exception("[0x0E] page fault", cs, address, errorcode);
+  exception("[0x0E] page fault", cs, address, errorcode, ebp);
 }
 
 EXCEPTION_HANDLER(FPU_error_exception)
 {
-  exception("[0x10] FPU error", cs, address, errorcode);
+  exception("[0x10] FPU error", cs, address, errorcode, ebp);
 }
 
 EXCEPTION_HANDLER(align_error_exception)
 {
-  exception("[0x11] align error", cs, address, errorcode);
+  exception("[0x11] align error", cs, address, errorcode, ebp);
 }
 
 EXCEPTION_HANDLER(machine_depend_error_exception)
 {
-  exception("[0x12] machine depend error", cs, address, errorcode);
+  exception("[0x12] machine depend error", cs, address, errorcode, ebp);
 }
 
 

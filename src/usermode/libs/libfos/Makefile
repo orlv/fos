@@ -2,12 +2,10 @@
 #	Copyright (C) 2007 Oleg Fedorov
 #----------------------------------------------------------------------------#
 
-include ../config.mk
+include $(ROOT)/config.mk
 
 INSTALLDIR	=	$(LIB)
-
 OUTPUT		=	libfos.a
-
 OBJECTS		=	message.o		\
 			kill.o			\
 			exec.o			\
@@ -24,20 +22,4 @@ OBJECTS		=	message.o		\
 			alarm2.o		\
 			mytid.o
 
-all:	$(OBJECTS)
-	$(AR) rc $(OUTPUT) $(OBJECTS)
-	cp $(OUTPUT) $(INSTALLDIR)/$(OUTPUT)
-
-install:
-	cp $(OUTPUT) $(INSTALLDIR)/$(OUTPUT)
-
-#--------------------------------- Clean -------------------------------------#
-
-clean:
-	@rm -f $(OBJECTS)
-	@rm -f $(OUTPUT)
-
-uninstall:
-	rm -f $(INSTALLDIR)/$(OUTPUT)
-
-#-----------------------------------------------------------------------------#
+include $(SYSTEM_SRC)/mk/trg_lib.mk

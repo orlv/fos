@@ -1,41 +1,8 @@
 # -----------------------------------------------------------------------------
-# Copyright (C) 2006-2007 Oleg Fedorov
-# Modified by:
-#	Michael Zhilin 23-08-2007
-#       Grindassov Sergey 
-#	 17-10-2007 Portable GUI System added
-#        18-10-2007 New i8042 server added
-#	 22-11-2007 ROMFS server added
-#       
+# Copyright (C) 2006-2008 Oleg Fedorov
 # -----------------------------------------------------------------------------
 
-include config.mk
+include $(ROOT)/config.mk
+include $(SYSTEM_SRC)/mk/subdir.mk
 
-SERVERS = namer fgs tty speaker hw i8042 stty romfs net
-#SERVERS += floppy
-
-all: 
-	@$(foreach server,$(SERVERS),\
-		$(YELLOW) $(ECHO) ---------------------------------\> Building $(server) ; $(GREY)\
-		$(MAKE) -s -C $(server) || exit 1; \
-	)
-
-install:
-	@$(foreach server,$(SERVERS),\
-		$(YELLOW) $(ECHO) ---------------------------------\> Install $(server) ; $(GREY)\
-		$(MAKE) -s -C $(server) install || exit 1;\
-	)
-
-uninstall:
-	@$(foreach server,$(SERVERS),\
-		$(YELLOW) $(ECHO) ---------------------------------\> Uninstall $(server) ; $(GREY)\
-		$(MAKE) -s -C $(server) uninstall || exit 1;\
-	)
-
-clean:
-	@$(foreach server,$(SERVERS),\
-		$(YELLOW) $(ECHO) ---------------------------------\> Cleaning $(server) ; $(GREY)\
-		$(MAKE) -s -C $(server) clean || exit 1;\
-	)
-
-# -----------------------------------------------------------------------------
+ITEMS = namer fgs tty speaker i8042 stty net romfs

@@ -1,36 +1,9 @@
 # -----------------------------------------------------------------------------
-# Copyright (C) 2006-2007 Oleg Fedorov
+# Copyright (C) 2006-2008 Oleg Fedorov
 # -----------------------------------------------------------------------------
 
-include config.mk
+include $(ROOT)/config.mk
+include $(SYSTEM_SRC)/mk/subdir.mk
 
 ITEMS =  libs consoletools gui servers
 
-# -----------------------------------------------------------------------------
-
-all: 
-	@$(foreach item,$(ITEMS),\
-		$(YELLOW) $(ECHO) ---------------------------------\> Building $(item) ; $(GREY)\
-		$(MAKE) -s -C $(item) || exit 1;\
-	)
-
-
-install:
-	@$(foreach item,$(ITEMS),\
-		$(YELLOW) $(ECHO) ---------------------------------\> Install $(item) ; $(GREY)\
-		$(MAKE) -s -C $(item) install || exit 1;\
-	)
-
-uninstall:
-	@$(foreach item,$(ITEMS),\
-		$(YELLOW) $(ECHO) ---------------------------------\> Uninstall $(item) ; $(GREY)\
-		$(MAKE) -s -C $(item) uninstall || exit 1;\
-	)
-
-clean:
-	@$(foreach item,$(ITEMS),\
-		$(YELLOW) $(ECHO) ---------------------------------\> Cleaning $(item) ; $(GREY)\
-		$(MAKE) -s -C $(item) clean || exit 1;\
-	)
-
-# -----------------------------------------------------------------------------

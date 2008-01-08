@@ -2,7 +2,7 @@
 #	Copyright (C) 2007 Gridassov Sergey
 #----------------------------------------------------------------------------#
 
-include ../config.mk
+include $(ROOT)/config.mk
 
 OUTPUT		=	i8042
 
@@ -10,18 +10,7 @@ OBJECTS		=	main.o i8042.o keyboard.o mouse.o
 
 LDLIBS		=	-\( -lc -lcpp -lfos -\)
 
-all:	$(OBJECTS)
-	@echo \ Linking $(OUTPUT)
-	@$(LD) $(LDFLAGS) -o $(OUTPUT) $(LIB)/crt0.o $(OBJECTS) $(LDLIBS) --entry=_start --oformat=elf32-i386  --Ttext=$(USER_MEM_BASE)
+TARGETDIR	=	$(INITRDDIR)/bin
 
-install:
-	cp $(OUTPUT) $(INITRDDIR)/bin/$(OUTPUT)
+include $(SYSTEM_SRC)/mk/trg_bin_std.mk
 
-clean:
-	@rm -f $(OBJECTS)
-	@rm -f $(OUTPUT)
-
-uninstall:
-	rm -f $(INITRDDIR)/bin/$(OUTPUT)
-
-#-----------------------------------------------------------------------------#

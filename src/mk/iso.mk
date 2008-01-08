@@ -13,7 +13,7 @@ iso: clean_iso
 	mkdir $(ISO_BUILD_DIR)
 	mkdir $(ISO_RELEASE_DIR)
 	cp -r $(SYSTEM_ROOT)/boot $(ISO_BUILD_DIR)/
-	rm -rf `find $(ISO_BUILD_DIR)/iso.image/ -name .svn`
+	rm -rf `find $(ISO_BUILD_DIR) -name .svn`
 
 	mkisofs -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table \
 		-iso-level 3 -r -J \

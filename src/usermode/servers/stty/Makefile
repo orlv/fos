@@ -3,10 +3,7 @@
 #  Serial I/O (c) 2007 Gridassov Sergey
 #----------------------------------------------------------------------------#
 
-include ../config.mk
-CFLAGS+=--std=c99
-MAKEFLAGS=
-CC=gcc
+include $(ROOT)/config.mk
 OUTPUT		=	stty
 
 OBJECTS		=	main.o		\
@@ -14,18 +11,7 @@ OBJECTS		=	main.o		\
 
 LDLIBS		=	-\( -lcpp -lc -lfos -\)
 
-all:	$(OBJECTS)
-	@echo \ Linking $(OUTPUT)
-	@$(LD) $(LDFLAGS) -o $(OUTPUT) $(LIB)/crt0.o $(OBJECTS) $(LDLIBS) --entry=_start --oformat=elf32-i386  --Ttext=$(USER_MEM_BASE)
+TARGETDIR	=	$(INSTALLDIR)
 
-install:
-	cp $(OUTPUT) $(INSTALLDIR)/$(OUTPUT)
+include $(SYSTEM_SRC)/mk/trg_bin_std.mk
 
-clean:
-	@rm -f $(OBJECTS)
-	@rm -f $(OUTPUT)
-
-uninstall:
-	rm -f $(INSTALLDIR)/$(OUTPUT)
-
-#-----------------------------------------------------------------------------#

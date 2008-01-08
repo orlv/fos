@@ -1,3 +1,6 @@
+Tue Jan  8 17:59:53 2008 [20080108]
+Sergey Gridassov <grindars@grindars.org.ru>
+	- Переделал систему сборки
 Mon Jan  7 18:28:21 2008 [20080107] (kernel version 0.0.45.5)
 Oleg S Fedorov <o.s.fedorov@gmail.com>:
 	- Добавил дамп стека процесса

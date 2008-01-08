@@ -116,13 +116,19 @@ void free(void *ptr)
 void * realloc(void *ptr, size_t size)
 {
   unsigned long *dst;
-  unsigned int i, oldsize;
+  unsigned int oldsize, minsize;
   dst = (unsigned long *) malloc(size);
   if(!dst) return NULL;
-  oldsize = ((struct HeapMemBlock *)((int)ptr - sizeof(struct HeapMemBlock)))->size * sizeof(struct HeapMemBlock);
-  for(i=0; i<oldsize/4; i++)
-    dst[i] = ((unsigned long *)ptr)[i];
-  free(ptr);
+  if(ptr) {
+    oldsize = ((struct HeapMemBlock *)((int)ptr - sizeof(struct HeapMemBlock)))->size * sizeof(struct HeapMemBlock);
+    if(oldsize <= size)
+      minsize = oldsize;
+    else
+      minsize = size;    
+    memcpy(dst, ptr, minsize);
+
+    free(ptr);
+  }
  
   return (void *)dst;
 }

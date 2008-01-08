@@ -2,104 +2,105 @@
 # FOS - FOS is Operating System
 # Copyright (C) 2004-2007 Oleg S. Fedorov
 #------------------------------------------------------------------------------
-
 include config.mk
-include config.iso.mk
-
-all:	version build_kernel build_user
-	@rm -f `find . -name \*~`
-#	@expr `cat .build.next` + 1 | xargs $(ECHO) -n > .build.next.tmp
-#	@mv .build.next.tmp .build.next
-	@LANG=C date -u +%Y%m%d | xargs $(ECHO) -n > VERSION
-	@$(GREEN) $(ECHO) \ System Complete!
-	@$(ECHO) \ Run \"make install\" to build iso image.
-	@$(YELLOW) $(ECHO) \#------------------------------------------------------------------------------ ; $(GREY)
 
 help:
-	@$(ECHO) " "
-	@$(ECHO) "\"make all\" 		- compile"
-	@$(ECHO) "\"make install\"		- install"
-	@$(ECHO) "\"make clean\"		- remove all *.o and image files"
-	@$(ECHO) " "
+	$(ECHO) " "
+	$(ECHO) "\"make all\" 		- compile"
+	$(ECHO) "\"make install\"		- install"
+	$(ECHO) "\"make clean\"		- remove all *.o and image files"
+	$(ECHO) " "
+
+
+include mk/iso.mk
+
+all:	version build_kernel build_user
+	rm -f `find . -name \*~`
+#	@expr `cat .build.next` + 1 | xargs $(ECHO) -n > .build.next.tmp
+#	@mv .build.next.tmp .build.next
+	LANG=C date -u +%Y%m%d | xargs $(ECHO) -n > VERSION
+	$(GREEN) $(ECHO) \ System Complete!
+	$(ECHO) \ Run \"make install\" to build iso image.
+	$(YELLOW) $(ECHO) \#------------------------------------------------------------------------------ ; $(GREY)
+
 
 version:
-	@rm -f kernel/main/version.o
+	rm -f kernel/main/version.o
 #	@cat .build.next > BUILD
-	@$(ECHO) " "
-	@$(RED) $(ECHO) "FOS `cat kernel/VERSION` (`cat VERSION`)" ; $(GREY)
-	@$(ECHO) "Copyright (C) 2004-2007 Oleg Fedorov"
-	@$(ECHO) " "
-	@$(ECHO) "/* " > ../include/fos/version.h
-	@$(ECHO) "include/fos/version.h" >> ../include/fos/version.h
-	@$(ECHO) "Automatically generated - do not modify" >> ../include/fos/version.h
-	@$(ECHO) "Copyright (C) 2004-2007 Oleg Fedorov" >> ../include/fos/version.h
-	@$(ECHO) "*/" >> ../include/fos/version.h
-	@$(ECHO) " " >> ../include/fos/version.h
-	@$(ECHO) "#define VERSION	\"`cat kernel/VERSION`\"" >> ../include/fos/version.h
-	@$(ECHO) "#define BUILD	\"`cat VERSION`\"" >> ../include/fos/version.h
+	$(ECHO) " "
+	$(RED) $(ECHO) "FOS `cat kernel/VERSION` (`cat VERSION`)" ; $(GREY)
+	$(ECHO) "Copyright (C) 2004-2007 Oleg Fedorov"
+	$(ECHO) " "
+	$(ECHO) "/* " > $(INCLUDE)/fos/version.h
+	$(ECHO) "include/fos/version.h" >> $(INCLUDE)/fos/version.h
+	$(ECHO) "Automatically generated - do not modify" >> $(INCLUDE)/fos/version.h
+	$(ECHO) "Copyright (C) 2004-2007 Oleg Fedorov" >> $(INCLUDE)/fos/version.h
+	$(ECHO) "*/" >> $(INCLUDE)/fos/version.h
+	$(ECHO) " " >> $(INCLUDE)/fos/version.h
+	$(ECHO) "#define VERSION	\"`cat kernel/VERSION`\"" >> $(INCLUDE)/fos/version.h
+	$(ECHO) "#define BUILD	\"`cat VERSION`\"" >> $(INCLUDE)/fos/version.h
 
 
 build_kernel:
-	@$(YELLOW) $(ECHO) \#--------------------------------- Building kernel ---------------------------- ; $(GREY)
-	@$(MAKE) -s -C kernel all
-	@$(YELLOW) $(ECHO) \#------------------------------------------------------------------------------ ; $(GREY)
-	@$(ECHO) 
+	$(YELLOW) $(ECHO) \#--------------------------------- Building kernel ---------------------------- ; $(GREY)
+	$(MAKE) -s -C kernel all
+	$(YELLOW) $(ECHO) \#------------------------------------------------------------------------------ ; $(GREY)
+	$(ECHO) 
 
 build_user:
-	@$(YELLOW) $(ECHO) \#---------------------- Building usermode programs ---------------------------- ; $(GREY)
-	@$(MAKE) -s -C usermode all
-	@$(YELLOW) $(ECHO) \#------------------------------------------------------------------------------ ; $(GREY)
+	$(YELLOW) $(ECHO) \#---------------------- Building usermode programs ---------------------------- ; $(GREY)
+	$(MAKE) -s -C usermode all ROOT=..
+	$(YELLOW) $(ECHO) \#------------------------------------------------------------------------------ ; $(GREY)
 
 
 #--------------------------------- Clean -------------------------------------
 
 clean_kernel:
-	@$(MAKE) -s -C kernel clean
+	$(MAKE) -s -C kernel clean
 
 clean_user:
-	@$(MAKE) -s -C usermode clean uninstall
+	$(MAKE) -s -C usermode clean uninstall ROOT=..
 
 clean_initrd:
-	@$(MAKE) -s -C initrd clean uninstall
+	$(MAKE) -s -C initrd clean uninstall
 
 clean: clean_kernel clean_user clean_initrd
 
 #--------------------------------- Install -----------------------------------
 
 install_kernel:
-	@$(YELLOW) $(ECHO) \#--------------------------------- Install kernel ----------------------------- ; $(GREY)
-	@$(MAKE) -s -C kernel install
-	@$(YELLOW) $(ECHO) \#------------------------------------------------------------------------------ ; $(GREY)
-	@$(ECHO) 
+	$(YELLOW) $(ECHO) \#--------------------------------- Install kernel ----------------------------- ; $(GREY)
+	$(MAKE) -s -C kernel install
+	$(YELLOW) $(ECHO) \#------------------------------------------------------------------------------ ; $(GREY)
+	$(ECHO) 
 
 install_user:
-	@$(YELLOW) $(ECHO) \#---------------------- Install usermode programs ----------------------------- ; $(GREY)
-	@$(MAKE) -s -C usermode install
-	@$(YELLOW) $(ECHO) \#------------------------------------------------------------------------------ ; $(GREY)
+	$(YELLOW) $(ECHO) \#---------------------- Install usermode programs ----------------------------- ; $(GREY)
+	$(MAKE) -s -C usermode install ROOT=..
+	$(YELLOW) $(ECHO) \#------------------------------------------------------------------------------ ; $(GREY)
 
 grub_menu:
-	@$(ECHO) "# GRUB Config: generated automatically - do not edit!" > $(GRUB_MENU)
-	@$(ECHO) "timeout $(GRUB_TIMEOUT)" >> $(GRUB_MENU)
-	@$(ECHO) "default 0" >> $(GRUB_MENU)
-	@$(ECHO) "hiddenmenu" >> $(GRUB_MENU)
-	@$(ECHO) "title $(GRUB_TITLE) (VERSION `cat kernel/VERSION`, BUILD `cat VERSION`)" >> $(GRUB_MENU)
-	@$(ECHO) "	root($(GRUB_ROOT))" >> $(GRUB_MENU)
-	@$(ECHO) "	kernel $(GRUB_KERNEL)" >> $(GRUB_MENU)
-	@$(ECHO) $(GRUB_MODULES) | awk 'BEGIN {RS = " "} {a = "\tmodule "$$0; print a}' >> $(GRUB_MENU)
+	$(ECHO) "# GRUB Config: generated automatically - do not edit!" > $(GRUB_MENU)
+	$(ECHO) "timeout $(GRUB_TIMEOUT)" >> $(GRUB_MENU)
+	$(ECHO) "default 0" >> $(GRUB_MENU)
+	$(ECHO) "hiddenmenu" >> $(GRUB_MENU)
+	$(ECHO) "title $(GRUB_TITLE) (VERSION `cat kernel/VERSION`, BUILD `cat VERSION`)" >> $(GRUB_MENU)
+	$(ECHO) "	root($(GRUB_ROOT))" >> $(GRUB_MENU)
+	$(ECHO) "	kernel $(GRUB_KERNEL)" >> $(GRUB_MENU)
+	$(ECHO) $(GRUB_MODULES) | awk 'BEGIN {RS = " "} {a = "\tmodule "$$0; print a}' >> $(GRUB_MENU)
 
 grub_tftp_menu:
-	@$(ECHO) "# GRUB Config: generated automatically - do not edit!" > $(GRUB_TFTP_MENU)
-	@$(ECHO) "timeout 1" >> $(GRUB_TFTP_MENU)
-	@$(ECHO) "default 0" >> $(GRUB_TFTP_MENU)
-	@$(ECHO) "title $(GRUB_TITLE) (VERSION `cat kernel/VERSION`, BUILD `cat VERSION`)" >> $(GRUB_TFTP_MENU)
-	@$(ECHO) "	root	(nd)" >> $(GRUB_TFTP_MENU)
-	@$(ECHO) "	kernel $(GRUB_KERNEL)" >> $(GRUB_TFTP_MENU)
-	@$(ECHO) $(GRUB_MODULES) | awk 'BEGIN {RS = " "} {a = "\tmodule "$$0; print a}' >> $(GRUB_TFTP_MENU)
+	$(ECHO) "# GRUB Config: generated automatically - do not edit!" > $(GRUB_TFTP_MENU)
+	$(ECHO) "timeout 1" >> $(GRUB_TFTP_MENU)
+	$(ECHO) "default 0" >> $(GRUB_TFTP_MENU)
+	$(ECHO) "title $(GRUB_TITLE) (VERSION `cat kernel/VERSION`, BUILD `cat VERSION`)" >> $(GRUB_TFTP_MENU)
+	$(ECHO) "	root	(nd)" >> $(GRUB_TFTP_MENU)
+	$(ECHO) "	kernel $(GRUB_KERNEL)" >> $(GRUB_TFTP_MENU)
+	$(ECHO) $(GRUB_MODULES) | awk 'BEGIN {RS = " "} {a = "\tmodule "$$0; print a}' >> $(GRUB_TFTP_MENU)
 create_initrd:
-	@$(YELLOW) $(ECHO) \#---------------------------- Create initrd ----------------------------------- ; $(GREY)
-	@$(MAKE) -s -C initrd
+	$(YELLOW) $(ECHO) \#---------------------------- Create initrd ----------------------------------- ; $(GREY)
+	$(MAKE) -s -C initrd
 
-# clean_initrd приходится вставлять :( make не детектит изменений в содержимом.
 install: install_kernel install_user clean_initrd create_initrd grub_menu grub_tftp_menu iso
 
 #-----------------------------------------------------------------------------

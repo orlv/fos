@@ -1,38 +1,34 @@
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
 #include <stdlib.h>
-
-#include <fos/fos.h>
-#include <fos/namer.h>
-#include <fos/message.h>
-
-#include <fos/fs.h>
-
+#include <stdio.h>
 asmlinkage int main(int argc, char **argv)
 {
-  printf("test2: my TID=0x%X\n", my_tid());
+	printf("Realloc test\n");
+	printf("Filling first part\n");
+	char *buf = realloc(NULL, 13);
+	for(int i = 0; i < 13; i++)
+		buf[i] = 'A' + i;
+	printf("And dump:\n");
+	for(int i = 0; i < 13; i++)
+		printf("%c", buf[i]);
 
-  resmgr_attach("/");
+	printf("\n");
+	printf("Reallocating\n");
+	buf = realloc(buf, 26);
+	printf("Filling second part\n");
+	for(int i = 13; i < 26; i++)
+		buf[i] = 'A' + i;	
 
-  int fd = open2("/mnt/modules/test.txt", 0);
+	printf("And dump:\n");
 
-  if (fd) {
-    fd_t foo = (fd_t) fd;
+	for(int i = 0; i < 26; i++)
+		printf("%c", buf[i]);
 
-    printf("test2: sid=0x%X, f=[%s], t=[%s]", foo->thread, foo->fullname, foo->name);
-  } else
-    printf("test2: fd=0");
-  /*
-     int fd = open("/mnt/modules/test.txt", 0);
-     char *buf = malloc(512);
-     int i = read(fd, buf, 512);
-     printf("test:read %d bytes\n", i);
-     for(int j=0; j<i; j++){
-     printf("%c", buf[j]);
-     }
-   */
-  printf("\n");
-  return 0;
+	printf("\nReallocating\n");
+	buf = realloc(buf, 13);	
+	printf("And dump:\n");
+
+	for(int i = 0; i < 13; i++)
+		printf("%c", buf[i]);
+	free(buf);
+	return 0;
 }

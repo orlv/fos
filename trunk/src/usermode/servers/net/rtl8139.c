@@ -8,13 +8,16 @@
 #include <fos/fos.h>
 #include <sys/mman.h>
 #include <fos/page.h>
+#include <string.h>
 #include "nettypes.h"
+#include "stackconfig.h"
 
 #define TX_FIFO_THRESH	256
 #define RX_FIFO_THRESH	4
-#define RX_BUF_LEN_IDX	2
+#define RX_BUF_LEN_IDX	0
 #define TX_DMA_BURST	4
 #define RX_DMA_BURST	4
+#define RX_BUF_LEN	(8192 << RX_BUF_LEN_IDX)
 
 #define CONFIG1		0x52
 #define CFG9346		0x50
@@ -27,6 +30,11 @@
 #define RXMISSED	0x4C
 #define RXCONFIG	0x44
 #define INTRMASK	0x3C
+#define MAR0		8
+#define INTRSTATUS	0x3E
+#define RXBUFPTR	0x38
+#define TXADDR0		0x20
+#define TXSTATUS0	0x10
 
 #define MEDIASTATUS	0x58
 #define MSRSPEED10	0x08
@@ -36,6 +44,7 @@
 #define CMDRESET	0x10
 #define CMD_RX_ENB	0x08
 #define CMD_TX_ENB	0x04
+#define RXBUFEMPTY	0x01
 
 #define TX_BUF_SIZE	1536
 #define NUM_TX_DESC	4
@@ -53,40 +62,29 @@
 #define TXOK		0x04
 #define RXERR		0x02
 #define RXOK		0x01
+
+#define RXBADSYMBOL	0x20
+#define RXRUNT		0x10
+#define RXTOOLONG	0x08
+#define RXCRCERR	0x04
+#define RXBADALIGN	0x02
+
+#define RX_CONFIG ((RX_BUF_LEN_IDX << 11) | (RX_FIFO_THRESH << 13) | (RX_DMA_BURST << 8))
 typedef struct {
 	int io;
 	int irq;
 	int rx_buf_len;
 	void *rx_ring;
 	int promisc;
+	int cur_rx, cur_tx;
+	char *tx_buffer;
+	int packets;
 } rtl8139_data;
 
 static int read_eeprom(long ioaddr, int location, int addr_len);
 static void rtl8139_reset(int ioaddr, dev_t *dev);
-
-volatile dev_t *forint;
-THREAD(rtl8139_interrupt) {
-	struct message msg;
-	struct dev *dev = (dev_t *)forint;
-	rtl8139_data *data = dev->custom;
-	printf("RTL8139 interrupts handler (for irq %u)\n", data->irq);
-	if(interrupt_attach(data->irq) != RES_SUCCESS) {
-		printf("can't attach!\n");
-		return 1;
-	}
-	unmask_interrupt(data->irq);
-	while (1) {
-		msg.tid = _MSG_SENDER_SIGNAL;
-		msg.recv_size = 0;
-		receive(&msg);
-		if(msg.arg[0] == data->irq) {
-			printf("int\n");
-			unmask_interrupt(data->irq);
-		} else
-			printf("not my interrupt\n");
-		reply(&msg);
-	}
-}
+int rtl8139_poll(dev_t *dev, int get);
+void rtl8139_transmit(dev_t *dev);
 
 int rtl8139_init(net_callbacks_t *callbacks, struct dev *dev) {
 	int i;
@@ -96,18 +94,16 @@ int rtl8139_init(net_callbacks_t *callbacks, struct dev *dev) {
 	mydata->io = pci_inl(dev->addr, 0x10) & 0xFFFFFF00;
 	mydata->irq = pci_inb(dev->addr, 0x3C);
 
-	mydata->promisc = 1; // важно!
+	mydata->promisc = 0; // важно!
 
 	int io = mydata->io;
 	printf("I/O at %X, ", mydata->io);
 	printf("IRQ %u, ", mydata->irq); 
 	outb(0x00, io + CONFIG1);
 	
-	mydata->rx_buf_len = 8192 << RX_BUF_LEN_IDX;
-	//FIXME: выравнивать на страницу, получать ФИЗИЧЕСКИЙ АДРЕС
-	printf("ring %u bytes, ", mydata->rx_buf_len + 16 + (TX_BUF_SIZE * NUM_TX_DESC));
-	mydata->rx_ring = kmmap(0, mydata->rx_buf_len + 16 + (TX_BUF_SIZE * NUM_TX_DESC), 0, 0);
-
+	printf("ring %u bytes, ", RX_BUF_LEN + 16 + (TX_BUF_SIZE * NUM_TX_DESC));
+	mydata->rx_ring = kmmap(0, RX_BUF_LEN + 16 + (TX_BUF_SIZE * NUM_TX_DESC), 0, 0);
+	mydata->tx_buffer = kmmap(0, ETH_FRAME_LEN, 0, 0);
 
 	int addr_len = read_eeprom(io, 0, 8) == 0x8129 ? 8 : 6;
 	for(i = 0; i < 3; i++) 
@@ -124,14 +120,14 @@ int rtl8139_init(net_callbacks_t *callbacks, struct dev *dev) {
 	printf("%sMbps %s-duplex\n", speed10 ? "10" : "100", fullduplex ? "full" : "half");
 	rtl8139_reset(io, dev);
 	if(inb(io + MEDIASTATUS) & MSRLINKFAIL) {
-		printf("Link failure, aboring!\n");
-		mask_interrupt(mydata->irq);
+		printf("Link failure, aborting!\n");
+//		mask_interrupt(mydata->irq);
 		kmunmap((off_t) mydata->rx_ring, mydata->rx_buf_len + 16 + (TX_BUF_SIZE * NUM_TX_DESC)); // FIXME: см выше
 		free(mydata);
 		return -1;
 	}else {
-		forint = dev;
-		thread_create((off_t ) & rtl8139_interrupt);
+		dev->device_poll = rtl8139_poll;
+		dev->device_transmit = rtl8139_transmit;
 		return 0;
 	}
 
@@ -139,6 +135,8 @@ int rtl8139_init(net_callbacks_t *callbacks, struct dev *dev) {
 }
 static void rtl8139_reset(int ioaddr, dev_t *dev) {
 	rtl8139_data *data = dev->custom;
+	data->cur_rx = 0;
+	data->cur_tx = 0;
 	outb(CMDRESET, ioaddr + CHIPCMD);
 	int start = uptime();
 	while(inb(ioaddr + CHIPCMD) & CMDRESET && (uptime() - start) < 10) sched_yield();
@@ -151,17 +149,22 @@ static void rtl8139_reset(int ioaddr, dev_t *dev) {
 	outl((RX_FIFO_THRESH << 13) | (RX_BUF_LEN_IDX << 11) | (RX_DMA_BURST << 8), ioaddr + RXCONFIG);
 	outl((TX_DMA_BURST << 8) | 0x03000000, ioaddr + TXCONFIG);	
 
-	printf("%x resolving to ", data->rx_ring);
-	printf("%x\n", getpagephysaddr((off_t) data->rx_ring));
-	printf("!");
-	 outl(getpagephysaddr((off_t) data->rx_ring), ioaddr + RXBUF);
-	printf("!");
-	outl(0, ioaddr + RXMISSED);
-	outb(ACCEPT_BROADCAST | ACCEPT_MY_PHYS | ((rtl8139_data *)(dev->custom))->promisc ? ACCEPT_ALL_PHYS : 0, ioaddr + RXCONFIG);
+	outl(getpagephysaddr((off_t) data->rx_ring), ioaddr + RXBUF);
 	outb(CMD_RX_ENB | CMD_TX_ENB, ioaddr + CHIPCMD);
+	outl(RX_CONFIG, ioaddr + RXCONFIG);
+	outl(0, ioaddr + RXMISSED);
 
-	outw(PCIERR | PCSTIMEOUT | RXUNDERRUN | RXOVERFLOW | RXFIFOOVER |
-		TXERR | TXOK | RXERR | RXOK, ioaddr + INTRMASK);
+
+	outl(RX_CONFIG | ACCEPT_BROADCAST | ACCEPT_MY_PHYS | data->promisc ? ACCEPT_ALL_PHYS : 0, ioaddr + RXCONFIG);
+	outl(0xffffffff, ioaddr + MAR0 + 0);
+	outl(0xffffffff, ioaddr + MAR0 + 4);
+//	!! outb(ACCEPT_BROADCAST | ACCEPT_MY_PHYS | data->promisc ? ACCEPT_ALL_PHYS : 0, ioaddr + RXCONFIG);
+
+	
+
+//	outw(PCIERR | PCSTIMEOUT | RXUNDERRUN | RXOVERFLOW | RXFIFOOVER |
+//		TXERR | TXOK | RXERR | RXOK, ioaddr + INTRMASK);
+	outw(0, ioaddr + INTRMASK);
 }
 #define EE_SHIFT_CLK	0x04	/* EEPROM shift clock. */
 #define EE_CS		0x08	/* EEPROM chip select. */
@@ -199,4 +202,86 @@ static int read_eeprom(long ioaddr, int location, int addr_len) {
 	}
 	outb(~EE_CS, ee_addr);
 	return retval;
+}
+
+int rtl8139_poll(dev_t *dev, int get) {
+	rtl8139_data *data = dev->custom;
+	int ioaddr = data->io;
+	if(inb(ioaddr + CHIPCMD) & RXBUFEMPTY)
+		return 0;
+//	printf("Have packet\n");
+	if(!get) return 1;
+	//printf("$$$ %u packets get\n", ++data->packets);
+	int status = inw(ioaddr + INTRSTATUS);
+	outw(status & ~ (RXFIFOOVER | RXOVERFLOW | RXOK), ioaddr + INTRSTATUS);
+	int ring_offs = data->cur_rx % RX_BUF_LEN;
+	int rx_status = *(unsigned int*)(data->rx_ring + ring_offs);
+	int rx_size = rx_status >> 16;
+	rx_status &= 0xFFFF;
+
+	if((rx_status & (RXBADSYMBOL | RXRUNT | RXTOOLONG | RXCRCERR | RXBADALIGN)) || (rx_size < ETH_ZLEN) || (rx_size > ETH_FRAME_LEN + 4)) {
+#ifdef CARD_DEBUG
+		printf("WARNING: rx error %hX, size %u bytes\n", rx_status, rx_size);
+#endif
+		rtl8139_reset(ioaddr, dev);
+		return 0;
+	}
+
+	dev->packetlen = rx_size - 4;
+//	printf("Packet size - %u bytes\n", dev->packetlen);
+	if(ring_offs + 4 + rx_size - 4 > RX_BUF_LEN) {
+		int semi_count = RX_BUF_LEN - ring_offs - 4;
+		memcpy(dev->packet, data->rx_ring + ring_offs + 4, semi_count);
+		memcpy(dev->packet + semi_count, data->rx_ring, rx_size - 4 - semi_count);
+#ifdef CARD_DEBUG
+		printf("rx packet %u+%u bytes\n", semi_count, rx_size - 4 - semi_count);
+#endif
+	} else {
+		memcpy(dev->packet, data->rx_ring + ring_offs + 4, dev->packetlen);
+#ifdef CARD_DEBUG
+		printf("rx packet %u bytes\n", rx_size - 4);
+#endif
+	}
+#ifdef CARD_DEBUG
+	printf(" start %X offset %x  at %X type %hX%hX rxstatus %hX\n", data->rx_ring, ring_offs + 4,
+		(unsigned long)(data->rx_ring + ring_offs + 4),
+		dev->packet[12], dev->packet[13], rx_status);
+#endif
+	data->cur_rx = (data->cur_rx + rx_size + 4 + 3) & ~3;
+	outw(data->cur_rx - 16, ioaddr + RXBUFPTR);
+	outw(status & (RXFIFOOVER | RXOVERFLOW | RXOK), ioaddr + INTRSTATUS);
+	return 1;
+}
+
+void rtl8139_transmit(dev_t *dev) {
+	rtl8139_data *data = dev->custom;
+	int ioaddr = data->io;
+	memcpy(data->tx_buffer, dev->packet, dev->packetlen);
+	while(dev->packetlen < ETH_ZLEN) {
+		dev->packet[dev->packetlen++] = 0;
+	}
+
+	outl(getpagephysaddr((off_t) data->tx_buffer), ioaddr + TXADDR0 + data->cur_tx * 4);
+	outl(((TX_FIFO_THRESH << 11) & 0x003f0000) | dev->packetlen, ioaddr + TXSTATUS0 + data->cur_tx * 4);
+	
+	u32_t to = uptime() + 1000;
+	u32_t status;
+	do {
+		status = inw(ioaddr + INTRSTATUS);
+		outw(status & (TXOK | TXERR | PCIERR), ioaddr + INTRSTATUS);
+		if(status & (TXOK | TXERR | PCIERR)) break;
+	} while(uptime() < to);
+
+	u32_t txstatus = inl(ioaddr + TXSTATUS0 + data->cur_tx * 4);
+	if(status & TXOK) {
+		data->cur_tx = (data->cur_tx + 1) % NUM_TX_DESC;
+#ifdef CARD_DEBUG
+		printf("tx done, status %hX txstatus %X\n",
+			status, txstatus);
+#endif
+	} else {
+		printf("tx timeout/error (%d ticks), status %hX txstatus %X\n",
+			uptime() - to, status, txstatus);
+		rtl8139_reset(ioaddr, dev);
+	}
 }

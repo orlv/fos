@@ -2,7 +2,8 @@
 #	Copyright (C) 2007 Oleg Fedorov
 #----------------------------------------------------------------------------#
 
-include ../config.mk
+include $(ROOT)/config.mk
+include $(SYSTEM_SRC)/mk/nicebuild.mk
 
 TARGETS=ls uname cat echo
 LDLIBS		=	-\( -lc -lfos -\)

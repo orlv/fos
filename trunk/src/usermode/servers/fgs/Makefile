@@ -1,10 +1,9 @@
 #         FOS Graphics System
 # Copyright (c) 2007 Sergey Gridassov
 
-include ../config.mk
-include config.mk
-CFLAGS+=-DVERSION=$(VERSION) -Iinc
-LDFLAGS+=$(LIBS_AL) $(addprefix $(TARGET)al/, $(OBJECTS_AL))
+include $(ROOT)/config.mk
+include $(SYSTEM_SRC)/mk/nicebuild.mk
+CFLAGS+=-DVERSION=\"008-stable\" -Iinc
 
 OBJECTS= \
 	main.o		events.o 	\

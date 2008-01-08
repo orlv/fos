@@ -1,5 +1,6 @@
+
 include ../config.mk
-include ../usermode/config.mk
+
 all: initrd.gz
 	cp $< $(INSTALLDIR)
 genromfs: genromfs.c

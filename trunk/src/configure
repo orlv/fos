@@ -103,6 +103,8 @@ LIB		= $TOPDIR/lib
 MAKE		= $MAKE
 ECHO		= $ECHO
 
+MAKEFLAGS	= -s
+
 # output coloring:
 GREEN		= $GREEN
 YELLOW		= $YELLOW
@@ -130,14 +132,6 @@ GRUB_KERNEL  = /boot/fos
 # Базовый адрес пользовательских программ
 USER_MEM_BASE = 0x8000000
 # -----------------------------------------------------------------------------
-EOF
-echo Creating usermode/config.mk
-
-cat > usermode/config.mk <<EOF
-# -----------------------------------------------------------------------------
-# Automatically generated, do not edit!
-# Copyright (C) 2007 Oleg Fedorov
-# -----------------------------------------------------------------------------
 CC = gcc
 C++ = gcc
 AS = gcc
@@ -169,84 +163,9 @@ ASFLAGS		= \$(FLAGS)
 CFLAGS		= \$(FLAGS) -ffreestanding -fno-leading-underscore --std=gnu99
 CXXFLAGS	= \$(FLAGS) -nostdinc++ -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin
 LDFLAGS		= -nostdlib -L\$(LIB) $XLDFLAGS
-.s.o:
-	@echo "Compiling \$<"
-	@\$(AS) \$(ASFLAGS) -c -o \$*.o \$<
 
-.S.o:
-	@echo "Compiling \$<"
-	@\$(AS) \$(CFLAGS) -c -o \$*.o \$<
-
-.c.o:
-	@echo "Compiling \$<"
-	@\$(CC) \$(CFLAGS) -c -o \$*.o \$<
-
-.cpp.o:
-	@echo "Compiling \$<"
-	@\$(C++) \$(CXXFLAGS) -c -o \$*.o \$<
-
-# Базовый адрес пользовательских программ
-USER_MEM_BASE = 0x8000000
-# -----------------------------------------------------------------------------
 EOF
-echo Creating usermode/servers/config.mk
 
-cat > usermode/servers/config.mk <<EOF
-# -----------------------------------------------------------------------------
-# Automatically generated, do not edit!
-# Copyright (C) 2007 Oleg Fedorov
-# -----------------------------------------------------------------------------
-CC = gcc
-C++ = gcc
-AS = gcc
-LD = ld
-AR = ar
-MAKE = $MAKE
-ECHO = $ECHO
-
-# output coloring:
-GREEN		= $GREEN
-YELLOW		= $YELLOW
-RED		= $RED
-GREY		= $GREY
-
-#----------------------------------------------------------------------------#
-
-SYSTEM_NAME     = FOS
-SYSTEM_ROOT	= $TOPDIR
-SYSTEM_SRC	= $TOPDIR/src
-BINDIR		= $TOPDIR/boot/modules
-INSTALLDIR	= $TOPDIR/boot/modules
-INITRDDIR	= $TOPDIR/src/initrd/contents
-INCLUDE		= $TOPDIR/include
-LIB		= $TOPDIR/lib
-#DEBUG		= -g
-FLAGS		= -Wall -nostdlib -nostdinc -I\$(INCLUDE) -fno-stack-protector -O2 $DEBUG -pipe $XCFLAGS
-
-ASFLAGS		= \$(FLAGS)
-CFLAGS		= \$(FLAGS) -ffreestanding -fno-leading-underscore --std=gnu99
-CXXFLAGS	= \$(FLAGS) -nostdinc++ -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin
-LDFLAGS		= -nostdlib -L\$(LIB) $XLDFLAGS
-.s.o:
-	@echo "Compiling \$<"
-	@\$(AS) \$(ASFLAGS) -c -o \$*.o \$<
-
-.S.o:
-	@echo "Compiling \$<"
-	@\$(AS) \$(CFLAGS) -c -o \$*.o \$<
-
-.c.o:
-	@echo "Compiling \$<"
-	@\$(CC) \$(CFLAGS) -c -o \$*.o \$<
-
-.cpp.o:
-	@echo "Compiling \$<"
-	@\$(C++) \$(CXXFLAGS) -c -o \$*.o \$<
-
-# Базовый адрес пользовательских программ
-USER_MEM_BASE = 0x8000000
-# -----------------------------------------------------------------------------
-EOF
 echo Creating Makefile
 echo "# Automatically generated, do not edit!" | cat - Makefile.in > Makefile
 

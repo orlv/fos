@@ -2,27 +2,16 @@
 #	Copyright (C) 2007 Oleg Fedorov
 #----------------------------------------------------------------------------#
 
-include ../config.mk
+include $(ROOT)/config.mk
 
 OUTPUT		=	net
 
-OBJECTS		=	main.o rtl8139.o
+OBJECTS		=	main.o	rtl8139.o	ethernet.o	arp.o	\
+			ip.o	icmp.o
 
 LDLIBS		=	-\( -lc -lcpp -lfos -lpci -\)
 
+TARGETDIR	=	$(INITRDDIR)/bin
 
-all:	$(OBJECTS)
-	@echo \ Linking $(OUTPUT)
-	@$(LD) $(LDFLAGS) -o $(OUTPUT) $(LIB)/crt0.o $(OBJECTS) $(LDLIBS) --entry=_start --oformat=elf32-i386  --Ttext=$(USER_MEM_BASE)
+include $(SYSTEM_SRC)/mk/trg_bin_std.mk
 
-install:
-	cp $(OUTPUT) $(INITRDDIR)/bin/$(OUTPUT)
-
-clean:
-	@rm -f $(OBJECTS)
-	@rm -f $(OUTPUT)
-
-uninstall:
-	rm -f $(INITRDDIR)/bin/$(OUTPUT)
-
-#-----------------------------------------------------------------------------#

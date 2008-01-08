@@ -2,25 +2,12 @@
 #	Copyright (C) 2006 Oleg Fedorov
 #----------------------------------------------------------------------------#
 
-include ../config.mk
+include $(ROOT)/config.mk
 
 OUTPUT		=	int16b
 OBJECTS		=	main.o
+TARGETDIR	=	$(INSTALLDIR)
+LDFLAGS		+=	 --oformat=binary -Tldscript -Ttext=0x500
 
-#-----------------------------------------------------------------------------#
+include $(SYSTEM_SRC)/mk/trg_bin.mk
 
-all:    $(OBJECTS)
-	@echo \ Linking $(OUTPUT)
-	@$(LD) $(LDFLAGS) -o $(OUTPUT) $(OBJECTS) --oformat=binary -Tldscript -Ttext=0x500
-
-install:
-	cp $(OUTPUT) $(INSTALLDIR)/
-
-clean:
-	@rm -f $(OBJECTS)
-	@rm -f $(OUTPUT)
-
-uninstall:
-	rm -f $(INSTALLDIR)/$(OUTPUT)
-
-#-----------------------------------------------------------------------------#

@@ -10,6 +10,7 @@
 #include <fos/page.h>
 #include <string.h>
 #include "uip.h"
+#undef CARD_DEBUG
 
 #define ETH_ZLEN	60
 #define ETH_FRAME_LEN	1514
@@ -19,6 +20,7 @@
 #define TX_DMA_BURST	4
 #define RX_DMA_BURST	4
 #define RX_BUF_LEN	(8192 << RX_BUF_LEN_IDX)
+#define TARGET		0xB900
 
 #define CONFIG1		0x52
 #define CFG9346		0x50
@@ -47,7 +49,7 @@
 #define CMD_TX_ENB	0x04
 #define RXBUFEMPTY	0x01
 
-#define TX_BUF_SIZE	1536
+#define TX_BUF_SIZE	ETH_FRAME_LEN
 #define NUM_TX_DESC	4
 
 #define ACCEPT_BROADCAST	0x08
@@ -106,9 +108,9 @@ int rtl8139_init(pci_addr_t *addr) {
 	outb(0x00, io + CONFIG1);
 	
 	printf("ring %u bytes, ", RX_BUF_LEN + 16 + (TX_BUF_SIZE * NUM_TX_DESC));
-	data.rx_ring = kmmap(0, RX_BUF_LEN + 16 + (TX_BUF_SIZE * NUM_TX_DESC), 0, 0);
+	data.rx_ring = kmmap(0, RX_BUF_LEN + 16 + (TX_BUF_SIZE * NUM_TX_DESC), 0, 0xB9000);
 	data.tx_buffer = kmmap(0, ETH_FRAME_LEN, 0, 0);
-
+	data.rx_buf_len = RX_BUF_LEN;
 	int addr_len = read_eeprom(io, 0, 8) == 0x8129 ? 8 : 6;
 	for(i = 0; i < 3; i++) 
 		((u16_t *)(rtl8139_mac))[i] = read_eeprom(io, i + 7, addr_len);
@@ -147,16 +149,21 @@ static void rtl8139_reset(int ioaddr) {
 	outl(*(u32_t *)(rtl8139_mac + 4), ioaddr + MAC0 + 4);
 
 	outb(CMD_RX_ENB | CMD_TX_ENB, ioaddr + CHIPCMD);
+
 	outl((RX_FIFO_THRESH << 13) | (RX_BUF_LEN_IDX << 11) | (RX_DMA_BURST << 8), ioaddr + RXCONFIG);
+
 	outl((TX_DMA_BURST << 8) | 0x03000000, ioaddr + TXCONFIG);	
 
 	outl(getpagephysaddr((off_t) data.rx_ring), ioaddr + RXBUF);
+
 	outb(CMD_RX_ENB | CMD_TX_ENB, ioaddr + CHIPCMD);
+
 	outl(RX_CONFIG, ioaddr + RXCONFIG);
+
 	outl(0, ioaddr + RXMISSED);
 
 
-	outl(RX_CONFIG | ACCEPT_BROADCAST | ACCEPT_MY_PHYS | data.promisc ? ACCEPT_ALL_PHYS : 0, ioaddr + RXCONFIG);
+	outl(RX_CONFIG | ACCEPT_BROADCAST | ACCEPT_MY_PHYS , ioaddr + RXCONFIG);
 	outl(0xffffffff, ioaddr + MAR0 + 0);
 	outl(0xffffffff, ioaddr + MAR0 + 4);
 //	!! outb(ACCEPT_BROADCAST | ACCEPT_MY_PHYS | data.promisc ? ACCEPT_ALL_PHYS : 0, ioaddr + RXCONFIG);
@@ -242,11 +249,12 @@ int rtl8139_poll() {
 #endif
 	}
 #ifdef CARD_DEBUG
-	printf(" start %X offset %x  at %X type %hX%hX rxstatus %hX\n", data.rx_ring, ring_offs + 4,
+	printf(" start %X offset %x  at %X rxstatus %hX\n", data.rx_ring, ring_offs + 4,
 		(unsigned long)(data.rx_ring + ring_offs + 4),
-		dev->packet[12], dev->packet[13], rx_status);
+		rx_status);
 #endif
 	data.cur_rx = (data.cur_rx + rx_size + 4 + 3) & ~3;
+
 	outw(data.cur_rx - 16, ioaddr + RXBUFPTR);
 	outw(status & (RXFIFOOVER | RXOVERFLOW | RXOK), ioaddr + INTRSTATUS);
 	return packetlen;

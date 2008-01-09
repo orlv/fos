@@ -10,7 +10,7 @@ extern const char http_texthtml[10];
 extern const char http_location[11];
 extern const char http_host[7];
 extern const char http_crnl[3];
-extern const char http_index_html[12];
+extern const char http_index_html[13];
 extern const char http_404_html[10];
 extern const char http_referer[9];
 extern const char http_header_200[84];

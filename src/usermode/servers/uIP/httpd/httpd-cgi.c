@@ -53,10 +53,13 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <fos/fos.h>
 
 HTTPD_CGI_CALL(file, "file-stats", file_stats);
 HTTPD_CGI_CALL(tcp, "tcp-connections", tcp_stats);
 HTTPD_CGI_CALL(net, "net-stats", net_stats);
+
 
 static const struct httpd_cgi_call *calls[] = { &file, &tcp, &net, NULL };
 
@@ -199,5 +202,5 @@ PT_THREAD(net_stats(struct httpd_state *s, char *ptr))
   
   PSOCK_END(&s->sout);
 }
-/*---------------------------------------------------------------------------*/
-/** @} */
+
+

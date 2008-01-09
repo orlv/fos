@@ -10,7 +10,7 @@
 
 #define ITEMS_COUNT 2
 static char *items[ITEMS_COUNT] = { "Tetris", "Test" };
-static char *cmds[ITEMS_COUNT] = { "/usr/bin/tetris", "/bin/test" };
+static char *cmds[ITEMS_COUNT] = { "/usr/bin/tetris", "/usr/bin/test" };
 int width, height;
 int hndl;
 int displayed = 0;

@@ -4,7 +4,6 @@
 # но нужно сохранить все разделители.
 #
 /bin/i8042::Starting keyboard/mouse driver
-#/bin/pci_scan::Scanning PCI bus
+/bin/pci_scan::Scanning PCI bus
 #/usr/bin/fgs::Starting up GUI
 /bin/shell::Starting up shell
-/bin/test2::Testing

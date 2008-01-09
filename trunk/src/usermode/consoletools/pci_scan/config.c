@@ -91,6 +91,7 @@ void TryHandleDevice(int did, int vid, pci_addr_t *addr) {
 			send(&msg);
 			// здесь handle - валидный хендл сервера.
 			close(handle);
+			exit(1);
 		}
 	}
 }

@@ -1,30 +1,34 @@
 %!: /header.html
-<h1>Network statistics</h1>
+<h1>Сеть</h1>
 <center>
 <table width="300" border="0">
 <tr><td><pre>
-IP           Packets received
-             Packets sent
-	     Packets dropped
-IP errors    IP version/header length
-             IP length, high byte
-             IP length, low byte
-             IP fragments
-             Header checksum
-             Wrong protocol
-ICMP	     Packets received
-             Packets sent
-             Packets dropped
-             Type errors
-TCP          Packets received
-             Packets sent
-             Packets dropped
-             Checksum errors
-             Data packets without ACKs
-             Resets
-             Retransmissions
-	     No connection avaliable
-	     Connection attempts to closed ports
+IP           Пакетов потеряно
+             Пакетов получено
+             Пакетов отправлено
+Ошибки IP    Неправильная версия
+             Неправильный размер (старший байт)
+             Неправильный размер (младший байт)
+             Фрагменты пакета
+             Контрольная сумма заголовка
+             Неподдерживаемый протокол
+ICMP	     Пакетов потеряно
+             Пакетов отправлено
+             Пакетов получено
+Ошибки ICMP  Неизвестный тип
+TCP          Пакетов потеряно
+             Пакетов получено
+             Пакетов отправлено
+Ошибки TCP   Неправильная контрольная сумма
+             Неправильный номер ACK
+             Соединение сброшено
+             Повторная передача
+             Исчерпан лимит соединений
+	     Соединение с закрытым портом
+UDP          Пакетов потеряно
+             Пакетов получено
+             Пакетов отправлено
+Ошибки UDP   Неправильная контрольная сумма
 </pre></td><td><pre>%! net-stats
 </pre></table>
 </center>

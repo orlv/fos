@@ -49,6 +49,7 @@ struct httpd_state {
   int len;
   char *scriptptr;
   int scriptlen;
+  char *scriptbuf;
   
   unsigned short count;
 };

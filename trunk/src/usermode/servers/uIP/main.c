@@ -31,9 +31,10 @@ int main(int argc, char *argv[]) {
   uip_ipaddr(ipaddr, 255,255,255,0);
   uip_setnetmask(ipaddr);
 	uip_setethaddr(rtl8139_mac);
-	dhcpc_init(rtl8139_mac, 6);
 	resolv_init();
+	dhcpc_init(rtl8139_mac, 6);
 	httpd_init();
+  printf("Stack started\n");
   while(1) {
     uip_len = rtl8139_poll();
 
@@ -71,7 +72,7 @@ int main(int argc, char *argv[]) {
 	}
       }
 
-#if UIP_UDP
+//#if UIP_UDP
       for(i = 0; i < UIP_UDP_CONNS; i++) {
 	uip_udp_periodic(i);
 	/* If the above function invocation resulted in data that
@@ -82,7 +83,7 @@ int main(int argc, char *argv[]) {
 	  rtl8139_transmit();
 	}
       }
-#endif /* UIP_UDP */
+//#endif /* UIP_UDP */
       
       /* Call the ARP timer function every 10 seconds. */
       if(timer_expired(&arp_timer)) {
@@ -98,6 +99,7 @@ int main(int argc, char *argv[]) {
 void
 dhcpc_configured(const struct dhcpc_state *s)
 {
+  printf("Reconfigured via dhcp\n");
   uip_sethostaddr(s->ipaddr);
   uip_setnetmask(s->netmask);
   uip_setdraddr(s->default_router);

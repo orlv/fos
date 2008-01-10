@@ -8,8 +8,30 @@
 #include <string.h>
 #include "privatetypes.h"
 
-control_t *focused = NULL;
-
+void MoveFocusToControl(int win, int handle) {
+  control_t *c = (control_t *) handle;
+  rootwindow_t *rw = (rootwindow_t *)win;
+  control_t *oldfocus = rw->focused;
+  if(c) {
+    if(c->class == CONTROL_STATIC || c->class == CONTROL_MENU) {
+      if(c->next)
+        MoveFocusToControl(win, (int) c->next);
+      return;
+    }
+    if(c->class == CONTROL_BUTTON) {
+      Draw3D(c->x, c->y, c->w, c->h, rw->handle, STYLE_BUTTON_FOCUSED);
+      pstring(rw->handle, c->x + (c->w - 8 * strlen(c->text)) / 2, c->y + (c->h - 16) / 2, 0x000000, c->text);
+    }
+  }
+  rw->focused = c;
+  if(oldfocus) {
+     if(oldfocus->class == CONTROL_BUTTON) {
+       Draw3D(oldfocus->x, oldfocus->y, oldfocus->w, oldfocus->h, rw->handle, STYLE_BUTTON_NORMAL);
+       pstring(rw->handle, oldfocus->x + (oldfocus->w - 8 * strlen(oldfocus->text)) / 2, oldfocus->y + (oldfocus->h - 16) / 2, 0x000000, oldfocus->text);
+    }
+  }
+  RefreshWindow(rw->handle);
+}
 void SetControlText(int handle, char *text)
 {
   control_t *c = (control_t *) handle;
@@ -80,7 +102,6 @@ void DestroyControl(int handle)
 {
   control_t *cntrl = (control_t *) handle;
   rootwindow_t *rw = cntrl->win;
-
   for (control_t * ptr = rw->control, *prev = NULL; ptr; prev = ptr, ptr = ptr->next) {
     if (ptr == cntrl && prev) {
       prev->next = ptr->next;
@@ -91,6 +112,7 @@ void DestroyControl(int handle)
       break;
     }
   }
+  if((int)rw->focused == handle) MoveFocusToControl((int)rw, (int)rw->control);
   if (cntrl->class == CONTROL_BUTTON)
     DrawLocateRect(rw->locate, cntrl->x, cntrl->y, cntrl->w, cntrl->h, 0, rw->w);
   if (cntrl->class == CONTROL_MENU) {

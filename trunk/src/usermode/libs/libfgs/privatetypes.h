@@ -98,13 +98,14 @@ typedef struct rw {
   int (*handler) (int, int, int, int, int, int);
   int menu_of;
   menu_t *menu;
+  control_t *focused;
 } rootwindow_t;
 
 extern rootwindow_t *head;
 
-#define STYLE_BUTTON_NORMAL 1
-#define STYLE_BUTTON_DOWN 2
-
+#define STYLE_BUTTON_NORMAL 	1
+#define STYLE_BUTTON_DOWN 	2
+#define STYLE_BUTTON_FOCUSED	3
 static inline rootwindow_t *ResolveEventHandle(int hndl)
 {
   if (!head)
@@ -149,6 +150,7 @@ static inline rootwindow_t *InternalCreateWindow(int x, int y, int w, int h, cha
   rw->handler = handler;
   rw->menu_of = menu_of;
   rw->menu = menu;
+  rw->focused = NULL;
   head = rw;
   return rw;
 }

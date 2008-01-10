@@ -109,7 +109,7 @@ scan_inode:
 			}
 		}
 		if(type == ROMFS_FILE) {
-			if(last_part) {
+			if(last_part && !need_directory) {
 				memcpy(inode, in, sizeof(*in));
 				delete part;
 				return ptr;

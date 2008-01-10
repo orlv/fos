@@ -30,8 +30,11 @@ void ControlsMessageLoop()
       break;
     case EV_MDOWN:
       control = ResolveMouseCoord(win, a0, a1);
-      if (!control)
+      if (!control) {
+        MoveFocusToControl((int) win, 0);
 	break;
+      }
+      MoveFocusToControl((int) win, (int)control);
       if (control->class == CONTROL_BUTTON) {
 	Draw3D(control->x, control->y, control->w, control->h, win->handle, STYLE_BUTTON_DOWN);
 	pstring(win->handle, (control->w - 8 * strlen(control->text)) / 2 + control->x,
@@ -49,7 +52,7 @@ void ControlsMessageLoop()
 	if (ptr->down) {
 	  ptr->down = 0;
 	  if (ptr->class == CONTROL_BUTTON) {
-	    Draw3D(ptr->x, ptr->y, ptr->w, ptr->h, win->handle, STYLE_BUTTON_NORMAL);
+	    Draw3D(ptr->x, ptr->y, ptr->w, ptr->h, win->handle, ptr == win->focused ? STYLE_BUTTON_FOCUSED : STYLE_BUTTON_NORMAL);
 	    pstring(win->handle, (ptr->w - 8 * strlen(ptr->text)) / 2 + ptr->x, (ptr->h - 16) / 2 + ptr->y, 0x000000,
 		    ptr->text);
 	    RefreshWindow(win->handle);
@@ -87,6 +90,27 @@ void ControlsMessageLoop()
 	}
 	win->menu->selected = item + 1;
 	RefreshWindow(win->handle);
+      }
+      break;
+    case EV_KEY:
+      if(a0 == '\t') {
+        if(win->focused) {
+          if(win->focused->next)
+            MoveFocusToControl((int) win, (int)win->focused->next);
+          else
+            MoveFocusToControl((int) win, (int)win->control);
+        } else
+          MoveFocusToControl((int) win, (int)win->control);
+        break;
+      }
+      if(a0 == '\n') {
+        if(win->focused) {
+          if(win->focused->class == CONTROL_BUTTON) {
+            if (!(win->handler) ((int)win->focused, EVC_CLICK, 0, 0, 0, 0))
+	      return;
+            break;
+          }
+        }
       }
       break;
     default:

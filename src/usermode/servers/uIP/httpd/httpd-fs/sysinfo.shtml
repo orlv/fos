@@ -1,0 +1,6 @@
+%!: /header.html
+<h1>О системе</h1>
+<code>
+%! uname
+</code>
+%!: /footer.html

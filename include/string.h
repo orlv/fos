@@ -200,7 +200,7 @@ static inline void * memset(void * s, char c, size_t count)
 
 static inline int memcmp(const void * cs,const void * ct,int count)
 {
-register int __res __asm__("ax");
+register int __res;
 __asm__("cld\n\t"
 	"repe\n\t"
 	"cmpsb\n\t"

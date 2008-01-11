@@ -47,9 +47,9 @@ int main(int argc, char *argv)
   DrawImage(mousex, mousey, busy, &screen);
   init_windowing();
   StartEventHandling();
-  SetBusy(-1);
   exec("/usr/bin/taskbar", NULL);
   printf("FGS: Started up shell (/usr/bin/taskbar)\n");
+  SetBusy(-1);
   for (;;) {
     if (need_refresh) {
       Redraw();

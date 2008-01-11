@@ -61,15 +61,10 @@ void cat(char *file) {
 	fstat(hndl, &st);
 	char *buf = malloc(st.st_size);
 	read(hndl, buf, st.st_size);
-	// TODO: когда будут потоки, сделать нормально.
-	// смысл этого кода в том, что бы записать не до нуля, а
-	// до конца файла. Будет что-то вроде write(stdout, buf, st.st_size);
-	int tty = open("/dev/tty", 0);
-	write(tty, buf,  st.st_size);
-	close(tty);
+	write(stdout, buf,  st.st_size);
 	free(buf);	
 	close(hndl);
 }
 void version() {
-	printf("cat (FOS tiny coreutils) 0.1\n");
+	printf("cat (FOS tiny coreutils) 0.2\n");
 }

@@ -12,6 +12,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/mman.h>
+
 void ParseLine(char *line);
 
 asmlinkage int main()
@@ -20,8 +21,12 @@ asmlinkage int main()
   for (int i = 0; i < 15; i++)
     sched_yield();
   while(!exec("/mnt/modules/stty", NULL));
+  do {
+    stdout = open("/dev/tty", 0);
+  } while(stdout < 0);
   printf("Init started! If you see this text - all work fine.\n");
-  setenv("TTY", "/dev/tty", 0);
+  setenv("STDOUT", "/dev/tty", 0);
+  setenv("STDIN", "/dev/tty", 0);
   setenv("PATH", "/bin:/usr/bin", 0);
 
   exec("/mnt/modules/romfs", NULL);

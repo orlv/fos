@@ -3,9 +3,10 @@
  * Copyright (c) 2007 Sergey Gridassov
  */
 
-// TODO: для рисования вертикальных или горизонтальных линий - далеко не самый лучший алгоритм.
 #include <private/pixel.h>
-
+#define RED(x, bits)	((x >> (16 + 8 - bits)) & ((1 << bits) - 1))
+#define GREEN(x, bits)	((x >> (8 + 8 - bits)) & ((1 << bits) - 1))
+#define BLUE(x, bits)	((x >> (8 - bits)) & ((1 << bits) - 1))
 void line(int x0, int y0, int x1, int y1, int color, context_t * context)
 {
   int dy = y1 - y0;
@@ -24,7 +25,33 @@ void line(int x0, int y0, int x1, int y1, int color, context_t * context)
   } else {
     stepx = 1;
   }
+  if(dy == 0) {
+    unsigned short modecolor = RED(color, 5) << 11 | GREEN(color, 6) << 5 | BLUE(color, 5);
 
+    unsigned short *dot = (unsigned short *)context->data + y0 * context->w + x0;
+    if(stepx > 0)
+      for(int xx = x0; xx <= x1; xx++)
+        *(dot++) = modecolor;
+    else
+      for(int xx = x1; xx <= x0; xx++)
+        *(dot++) = modecolor;
+    return;
+  }
+  if(dx == 0) {
+    unsigned short modecolor = RED(color, 5) << 11 | GREEN(color, 6) << 5 | BLUE(color, 5);
+    unsigned short *dot = (unsigned short *)context->data + y0 * context->w + x0;
+    if(stepy > 0)
+      for(int yy = y0; yy <= y1; yy++) {
+        *dot = modecolor;
+        dot+=context->w;
+      }
+    else
+      for(int yy = y1; yy <= y0; yy++) {
+        *dot = modecolor;
+        dot-=context->w;
+      }
+    return;
+  }
   SetPixel(x0, y0, color, context);
   SetPixel(x1, y1, color, context);
   if (dx > dy) {

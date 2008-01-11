@@ -21,6 +21,9 @@ asmlinkage int main()
     sched_yield();
   while(!exec("/mnt/modules/stty", NULL));
   printf("Init started! If you see this text - all work fine.\n");
+  setenv("TTY", "/dev/tty", 0);
+  setenv("PATH", "/bin:/usr/bin", 0);
+
   exec("/mnt/modules/romfs", NULL);
   for (int i = 0; i < 100; i++)
     sched_yield();

@@ -12,13 +12,16 @@ OBJECTS		=	close.o		malloc.o	\
 			write.o		sprintf.o	\
 			vsprintf.o	printf.o	\
 			time.o		stat.o		\
-			fstat.o		strspn.o \
-			strcspn.o	strtok_r.o \
-			strsep.o	random.o \
-			opendir.o	getopt.o \
-			readdir.o	closedir.o \
-			rewinddir.o	seekdir.o \
-			telldir.o	strtoul.o
+			fstat.o		strspn.o	\
+			strcspn.o	strtok_r.o 	\
+			strsep.o	random.o 	\
+			opendir.o	getopt.o 	\
+			readdir.o	closedir.o	\
+			rewinddir.o	seekdir.o 	\
+			telldir.o	strtoul.o	\
+			__add_to_environ.o		\
+			setenv.o	unsetenv.o	\
+			getenv.o
 
 include $(SYSTEM_SRC)/mk/trg_lib.mk
 

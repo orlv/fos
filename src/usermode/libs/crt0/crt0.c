@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 char **__ARGV = 0;
 int __ARGC = 0;
@@ -20,7 +21,7 @@ asm(".globl _start \n"
     "push %edx     \n"
     "call _startup");
 
-void _startup(int envp_size, char **envp, int args_size, char *args) 
+void _startup(int envp_size, char *envp, int args_size, char *args) 
 {
 
   int argc = 0;
@@ -44,10 +45,23 @@ void _startup(int envp_size, char **envp, int args_size, char *args)
   }
   __ARGC = argc;
   __ARGV = argv;
-  environ = envp;
-  if(!environ || !envp_size) {
-   environ = malloc(1);
-   environ[0] = 0;
-  }
+  if(envp_size) {
+    int envc = 0;
+    for(char *ptr = envp;; envc++) {
+      int len = strlen(ptr);
+      if(!len) break;
+      ptr += len + 1;
+    }
+    envc++;
+    environ = (char **)malloc(envc * sizeof(char *));
+    int i = 0;
+    for(char *ptr = envp;; i++) {
+      int len = strlen(ptr);
+      if(!len) break;
+      environ[i] = ptr;
+      ptr += len + 1;
+    }
+  }else 
+   environ = NULL;
   exit(main(argc, argv));
 }

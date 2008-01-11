@@ -10,5 +10,6 @@
 
 userlinkage int printf(const char *fmt, ...);
 userlinkage int sprintf(char *str, const char *fmt, ...);
+userlinkage void fgets(char *buf, size_t size, int handle);
 extern int stdin, stdout; 
 #endif

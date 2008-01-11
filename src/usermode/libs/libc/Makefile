@@ -21,7 +21,8 @@ OBJECTS		=	close.o		malloc.o	\
 			telldir.o	strtoul.o	\
 			__add_to_environ.o		\
 			setenv.o	unsetenv.o	\
-			getenv.o
+			getenv.o	getcwd.o	\
+			fgets.o		chdir.o
 
 include $(SYSTEM_SRC)/mk/trg_lib.mk
 

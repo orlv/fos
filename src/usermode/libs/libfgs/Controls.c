@@ -7,7 +7,54 @@
 #include <stdlib.h>
 #include <string.h>
 #include "privatetypes.h"
+/*
+ * Довольно запутанная функция.
+ * Перерисовывает контрол с заданным стилем.
+ */
+void __InternalRedrawControl(control_t *c, int x, int y) {
+	int style = 0;
+	rootwindow_t *win = c->win;
+	switch(c->class) {
+	case CONTROL_BUTTON:
+		if(c->down) 
+			style = STYLE_BUTTON_DOWN;
+		else if(!style && win->focused == c)
+			style = STYLE_BUTTON_FOCUSED;
+		else if(!style && win->focused != c)
+			style = STYLE_BUTTON_NORMAL;
 
+		Draw3D(c->x, c->y, c->w, c->h, win->handle, style);
+		pstring(win->handle, c->x + (c->w - 8 * strlen(c->text)) / 2, c->y + (c->h - 16) / 2, 0x000000, c->text);
+		break;
+	case CONTROL_STATIC:
+		rect(win->handle, c->x, c->y, c->w, c->h, 0xC3C3C3);
+   		pstring(win->handle, c->x, c->y, 0x000000, c->text);
+		break;
+	case CONTROL_MENU: {
+		win = c->menu->win;
+		if(x < 4 || y < 4 || x > win->w - 4 || y > win->h - 4) {
+			if(win->menu->selected) {
+				rect(win->handle, 4, 4 + (win->menu->selected - 1) * 20, win->w - 8, 20, 0xC3C3C3);
+				pstring(win->handle, 4, 6 + (win->menu->selected - 1) * 20, 0, win->menu->items[win->menu->selected - 1]);
+				win->menu->selected = 0;
+			}
+			return;
+		}
+		int item = (y - 4) / 20;
+		if (item + 1 > win->menu->count)
+			return;
+		rect(win->handle, 4, 4 + item * 20, win->w - 8, 20, 0x78);
+		pstring(win->handle, 4, 6 + item * 20, 0xFFFFFF, win->menu->items[item]);
+		if (win->menu->selected != item + 1 && win->menu->selected) {
+			rect(win->handle, 4, 4 + (win->menu->selected - 1) * 20, win->w - 8, 20, 0xC3C3C3);
+			pstring(win->handle, 4, 6 + (win->menu->selected - 1) * 20, 0, win->menu->items[win->menu->selected - 1]);
+		}
+		win->menu->selected = item + 1;
+		break;
+	}
+	}	
+	
+}
 void MoveFocusToControl(int win, int handle) {
   control_t *c = (control_t *) handle;
   rootwindow_t *rw = (rootwindow_t *)win;
@@ -18,35 +65,23 @@ void MoveFocusToControl(int win, int handle) {
         MoveFocusToControl(win, (int) c->next);
       return;
     }
-    if(c->class == CONTROL_BUTTON) {
-      Draw3D(c->x, c->y, c->w, c->h, rw->handle, STYLE_BUTTON_FOCUSED);
-      pstring(rw->handle, c->x + (c->w - 8 * strlen(c->text)) / 2, c->y + (c->h - 16) / 2, 0x000000, c->text);
-    }
-  }
-  rw->focused = c;
-  if(oldfocus) {
-     if(oldfocus->class == CONTROL_BUTTON) {
-       Draw3D(oldfocus->x, oldfocus->y, oldfocus->w, oldfocus->h, rw->handle, STYLE_BUTTON_NORMAL);
-       pstring(rw->handle, oldfocus->x + (oldfocus->w - 8 * strlen(oldfocus->text)) / 2, oldfocus->y + (oldfocus->h - 16) / 2, 0x000000, oldfocus->text);
-    }
-  }
+   rw->focused = c;
+   __InternalRedrawControl(c, 0, 0);
+  } else 
+    rw->focused = c;
+  if(oldfocus) 
+    __InternalRedrawControl(oldfocus, 0, 0);
   RefreshWindow(rw->handle);
 }
 void SetControlText(int handle, char *text)
 {
   control_t *c = (control_t *) handle;
   rootwindow_t *rw = c->win;
-
+  if(!c->text) return;
   free(c->text);
   c->text = malloc(strlen(text));
   strcpy(c->text, text);
-  if (c->class == CONTROL_STATIC) {
-    rect(rw->handle, c->x, c->y, c->w, c->h, 0xC3C3C3);
-    pstring(rw->handle, c->x, c->y, 0x000000, c->text);
-  } else {
-    Draw3D(c->x, c->y, c->w, c->h, rw->handle, STYLE_BUTTON_NORMAL);
-    pstring(rw->handle, c->x + (c->w - 8 * strlen(c->text)) / 2, c->y + (c->h - 16) / 2, 0x000000, c->text);
-  }
+  __InternalRedrawControl(c, 0, 0);
   RefreshWindow(rw->handle);
 }
 
@@ -69,8 +104,7 @@ int CreateButton(int window, int x, int y, int w, int h, char *caption)
   c->menu = NULL;
   rw->control = c;
   DrawLocateRect(rw->locate, x, y, w, h, (int)c, rw->w);
-  Draw3D(x, y, w, h, rw->handle, STYLE_BUTTON_NORMAL);
-  pstring(rw->handle, (w - 8 * len) / 2 + x, (h - 16) / 2 + y, 0x000000, caption);
+  __InternalRedrawControl(c, 0, 0);
   RefreshWindow(rw->handle);
   return (int)c;
 }
@@ -92,8 +126,7 @@ int CreateStatic(int window, int x, int y, int w, int h, char *caption)
   c->win = rw;
   c->menu = NULL;
   rw->control = c;
-  rect(rw->handle, x, y, w, h, 0xC3C3C3);
-  pstring(rw->handle, x, y, 0x000000, caption);
+  __InternalRedrawControl(c, 0, 0);
   RefreshWindow(rw->handle);
   return (int)c;
 }

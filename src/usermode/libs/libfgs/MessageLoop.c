@@ -23,10 +23,9 @@ void ControlsMessageLoop()
     }
     switch (class) {
     case EV_WINCLOSE:
-      if (!(win->handler) ((int)win, class, a0, a1, a2, a3)) {
-	printf("Window destroying!\n");
+      if (!(win->handler) ((int)win, class, a0, a1, a2, a3)) 
 	return;
-      }
+
       break;
     case EV_MDOWN:
       control = ResolveMouseCoord(win, a0, a1);
@@ -36,12 +35,10 @@ void ControlsMessageLoop()
       }
       MoveFocusToControl((int) win, (int)control);
       if (control->class == CONTROL_BUTTON) {
-	Draw3D(control->x, control->y, control->w, control->h, win->handle, STYLE_BUTTON_DOWN);
-	pstring(win->handle, (control->w - 8 * strlen(control->text)) / 2 + control->x,
-		(control->h - 16) / 2 + control->y, 0x000000, control->text);
-	RefreshWindow(win->handle);
 	control->down = 1;
+	__InternalRedrawControl(control, 0, 0);
       }
+      RefreshWindow(win->handle);
       break;
     case EV_MUP:
       if (win->menu_of) {
@@ -52,9 +49,7 @@ void ControlsMessageLoop()
 	if (ptr->down) {
 	  ptr->down = 0;
 	  if (ptr->class == CONTROL_BUTTON) {
-	    Draw3D(ptr->x, ptr->y, ptr->w, ptr->h, win->handle, ptr == win->focused ? STYLE_BUTTON_FOCUSED : STYLE_BUTTON_NORMAL);
-	    pstring(win->handle, (ptr->w - 8 * strlen(ptr->text)) / 2 + ptr->x, (ptr->h - 16) / 2 + ptr->y, 0x000000,
-		    ptr->text);
+            __InternalRedrawControl(ptr, 0, 0);
 	    RefreshWindow(win->handle);
 	  }
 	}
@@ -69,26 +64,7 @@ void ControlsMessageLoop()
       break;
     case EV_MMOVE:
       if (win->menu_of) {
-	if (a0 < 4 || a1 < 4 || a0 > win->w - 4 || a1 > win->h - 4) {
-	  if (win->menu->selected) {
-	    rect(win->handle, 4, 4 + (win->menu->selected - 1) * 20, win->w - 8, 20, 0xC3C3C3);
-	    pstring(win->handle, 4, 6 + (win->menu->selected - 1) * 20, 0, win->menu->items[win->menu->selected - 1]);
-	    RefreshWindow(win->handle);
-	    win->menu->selected = 0;
-	  }
-	  break;
-	}
-	int item = (a1 - 4) / 20;
-
-	if (item + 1 > win->menu->count)
-	  break;
-	rect(win->handle, 4, 4 + item * 20, win->w - 8, 20, 0x78);
-	pstring(win->handle, 4, 6 + item * 20, 0xFFFFFF, win->menu->items[item]);
-	if (win->menu->selected != item + 1 && win->menu->selected) {
-	  rect(win->handle, 4, 4 + (win->menu->selected - 1) * 20, win->w - 8, 20, 0xC3C3C3);
-	  pstring(win->handle, 4, 6 + (win->menu->selected - 1) * 20, 0, win->menu->items[win->menu->selected - 1]);
-	}
-	win->menu->selected = item + 1;
+        __InternalRedrawControl(win->menu->control, a0, a1);
 	RefreshWindow(win->handle);
       }
       break;

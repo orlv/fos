@@ -105,7 +105,9 @@ extern rootwindow_t *head;
 
 #define STYLE_BUTTON_NORMAL 	1
 #define STYLE_BUTTON_DOWN 	2
-#define STYLE_BUTTON_FOCUSED	3
+#define STYLE_BUTTON_FOCUSED	4
+
+#define STYLE_BUTTON		7
 static inline rootwindow_t *ResolveEventHandle(int hndl)
 {
   if (!head)
@@ -154,5 +156,5 @@ static inline rootwindow_t *InternalCreateWindow(int x, int y, int w, int h, cha
   head = rw;
   return rw;
 }
-
+void __InternalRedrawControl(control_t *control, int x, int y);
 #endif

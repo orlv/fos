@@ -3,7 +3,7 @@
  */
 
 #include <fgs/fgs.h>
-
+#include "privatetypes.h"
 #define SetPixel(a, b, c, d) pixel(d, a, b, c)
 
 void line(int handle, int x0, int y0, int x1, int y1, int color)
@@ -11,7 +11,6 @@ void line(int handle, int x0, int y0, int x1, int y1, int color)
   int dy = y1 - y0;
   int dx = x1 - x0;
   int stepx, stepy;
-
   if (dy < 0) {
     dy = -dy;
     stepy = -1;
@@ -24,7 +23,43 @@ void line(int handle, int x0, int y0, int x1, int y1, int color)
   } else {
     stepx = 1;
   }
+  if(dy == 0) {
+    struct win_hndl *wh = (struct win_hndl *)handle;
+  x0 += wh->margin_left;
+  y0 += wh->margin_up;
+  x1 += wh->margin_left;
+  y1 += wh->margin_up;
+    unsigned short modecolor = RED(color, 5) << 11 | GREEN(color, 6) << 5 | BLUE(color, 5);
 
+    unsigned short *dot = (unsigned short *)wh->data + y0 * (wh->w + wh->margin_left + wh->margin_right) + x0;
+    if(stepx > 0)
+      for(int xx = x0; xx <= x1; xx++)
+        *(dot++) = modecolor;
+    else
+      for(int xx = x1; xx <= x0; xx++)
+        *(dot++) = modecolor;
+    return;
+  }
+  if(dx == 0) {
+    unsigned short modecolor = RED(color, 5) << 11 | GREEN(color, 6) << 5 | BLUE(color, 5);
+    struct win_hndl *wh = (struct win_hndl *)handle;
+  x0 += wh->margin_left;
+  y0 += wh->margin_up;
+  x1 += wh->margin_left;
+  y1 += wh->margin_up;
+    unsigned short *dot = (unsigned short *)wh->data + y0 * (wh->w + wh->margin_left + wh->margin_right) + x0;
+    if(stepy > 0)
+      for(int yy = y0; yy <= y1; yy++) {
+        *dot = modecolor;
+        dot+=wh->w + wh->margin_left + wh->margin_right;
+      }
+    else
+      for(int yy = y1; yy <= y0; yy++) {
+        *dot = modecolor;
+        dot-=wh->w + wh->margin_left + wh->margin_right;
+      }
+    return;
+  }
   SetPixel(x0, y0, color, handle);
   SetPixel(x1, y1, color, handle);
   if (dx > dy) {

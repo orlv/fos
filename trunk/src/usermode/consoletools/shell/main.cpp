@@ -16,16 +16,9 @@ static const struct {
 };
 
 void cd_buitin(char *directory) {
-	if(!strlen(directory))
-		directory = "/";
-	if(directory[0] != '/') {
-		char *pwd = getenv("PWD");
-		char *buf = (char *)malloc(strlen(directory) + strlen(pwd) + 1);
-		strcpy(buf, pwd); strcat(buf, directory);
-		chdir(buf);
-		free(buf);
-	} else
-		chdir(directory);
+	if(chdir(directory) < 0)
+		printf("sh: can't change directory\n");
+
 }
 
 static int ExecFromPATH(char *cmd, char *args) {

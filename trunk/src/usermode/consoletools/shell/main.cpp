@@ -68,11 +68,10 @@ asmlinkage int main()
 
   while ((fd = open("/dev/keyboard", 0)) == -1)
     sched_yield();
-  printf("uptime=%d\n", uptime());
   char ch;
   char *command = new char[256];
   size_t i = 0;
-
+  printf("PATH is %s\n", getenv("PATH"));
   printf("\nWelcome to FOS Operating System\n" "# ");
   while (1) {
     if (read(fd, &ch, 1)) {

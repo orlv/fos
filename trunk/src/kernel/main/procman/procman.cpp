@@ -145,10 +145,11 @@ void procman_srv()
 
 	path = data;
 	if(msg->arg[1])
-	  args = &data[pathlen+1];
+	  args = &data[pathlen];
 
-	if(msg->arg[2])
-	  envp = &data[pathlen+1 + msg->arg[1]+1];
+	if(msg->arg[2]) {
+	  envp = &data[pathlen + msg->arg[1]];
+	}
 
 	msg->arg[0] = execute(path, args, msg->arg[1], envp, msg->arg[2]);
       } else {

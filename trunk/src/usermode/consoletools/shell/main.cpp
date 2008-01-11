@@ -1,105 +1,88 @@
 /*
-  Copyright (C) 2007 Oleg Fedorov 
-*/
-
-#include <fos/fos.h>
-#include <fos/syscall.h>
-#include <string.h>
+  Copyright (C) 2008 Sergey Gridassov
+ */
 #include <stdio.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sched.h>
 #include <stdlib.h>
+#include <string.h>
+#include <fos/fos.h>
+#include <unistd.h>
+void cd_buitin(char *directory);
+static const struct {
+	char *name;
+	void (*builtin)(char *);
+} buitins[] = {
+	{"cd", cd_buitin },
+	{ NULL, NULL },
+};
 
-#define FBTTY_CMD_SET_MODE (BASE_CMD_N + 0)
-#define FBTTY_LOAD_FONT (BASE_CMD_N + 1)
-#define FBTTY_PUT_CH (BASE_CMD_N + 2)
-
-void eval(char *command)
-{
-  if (command && *command) {
-    if (!strcmp((const char *)command, "help"))
-      printf("FOS - FOS is Operating System\n" "Available next builtin commands:\n" " uptime\n" " dmesg\n");
-    else if (!strcmp((const char *)command, "rm -rf /"))
-      printf("Oooops! ;)\n");
-    else if (!strcmp((const char *)command, "exit")) {
-      printf("done.\n");
-      exit(0);
-    } else if (!strcmp((const char *)command, "uptime"))
-      printf("uptime=%d\n", uptime());
-    else if (!strcmp((const char *)command, "dmesg")) {
-      char *buf = new char[2048];
-      size_t len = dmesg(buf, 2048);
-
-      write(stdout, buf, len);
-      delete buf;
-    } else {
-      size_t len = strlen(command);
-
-      //printf("len=%d \n", len);
-      char *args = 0;
-
-      for (size_t i = 0; i < len; i++)
-	if (command[i] == ' ') {
-	  while (command[i] == ' ' && i < len) {
-	    command[i] = 0;
-	    i++;
-	  }
-	  if (i < len && command[i])
-	    args = &command[i];
-	  break;
-	}
-      tid_t tid = exec(command, args);
-
-      if (!tid)
-	printf("shell: %s: command not found\n", command);
-      else
-	printf("shell: tid=0x%X\n", tid);
-    }
-  }
-
-  printf("# ");
+void cd_buitin(char *directory) {
+	if(!strlen(directory))
+		directory = "/";
+	if(directory[0] != '/') {
+		char *pwd = getenv("PWD");
+		char *buf = (char *)malloc(strlen(directory) + strlen(pwd) + 1);
+		strcpy(buf, pwd); strcat(buf, directory);
+		chdir(buf);
+		free(buf);
+	} else
+		chdir(directory);
 }
 
-asmlinkage int main()
-{
-  printf("PATH is %s\n", getenv("PATH"));
-  printf("\nWelcome to FOS Operating System\n" "# ");
-  char ch;
-  char *command = new char[256];
-  size_t i = 0;
-
-  while (1) {
-    if (read(stdin, &ch, 1)) {
-      switch (ch) {
-      case '\n':
-	printf("%c", ch);
-	command[i] = 0;
-	eval(command);
-	i = 0;
-	command[0] = 0;
-	break;
-
-      case 0x08:		/* backspace */
-	if (i) {
-	  printf("%c", ch);
-	  command[i] = 0;
-	  i--;
+static int ExecFromPATH(char *cmd, char *args) {
+	int pid = 0;
+	if(cmd[0] == '/') {	// абсолютный путь
+		return exec(cmd, args);
+	} else if(strchr(cmd, '/')) { 	// относительный путь
+		char *pwd = getenv("PWD");
+		char *buf = (char *)malloc(strlen(cmd) + strlen(pwd) + 1);
+		strcpy(buf, pwd); strcat(buf, cmd);
+		printf("Relative path, trying %s\n", buf);
+		pid = exec(buf, args);
+		free(buf);
+	} else {			// поиск через PATH.
+		char *path = getenv("PATH");
+		char *buf = (char *)malloc(strlen(path) + strlen(cmd) + 2); // это не бред, как может показатся.
+		for(char *ptr = path; ptr; ptr = strchr(ptr, ':')) {
+			if(ptr[0] == ':') ptr++;
+			char *next = strchr(ptr, ':');
+			if(next)
+				strncpy(buf, ptr, next - ptr);
+			else
+				strcpy(buf, ptr);
+			strcat(buf, "/");
+			strcat(buf, cmd);
+			pid = exec(buf, args);
+			if(pid) break;
+		}
+		free(buf);
 	}
-	break;
-
-      default:
-	printf("%c", ch);
-	command[i] = ch;
-	i++;
-      }
-
-      if (i > 254) {
-	command[i] = 0;
-	eval(command);
-	i = 0;
-      }
-    }
-  }
-  return 0;
+	return pid;
+}
+static void eval(char *cmd, char *args) {
+	for(int i = 0; buitins[i].name; i++) {
+		if(!strcmp(cmd, buitins[i].name)) {
+			(buitins[i].builtin)(args);
+			return;
+		}
+	}
+	int pid = ExecFromPATH(cmd, args);
+	if(!pid)
+		printf("sh: %s: command not found\n", cmd);
+}
+int main(int argc, char *argv[]) {
+	printf("Welcome to FOS Operating System\n");
+	char *cmd = new char[256];
+	while(1) {
+		char *pwd = getenv("PWD");
+		printf("%s # ", pwd);
+		fgets(cmd, 256, stdin);
+		cmd[strlen(cmd) - 1] = 0; // убиваем перевод строки
+		char *args = strchr(cmd, 0x20);
+		if(args) {
+			args++;
+			cmd[args - cmd - 1] = 0;
+		} else 
+			args = "";
+		eval(cmd, args);
+	}
 }

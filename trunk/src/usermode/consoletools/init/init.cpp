@@ -28,7 +28,7 @@ asmlinkage int main()
   setenv("STDOUT", "/dev/tty", 0);
   setenv("STDIN", "/dev/tty", 0);
   setenv("PATH", "/bin:/usr/bin", 0);
-
+  setenv("PWD", "/", 0);
   exec("/mnt/modules/romfs", NULL);
   for (int i = 0; i < 100; i++)
     sched_yield();

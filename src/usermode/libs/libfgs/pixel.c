@@ -8,7 +8,7 @@ void pixel(int handle, int x, int y, int color)
 {
   struct win_hndl *wh = (struct win_hndl *)handle;
 
-  if (x > wh->w - wh->margin_right || y > wh->h - wh->margin_down || y < 0 || x < 0)
+  if (x > wh->w || y > wh->h|| y < 0 || x < 0)
     return;
 
   x += wh->margin_left;

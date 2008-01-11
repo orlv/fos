@@ -8,9 +8,9 @@
 #include <fgs/controls.h>
 #include <fos/fos.h>
 
-#define ITEMS_COUNT 2
-static char *items[ITEMS_COUNT] = { "Tetris", "Test" };
-static char *cmds[ITEMS_COUNT] = { "/usr/bin/tetris", "/usr/bin/test" };
+#define ITEMS_COUNT 3
+static char *items[ITEMS_COUNT] = { "FTerm", "Tetris", "Controls test" };
+static char *cmds[ITEMS_COUNT] = { "/usr/bin/fterm", "/usr/bin/tetris", "/usr/bin/test" };
 int width, height;
 int hndl;
 int displayed = 0;

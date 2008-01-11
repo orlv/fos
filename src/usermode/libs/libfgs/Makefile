@@ -14,7 +14,8 @@ OBJECTS		=	GUIInit.o 	CreateWindow.o	\
 			SetVisible.o	ControlsWindow.o 	\
 			MessageLoop.o	drawing.o	\
 			Controls.o	ScreenInfo.o	\
-			GetDrawingHandle.o
+			GetDrawingHandle.o		\
+			WindowShift.o
 
 include $(SYSTEM_SRC)/mk/trg_lib.mk
 

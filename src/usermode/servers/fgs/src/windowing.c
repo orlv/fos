@@ -267,8 +267,12 @@ void DrawBorder(int reset)
     curr_window->y = curr_window->y_drag;
     return;
   }
-  if (borderx != -1)
-    FlushContext(backbuf, curr_window->w + 1, curr_window->h + 1, borderx, bordery, borderx, bordery, &screen);
+  if (borderx != -1) {
+    FlushContext(backbuf, curr_window->w + 1, 1, borderx, bordery, borderx, bordery, &screen);
+    FlushContext(backbuf, curr_window->w + 1, 1, borderx, bordery  + curr_window->h - 1, borderx, bordery  + curr_window->h - 1, &screen);
+    FlushContext(backbuf, 1, curr_window->h + 1, borderx, bordery, borderx, bordery, &screen);
+    FlushContext(backbuf, 1, curr_window->h + 1, borderx + curr_window->w - 1, bordery, borderx + curr_window->w - 1, bordery, &screen);
+  }
 
   border(curr_window->x_drag, curr_window->y_drag, curr_window->w, curr_window->h, &screen);
   borderx = curr_window->x_drag;

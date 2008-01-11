@@ -6,10 +6,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <fcntl.h>
 char **__ARGV = 0;
 int __ARGC = 0;
 char **environ;
+
+int stdout, stdin;
 
 int main(int argc, char ** argv);
 
@@ -63,5 +65,17 @@ void _startup(int envp_size, char *envp, int args_size, char *args)
     }
   }else 
    environ = NULL;
+
+  char *point = getenv("STDOUT");
+  if(point)
+    stdout = open(point, 0);
+  else
+    stdout = -1;
+
+  point = getenv("STDIN");
+  if(point)
+    stdin = open(point, 0);
+  else
+    stdin = -1;
   exit(main(argc, argv));
 }

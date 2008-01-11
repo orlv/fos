@@ -10,5 +10,5 @@
 
 userlinkage int printf(const char *fmt, ...);
 userlinkage int sprintf(char *str, const char *fmt, ...);
-
+extern int stdin, stdout; 
 #endif

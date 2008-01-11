@@ -28,11 +28,10 @@ void eval(char *command)
     } else if (!strcmp((const char *)command, "uptime"))
       printf("uptime=%d\n", uptime());
     else if (!strcmp((const char *)command, "dmesg")) {
-      extern int tty;
       char *buf = new char[2048];
       size_t len = dmesg(buf, 2048);
 
-      write(tty, buf, len);
+      write(stdout, buf, len);
       delete buf;
     } else {
       size_t len = strlen(command);
@@ -64,17 +63,14 @@ void eval(char *command)
 
 asmlinkage int main()
 {
-  int fd;
-
-  while ((fd = open("/dev/keyboard", 0)) == -1)
-    sched_yield();
+  printf("PATH is %s\n", getenv("PATH"));
+  printf("\nWelcome to FOS Operating System\n" "# ");
   char ch;
   char *command = new char[256];
   size_t i = 0;
-  printf("PATH is %s\n", getenv("PATH"));
-  printf("\nWelcome to FOS Operating System\n" "# ");
+
   while (1) {
-    if (read(fd, &ch, 1)) {
+    if (read(stdin, &ch, 1)) {
       switch (ch) {
       case '\n':
 	printf("%c", ch);

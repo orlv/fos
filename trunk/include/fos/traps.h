@@ -26,7 +26,7 @@ void setup_idt();
       "xor %eax, %eax \n"						\
       "mov 56(%esp), %ax \n"  /* сохраним cs */				\
       "push %eax \n"							\
-      "push %ebp \n"	      /* сохраним ebp */			\      
+      "push %ebp \n"	      /* сохраним ebp */			\
       "call _" #func " \n"						\
       "add $16, %esp \n"						\
       "pop %es \n"							\

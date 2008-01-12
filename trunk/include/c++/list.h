@@ -1,6 +1,8 @@
 /*
   include/list.h
   Copyright (C) 2006-2007 Oleg Fedorov
+
+  (Sat Jan 12 20:08:59 2008) дополнен дополнительным конструктором.
 */
 
 #ifndef _CPP_LIST_H
@@ -19,6 +21,13 @@ template <class ListItem> class List {
 
   ListItem item;
 
+  List()
+    {
+      this->item = 0;
+      prev = this;
+      next = this;
+    }
+  
   List(ListItem item)
     {
       this->item = item;

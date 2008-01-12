@@ -16,6 +16,7 @@ class TProcess {
   void run();
 
   List<Thread *> *threads;
+  List<Thread *> *waiting;
   VMM *memory;
   u32_t LoadELF(register void *image);
   string name;

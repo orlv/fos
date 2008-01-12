@@ -13,7 +13,7 @@
 #include <fos/message.h>
 #include <c++/list.h>
 #include <c++/atomic.h>
-
+#include <fos/signal.h>
 
 #define _MSG_SYSTEM_TIDS 0x1000
 
@@ -28,6 +28,8 @@ class Thread {
   u32_t alarm;
   u32_t signals;
 
+  //  List<fsignal> *extsignals;
+  
  public:
   Thread(class TProcess *process,
 	 off_t eip,
@@ -51,10 +53,17 @@ class Thread {
 	       u16_t code_segment=USER_CODE_SEGMENT,
 	       u16_t data_segment=USER_DATA_SEGMENT);
 
-  List<kmessage *> *new_messages;
-  atomic_t new_messages_count;
-  List<kmessage *> *received_messages;
-  atomic_t received_messages_count;
+  struct {
+    struct {
+      List<kmessage *> list;
+      atomic_t count;
+    } unread;
+
+    struct {
+      List<kmessage *> list;
+      atomic_t count;
+    } read;
+  } messages;
 
   inline void set_signal(u8_t signal_n)
   {
@@ -75,6 +84,9 @@ class Thread {
   {
     alarm = time;
   }
+
+  //  void put_ext_signal(u32_t data, u32_t n);
+  //  void parse_ext_signals();
   
   void parse_signals();
   res_t put_message(kmessage *message);

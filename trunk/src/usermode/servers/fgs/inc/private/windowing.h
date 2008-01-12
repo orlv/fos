@@ -10,8 +10,8 @@
 typedef struct window_t {
   unsigned int x;
   unsigned int y;
-  unsigned int x_drag;
-  unsigned int y_drag;
+  int x_drag;
+  int y_drag;
   unsigned int w;
   unsigned  int h;
   int handle;

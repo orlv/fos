@@ -11,6 +11,16 @@
 
 int open(const char *pathname, int flags)
 {
+  if(pathname[0] != '/') {
+    char *pwd = getenv("PWD");
+    if(!pwd) return -1;
+    if(pwd[0] != '/') return -1;
+    char *buf = malloc(strlen(pathname) + strlen(pwd) + 1);
+    strcpy(buf, pwd); strcat(buf, pathname);
+    int ret = open(buf, 0);
+    free(buf);
+    return ret;
+  }
   volatile struct message msg;
   msg.arg[0] = FS_CMD_ACCESS;
   size_t len = strlen(pathname);

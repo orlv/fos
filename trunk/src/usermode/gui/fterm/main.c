@@ -40,14 +40,10 @@ void scroll() {
 		tty[i] = tty[i + 80];
 	}
 	for (; i < 80 * 25; i++) {
-		tty[i] = ' ';
+		tty[i] = 0;
 	}
 	ShiftWindowUp(winhandle, 16);
-/*	for(i = 0; i < 25; i++) {
-		strncpy(tmp, &tty[i * 80], 80);
-		pstring(winhandle, 0, i * 16, 0xFFFFFF, tmp);
-	}
-	free(tmp);*/
+
 	pos -= 80;
 }
 void tty_putc(unsigned char ch) {
@@ -69,7 +65,7 @@ void tty_putc(unsigned char ch) {
 		tty[pos] = ch;
 		buf[0] = ch;
 		rect(winhandle, (pos % 80) * 8, (pos / 80) * 16, 8, 16, 0);
-		pstring(winhandle, (pos % 80) * 8, (pos / 80) * 16, 0xFFFFFF, buf);
+		pstring(winhandle, (pos % 80) * 8, (pos / 80) * 16, 0xbfbfbf, buf);
 		pos++;
 		break;
 	}
@@ -91,7 +87,7 @@ void gui_thread() {
 	RefreshWindow(winhandle);
 	tty = malloc(80 * 25 + 1);
 	keychars = malloc(256);
-	memset(tty, ' ', 80 * 25);
+	memset((char *)tty, ' ', 80 * 25);
 	gui_ready = 1;
 	int class, handle, a0, a1, a2, a3;
 	while (1) {

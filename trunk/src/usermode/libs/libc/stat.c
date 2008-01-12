@@ -6,10 +6,20 @@
 #include <fos/fs.h>
 #include <string.h>
 #include <sys/stat.h>
-
+#include <stdlib.h>
 
 int stat(const char *path, struct stat *buf)
 {
+  if(path[0] != '/') {
+    char *pwd = getenv("PWD");
+    if(!pwd) return -1;
+    if(pwd[0] != '/') return -1;
+    char *fullpath = malloc(strlen(path) + strlen(pwd) + 1);
+    strcpy(fullpath, pwd); strcat(fullpath, path);
+    int ret = stat(fullpath, buf);
+    free(fullpath);
+    return ret;
+  }
   size_t len = strlen(path);
   if(len > MAX_PATH_LEN)
     return 0;

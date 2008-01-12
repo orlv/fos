@@ -37,7 +37,7 @@ userlinkage int main(int argc, char *argv[]) {
 		}
 	}
 	if(optind >= argc) {
-		ls("/");
+		ls(".");
 		return 0;
 	}
 	if(argc - optind > 1)

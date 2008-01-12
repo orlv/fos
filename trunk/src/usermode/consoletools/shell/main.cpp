@@ -7,11 +7,16 @@
 #include <fos/fos.h>
 #include <unistd.h>
 void cd_buitin(char *directory);
+void pwd_builtin(char *reserved);
+void exit_builtin(char *reserved);
 static const struct {
 	char *name;
 	void (*builtin)(char *);
 } buitins[] = {
 	{"cd", cd_buitin },
+	{"pwd", pwd_builtin },
+	{"exit", exit_builtin },
+	{"logout", exit_builtin },
 	{ NULL, NULL },
 };
 
@@ -19,6 +24,15 @@ void cd_buitin(char *directory) {
 	if(chdir(directory) < 0)
 		printf("sh: can't change directory\n");
 
+}
+
+void pwd_builtin(char *reserved) {
+	printf("%s\n", getenv("PWD"));
+}
+
+void exit_builtin(char *reserved) {
+	printf("exit\n");
+	exit(0);
 }
 
 static int ExecFromPATH(char *cmd, char *args) {
@@ -29,7 +43,6 @@ static int ExecFromPATH(char *cmd, char *args) {
 		char *pwd = getenv("PWD");
 		char *buf = (char *)malloc(strlen(cmd) + strlen(pwd) + 1);
 		strcpy(buf, pwd); strcat(buf, cmd);
-		printf("Relative path, trying %s\n", buf);
 		pid = exec(buf, args);
 		free(buf);
 	} else {			// поиск через PATH.
@@ -67,7 +80,8 @@ int main(int argc, char *argv[]) {
 	char *cmd = new char[256];
 	while(1) {
 		char *pwd = getenv("PWD");
-		printf("%s # ", pwd);
+
+		printf("fos %s # ", pwd);
 		fgets(cmd, 256, stdin);
 		cmd[strlen(cmd) - 1] = 0; // убиваем перевод строки
 		char *args = strchr(cmd, 0x20);

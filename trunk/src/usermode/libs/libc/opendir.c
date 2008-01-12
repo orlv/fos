@@ -7,6 +7,16 @@
 #include <string.h>
 #include <fos/message.h>
 DIR *opendir(const char *name) {
+  if(name[0] != '/') {
+    char *pwd = getenv("PWD");
+    if(!pwd) return NULL;
+    if(pwd[0] != '/') return NULL;
+    char *buf = malloc(strlen(name) + strlen(pwd) + 1);
+    strcpy(buf, pwd); strcat(buf, name);
+    DIR* ret = opendir(buf);
+    free(buf);
+    return ret;
+  }
 	struct message msg;
 	msg.arg[0] = FS_CMD_DIROPEN;
 	size_t len = strlen(name);

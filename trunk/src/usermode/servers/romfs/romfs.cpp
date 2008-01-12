@@ -88,6 +88,7 @@ char * romfs::search_path(char *name, romfs_inode_t *inode, int need_directory) 
 				break;
 			}
 		}
+		if(!strcmp(part, ".") && !last_part) continue;
 		ptr = search_file(part, in, parent);
 		if(ptr == NULL) {
 			delete part;

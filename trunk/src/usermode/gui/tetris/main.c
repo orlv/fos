@@ -144,7 +144,7 @@ void game_thread()
     }
   }
   gameover();
-  for(;;) sched_yield();
+  for(;;) tsleep();
 }
 
 asmlinkage int main(int argc, char **argv)

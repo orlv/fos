@@ -2,3 +2,4 @@
 #/bin/pci_scan::Scanning PCI bus
 /usr/bin/fgs::Starting up GUI
 #/bin/shell::Starting up shell
+/bin/rtc::Starting RTC

@@ -8,6 +8,8 @@
 #include <fgs/controls.h>
 #include <fos/fos.h>
 #include <stdlib.h>
+#include <sys/rtc.h>
+#include <fos/message.h>
 
 #define ITEMS_COUNT 3
 static char *items[ITEMS_COUNT] = { "FTerm", "Tetris", "Controls test" };
@@ -17,7 +19,8 @@ int hndl;
 int displayed = 0;
 int menu;
 int buttonscount = 0;
-int *buttons = NULL;;
+int *buttons = NULL;
+int clock;
 typedef struct twin {
 	struct twin *next;
 	int handle;
@@ -28,23 +31,31 @@ taskbar_window_t *windows = NULL;
 int wincount = 0;
 int startbutton;
 void RedrawTaskBar() {
-  int drawing = GetDrawingHandle(hndl);
   for(int i = 0; i < buttonscount; i++) {
     DestroyControl(buttons[i]);
   }
   free(buttons);
   buttonscount = wincount;
   if(wincount) {
-    int onebutton = (width - 55 - 5) / wincount;
-    if(onebutton > 162) onebutton = 162;
+    int butpanel = width - 55 - 5 - 60;
+    int onebutton = butpanel / wincount;
+    if(onebutton > butpanel / 2) onebutton = butpanel / 2;
     buttons = malloc(buttonscount * 4);
     taskbar_window_t *ptr = windows;
     for(int i = 0; i < buttonscount; i++, ptr = ptr->next) {
-      buttons[i] = CreateButton(hndl, 55 + onebutton * i, 3, onebutton - 2, 22, ptr->title);
+      if(strlen(ptr->title) *8 > onebutton - 16) {
+        int chars = (onebutton - 16) / 8;
+        char *buf = malloc(chars + 1);
+        strncpy(buf, ptr->title, chars -3);
+        strcat(buf, "...");
+        buttons[i] = CreateButton(hndl, 55 + onebutton * i, 3, onebutton - 2, 22, buf);
+        free(buf);
+      } else
+        buttons[i] = CreateButton(hndl, 55 + onebutton * i, 3, onebutton - 2, 22, ptr->title);
       ptr->button = buttons[i];
     }
   }
-  RefreshWindow(drawing);
+//  RefreshWindow(drawing);
 }
 int EventHandler(int hwnd, int class, int a0, int a1, int a2, int a3)
 {
@@ -104,7 +115,26 @@ int EventHandler(int hwnd, int class, int a0, int a1, int a2, int a3)
   return 1;
 
 }
+THREAD(clock_thread) {
+	struct time time;
+	char tmp[8];
+	while(1) {
+		if(get_time(&time) < 0)
+			SetControlText(clock, "RTC?");
+		else {
+			sprintf(tmp, "%02u:%02u", time.hour, time.min);
+			SetControlText(clock, tmp);
+		}
+		alarm(60000);
+		struct message msg;
+		msg.recv_size = 0;
+		msg.send_size = 0;
+		msg.flags = 0;
+		msg.tid = _MSG_SENDER_SIGNAL;
+		receive(&msg);
 
+	}
+}
 asmlinkage int main(int argc, char **argv)
 {
   GUIInit();
@@ -114,9 +144,14 @@ asmlinkage int main(int argc, char **argv)
 
   line(drawing, 0, 0, width, 0, 0xD8D8D8);
   line(drawing, 0, 1, width, 1, 0xF8F8F8);
-
+  line(drawing, width - 57, 4, width - 4, 4, 0x787878);
+  line(drawing, width - 57, 4, width - 57, 24, 0x787878);
+  line(drawing, width - 57, 25, width - 3, 25, 0xFFFFFF);
+  line(drawing, width - 3, 4, width - 3, 25, 0xFFFFFF);
   startbutton = CreateButton(hndl, 3, 4, 48, 22, "Menu");
+  clock = CreateStatic(hndl, width - 50, 7, 40, 16, "00:00");
   ControlsWindowVisible(hndl, 1);
+  thread_create((off_t) clock_thread);
   ControlsMessageLoop();
   GuiEnd();
   return 0;

@@ -3,41 +3,32 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+static int not_first_chdir = 0;
 int chdir(const char *path) {
-	char *oldpwd = getenv("OLDPWD");
 	char *pwd = getenv("PWD");
 	char *fullpath = (char *)path;
+	char *real = malloc(1024);
 	if(path[0] != '/') {
 		fullpath = malloc(strlen(pwd) + strlen(path) + 1);
 		strcpy(fullpath, pwd);
 		strcat(fullpath, path);
 	}
-	// TODO: делать тру-путь
-	DIR *dir = opendir(fullpath);
-	if(!dir) {
+	if(!realpath(fullpath, real)) {
 		if(fullpath != path) free(fullpath);
+		free(real);
 		return -1;
 	}
-	closedir(dir);
-	if(!oldpwd) {
-		printf("First chdir\n");
-		char *data = malloc(strlen(pwd) + 8);
-		strcpy(data, "OLDPWD=");
-		strcat(data, pwd);
-		putenv(data);
-	}else {
-		free(getenv("OLDPWD") - 7);
-		char *data = malloc(strlen(pwd) + 8);
-		strcpy(data, "OLDPWD=");
-		strcat(data, pwd);
-		putenv(data);
+	if(not_first_chdir) 
 		free(getenv("PWD") - 4);
-	}
-	char *data = malloc(strlen(fullpath) + 5 + 1);
+	
+	not_first_chdir = 1;
+	if(!strcmp(real, "/")) real[0] = 0;
+	char *data = malloc(strlen(real) + 4 + 1);
 	strcpy(data, "PWD=");
-	strcat(data, fullpath);
+	strcat(data, real);
 	strcat(data, "/");
 	putenv(data);
 	if(fullpath != path) free(fullpath);
+	free(real);
 	return 0;
 }

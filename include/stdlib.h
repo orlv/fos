@@ -23,4 +23,6 @@ userlinkage unsigned long int strtoul(const char *nptr, char **endptr, int base)
 userlinkage char *getenv(const char *name);
 userlinkage int setenv(const char *name, const char *value, int replace);
 userlinkage int unsetenv (const char * name);
+userlinkage int putenv(char *string);
+char * realpath (const char *name, char *resolved);
 #endif

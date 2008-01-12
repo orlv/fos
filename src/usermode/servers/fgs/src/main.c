@@ -47,7 +47,6 @@ int main(int argc, char *argv)
   DrawImage(mousex, mousey, busy, &screen);
   init_windowing();
   StartEventHandling();
-  exec("/usr/bin/fterm", NULL);
   exec("/usr/bin/taskbar", NULL);
   printf("FGS: Started up shell (/usr/bin/taskbar)\n");
   SetBusy(-1);

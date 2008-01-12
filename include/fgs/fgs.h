@@ -20,7 +20,7 @@ void line(int handle, int x0, int y0, int x1, int y1, int color);
 void pstring(int handle, int x, int y, int color, char *str);
 void SetVisible(int handle, int visible);
 void ScreenInfo(int *width, int *height);
-void MoveFocusToControl(int win, int handle);
+void ShiftWindowUp(int handle, int count);
 #if defined(__cplusplus)
 }
 #endif

@@ -328,23 +328,23 @@ tid_t TProcMan::exec(register void *image, const string name,
 /* Добавляет поток в список */
 void TProcMan::reg_thread(register Thread * thread)
 {
-  system->mt_disable();
+  system->mt.disable();
   threadlist->add_tail(thread);
-  system->mt_enable();
+  system->mt.enable();
 }
 
 void TProcMan::unreg_thread(register List<Thread *> * thread)
 {
-  system->mt_disable();
+  system->mt.disable();
   delete thread->item;
   delete thread;
-  system->mt_enable();
+  system->mt.enable();
 }
 
 List<Thread *> *TProcMan::do_kill(List<Thread *> *thread)
 {
   List<Thread *> *next;
-  system->mt_disable();
+  system->mt.disable();
   if(thread->item->flags & FLAG_TSK_TERM) {
     TProcess *process = thread->item->process;
     List<Thread *> *current, *n;// = threadlist;
@@ -357,7 +357,7 @@ List<Thread *> *TProcMan::do_kill(List<Thread *> *thread)
     next = thread->next;
     unreg_thread(thread);
   }
-  system->mt_enable();
+  system->mt.enable();
   //return next;
   return threadlist;
 }
@@ -368,7 +368,7 @@ res_t TProcMan::kill(register tid_t tid, u16_t flag)
   res_t result = RES_FAULT;
 
   if(thread) {
-    system->mt_disable();
+    system->mt.disable();
     if(!(thread->flags & FLAG_TSK_KERN)) {
 
       thread->flags |= flag;      /* поставим флаг завершения */
@@ -378,7 +378,7 @@ res_t TProcMan::kill(register tid_t tid, u16_t flag)
 
       result = RES_SUCCESS;
     }
-    system->mt_enable();
+    system->mt.enable();
   }
 
   return result;
@@ -388,7 +388,7 @@ res_t TProcMan::kill(register tid_t tid, u16_t flag)
    если поток существует, и не помечен для удаления */
 Thread *TProcMan::get_thread_by_tid(register tid_t tid)
 {
-  system->mt_disable();
+  system->mt.disable();
   List<Thread *> *current = threadlist;
   Thread *result = 0;
 
@@ -405,6 +405,6 @@ Thread *TProcMan::get_thread_by_tid(register tid_t tid)
     current = current->next;
   } while (current != threadlist);
 
-  system->mt_enable();
+  system->mt.enable();
   return result;
 }

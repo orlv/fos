@@ -113,14 +113,14 @@ struct memmap {
 void wait_message()
 {
   system->procman->current_thread->flags |= FLAG_TSK_RECV;
-  system->mt_enable();
+  system->mt.enable();
   sched_yield();
-  system->mt_disable();
+  system->mt.disable();
 }
 
 List<kmessage *> *get_message_any()
 {
-  system->mt_disable();
+  system->mt.disable();
   if (!system->procman->current_thread->messages.unread.count.value())
     wait_message();
 
@@ -129,7 +129,7 @@ List<kmessage *> *get_message_any()
 
 List<kmessage *> *get_message_from(tid_t from)
 {
-  system->mt_disable();
+  system->mt.disable();
   List<kmessage *> *messages = &system->procman->current_thread->messages.unread.list;
   List<kmessage *> *entry;
 
@@ -237,7 +237,7 @@ kmessage * get_message(tid_t from, u32_t flags)
     entry = get_message_any();
   
   if(!entry) {
-    system->mt_enable();
+    system->mt.enable();
     return 0;
   }
 
@@ -290,7 +290,7 @@ kmessage * get_message(tid_t from, u32_t flags)
     delete entry; /* убираем сообщение из очереди новых сообщений */
 
   current_thread->messages.unread.count.dec();
-  system->mt_enable();
+  system->mt.enable();
   
   return message;
 }
@@ -357,7 +357,7 @@ res_t send(message *message)
 
   Thread *thread; /* процесс-получатель */
 
-  system->mt_disable();
+  system->mt.disable();
   switch(message->tid){
   case SYSTID_NAMER:
     thread = THREAD(system->tid_namer);
@@ -383,15 +383,15 @@ res_t send(message *message)
   
   if (!thread){
     message->send_size = 0;
-    system->mt_enable();
+    system->mt.enable();
     return RES_FAULT;
   }
 
-  //  system->mt_enable(); /* #1 */
+  //  system->mt.enable(); /* #1 */
 
   if(thread->messages.unread.count.value() >= MAX_MSG_COUNT){
     message->send_size = 0;
-    system->mt_enable();
+    system->mt.enable();
     return RES_FAULT2;
   }
 
@@ -402,7 +402,7 @@ res_t send(message *message)
   if(thread->send_to == TID(thread_sender)){
     thread_sender->send_to = 0;
     message->send_size = 0;
-    system->mt_enable();
+    system->mt.enable();
     return RES_FAULT3;
   }
 
@@ -427,12 +427,12 @@ res_t send(message *message)
   send_message->reply_size = message->recv_size;
   send_message->thread = thread_sender;
 
-  //system->mt_disable();
+  //system->mt.disable();
   thread->messages.unread.list.add_tail(send_message);       /* добавим сообщение процессу-получателю */
   thread->messages.unread.count.inc();
   thread->flags &= ~FLAG_TSK_RECV;	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
   send_message->thread->flags |= FLAG_TSK_SEND;	 /* ожидаем ответа */
-  system->mt_enable();
+  system->mt.enable();
   sched_yield();                                 /*  ожидаем ответа  */
 
   if(send_message->reply_size) { /* скопируем полученный ответ в память процесса */
@@ -465,13 +465,13 @@ res_t reply(message *message)
   List<kmessage *> *messages = &system->procman->current_thread->messages.read.list;
 
   /* Ищем сообщение в списке полученных (чтобы ответ дошел, пользовательское приложение не должно менять поле tid) */
-  system->mt_disable();
+  system->mt.disable();
   list_for_each (entry, messages) {
     send_message = entry->item;
     if(send_message->thread == THREAD(message->tid))
       break;
   }
-  system->mt_enable();
+  system->mt.enable();
 
   if(!send_message || (send_message->thread != THREAD(message->tid))){
     message->send_size = 0;
@@ -480,12 +480,12 @@ res_t reply(message *message)
 
   if(send_message->thread->flags & (FLAG_TSK_TERM | FLAG_TSK_EXIT_THREAD)) {
     /* поток-отправитель ожидает завершения */
-    system->mt_disable();
+    system->mt.disable();
     send_message->reply_size = 0;
     delete entry; /* удалим запись о сообщении из списка полученных сообщений */
     if(TID(send_message->thread) > 0x1000)
       send_message->thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
-    system->mt_enable();
+    system->mt.enable();
     return RES_SUCCESS;
   }
 
@@ -509,11 +509,11 @@ res_t reply(message *message)
   send_message->arg[2] = message->arg[2];
   send_message->arg[3] = message->arg[3];
 
-  system->mt_disable();
+  system->mt.disable();
   delete entry; /* удалим запись о сообщении из списка полученных сообщений */
   if(TID(thread) > 0x1000)
     thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
-  system->mt_enable();
+  system->mt.enable();
 
   return RES_SUCCESS;
 }
@@ -526,7 +526,7 @@ res_t reply(message *message)
 res_t forward(message *message, tid_t to)
 {
   Thread *thread;
-  system->mt_disable();
+  system->mt.disable();
   switch(to){
   case SYSTID_NAMER:
     thread = THREAD(system->tid_namer);
@@ -538,7 +538,7 @@ res_t forward(message *message, tid_t to)
 
   case 0:
     message->send_size = 0;
-    system->mt_enable();
+    system->mt.enable();
     return RES_FAULT;
 
   default:
@@ -547,13 +547,13 @@ res_t forward(message *message, tid_t to)
 
   if (!thread){
     message->send_size = 0;
-    system->mt_enable();
+    system->mt.enable();
     return RES_FAULT;
   }
 
   if(thread->messages.unread.count.value() >= MAX_MSG_COUNT){
     message->send_size = 0;
-    system->mt_enable();
+    system->mt.enable();
     return RES_FAULT2;
   }
 
@@ -565,7 +565,7 @@ res_t forward(message *message, tid_t to)
   if(thread->send_to == TID(thread_sender)){
     thread_sender->send_to = 0;
     message->send_size = 0;
-    system->mt_enable();
+    system->mt.enable();
     return RES_FAULT3;
   }
 
@@ -574,17 +574,17 @@ res_t forward(message *message, tid_t to)
   List<kmessage *> *messages = &system->procman->current_thread->messages.read.list;
 
   /* Ищем сообщение в списке полученных */
-  //system->mt_disable();
+  //system->mt.disable();
   list_for_each (entry, messages) {
     send_message = entry->item;
     if(send_message->thread == THREAD(message->tid))
       break;
   }
-  //system->mt_enable();
+  //system->mt.enable();
 
   if(!send_message || (send_message->thread != THREAD(message->tid))){
     message->send_size = 0;
-    system->mt_enable();
+    system->mt.enable();
     return RES_FAULT;
   }
 
@@ -599,12 +599,12 @@ res_t forward(message *message, tid_t to)
 
   send_message->thread = thread_sender;
 
-  //system->mt_disable();
+  //system->mt.disable();
   entry->move_tail(&thread->messages.unread.list);
   thread->messages.unread.count.inc();
   system->procman->current_thread->messages.read.count.dec();
   thread->flags &= ~FLAG_TSK_RECV;	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
-  system->mt_enable();
+  system->mt.enable();
 
   return RES_SUCCESS;
 }

@@ -8,19 +8,19 @@
 #define __WINDOWING_H
 #include <private/types.h>
 typedef struct window_t {
-  int x;
-  int y;
-  int x_drag;
-  int y_drag;
-  int w;
-  int h;
+  unsigned int x;
+  unsigned int y;
+  unsigned int x_drag;
+  unsigned int y_drag;
+  unsigned int w;
+  unsigned  int h;
   int handle;
-  int active;
+  unsigned int active;
   context_t *context;
   char *title;
-  int tid;
-  int visible;
-  int class;
+  unsigned int tid;
+  unsigned int visible;
+  unsigned int class;
 } window_t;
 
 extern int _down;
@@ -41,5 +41,5 @@ void SetVisible(int handle, int visible);
 void RefreshWindow(int handle);
 window_t *GetActiveWindow();
 void WindowMapped(struct window_t *win);
-
+int GetWindowTitle(int handle, char *buf);
 #endif

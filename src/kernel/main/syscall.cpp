@@ -121,26 +121,26 @@ void wait_message()
 List<kmessage *> *get_message_any()
 {
   system->mt_disable();
-  if (!system->procman->current_thread->new_messages_count.read())
+  if (!system->procman->current_thread->messages.unread.count.value())
     wait_message();
 
-  return system->procman->current_thread->new_messages->next;
+  return system->procman->current_thread->messages.unread.list.next;
 }
 
 List<kmessage *> *get_message_from(tid_t from)
 {
   system->mt_disable();
-  List<kmessage *> *messages = system->procman->current_thread->new_messages;
+  List<kmessage *> *messages = &system->procman->current_thread->messages.unread.list;
   List<kmessage *> *entry;
 
   while(1) {
-    //if (system->procman->current_thread->new_messages_count.read()) { /* есть сообщения, обрабатываем.. */
+    //if (system->procman->current_thread->new_messages_count.value()) { /* есть сообщения, обрабатываем.. */
     list_for_each (entry, messages) {
       if(entry->item->thread == THREAD(from))
 	return entry;
     }
 
-    if (!SYSTEM_TID(from) && system->procman->current_thread->new_messages_count.read() > MAX_MSG_COUNT)
+    if (!SYSTEM_TID(from) && system->procman->current_thread->messages.unread.count.value() > MAX_MSG_COUNT)
       return 0;
     
     wait_message();
@@ -148,7 +148,7 @@ List<kmessage *> *get_message_from(tid_t from)
     //}
   
     /*  while(1) {
-    if (!SYSTEM_TID(from) && system->procman->current_thread->new_messages_count.read() > MAX_MSG_COUNT)
+    if (!SYSTEM_TID(from) && system->procman->current_thread->new_messages_count.value() > MAX_MSG_COUNT)
       return 0;
     
     wait_message();
@@ -284,12 +284,12 @@ kmessage * get_message(tid_t from, u32_t flags)
   
   //printk("[0x%X]", message->thread);
   if (!(message->flags & MESSAGE_ASYNC)){ /* перемещаем сообщение в очередь полученных сообщений */
-    entry->move_tail(current_thread->received_messages);
-    current_thread->received_messages_count.inc();
+    entry->move_tail(&current_thread->messages.read.list);
+    current_thread->messages.read.count.inc();
   } else
     delete entry; /* убираем сообщение из очереди новых сообщений */
 
-  current_thread->new_messages_count.dec();
+  current_thread->messages.unread.count.dec();
   system->mt_enable();
   
   return message;
@@ -389,7 +389,7 @@ res_t send(message *message)
 
   //  system->mt_enable(); /* #1 */
 
-  if(thread->new_messages_count.read() >= MAX_MSG_COUNT){
+  if(thread->messages.unread.count.value() >= MAX_MSG_COUNT){
     message->send_size = 0;
     system->mt_enable();
     return RES_FAULT2;
@@ -428,8 +428,8 @@ res_t send(message *message)
   send_message->thread = thread_sender;
 
   //system->mt_disable();
-  thread->new_messages->add_tail(send_message);       /* добавим сообщение процессу-получателю */
-  thread->new_messages_count.inc();
+  thread->messages.unread.list.add_tail(send_message);       /* добавим сообщение процессу-получателю */
+  thread->messages.unread.count.inc();
   thread->flags &= ~FLAG_TSK_RECV;	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
   send_message->thread->flags |= FLAG_TSK_SEND;	 /* ожидаем ответа */
   system->mt_enable();
@@ -462,7 +462,7 @@ res_t reply(message *message)
 
   kmessage *send_message = 0;
   List<kmessage *> *entry;
-  List<kmessage *> *messages = system->procman->current_thread->received_messages;
+  List<kmessage *> *messages = &system->procman->current_thread->messages.read.list;
 
   /* Ищем сообщение в списке полученных (чтобы ответ дошел, пользовательское приложение не должно менять поле tid) */
   system->mt_disable();
@@ -551,7 +551,7 @@ res_t forward(message *message, tid_t to)
     return RES_FAULT;
   }
 
-  if(thread->new_messages_count.read() >= MAX_MSG_COUNT){
+  if(thread->messages.unread.count.value() >= MAX_MSG_COUNT){
     message->send_size = 0;
     system->mt_enable();
     return RES_FAULT2;
@@ -571,7 +571,7 @@ res_t forward(message *message, tid_t to)
 
   kmessage *send_message = 0;
   List<kmessage *> *entry;
-  List<kmessage *> *messages = system->procman->current_thread->received_messages;
+  List<kmessage *> *messages = &system->procman->current_thread->messages.read.list;
 
   /* Ищем сообщение в списке полученных */
   //system->mt_disable();
@@ -600,9 +600,9 @@ res_t forward(message *message, tid_t to)
   send_message->thread = thread_sender;
 
   //system->mt_disable();
-  entry->move_tail(thread->new_messages);
-  thread->new_messages_count.inc();
-  system->procman->current_thread->received_messages_count.dec();
+  entry->move_tail(&thread->messages.unread.list);
+  thread->messages.unread.count.inc();
+  system->procman->current_thread->messages.read.count.dec();
   thread->flags &= ~FLAG_TSK_RECV;	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
   system->mt_enable();
 

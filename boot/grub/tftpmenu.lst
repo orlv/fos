@@ -1,7 +1,7 @@
 # GRUB Config: generated automatically - do not edit!
 timeout 1
 default 0
-title FOS - FOS is Operating System (VERSION 0.0.45.5, BUILD 20080112)
+title FOS - FOS is Operating System (VERSION 0.0.45.6, BUILD 20080112)
 	root	(nd)
 	kernel /boot/fos
 	module /boot/modules/int16b

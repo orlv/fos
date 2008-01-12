@@ -31,13 +31,13 @@ static inline void __mt_disable()
 static inline void __mt_enable()
 {
   extern atomic_t mt_state;
-  if(mt_state.read()) mt_state.dec();
+  if(mt_state.value()) mt_state.dec();
 }
 
 static inline bool __mt_status()
 {
   extern atomic_t mt_state;
-  return mt_state.read() == 0;
+  return mt_state.value() == 0;
 }
 
 
@@ -123,7 +123,7 @@ extern SYSTEM *system;
 static inline int page_status(u32_t n)
 {
   if(n < system->pages_cnt)
-    return system->phys_page[n].mapcount.read();
+    return system->phys_page[n].mapcount.value();
   else
     return -1;
 }
@@ -153,7 +153,7 @@ static inline int alloc_page(u32_t n)
 static inline int free_page(u32_t n)
 {
   if(n < system->pages_cnt) {
-    if(system->phys_page[n].mapcount.read())
+    if(system->phys_page[n].mapcount.value())
       return system->phys_page[n].mapcount.dec_return();
     else
       return 0;

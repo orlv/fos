@@ -30,7 +30,7 @@ void put_page(u32_t page)
 /* если в пуле есть страницы - возвращаем одну, иначе пытаемся возвратить страницу из нижней памяти */
 u32_t get_page()
 {
-  if(system->free_pages.read()){
+  if(system->free_pages.value()){
     system->free_pages.dec();
     return system->free_page->pop();
   } else {
@@ -48,7 +48,7 @@ void put_page_DMA16(u32_t page)
 
 u32_t get_page_DMA16()
 {
-  if(system->free_pages_DMA16.read()){
+  if(system->free_pages_DMA16.value()){
     system->free_pages_DMA16.dec();
     return system->free_page_DMA16->pop();
   } else {

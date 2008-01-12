@@ -1,3 +1,7 @@
+Sat Jan 12 20:37:30 2008 [20080112] (kernel version 0.0.45.6)
+Oleg S Fedorov <o.s.fedorov@gmail.com>:
+	- Маленькая оптимизация списка сообщений
+
 Sat Jan  12 17:44:00 2008 [20080112]
 Sergey Gridassov <grindars@grindars.org.ru>
 	- Доделан chdir

@@ -28,12 +28,12 @@ public:
       counter = 0;
     }
 
-  int read()
+  inline int value()
   {
     return counter;
   }
 
-  int set(int i)
+  inline int set(int i)
   {
     return (counter = i);
   }
@@ -179,7 +179,7 @@ public:
 #ifdef CONFIG_M386
   no_xadd: /* Legacy 386 processor */
     //local_irq_save(flags);
-    __i = this->read(v);
+    __i = this->value(v);
     this->set(v, i + __i);
     //local_irq_restore(flags);
     return i + __i;
@@ -212,7 +212,7 @@ public:
   inline bool add_unless(int a, int u)
   {
     int c, old;
-    c = this->read();
+    c = this->value();
     for (;;) {
       if (c == u)
 	break;

@@ -11,9 +11,9 @@
 
 Thread::Thread(class TProcess *process, off_t eip, u16_t flags, void * kernel_stack, void * user_stack, u16_t code_segment, u16_t data_segment)
 {
-  kmessage *_msg = new(kmessage);
-  new_messages = new List<kmessage *>(_msg);      /* пустое сообщение */
-  received_messages = new List<kmessage *>(_msg); /* пустое сообщение */
+  //kmessage *_msg = new(kmessage);
+  //  new_messages = new List<kmessage *>(_msg);      /* пустое сообщение */
+  //  received_messages = new List<kmessage *>(_msg); /* пустое сообщение */
   
   this->process = process;
 
@@ -32,21 +32,21 @@ Thread::~Thread()
   }
   List<kmessage *> *curr, *n;
   /* удалим все сообщения, вернем ошибки отправителям */
-  list_for_each_safe(curr, n, new_messages){
+  list_for_each_safe(curr, n, (&messages.unread.list)){
     curr->item->reply_size = 0;
     curr->item->thread->flags &= ~FLAG_TSK_SEND;
     delete curr->item;
     delete curr;
   }
-  delete new_messages->item;
-  delete new_messages;
-  list_for_each_safe(curr, n, received_messages){
+  //delete new_messages->item;
+  //delete new_messages;
+  list_for_each_safe(curr, n, (&messages.read.list)){
     curr->item->reply_size = 0;
     curr->item->thread->flags &= ~FLAG_TSK_SEND;
     delete curr->item;
     delete curr;
   }
-  delete received_messages;
+  //delete received_messages;
   kfree((void *)stack_pl0, STACK_SIZE);
   kfree((void *)tss, sizeof(TSS));
 }
@@ -88,13 +88,13 @@ void Thread::run()
 res_t Thread::put_message(kmessage *message)
 {
   system->mt_disable();
-  if(new_messages_count.read() >= MAX_MSG_COUNT){
+  if(messages.unread.count.value() >= MAX_MSG_COUNT){
     system->mt_enable();
     return RES_FAULT2;
   }
 
-  new_messages->add_tail(message);
-  new_messages_count.inc();
+  messages.unread.list.add_tail(message);
+  messages.unread.count.inc();
   flags &= ~FLAG_TSK_RECV;	/* сбросим флаг ожидания получения сообщения (если он там есть) */
 
   system->mt_enable();

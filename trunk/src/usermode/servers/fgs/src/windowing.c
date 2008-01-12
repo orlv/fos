@@ -17,7 +17,7 @@
 #include <private/pixel.h>
 #include <private/picture.h>
 #include <private/context.h>
-
+#include <private/events.h>
 
 extern int need_cursor;
 
@@ -122,6 +122,11 @@ void WindowMapped(struct window_t *win)
     line(win->w - 2, win->h - 1, win->w - 2, 1, 0x828282, win->context);
     line(0, win->h - 1, win->w - 1, win->h - 1, 0x000000, win->context);
     line(win->w - 1, win->h - 1, win->w - 1, 0, 0x000000, win->context);
+    for (node * n = front; n; n = n->next) {
+      window_t *w = (window_t *) n->data;
+      if((w->class & WC_WINDOWSEVENTS) && w->handle != win->handle)
+        PostEvent(w->tid, w->handle, EV_NEWWIN, win->handle, 0, 0, 0);
+    }
   }
 }
 
@@ -201,6 +206,7 @@ void DestroyWindow(int handle)
     window_t *win = (window_t *) n->data;
 
     if (win->handle == handle) {
+      int needev = !(win->class & WC_NODECORATIONS);
       free(win->context->data);
       free(win->context);
       free(win->title);
@@ -213,9 +219,17 @@ void DestroyWindow(int handle)
 	removeNode(n);
       free(n);
       need_refresh = 1;
-    }
-  }
-
+      if(needev) {
+        for (node * n = front; n; n = n->next) {
+          window_t *w = (window_t *) n->data;
+          if((w->class & WC_WINDOWSEVENTS))
+            PostEvent(w->tid, w->handle, EV_DESTROYWIN, handle, 0, 0, 0);
+        }
+      }
+      break;
+     }
+   }
+  
 }
 
 void RefreshWindow(int handle)
@@ -277,4 +291,12 @@ void DrawBorder(int reset)
   border(curr_window->x_drag, curr_window->y_drag, curr_window->w, curr_window->h, &screen);
   borderx = curr_window->x_drag;
   bordery = curr_window->y_drag;
+}
+
+int GetWindowTitle(int handle, char *buf) {
+	window_t *win = GetWindowInfo(handle);
+	if(!win)
+		return -1;
+	strcpy(buf, win->title);
+	return 0;
 }

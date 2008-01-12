@@ -1,7 +1,9 @@
-Sat Jan  12 13:18:00 2008 [20080112]
+Sat Jan  12 15:46:00 2008 [20080112]
 Sergey Gridassov <grindars@grindars.org.ru>
 	- Доделан chdir
 	- В функции open, opendir, stat добавлена поддержка относительных путей.
+	- Панель задач теперь отображает список окон с заголовками и поддержкой
+          передачи фокуса.
 
 Tue Jan  11 18:38:00 2008 [20080111]
 Sergey Gridassov <grindars@grindars.org.ru>

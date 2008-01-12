@@ -3,7 +3,7 @@
 
 include $(ROOT)/config.mk
 include $(SYSTEM_SRC)/mk/nicebuild.mk
-CFLAGS+=-DVERSION=\"008-stable\" -Iinc
+CFLAGS+=-DVERSION=\"009\" -Iinc
 
 OBJECTS= \
 	main.o		events.o 	\

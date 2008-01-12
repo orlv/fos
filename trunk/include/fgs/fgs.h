@@ -5,6 +5,7 @@
  
 #ifndef _PGS_H
 #define _PGS_H
+#define MAX_TITLE_LEN 64
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -21,15 +22,20 @@ void pstring(int handle, int x, int y, int color, char *str);
 void SetVisible(int handle, int visible);
 void ScreenInfo(int *width, int *height);
 void ShiftWindowUp(int handle, int count);
+void SetFocus(int handle);
+int GetWindowTitle(int handle, char *buf);
 #if defined(__cplusplus)
 }
 #endif
-#define WC_WINDOW 0
+#define WC_WINDOW		0
 #define WC_MOUSEMOVE		2
 #define WC_NODECORATIONS	1
-#define EV_WINCLOSE 1
-#define EV_MDOWN 2
-#define EV_MUP 3
-#define EV_KEY 4
-#define EV_MMOVE 5
+#define WC_WINDOWSEVENTS	4
+#define EV_WINCLOSE 	1
+#define EV_MDOWN 	2
+#define EV_MUP 		3
+#define EV_KEY	 	4
+#define EV_MMOVE 	5
+#define EV_NEWWIN	6
+#define EV_DESTROYWIN	7
 #endif

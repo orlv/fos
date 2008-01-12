@@ -62,11 +62,16 @@ struct win_info {
 #define WIN_CMD_REFRESHWINDOW	(6 + 256)
 #define WIN_CMD_SETVISIBLE	(7 + 256)
 #define WIN_CMD_SCREEN_INFO	(8 + 256)
+#define WIN_CMD_SETFOCUS	(9 + 256)
+#define WIN_CMD_GETTITLE	(10 + 256)
 #define WC_NODECORATIONS	1
 #define WC_MOUSEMOVE		2
+#define WC_WINDOWSEVENTS	4
 #define EV_WINCLOSE 1
 #define EV_MDOWN 2
 #define EV_MUP 3
 #define EV_KEY 4
+#define EV_NEWWIN	6
+#define EV_DESTROYWIN	7
 
 #endif

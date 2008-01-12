@@ -1,6 +1,6 @@
 /*
  *         FOS Graphics System
- * Copyright (c) 2007 Sergey Gridassov
+ * Copyright (c) 2007-2008 Sergey Gridassov
  * Modifications by   Oleg Fedorov
  * Original cursor handling algorithm 
  *  by Sadovnikov Vladimir
@@ -16,6 +16,7 @@
 #include <sched.h>
 #include <list.h>
 #include <mutex.h>
+#include <string.h>
 
 #include <private/types.h>
 #include <private/cursor.h>
@@ -250,6 +251,19 @@ void EventsThread()
 	msg.flags = 0;
 	reply(&msg);
 	break;
+      case WIN_CMD_SETFOCUS:
+        SetFocusTo(msg.arg[1]);
+	msg.send_size = 0;
+	msg.flags = 0;
+	reply(&msg);
+	break;    
+      case WIN_CMD_GETTITLE:
+        msg.arg[0] = GetWindowTitle(msg.arg[1], buffer);
+        msg.send_size = strlen(buffer);
+        msg.send_buf = buffer;
+	msg.flags = 0;
+	reply(&msg);
+	break; 
       case FS_CMD_CLOSE:
 	msg.arg[0] = 0;
 	msg.arg[2] = NO_ERR;
@@ -497,8 +511,7 @@ void MappingThread()
 	WindowMapped(w);
 
 	break;
-      }
-    case FS_CMD_CLOSE:
+      }    case FS_CMD_CLOSE:
       msg.arg[0] = 0;
       msg.arg[2] = NO_ERR;
       msg.send_size = 0;

@@ -89,6 +89,10 @@ void ControlsMessageLoop()
         }
       }
       break;
+    case EV_NEWWIN:
+    case EV_DESTROYWIN:
+      (win->handler) ((int)win, class, a0, a1, a2, a3);
+      break;
     default:
       printf("Event %u(%u, %u, %u, %u) for window at ptr 0x%x\n", class, a0, a1, a2, a3, win);
     }

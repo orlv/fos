@@ -69,25 +69,23 @@ class SYSTEM {
   inline void cli() { asm("cli"); };
   inline void sti() { asm("sti"); };
 
-  inline void mt_reset()
-  {
-    __mt_reset();
-  }
-  
-  inline void mt_disable()
-  {
-    __mt_disable();
-  }
+  struct {
+    inline void reset() {
+      __mt_reset();
+    }
 
-  inline void mt_enable()
-  {
-    __mt_enable();
-  }
+    inline void disable() {
+      __mt_disable();
+    }
 
-  inline bool mt_status()
-  {
-    return __mt_status();
-  }
+    inline void enable() {
+      __mt_enable();
+    }
+
+    inline bool status() {
+      return __mt_status();
+    }
+  } mt;
   
   inline void hlt() { asm("hlt"); };
   

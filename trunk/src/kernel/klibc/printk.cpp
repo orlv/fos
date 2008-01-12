@@ -19,9 +19,9 @@ int printk(const char *fmt, ...)
     char *printbuf = new char[2000];
     i = vsprintf(printbuf, fmt, args);
     va_end(args);
-    system->mt_disable();
+    system->mt.disable();
     stdout->write(0, printbuf, i);
-    system->mt_enable();
+    system->mt.enable();
     delete printbuf;
   }
   return i;

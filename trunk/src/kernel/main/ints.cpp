@@ -207,7 +207,7 @@ IRQ_HANDLER(irq_0)
 
   //  asm("incb 0xb8000+150\n" "movb $0x5e,0xb8000+151 ");
 
-  if ((curPID() == 1) || (!system->mt_status())) { /* Если мы в scheduler() */
+  if ((curPID() == 1) || (!system->mt.status())) { /* Если мы в scheduler() */
     system->outportb(0x20, 0x20);
     return;
   }

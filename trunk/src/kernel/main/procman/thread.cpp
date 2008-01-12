@@ -87,9 +87,9 @@ void Thread::run()
 
 res_t Thread::put_message(kmessage *message)
 {
-  system->mt_disable();
+  system->mt.disable();
   if(messages.unread.count.value() >= MAX_MSG_COUNT){
-    system->mt_enable();
+    system->mt.enable();
     return RES_FAULT2;
   }
 
@@ -97,7 +97,7 @@ res_t Thread::put_message(kmessage *message)
   messages.unread.count.inc();
   flags &= ~FLAG_TSK_RECV;	/* сбросим флаг ожидания получения сообщения (если он там есть) */
 
-  system->mt_enable();
+  system->mt.enable();
   return RES_SUCCESS;
 }
 

@@ -1,3 +1,11 @@
+Sun Jan  13 15:21:00 2008 [20080113]
+Sergey Gridassov <grindars@grindars.org.ru>
+	- Поддержка скриптов (на уровне exec)
+	- Shell может исполнять скрипты (пример - test.sh)
+	- Shell при запуске выполняет /root/.login
+	- Shell поддерживает функции работы с переменными среды (export, set, unset),
+          так же в него встроены echo и help
+
 Sat Jan 12 20:37:30 2008 [20080112] (kernel version 0.0.45.6)
 Oleg S Fedorov <o.s.fedorov@gmail.com>:
 	- Маленькая оптимизация списка сообщений

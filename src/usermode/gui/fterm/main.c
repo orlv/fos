@@ -109,7 +109,7 @@ void gui_thread() {
 void StartChild(char *point, char *child) {
 	setenv("STDOUT", point, 1);
 	setenv("STDIN", point, 1);
-	exec(child, "ftty");
+	exec(child, NULL);
 }
 int main(int argc, char *argv[]) {
 	thread_create((off_t) gui_thread);

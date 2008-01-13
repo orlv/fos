@@ -6,9 +6,14 @@
 #include <string.h>
 #include <fos/fos.h>
 #include <unistd.h>
+#include <fcntl.h>
 void cd_buitin(char *directory);
 void pwd_builtin(char *reserved);
 void exit_builtin(char *reserved);
+void set_builtin(char *arg);
+void unset_builtin(char *arg);
+void help_builtin(char *arg);
+void echo_builtin(char *arg);
 static const struct {
 	char *name;
 	void (*builtin)(char *);
@@ -17,13 +22,48 @@ static const struct {
 	{"pwd", pwd_builtin },
 	{"exit", exit_builtin },
 	{"logout", exit_builtin },
+	{"export", set_builtin },
+	{"set", set_builtin },
+	{"unset", unset_builtin },
+	{"help", help_builtin },
+	{"echo", echo_builtin },
 	{ NULL, NULL },
 };
+
+void echo_builtin(char *arg) {
+	printf("%s\n", arg);
+}
+
+void help_builtin(char *arg) {
+	printf("List of builtin commands:\n");
+	for(int i = 0; buitins[i].name; i++) 
+		printf("%s\n", buitins[i].name);
+}
 
 void cd_buitin(char *directory) {
 	if(chdir(directory) < 0)
 		printf("sh: can't change directory\n");
 
+}
+
+void unset_builtin(char *arg) {
+	unsetenv(arg);
+}
+
+void set_builtin(char *arg) {
+	if(!strlen(arg)) {
+		for(int i = 0; environ[i]; i++)
+			printf("%s\n", environ[i]);
+	} else {
+		if(!strchr(arg, '='))
+			return;
+		else {
+			char *buf = new char[strlen(arg) + 1];
+			strcpy(buf, arg);
+			if(putenv(buf) < 0)
+				delete buf;
+		}
+	}
 }
 
 void pwd_builtin(char *reserved) {
@@ -65,6 +105,8 @@ static int ExecFromPATH(char *cmd, char *args) {
 	return pid;
 }
 static void eval(char *cmd, char *args) {
+	while(cmd[0] == ' ') cmd++;
+	if(cmd[0] == 0 || cmd[0] == '#') return;
 	for(int i = 0; buitins[i].name; i++) {
 		if(!strcmp(cmd, buitins[i].name)) {
 			(buitins[i].builtin)(args);
@@ -75,13 +117,18 @@ static void eval(char *cmd, char *args) {
 	if(!pid)
 		printf("sh: %s: command not found\n", cmd);
 }
-int main(int argc, char *argv[]) {
-	printf("Welcome to FOS Operating System\n");
+static void exec_script(char *filename);
+
+static void interactive_shell() {
+	exec_script("/root/.login");
 	char *cmd = new char[256];
 	while(1) {
 		char *pwd = getenv("PWD");
-
-		printf("fos %s # ", pwd);
+		char *ps = getenv("PS1");
+		if(ps)
+			printf(ps, pwd);
+		else
+			printf("$ ");
 		fgets(cmd, 256, stdin);
 		cmd[strlen(cmd) - 1] = 0; // убиваем перевод строки
 		char *args = strchr(cmd, 0x20);
@@ -92,4 +139,35 @@ int main(int argc, char *argv[]) {
 			args = "";
 		eval(cmd, args);
 	}
+}
+
+static void exec_script(char *filename) {
+	int hndl = open(filename, 0);
+	struct stat st;
+	fstat(hndl, &st);
+	char *script = new char[st.st_size];
+	char *scr = script;
+	read(hndl, script, st.st_size);
+	close(hndl);
+	for (char *ptr = strsep(&scr, "\n"); ptr; ptr = strsep(&scr, "\n")) {
+		char *args = strchr(ptr, 0x20);
+		if(args) {
+			args++;
+			ptr[args - ptr - 1] = 0;
+		} else 
+			args = "";
+		eval(ptr, args);
+		
+	}
+	free(scr);
+	return;
+}
+
+int main(int argc, char *argv[]) {
+	if(argc < 2)
+		interactive_shell();
+	else
+		exec_script(argv[1]);
+	return 0;
+
 }

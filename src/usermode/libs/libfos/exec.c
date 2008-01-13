@@ -11,8 +11,33 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-
-tid_t exece(const char * filename, const char * args, const char **envp)
+#include <fcntl.h>
+static tid_t exece(const char * filename, const char * args, const char **envp);
+static tid_t execscript(const char *filename, const char *args) {
+  int hndl = open(filename, 0);
+  char buf[2];
+  read(hndl, buf, 2);
+  if(buf[0] != '#' || buf[1] != '!') {
+    close(hndl);
+    return -1;
+  }
+  char *interpreter = malloc(128);
+  read(hndl, interpreter, 128);
+  interpreter[strchr(interpreter, '\n') - interpreter] = 0;
+  int pid;
+  if(!args) {
+    pid = exece(interpreter, filename, (const char **)environ);
+  } else {
+    char *finalargs = malloc(strlen(args) + strlen(filename) + 2);
+    strcpy(finalargs, filename); strcat(finalargs, " "); strcat(finalargs, args);
+    pid = exece(interpreter, finalargs, (const char **)environ);
+    free(finalargs);
+  }
+  free(interpreter);
+  close(hndl);
+  return pid;
+}
+static tid_t exece(const char * filename, const char * args, const char **envp)
 {
 
   char *send_data = (char *) filename;
@@ -81,6 +106,8 @@ tid_t exece(const char * filename, const char * args, const char **envp)
 
 tid_t exec(const char * filename, const char * args)
 {
+  int script = execscript(filename, args);
+  if(script > 0) return script;
   return exece(filename, args, (const char **)environ);
 //	return exece(filename, args, NULL);
 }

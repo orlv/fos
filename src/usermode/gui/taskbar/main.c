@@ -118,14 +118,16 @@ int EventHandler(int hwnd, int class, int a0, int a1, int a2, int a3)
 THREAD(clock_thread) {
 	struct time time;
 	char tmp[8];
+	int oldmin = -1;
 	while(1) {
 		if(get_time(&time) < 0)
 			SetControlText(clock, "RTC?");
-		else {
+		else if(oldmin != time.min) {
 			sprintf(tmp, "%02u:%02u", time.hour, time.min);
 			SetControlText(clock, tmp);
 		}
-		alarm(60000);
+		oldmin = time.min;
+		alarm(1000);
 		struct message msg;
 		msg.recv_size = 0;
 		msg.send_size = 0;

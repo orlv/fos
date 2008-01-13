@@ -12,8 +12,8 @@ initrd.gz: initrd
 	mv .compressing $<
 initrd: genromfs
 	./genromfs -f $@ -d contents -V "FOS Initrd" -x .svn
-	strip contents/bin/* -R .comment
-	strip contents/usr/bin/* -R .comment
+	-strip contents/bin/* -R .comment 2>/dev/null
+	-strip contents/usr/bin/* -R .comment 2>/dev/null
 clean:
 	rm -f initrd initrd.gz
 uninstall:

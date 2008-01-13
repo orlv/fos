@@ -169,7 +169,7 @@ int MenuEventHandler(int hwnd, int class, int a0, int a1, int a2, int a3)
     return 1;
   if (a0 < 4 || a1 < 4 || a0 > win->w - 4 || a1 > win->h - 4)
     return 1;
-  int item = a1 / 20;
+  int item = (a1 - 4) / 20;
 
   if (item + 1 > win->menu->count)
     return 1;

@@ -31,6 +31,7 @@ int GetWindowTitle(int handle, char *buf);
 #define WC_MOUSEMOVE		2
 #define WC_NODECORATIONS	1
 #define WC_WINDOWSEVENTS	4
+#define WC_CENTERED		8
 #define EV_WINCLOSE 	1
 #define EV_MDOWN 	2
 #define EV_MUP 		3

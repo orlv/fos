@@ -5,4 +5,4 @@
 include $(ROOT)/config.mk
 include $(SYSTEM_SRC)/mk/subdir.mk
 
-ITEMS = taskbar test tetris fterm
+ITEMS = taskbar test tetris fterm msgbox

@@ -60,9 +60,9 @@ asmlinkage int main(int argc, char *argv[]) {
 		case FS_CMD_ACCESS: {
 			handle_t *hndl = new handle_t;
 			buffer[msg.recv_size] = 0;
-			if(msg.arg[1] & O_CREAT) {
+			if(msg.arg[1] & O_CREAT) 
 				tfs->create_file(buffer);
-			}
+			
 			if(tfs->locate_file(buffer, &hndl->target) < 0) {
 				msg.arg[0] = 0;
 				msg.arg[1] = TMPFS_BUF_SIZE;
@@ -212,7 +212,13 @@ asmlinkage int main(int argc, char *argv[]) {
 			msg.arg[2] = NO_ERR;
 			break;			
 		}
-
+		case FS_CMD_UNLINK: {
+			buffer[msg.recv_size] = 0;
+			tfs->unlink(buffer + 1);
+			msg.arg[2] = NO_ERR;
+			msg.send_size = 0;
+			break;
+		}
 		default:
 			printf("tmpfs: unknown command %u %u %u %u\n", msg.arg[0], msg.arg[1], msg.arg[2], msg.arg[3]);
 			msg.arg[0] = 0;

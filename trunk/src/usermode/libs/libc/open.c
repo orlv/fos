@@ -17,7 +17,7 @@ int open(const char *pathname, int flags)
     if(pwd[0] != '/') return -1;
     char *buf = malloc(strlen(pathname) + strlen(pwd) + 1);
     strcpy(buf, pwd); strcat(buf, pathname);
-    int ret = open(buf, 0);
+    int ret = open(buf, flags);
     free(buf);
     return ret;
   }

@@ -58,6 +58,7 @@ asmlinkage int main()
       reply(msg);
       break;
 
+    case FS_CMD_UNLINK:
     case FS_CMD_ACCESS:
     case FS_CMD_DIROPEN:
       //printf("namer: requested access to [%s]\n", pathname);

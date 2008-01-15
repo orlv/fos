@@ -24,6 +24,8 @@
 #define FS_CMD_DIRCLOSE	8
 #define FS_CMD_DIRREAD	9
 
+#define FS_CMD_UNLINK 	10
+
 #define BASE_CMD_N 64
 
 #define NO_ERR                0

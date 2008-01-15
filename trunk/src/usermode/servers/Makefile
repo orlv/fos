@@ -5,4 +5,4 @@
 include $(ROOT)/config.mk
 include $(SYSTEM_SRC)/mk/subdir.mk
 
-ITEMS = namer fgs tty speaker i8042 stty net romfs  uIP rtc
+ITEMS = namer fgs tty speaker i8042 stty net romfs  uIP rtc tmpfs

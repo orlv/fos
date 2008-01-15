@@ -5,7 +5,7 @@
 include $(ROOT)/config.mk
 include $(SYSTEM_SRC)/mk/nicebuild.mk
 
-TARGETS=ls uname cat echo
+TARGETS=ls uname cat echo rm cp mv
 LDLIBS		=	-\( -lc -lfos -\)
 
 # если надо место сэкономить
@@ -19,6 +19,12 @@ uname: uname.o
 cat: cat.o
 	$(LD) $(LDFLAGS) -o $@ $(LIB)/crt0.o $^ $(LDLIBS)
 echo: echo.o
+	$(LD) $(LDFLAGS) -o $@ $(LIB)/crt0.o $^ $(LDLIBS)
+rm: rm.o
+	$(LD) $(LDFLAGS) -o $@ $(LIB)/crt0.o $^ $(LDLIBS)
+cp: cp.o
+	$(LD) $(LDFLAGS) -o $@ $(LIB)/crt0.o $^ $(LDLIBS)
+mv: mv.o
 	$(LD) $(LDFLAGS) -o $@ $(LIB)/crt0.o $^ $(LDLIBS)
 install:
 	cp -t $(INITRDDIR)/bin $(TARGETS)

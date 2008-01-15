@@ -28,4 +28,7 @@ extern char **environ;
 
 userlinkage char *getcwd(char *buf, size_t size);
 userlinkage int chdir(const char *path);
+
+userlinkage int unlink(const char *pathname);
+
 #endif

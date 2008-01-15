@@ -26,7 +26,7 @@ int open(const char *pathname, int flags)
   size_t len = strlen(pathname);
   if(len > MAX_PATH_LEN)
     return 0;
-
+  msg.arg[1] = flags;
   msg.send_buf = pathname;
   msg.send_size = len+1;
   msg.recv_size = 0;

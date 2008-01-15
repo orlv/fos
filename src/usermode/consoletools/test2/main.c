@@ -1,34 +1,12 @@
-#include <stdlib.h>
+#include <fcntl.h>
 #include <stdio.h>
+#include <unistd.h>
+static const char testdata[] = "it is test!\nHello, World of tmpfs!\n";
 asmlinkage int main(int argc, char **argv)
 {
-	printf("Realloc test\n");
-	printf("Filling first part\n");
-	char *buf = realloc(NULL, 13);
-	for(int i = 0; i < 13; i++)
-		buf[i] = 'A' + i;
-	printf("And dump:\n");
-	for(int i = 0; i < 13; i++)
-		printf("%c", buf[i]);
-
-	printf("\n");
-	printf("Reallocating\n");
-	buf = realloc(buf, 26);
-	printf("Filling second part\n");
-	for(int i = 13; i < 26; i++)
-		buf[i] = 'A' + i;	
-
-	printf("And dump:\n");
-
-	for(int i = 0; i < 26; i++)
-		printf("%c", buf[i]);
-
-	printf("\nReallocating\n");
-	buf = realloc(buf, 13);	
-	printf("And dump:\n");
-
-	for(int i = 0; i < 13; i++)
-		printf("%c", buf[i]);
-	free(buf);
+	int hndl = open("/tmp/file", O_CREAT);
+	write(hndl, testdata, sizeof(testdata));
+	close(hndl);
+	printf("Created /tmp/file!\n");
 	return 0;
 }

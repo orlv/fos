@@ -14,6 +14,7 @@ void set_builtin(char *arg);
 void unset_builtin(char *arg);
 void help_builtin(char *arg);
 void echo_builtin(char *arg);
+static void exec_script(char *filename);
 static const struct {
 	char *name;
 	void (*builtin)(char *);
@@ -27,6 +28,8 @@ static const struct {
 	{"unset", unset_builtin },
 	{"help", help_builtin },
 	{"echo", echo_builtin },
+	{"source", exec_script },
+	{".", exec_script  },
 	{ NULL, NULL },
 };
 
@@ -117,7 +120,6 @@ static void eval(char *cmd, char *args) {
 	if(!pid)
 		printf("sh: %s: command not found\n", cmd);
 }
-static void exec_script(char *filename);
 
 static void interactive_shell() {
 	exec_script("/root/.login");

@@ -3,3 +3,4 @@
 /usr/bin/fgs::Starting up GUI
 #/bin/shell::Starting up shell
 /bin/rtc::Starting RTC
+/bin/tmpfs::Starting up tmpfs

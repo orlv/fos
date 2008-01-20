@@ -34,17 +34,16 @@ void TProcMan::scheduler()
 	continue;
       } else
 	curr = curr->next;
-      
+
       /* если установлен и истек таймер -- отправляем сигнал */
-      if(curr->item->get_alarm() && curr->item->get_alarm() < _uptime){
-	//printk("alarm = 0x%X, uptime=0x%X \n", curr->item->get_alarm(), _uptime);
-	curr->item->set_alarm(0);
-	curr->item->set_signal(SIGNAL_ALARM);
+      if(curr->item->alarm.get() && curr->item->alarm.get() < _uptime){
+        curr->item->alarm.set(0);
+        curr->item->put_signal(0, SIGNAL_ALARM);
       }
 
       /* если пришли сигналы -- отправляем соответствующие сообщения */
-      if(curr->item->get_signals()){
-	curr->item->parse_signals();
+      if(curr->item->signals_cnt.value()){
+        curr->item->parse_signals();
       }
       
       /* Процесс готов к запуску? */

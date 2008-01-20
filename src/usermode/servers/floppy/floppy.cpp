@@ -34,19 +34,17 @@ THREAD(floppy_timer_thread)
     alarm(1000);
     receive(&msg);
 
-    switch(msg.arg[0]){
-    case 0:
-      if (motor_ticks)
-	motor_ticks--;
-      else if (motor_on) {
-	outb(0x0c, 0x3f2); /* выключим мотор флоппи */
-	motor_on = 0;
+    if(msg.arg[0] == SIGNAL_IRQ) {
+      if(msg.arg[0] == FLOPPY_IRQ_NUM){
+        if (motor_ticks)
+          motor_ticks--;
+        else if (motor_on) {
+          outb(0x0c, 0x3f2); /* выключим мотор флоппи */
+          motor_on = 0;
+        }
       }
-      break;
-	
-    default:
+    } else
       printf("floppy handler: unknown signal received! (0x%X)\n", msg.arg[0]);
-    }
   }
 }
 

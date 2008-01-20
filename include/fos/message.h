@@ -13,6 +13,7 @@
 #define _MSG_SENDER_SIGNAL 1
 
 #define SIGNAL_ALARM   0
+#define SIGNAL_IRQ     1
 
 #define SYSTID_NAMER   1
 #define SYSTID_PROCMAN 2

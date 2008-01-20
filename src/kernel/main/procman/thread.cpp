@@ -38,15 +38,14 @@ Thread::~Thread()
     delete curr->item;
     delete curr;
   }
-  //delete new_messages->item;
-  //delete new_messages;
+
   list_for_each_safe(curr, n, (&messages.read.list)){
     curr->item->reply_size = 0;
     curr->item->thread->flags &= ~FLAG_TSK_SEND;
     delete curr->item;
     delete curr;
   }
-  //delete received_messages;
+
   kfree((void *)stack_pl0, STACK_SIZE);
   kfree((void *)tss, sizeof(TSS));
 }
@@ -103,15 +102,18 @@ res_t Thread::put_message(kmessage *message)
 
 void Thread::parse_signals()
 {
-  for(u32_t n=0, mask=1; signals && (n < sizeof(this->signals)*8); n++, mask = mask << 1){
-    if(signals & mask){
-      kmessage *message = new kmessage;
-      message->size = 0;
-      message->arg[0] = n;
-      message->flags = MESSAGE_ASYNC;
-      message->thread = THREAD(_MSG_SENDER_SIGNAL);
-      this->put_message(message);
-      signals = signals & ~mask;
-    }
-  } 
+  List<signal *> *curr, *n;
+
+  list_for_each_safe(curr, n, (&signals)) {
+    kmessage *message = new kmessage;
+    message->size = 0;
+    message->arg[0] = curr->item->n;
+    message->arg[1] = curr->item->data;
+    message->flags = MESSAGE_ASYNC;
+    message->thread = THREAD(_MSG_SENDER_SIGNAL);
+    put_message(message);
+    delete curr->item;
+    delete curr;
+    signals_cnt.dec();
+  }
 }

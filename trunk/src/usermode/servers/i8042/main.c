@@ -24,10 +24,12 @@ void thread_handler()
     msg.recv_size = 0;
     msg.tid = _MSG_SENDER_SIGNAL;
     receive(&msg);
-    if (msg.arg[0] == 1) {
-      keyboard_ps2_interrupt();
-    } else if (msg.arg[0] == 12) {
-      mouse_ps2_interrupt();
+    if (msg.arg[0] == SIGNAL_IRQ) {
+      if (msg.arg[1] == 1) {
+        keyboard_ps2_interrupt();
+      } else if (msg.arg[1] == 12) {
+        mouse_ps2_interrupt();
+      }
     } else
       printf("i8042: unknown signal received!\n");
   }

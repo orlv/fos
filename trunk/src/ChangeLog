@@ -1,3 +1,7 @@
+Sun Jan 20 22:43:47 2008 [20080120] (kernel version 0.0.45.7)
+Oleg S Fedorov <o.s.fedorov@gmail.com>:
+	- Изменено управление сигналами, в сигнале можно посылать 4 байта данных
+
 Sun Jan  20 09:40:33 2008 [20080120]
 Sergey Gridassov <grindars@grindars.org.ru>
 	- Поддержка чтения каталога в ModuleFS

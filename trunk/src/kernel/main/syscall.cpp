@@ -674,16 +674,15 @@ SYSCALL_HANDLER(sys_call_handler)
 
   case _FOS_ALARM:
     _uptime = kuptime();
-    if(system->procman->current_thread->get_alarm() > _uptime)
-      result = system->procman->current_thread->get_alarm() - _uptime;
+    if(system->procman->current_thread->alarm.get() > _uptime)
+      result = system->procman->current_thread->alarm.get() - _uptime;
     else
       result = 0;
-    
-    if(arg1)  /* текущее время + arg1 */
-      system->procman->current_thread->set_alarm(_uptime + arg1);
-    else
-      system->procman->current_thread->set_alarm(arg2);
 
+    if(arg1)  /* текущее время + arg1 */
+      system->procman->current_thread->alarm.set(_uptime + arg1);
+    else
+      system->procman->current_thread->alarm.set(arg2);
     break;
 
   case _FOS_MYTID:

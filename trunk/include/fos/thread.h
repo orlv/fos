@@ -25,11 +25,7 @@ inline bool SYSTEM_TID(tid_t tid)
 class Thread {
  private:
   off_t stack_pl0;
-  u32_t alarm;
-  u32_t signals;
 
-  //  List<fsignal> *extsignals;
-  
  public:
   Thread(class TProcess *process,
 	 off_t eip,
@@ -64,32 +60,28 @@ class Thread {
       atomic_t count;
     } read;
   } messages;
-
-  inline void set_signal(u8_t signal_n)
-  {
-    signals |= 1 << signal_n;
-  }
-
-  inline u32_t get_signals()
-  {
-    return signals;
-  }
-  
-  inline u32_t get_alarm()
-  {
-    return alarm;
-  }
-  
-  inline void set_alarm(u32_t time)
-  {
-    alarm = time;
-  }
-
-  //  void put_ext_signal(u32_t data, u32_t n);
-  //  void parse_ext_signals();
-  
-  void parse_signals();
   res_t put_message(kmessage *message);
+  
+  struct {
+    u32_t time;
+    inline u32_t get() {
+      return time;
+    };
+    inline void set(u32_t time) {
+      this->time = time;
+    };
+  } alarm;
+  
+  List<signal *> signals;
+  atomic_t signals_cnt;
+  inline void put_signal(u32_t data, u32_t n){
+    signal *sig = new signal;
+    sig->data = data;
+    sig->n = n;
+    signals.add_tail(sig);
+    signals_cnt.inc();
+  }
+  void parse_signals();
 };
 
 #endif

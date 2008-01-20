@@ -1,6 +1,7 @@
 /*
   kernel/drivers/fs/modulefs.cpp
   Copyright (C) 2006-2007 Oleg Fedorov
+                     2008 Sergey Gridassov
 */
 
 #include "modulefs.h"
@@ -23,7 +24,7 @@ void grub_modulefs_srv()
   printk("modulefs: started\n");
   struct stat *statbuf = new struct stat;
   size_t size;
-
+  struct dirent *dent = new struct dirent;
   while (1) {
     msg.tid = _MSG_SENDER_ANY;
     msg.recv_buf  = buffer;
@@ -73,7 +74,33 @@ void grub_modulefs_srv()
       msg.send_size = sizeof(struct stat);
       msg.send_buf = statbuf;
       break;
-      
+    case FS_CMD_DIROPEN:
+      buffer[msg.recv_size] = 0;
+      if(strcmp(buffer, "/") && strcmp(buffer, ".") && strcmp(buffer, "/.")) {
+        msg.arg[0] = 0;
+        msg.arg[1] = 0;
+        msg.arg[2] = ERR_NO_SUCH_FILE;
+        msg.send_size = 0;
+        break;
+      }
+      msg.arg[0] = 1;
+      msg.arg[1] = initrb->count();
+      msg.arg[2] = NO_ERR;
+      msg.send_size = 0;
+      break;
+    case FS_CMD_DIRREAD:
+      if(initrb->get_name(buffer, MODULEFS_BUFF_SIZE, msg.arg[2]) < 0) {
+        msg.arg[2] = ERR_EOF;
+        msg.send_size = 0;
+        break;
+     }
+     dent->d_ino = msg.arg[2];
+     dent->d_reclen = strlen(buffer);
+     strcpy(dent->d_name, buffer);
+     msg.send_size = sizeof(struct dirent);
+     msg.send_buf = dent;
+     msg.arg[2] = NO_ERR;
+     break;	
     default:
       msg.arg[0] = 0;
       msg.arg[2] = ERR_UNKNOWN_CMD;
@@ -82,7 +109,6 @@ void grub_modulefs_srv()
     reply(&msg);
   }
 }
-
 static const char *__get_name(const char *str)
 {
   const char *ptr;
@@ -99,6 +125,17 @@ static const char *__get_name(const char *str)
 ModuleFS::ModuleFS(multiboot_info_t * mbi)
 {
   this->mbi = mbi;
+}
+
+int ModuleFS::get_name(char *buf, int maxlen, unsigned int id) {
+  if(id > mbi->mods_count - 1)
+    return -1;
+  strncpy(buf, __get_name((const char *)((module_t *) mbi->mods_addr)[id].string), maxlen);
+  return 0;
+}
+
+int ModuleFS::count() {
+  return mbi->mods_count;
 }
 
 int ModuleFS::access(const string name)

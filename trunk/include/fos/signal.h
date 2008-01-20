@@ -1,6 +1,5 @@
 /*
   include/fos/signal.h
-  Extended signals for FOS
   Copyright (C) 2008 Oleg Fedorov
 */
 
@@ -9,9 +8,9 @@
 
 #include <types.h>
 
-struct ext_signal {
-  u32_t data; /* данные сигнала */
+struct signal {
   u32_t n;    /* номер сигнала  */
+  u32_t data; /* данные сигнала */
 };
 
 #endif

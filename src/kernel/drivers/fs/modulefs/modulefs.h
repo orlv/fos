@@ -1,6 +1,7 @@
 /*
   modulefs.h
   Copyright (C) 2006-2007 Oleg Fedorov
+                     2008 Sergey Gridassov
 */
 
 #ifndef __MODULEFS_H
@@ -20,6 +21,8 @@ class ModuleFS {
   int access(const string name);
   void stat(struct stat *statbuf, u32_t n);
   size_t size(u32_t n);
+  int count();
+  int get_name(char *buf, int maxlen, unsigned int id);
 };
 
 class ModuleFSFile {

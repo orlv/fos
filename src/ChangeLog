@@ -1,3 +1,7 @@
+Sun Jan  20 09:40:33 2008 [20080120]
+Sergey Gridassov <grindars@grindars.org.ru>
+	- Поддержка чтения каталога в ModuleFS
+
 Tue Jan  15 13:22:11 2008 [20080115]
 Sergey Gridassov <grindars@grindars.org.ru>
 	- TMPFS (базовая версия, без поддержки каталогов)

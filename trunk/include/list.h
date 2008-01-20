@@ -3,8 +3,8 @@
   Taken from linux-2.6.20
  */
 
-#ifndef _FOS_LIST_H
-#define _FOS_LIST_H
+#ifndef _LIST_H
+#define _LIST_H
 
 #include <fos/stddef.h>
 
@@ -175,8 +175,8 @@ static inline void __list_del(struct list_head * prev, struct list_head * next)
 static inline void list_del(struct list_head *entry)
 {
   __list_del(entry->prev, entry->next);
-  entry->next = LIST_POISON1;
-  entry->prev = LIST_POISON2;
+  entry->next = (struct list_head *) LIST_POISON1;
+  entry->prev = (struct list_head *) LIST_POISON2;
 }
 
 /**
@@ -206,7 +206,7 @@ static inline void list_del(struct list_head *entry)
 static inline void list_del_rcu(struct list_head *entry)
 {
   __list_del(entry->prev, entry->next);
-  entry->prev = LIST_POISON2;
+  entry->prev = (struct list_head *) LIST_POISON2;
 }
 
 /**
@@ -247,7 +247,7 @@ static inline void list_replace_rcu(struct list_head *old,
   // smp_wmb();
   _new->next->prev = _new;
   _new->prev->next = _new;
-  old->prev = LIST_POISON2;
+  old->prev = (struct list_head *) LIST_POISON2;
 }
 
 /**
@@ -647,8 +647,8 @@ static inline void __hlist_del(struct hlist_node *n)
 static inline void hlist_del(struct hlist_node *n)
 {
   __hlist_del(n);
-  n->next = LIST_POISON1;
-  n->pprev = LIST_POISON2;
+  n->next = (struct hlist_node *) LIST_POISON1;
+  n->pprev = (struct hlist_node **) LIST_POISON2;
 }
 
 /**
@@ -673,7 +673,7 @@ static inline void hlist_del(struct hlist_node *n)
 static inline void hlist_del_rcu(struct hlist_node *n)
 {
   __hlist_del(n);
-  n->pprev = LIST_POISON2;
+  n->pprev = (struct hlist_node **) LIST_POISON2;
 }
 
 static inline void hlist_del_init(struct hlist_node *n)
@@ -703,7 +703,7 @@ static inline void hlist_replace_rcu(struct hlist_node *old,
     _new->next->pprev = &_new->next;
 
   *_new->pprev = _new;
-  old->pprev = LIST_POISON2;
+  old->pprev = (struct hlist_node **) LIST_POISON2;
 }
 
 static inline void hlist_add_head(struct hlist_node *n, struct hlist_head *h)

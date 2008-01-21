@@ -21,54 +21,47 @@ template <class ListItem> class List {
 
   ListItem item;
 
-  List()
-    {
-      this->item = 0;
-      prev = this;
-      next = this;
-    }
+  List() {
+    this->item = 0;
+    prev = this;
+    next = this;
+  }
   
-  List(ListItem item)
-    {
-      this->item = item;
-      prev = this;
-      next = this;
-    }
-
+  List(ListItem item) {
+    this->item = item;
+    prev = this;
+    next = this;
+  }
 
   /*
     -данный узел удаляется
     -правятся ссылки в prev и next
     ВНИМАНИЕ! данные в item - не удаляются!
   */
-  ~List()
-    {
-      prev->next = next;
-      next->prev = prev;
-    }
-
-
+  ~List() {
+    prev->next = next;
+    next->prev = prev;
+  }
+  
   /* добавляет новый узел в начало списка (сразу после this) */
-  List<ListItem> * add(ListItem item)
-  {
+  List<ListItem> * add(ListItem item) {
     List<ListItem> *list = new List<ListItem>(item);
-      
+    
     list->next = next;
     next->prev = list;
-
+    
     list->prev = this;
     this->next = list;
     return list;
   }  
   
   /* добавляет новый узел в конец списка (перед this) */
-  List<ListItem> * add_tail(ListItem item)
-  {
+  List<ListItem> * add_tail(ListItem item) {
     List<ListItem> *list = new List<ListItem>(item);
     
     list->prev = prev;
     prev->next = list;
-
+    
     list->next = this;
     this->prev = list;
     return list;
@@ -76,8 +69,7 @@ template <class ListItem> class List {
  
   /* удаляет узел из текущего списка, и добавляет его в другой список после
      элемента head (начало списка) */
-  void move(register List<ListItem> * head)
-  {
+  void move(register List<ListItem> * head) {
     /* удаляемся из текущего списка */
     prev->next = this->next;
     next->prev = this->prev;
@@ -91,8 +83,7 @@ template <class ListItem> class List {
 
   /* удаляет узел из текущего списка, и добавляет его в другой список перед
      элементом head (в конец списка) */
-  void move_tail(register List<ListItem> * head)
-  {
+  void move_tail(register List<ListItem> * head) {
     /* удаляемся из текущего списка */
     prev->next = this->next;
     next->prev = this->prev;
@@ -106,15 +97,13 @@ template <class ListItem> class List {
 
   /* возвращает ненулевое значение, если список пуст, и нулевое значение
      в противном случае */
-  int empty()
-  {
+  int empty() {
     return next == this;
   }
 
   /* служит для объединения двух не перекрывающихся списков
      вставляет данный список в другой список после узла head */
-  void splice(register List<ListItem> * head)
-  {
+  void splice(register List<ListItem> * head) {
     prev->next = head->next;
     prev->next->prev = prev;
 
@@ -123,8 +112,7 @@ template <class ListItem> class List {
   }
 
   /* заменяет узел this на узел head */
-  void replace(register List<ListItem> * head)
-  {
+  void replace(register List<ListItem> * head) {
     head->next = this->next;
     head->prev = this->prev;
     head->next->prev = head;

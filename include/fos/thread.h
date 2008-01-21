@@ -40,6 +40,7 @@ class Thread {
 
   class TProcess *process;
   struct TSS *tss;
+
   gdt_entry descr;
   u16_t flags;
   tid_t send_to;

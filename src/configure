@@ -90,7 +90,7 @@ echo Creating config.mk
 cat > config.mk <<EOF
 # -----------------------------------------------------------------------------
 # Automatically generated, do not edit!
-# Copyright (C) 2007 Oleg Fedorov
+# Copyright (C) 2008 Oleg Fedorov
 # -----------------------------------------------------------------------------
 SYSTEM_NAME     = FOS
 SYSTEM_ROOT	= $TOPDIR

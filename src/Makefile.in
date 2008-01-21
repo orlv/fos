@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------
 # FOS - FOS is Operating System
-# Copyright (C) 2004-2007 Oleg S. Fedorov
+# Copyright (C) 2004-2008 Oleg S. Fedorov
 #------------------------------------------------------------------------------
 include config.mk
 
@@ -16,8 +16,6 @@ include mk/iso.mk
 
 all:	version build_kernel build_user
 	rm -f `find . -name \*~`
-#	@expr `cat .build.next` + 1 | xargs $(ECHO) -n > .build.next.tmp
-#	@mv .build.next.tmp .build.next
 	LANG=C date -u +%Y%m%d | xargs $(ECHO) -n > VERSION
 	$(GREEN) $(ECHO) \ System Complete!
 	$(ECHO) \ Run \"make install\" to build iso image.
@@ -26,7 +24,6 @@ all:	version build_kernel build_user
 
 version:
 	rm -f kernel/main/version.o
-#	@cat .build.next > BUILD
 	$(ECHO) " "
 	$(RED) $(ECHO) "FOS `cat kernel/VERSION` (`cat VERSION`)" ; $(GREY)
 	$(ECHO) "Copyright (C) 2004-2007 Oleg Fedorov"
@@ -34,7 +31,7 @@ version:
 	$(ECHO) "/* " > $(INCLUDE)/fos/version.h
 	$(ECHO) "include/fos/version.h" >> $(INCLUDE)/fos/version.h
 	$(ECHO) "Automatically generated - do not modify" >> $(INCLUDE)/fos/version.h
-	$(ECHO) "Copyright (C) 2004-2007 Oleg Fedorov" >> $(INCLUDE)/fos/version.h
+	$(ECHO) "Copyright (C) 2004-2008 Oleg Fedorov" >> $(INCLUDE)/fos/version.h
 	$(ECHO) "*/" >> $(INCLUDE)/fos/version.h
 	$(ECHO) " " >> $(INCLUDE)/fos/version.h
 	$(ECHO) "#define VERSION	\"`cat kernel/VERSION`\"" >> $(INCLUDE)/fos/version.h

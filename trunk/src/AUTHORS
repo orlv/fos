@@ -2,12 +2,11 @@
 Oleg S. Fedorov (St.Peterburg, Russia)
 	Contacts:
 		o.s.fedorov@gmail.com
-		(or oleg@osdev.ru)
 		http://fos.osdev.ru/
 		jid: korion@jabber.ru
 		icq: 200173543
 	About:
-		Main idea and coding [2004-2007]
+		Main idea and coding [2004-2008]
 
 Michael Zhilin
 	Contacts:
@@ -15,22 +14,21 @@ Michael Zhilin
 	Some Fix's (10.2006), FreeBSD building fix (08.2007)
 	PCI server (09.2007)
 
-Serge Gridassov
+Serge Gridassov (Moscow, Russia)
 	Contacts:
 		grindars@grindars.org.ru
 		http://grindars.org.ru/
 		jid: grindars2007@jabber.ru
 
 	Keyboard&Mouse drivers, PGS server (10.2007)
-	ROMFS filesystem (2007)
+	ROMFS filesystem (2007) and more, more, more... (See ChangeLog)
 	
 Special Tnx:
 	Vladimir Sadovnikov (St.Peterburg, Russia)
 		http://xskernel.org/
-		(Object FS idea, and some other..) [2006]
-		APIC bugfix [2007]		
+		(Object FS idea, and some other..) [2006-2008]
 
 	Vladimir Suhanov (Magnitogorsk, Russia)
-		http://sourcemain.ru/
+		http://web-zine.org/
 
 Если я забыл вписать тебя - скажи мне об этом, исправлю ;)

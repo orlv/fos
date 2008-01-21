@@ -1,22 +1,26 @@
+Mon Jan 21 03:25:38 2008 [20080121] (kernel version 0.0.45.7)
+Oleg S Fedorov <o.s.fedorov@gmail.com>:
+	- Шаблон tindex добавлен
+
 Sun Jan 20 22:43:47 2008 [20080120] (kernel version 0.0.45.7)
 Oleg S Fedorov <o.s.fedorov@gmail.com>:
 	- Изменено управление сигналами, в сигнале можно посылать 4 байта данных
 
 Sun Jan  20 09:40:33 2008 [20080120]
-Sergey Gridassov <grindars@grindars.org.ru>
+Sergey Gridassov <grindars@grindars.org.ru>:
 	- Поддержка чтения каталога в ModuleFS
 
 Tue Jan  15 13:22:11 2008 [20080115]
-Sergey Gridassov <grindars@grindars.org.ru>
+Sergey Gridassov <grindars@grindars.org.ru>:
 	- TMPFS (базовая версия, без поддержки каталогов)
 	- cp, rm, mv
 
 Mon Jan  14 15:54:09 2008 [20080114]
-Sergey Gridassov <grindars@grindars.org.ru>
+Sergey Gridassov <grindars@grindars.org.ru>:
 	- Небольшая тулза для гуя msgbox
 
 Sun Jan  13 15:21:00 2008 [20080113]
-Sergey Gridassov <grindars@grindars.org.ru>
+Sergey Gridassov <grindars@grindars.org.ru>:
 	- Поддержка скриптов (на уровне exec)
 	- Shell может исполнять скрипты (пример - test.sh)
 	- Shell при запуске выполняет /root/.login
@@ -28,7 +32,7 @@ Oleg S Fedorov <o.s.fedorov@gmail.com>:
 	- Маленькая оптимизация списка сообщений
 
 Sat Jan  12 17:44:00 2008 [20080112]
-Sergey Gridassov <grindars@grindars.org.ru>
+Sergey Gridassov <grindars@grindars.org.ru>:
 	- Доделан chdir
 	- В функции open, opendir, stat добавлена поддержка относительных путей.
 	- Панель задач теперь отображает список окон с заголовками и поддержкой
@@ -36,7 +40,7 @@ Sergey Gridassov <grindars@grindars.org.ru>
 	- Сервер RTC
 
 Tue Jan  11 18:38:00 2008 [20080111]
-Sergey Gridassov <grindars@grindars.org.ru>
+Sergey Gridassov <grindars@grindars.org.ru>:
 	- Переменные среды (environ), их передача из процесса в процесс
 	- Оптимизация перемещения окон
 	- Файловые потоки stdin/stdout
@@ -48,7 +52,7 @@ Sergey Gridassov <grindars@grindars.org.ru>
           + Гибкая поддержка встроенных команд
 
 Tue Jan  10 17:59:53 2008 [200800110]
-Sergey Gridassov <grindars@grindars.org.ru>
+Sergey Gridassov <grindars@grindars.org.ru>:
 	- Для контролов сделан фокус и ввод с клавиатуры
            Tab для смены контрола, Enter для клика на 
            активной кнопке
@@ -60,7 +64,7 @@ Sergey Gridassov <grindars@grindars.org.ru>
            перенести в stable.
 
 Tue Jan  8 17:59:53 2008 [20080108]
-Sergey Gridassov <grindars@grindars.org.ru>
+Sergey Gridassov <grindars@grindars.org.ru>:
 	- Переделал систему сборки
 
 Mon Jan  7 18:28:21 2008 [20080107] (kernel version 0.0.45.5)
@@ -68,11 +72,11 @@ Oleg S Fedorov <o.s.fedorov@gmail.com>:
 	- Добавил дамп стека процесса
 
 Fri Jan 04 12:06:54 2008 [20080104]
-Sergey Gridassov <grindars@grindars.org.ru>
+Sergey Gridassov <grindars@grindars.org.ru>:
 	- Исправил сломанные аргументы
 
 Thu Jan 03 20:11:26 2008 [20080103]
-Sergey Gridassov <grindars@grindars.org.ru>
+Sergey Gridassov <grindars@grindars.org.ru>:
 	- Библиотека libpci
 	- Сканер PCI pci_scan с конфигом
 	- Скелет сервера сети
@@ -90,16 +94,16 @@ Oleg S Fedorov <o.s.fedorov@gmail.com>:
 	  прерванного сервером по таймауту
 
 Sat Dec 10 15:38:42 2007 [20071210]
-Sergey Gridassov
+Sergey Gridassov <grindars@grindars.org.ru>:
 	- Библиотека контролов
 
 Sat Dec 9 10:36:42 2007 [20071209]
-Sergey Gridassov
+Sergey Gridassov <grindars@grindars.org.ru>:
 	- Сделана библиотека libPGS и создан инклуд pgs.h
 	- Переделано перемещение окна, теперь оно работает быстрее и стабильнее
 
 Mon Dec 3 19:01:00 2007 [20071203]
-Sergey Gridassov
+Sergey Gridassov <grindars@grindars.org.ru>:
 	- Графические функции
 	- Тетрис
 
@@ -125,7 +129,7 @@ Serge Gridassov <grindars@grindars.org.ru>:
 	- Доработан PGS
 	
 Sun Oct 28 13:12:00 UTC 2007 (kernel version 0.0.45.2)
-Oleg S Fedorov <o.s.fedorov@gmail.com>)
+Oleg S Fedorov <o.s.fedorov@gmail.com>:
 	- Добавлена пользовательская обертка THREAD() для корректного
 	  завершения потоков.
 
@@ -135,7 +139,7 @@ Oleg S Fedorov <o.s.fedorov@gmail.com>:
 Serge Gridassov <grindars@grindars.org.ru>:
 	- Перенесены драйвера мыши, клавиатуры
 	- Графический сервер PGS
-Zhilin Mike <mizh@bk.ru>
+Zhilin Mike <mizh@bk.ru>:
 	- Сервер PCI
 
 Tue Oct 16 22:39:36 2007  Oleg S Fedorov <o.s.fedorov@gmail.com>
@@ -681,4 +685,5 @@ Build 4446:
 
 ----
 FOS - FOS is Operating System
-Copyright (C) 2004-2007 Oleg Fedorov
+Copyright (C) 2004-2008 Oleg Fedorov & Co.
+http://fos.osdev.ru/

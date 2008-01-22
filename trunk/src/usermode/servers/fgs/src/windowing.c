@@ -80,13 +80,14 @@ void Redraw()
 
   refreshing = 1;
   DrawRect(0, 0, screen.w, screen.h, 0x003082, backbuf);
+  PutString(0, 0, "FOS Graphics System version " VERSION " builded at " __DATE__ " " __TIME__ , 0xFFFFFF, backbuf);
   memset(locate->data, 0, (screen.w * screen.h * screen.bpp));
   if (front != NULL) {
 
     for (node * n = front; n; n = n->next) {
       window_t *p = (window_t *) n->data;
 
-      if (p->visible == 0 || p->visible == -1)
+      if (p->visible < 0)
 	continue;
       if (n == back) {
 	p->active = 1;

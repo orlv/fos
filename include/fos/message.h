@@ -9,26 +9,22 @@
 #include <types.h>
 #include <sched.h>
 
-#define _MSG_SENDER_ANY    0
-#define _MSG_SENDER_SIGNAL 1
+//#define _MSG_SENDER_ANY    0
+//#define _MSG_SENDER_SIGNAL 1
 
 #define SIGNAL_ALARM   0
 #define SIGNAL_IRQ     1
 
-#define SYSTID_NAMER   1
 #define SYSTID_PROCMAN 2
 #define SYSTID_MM      3
+#define SYSTID_NAMER   6
 
 #define MAX_MSG_COUNT 32
 
-
-#define MESSAGE_ASYNC 1
-
+#define MSG_ASYNC     1
 #define MSG_MEM_SEND  2 /* отделить страницу от адресного пространства, и присоединить к получателю */
-
 #define MSG_MEM_SHARE 4 /* клиент: присоединить страницу в адр. пр-во получателя
 			   или сервер: разрешение на присоединение разделяемой страницы */
-
 #define MSG_MEM_TAKE  2 /* готовность получить страницу памяти */
 
 #define MSG_ARGS_CNT  4

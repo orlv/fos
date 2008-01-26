@@ -25,6 +25,7 @@
 
 #include <fos/process.h>
 #include <c++/list.h>
+#include <c++/index.h>
 
 #define FLAG_TSK_READY        0x01
 #define FLAG_TSK_KERN         0x02
@@ -37,33 +38,28 @@
 class TProcMan {
 private:
   List<Thread *> *threadlist;
-
+  
 public:
   TProcMan();
 
-  void reg_thread(register Thread *thread);
+  tindex<Thread> *threads;
+  tid_t reg_thread(register Thread *thread);
   void unreg_thread(register List<Thread *> *thread);
 
-  u32_t exec(register void *image, const string name,
+  tid_t exec(register void *image, const string name,
 	     const string args, size_t args_len,
 	     const string envp, size_t envp_len);
   void scheduler();
   List<Thread *> *do_kill(List<Thread *> *thread);
   res_t kill(register tid_t tid, u16_t flag);
-  Thread *get_thread_by_tid(register tid_t tid);
   u32_t curr_proc;
   Thread *current_thread;
 };
 
-static inline tid_t TID(Thread *thread)
+/*static inline tid_t TID(Thread *thread)
 {
-  return (tid_t) thread;
-}
-
-static inline Thread * THREAD(tid_t tid)
-{
-  return (Thread *) tid;
-}
+  return thread->tid;
+  }*/
 
 #endif /* iKERNEL */
 

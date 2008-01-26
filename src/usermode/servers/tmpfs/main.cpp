@@ -50,7 +50,7 @@ asmlinkage int main(int argc, char *argv[]) {
 	struct dirent dent;
 	thread_create((off_t) outdated);
 	while(1) {
-		msg.tid = _MSG_SENDER_ANY;
+	  msg.tid = 0;
 		msg.recv_buf = buffer;
 		msg.recv_size = TMPFS_BUF_SIZE;
 		msg.flags = 0;
@@ -233,17 +233,17 @@ asmlinkage int main(int argc, char *argv[]) {
 void outdated() {
 	while(1) {
 		struct message msg;
-		msg.tid = _MSG_SENDER_ANY;
+		msg.tid = 0;
 		msg.recv_buf = NULL;
 		msg.recv_size = 0;
 		msg.flags = 0;
-		alarm(20000);	// это в районе минуты на самом деле.
+		alarm(60000);	// это в районе минуты на самом деле.
 		receive(&msg);
 		reply(&msg);
 		while(!mutex_try_lock(q_locked))
 	 		sched_yield();
 		for(handle_t *ptr = head, *prev = NULL; ptr; prev = ptr, ptr = ptr->next) {
-			if(ptr->touched < uptime() - 20000) {
+			if(ptr->touched < uptime() - 60000) {
 				if(prev)
 					prev->next = ptr->next;
 				else

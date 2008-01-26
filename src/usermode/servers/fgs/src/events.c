@@ -114,7 +114,7 @@ void EventsThread()
   resmgr_attach("/dev/pgs/main");
   ready_counter--;
   while (1) {
-    msg.tid = _MSG_SENDER_ANY;
+    msg.tid = 0;
     msg.recv_buf = buffer;
     msg.flags = 0;		//MSG_MEM_SHARE;
     msg.recv_size = buf_size;
@@ -122,7 +122,7 @@ void EventsThread()
     receive(&msg);
     alarm(0);
 
-    if (msg.tid != _MSG_SENDER_SIGNAL)
+    if (msg.tid != 0)
       switch (msg.arg[0]) {
 
       case FS_CMD_ACCESS:
@@ -484,7 +484,7 @@ void MappingThread()
   struct message msg;
   ready_counter--;
   while (1) {
-    msg.tid = _MSG_SENDER_ANY;
+    msg.tid = 0;
     msg.recv_buf = NULL;
     msg.flags = MSG_MEM_SHARE;
     msg.recv_size = screen.w * screen.h * screen.bpp;

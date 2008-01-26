@@ -1,3 +1,14 @@
+Sat Jan 26 21:32:20 2008 [20080126] (kernel version 0.0.46.2)
+Oleg S Fedorov <o.s.fedorov@gmail.com>:
+	- Изменена логика выдачи tid
+	- Изменения в системе сообщений и сигналов
+
+Sat Jan 26 19:22:36 2008 [20080126]
+Sergey Gridassov <grindars@grindars.org.ru>:
+	- Исправления, связанные с изменениями в ядре (init, romfs, fgs)
+	- Исправлен uname (корректный парсинг на amd64)
+	- drawtest - приблизительно определяет скорость отрисовки графики.
+
 Mon Jan 21 03:25:38 2008 [20080121] (kernel version 0.0.45.7)
 Oleg S Fedorov <o.s.fedorov@gmail.com>:
 	- Шаблон tindex добавлен

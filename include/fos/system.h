@@ -49,9 +49,9 @@ class SYSTEM {
   SYSTEM(register multiboot_info_t * mbi);
   
   TProcMan *procman;
-  tid_t tid_procman;
+  /*  tid_t tid_procman;
   tid_t tid_namer;
-  tid_t tid_mm;
+  tid_t tid_mm;*/
   GDT *gdt;
   IDT *idt;
   PIC *pic;
@@ -159,5 +159,9 @@ static inline int free_page(u32_t n)
     return -1;
 }
 
+static inline Thread * THREAD(tid_t tid)
+{
+  return system->procman->threads->get(tid);
+}
 
 #endif

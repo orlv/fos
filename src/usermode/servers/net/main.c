@@ -10,9 +10,12 @@
 #include "rtl8139.h"
 #include "arp.h"
 #include "ip.h"
+
 #define RECV_BUF_SIZE 1000
+
 net_callbacks_t cb = { 0 };
 volatile dev_t *dev = NULL;
+
 THREAD(poller) {
   while(1) {
     if(dev) {
@@ -72,7 +75,8 @@ int main(int argc, char *argv[]) {
   arp_clear();
   struct message msg;
   while (1) {
-    msg.tid = _MSG_SENDER_ANY;
+    msg.tid = 0;
+    msg.flags = 0;
     msg.recv_size = RECV_BUF_SIZE;
     msg.recv_buf = buffer;
     receive(&msg);

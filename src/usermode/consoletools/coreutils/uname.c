@@ -131,11 +131,20 @@ void usage() {
 	);
 }
 void pversion() {
-	printf("uname (FOS tiny coreutils) 0.1\n");
+	printf("uname (FOS tiny coreutils) 0.2\n");
 }
 
 void parse_dmesg(char *buf, char *release, char *version, char *kernel) {
-	char *firstline = strsep(&buf, "\n");
+	char *firstline;
+	do {
+		firstline = strsep(&buf, "\n");
+		if(!firstline) {
+			release = "unknown";
+			version = "unknown";
+			kernel = "unknown";
+			return;
+		}
+	} while(firstline[0] != ' ');
 	char *tokens[16];
 	int i = 0;
 	for(char *ptr= strsep(&firstline, " "); ptr && i < 16; ptr= strsep(&firstline, " "), i++) 

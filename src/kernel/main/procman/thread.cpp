@@ -109,8 +109,8 @@ void Thread::parse_signals()
     message->size = 0;
     message->arg[0] = curr->item->n;
     message->arg[1] = curr->item->data;
-    message->flags = MESSAGE_ASYNC;
-    message->thread = THREAD(_MSG_SENDER_SIGNAL);
+    message->flags = MSG_ASYNC;
+    message->thread = 0;
     put_message(message);
     delete curr->item;
     delete curr;

@@ -118,7 +118,7 @@ void wait_message()
   system->mt.disable();
 }
 
-List<kmessage *> *get_message_any()
+List<kmessage *> *get_any_message()
 {
   system->mt.disable();
   if (!system->procman->current_thread->messages.unread.count.value())
@@ -127,36 +127,23 @@ List<kmessage *> *get_message_any()
   return system->procman->current_thread->messages.unread.list.next;
 }
 
-List<kmessage *> *get_message_from(tid_t from)
+List<kmessage *> *get_message_from(Thread *from)
 {
   system->mt.disable();
   List<kmessage *> *messages = &system->procman->current_thread->messages.unread.list;
   List<kmessage *> *entry;
 
   while(1) {
-    //if (system->procman->current_thread->new_messages_count.value()) { /* есть сообщения, обрабатываем.. */
     list_for_each (entry, messages) {
-      if(entry->item->thread == THREAD(from))
+      if(entry->item->thread == from)
 	return entry;
     }
 
-    if (!SYSTEM_TID(from) && system->procman->current_thread->messages.unread.count.value() > MAX_MSG_COUNT)
+    if (from && system->procman->current_thread->messages.unread.count.value() > MAX_MSG_COUNT)
       return 0;
     
     wait_message();
   }
-    //}
-  
-    /*  while(1) {
-    if (!SYSTEM_TID(from) && system->procman->current_thread->new_messages_count.value() > MAX_MSG_COUNT)
-      return 0;
-    
-    wait_message();
-    list_for_each (entry, messages) {
-      if(entry->item->thread == THREAD(from))
-	return entry;
-    }
-    }*/
 }
 
 #define MSG_CHK_SENDBUF  1
@@ -168,10 +155,9 @@ void kill_message(kmessage *message)
   message->reply_size = 0;
   message->size = 0;
   Thread *thread = message->thread;
-  if(TID(thread) > 0x1000)
+  if(!(message->flags & MSG_ASYNC))
     thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
 }
-
 
 static inline bool check_message(message *message, int flags)
 {
@@ -211,8 +197,8 @@ kernel: send_buf=0x%X, pd=0x%X, count=0x%X\n", OFFSET(message->send_buf), pagedi
     }
   }
 
-  if(message->flags & MESSAGE_ASYNC) /* процесс не может устанавливать флаг ASYNC */
-    message->flags &= ~MESSAGE_ASYNC; 
+  if(message->flags & MSG_ASYNC) /* процесс не может устанавливать флаг ASYNC */
+    message->flags &= ~MSG_ASYNC; 
 
   /* если используется разделение или передача разделяемых страниц - проверяем выравнивание */
   if((flags & MSG_CHK_FLAGS) && (message->flags & (MSG_MEM_SEND | MSG_MEM_SHARE)) && (OFFSET(message->send_buf) & 0xfff)) {
@@ -226,22 +212,21 @@ kernel: message->send_buf=0x%X\n", OFFSET(message->send_buf));
 
 kmessage * get_message(tid_t from, u32_t flags)
 {
-  kmessage *message;
   List<kmessage *> *entry;
-  Thread *current_thread = system->procman->current_thread;
 
-  //  while(1) {
-  if(from)
-    entry = get_message_from(from);
+  if((flags & MSG_ASYNC))
+    entry = get_message_from(0);
+  else if(from)
+    entry = get_message_from(THREAD(from));
   else
-    entry = get_message_any();
+    entry = get_any_message();
   
   if(!entry) {
     system->mt.enable();
     return 0;
   }
 
-  message = entry->item;
+  kmessage *message = entry->item;
 
 #if 0 /* вариант проверки флагов с удалением неподходящих сообщений */
   if((flags & MSG_MEM_TAKE)) {
@@ -281,9 +266,9 @@ kmessage * get_message(tid_t from, u32_t flags)
   }
   //break;
   //}
-  
+  Thread *current_thread = system->procman->current_thread;  
   //printk("[0x%X]", message->thread);
-  if (!(message->flags & MESSAGE_ASYNC)){ /* перемещаем сообщение в очередь полученных сообщений */
+  if (!(message->flags & MSG_ASYNC)){ /* перемещаем сообщение в очередь полученных сообщений */
     entry->move_tail(&current_thread->messages.read.list);
     current_thread->messages.read.count.inc();
   } else
@@ -325,25 +310,27 @@ res_t receive(message *message)
       //printk("shared message!\n");
       rcv_size &= ~0xfff;
       if(rcv_size) {
-	/* монтируем буфер в свободное место адр. пр-ва сервера */
+	/* монтируем буфер в свободное место адр. пр-ва получателя */
 	//printk("kernel: buf=[0x%X] rcv_size=[0x%X]", received_message->buffer, rcv_size);
 	message->recv_buf = system->procman->current_thread->process->memory->mmap(0, rcv_size, 0, OFFSET(received_message->buffer), received_message->thread->process->memory);
 	
-	if(message->flags & MSG_MEM_SEND) /* демонтируем буфер из памяти клиента */
+	if(message->flags & MSG_MEM_SEND) /* демонтируем буфер из памяти отправителя */
 	  received_message->thread->process->memory->munmap(OFFSET(received_message->buffer), received_message->size);
       }
     }
   }
-  
-  message->tid = TID(received_message->thread); /* укажем отправителя сообщения */
 
   message->arg[0] = received_message->arg[0];
   message->arg[1] = received_message->arg[1];
   message->arg[2] = received_message->arg[2];
   message->arg[3] = received_message->arg[3];
   
-  if((received_message->flags & MESSAGE_ASYNC)) /* асинхронные сообщения не требуют ответа, сразу удаляем из ядра */
-    delete received_message;
+  if((received_message->flags & MSG_ASYNC)) { 
+    message->tid = 0;
+    message->flags &= MSG_ASYNC;
+    delete received_message; /* асинхронные сообщения не требуют ответа, сразу удаляем из ядра */
+  } else
+    message->tid = received_message->thread->tid; /* укажем отправителя сообщения */
 
   return RES_SUCCESS;
 }
@@ -358,26 +345,7 @@ res_t send(message *message)
   Thread *thread; /* процесс-получатель */
 
   system->mt.disable();
-  switch(message->tid){
-  case SYSTID_NAMER:
-    thread = THREAD(system->tid_namer);
-    break;
-
-  case SYSTID_PROCMAN:
-    thread = THREAD(system->tid_procman);
-    break;
-
-  case SYSTID_MM:
-    thread = THREAD(system->tid_mm);
-    break;
-   
-  case 0:
-    message->send_size = 0;
-    return RES_FAULT;
-
-  default:
-    thread = system->procman->get_thread_by_tid(message->tid);
-  }
+  thread = THREAD(message->tid);
 
   //printk("send [%s]->[%s] \n", system->procman->current_thread->process->name, thread->process->name);
   
@@ -395,22 +363,21 @@ res_t send(message *message)
     return RES_FAULT2;
   }
 
-  Thread *thread_sender = system->procman->current_thread;
- 
+  Thread *my_thread = system->procman->current_thread;
   /* простое предупреждение взаимоблокировки */
-  thread_sender->send_to = TID(thread);
-  if(thread->send_to == TID(thread_sender)){
-    thread_sender->send_to = 0;
+  my_thread->send_to = thread->tid;
+  if(thread->send_to == my_thread->tid){
+    my_thread->send_to = 0;
     message->send_size = 0;
     system->mt.enable();
     return RES_FAULT3;
   }
-
+  
   kmessage *send_message = new kmessage;
   send_message->flags = message->flags;
   send_message->size = message->send_size;
 
-  if(send_message->size){
+  if(send_message->size) {
     if(!(message->flags & (MSG_MEM_SEND | MSG_MEM_SHARE))) {
       /* скопируем сообщение в память ядра */
       send_message->buffer = new char[send_message->size];
@@ -425,7 +392,7 @@ res_t send(message *message)
   send_message->arg[3] = message->arg[3];
   
   send_message->reply_size = message->recv_size;
-  send_message->thread = thread_sender;
+  send_message->thread = my_thread;
 
   //system->mt.disable();
   thread->messages.unread.list.add_tail(send_message);       /* добавим сообщение процессу-получателю */
@@ -442,7 +409,7 @@ res_t send(message *message)
 
   message->send_size = send_message->size;	  /* сколько байт дошло до получателя */
   message->recv_size = send_message->reply_size;  /* сколько байт ответа пришло */
-  message->tid = TID(send_message->thread);       /* ответ на сообщение мог прийти не от изначального получателя,
+  message->tid = send_message->thread->tid;       /* ответ на сообщение мог прийти не от изначального получателя,
 						     а от другого процесса (при использовании получателем forward()) */
   message->arg[0] = send_message->arg[0];
   message->arg[1] = send_message->arg[1];
@@ -450,7 +417,7 @@ res_t send(message *message)
   message->arg[3] = send_message->arg[3];
   
   delete send_message;
-  thread_sender->send_to = 0;
+  my_thread->send_to = 0;
 
   return RES_SUCCESS;
 }
@@ -473,7 +440,7 @@ res_t reply(message *message)
   }
   system->mt.enable();
 
-  if(!send_message || (send_message->thread != THREAD(message->tid))){
+  if(!send_message || (send_message->thread->tid != message->tid)){
     message->send_size = 0;
     return RES_FAULT;
   }
@@ -481,16 +448,13 @@ res_t reply(message *message)
   if(send_message->thread->flags & (FLAG_TSK_TERM | FLAG_TSK_EXIT_THREAD)) {
     /* поток-отправитель ожидает завершения */
     system->mt.disable();
-    send_message->reply_size = 0;
     delete entry; /* удалим запись о сообщении из списка полученных сообщений */
-    if(TID(send_message->thread) > 0x1000)
+    if(!(send_message->flags & MSG_ASYNC))
       send_message->thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
     system->mt.enable();
     return RES_SUCCESS;
   }
-
   //printk("reply [%s]->[0x%X]\n", system->procman->current_thread->process->name, send_message->thread /*->process->name*/);
-  
   Thread *thread = send_message->thread;
   send_message->thread = system->procman->current_thread;
 
@@ -511,8 +475,8 @@ res_t reply(message *message)
 
   system->mt.disable();
   delete entry; /* удалим запись о сообщении из списка полученных сообщений */
-  if(TID(thread) > 0x1000)
-    thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
+  //if(TID(thread) > 0x1000)
+  thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
   system->mt.enable();
 
   return RES_SUCCESS;
@@ -527,31 +491,15 @@ res_t forward(message *message, tid_t to)
 {
   Thread *thread;
   system->mt.disable();
-  switch(to){
-  case SYSTID_NAMER:
-    thread = THREAD(system->tid_namer);
-    break;
+  thread = THREAD(to);
 
-  case SYSTID_PROCMAN:
-    thread = THREAD(system->tid_procman);
-    break;
-
-  case 0:
-    message->send_size = 0;
-    system->mt.enable();
-    return RES_FAULT;
-
-  default:
-    thread = system->procman->get_thread_by_tid(to);
-  }
-
-  if (!thread){
+  if (!thread) {
     message->send_size = 0;
     system->mt.enable();
     return RES_FAULT;
   }
 
-  if(thread->messages.unread.count.value() >= MAX_MSG_COUNT){
+  if (thread->messages.unread.count.value() >= MAX_MSG_COUNT) {
     message->send_size = 0;
     system->mt.enable();
     return RES_FAULT2;
@@ -561,8 +509,8 @@ res_t forward(message *message, tid_t to)
   //printk("forward [%s]->[%s] \n", thread_sender->process->name , thread->process->name);
 
   /* простое предупреждение взаимоблокировки */
-  thread_sender->send_to = TID(thread);
-  if(thread->send_to == TID(thread_sender)){
+  thread_sender->send_to = thread->tid;
+  if (thread->send_to == thread_sender->tid) {
     thread_sender->send_to = 0;
     message->send_size = 0;
     system->mt.enable();
@@ -577,12 +525,12 @@ res_t forward(message *message, tid_t to)
   //system->mt.disable();
   list_for_each (entry, messages) {
     send_message = entry->item;
-    if(send_message->thread == THREAD(message->tid))
+    if(send_message->thread == thread_sender /*THREAD(message->tid)*/)
       break;
   }
   //system->mt.enable();
 
-  if(!send_message || (send_message->thread != THREAD(message->tid))){
+  if(!send_message || (send_message->thread != thread_sender /*THREAD(message->tid)*/)){
     message->send_size = 0;
     system->mt.enable();
     return RES_FAULT;
@@ -686,7 +634,7 @@ SYSCALL_HANDLER(sys_call_handler)
     break;
 
   case _FOS_MYTID:
-    result = TID(system->procman->current_thread);
+    result = system->procman->current_thread->tid;
     break;
 
   case _FOS_GET_PAGE_PHYS_ADDR:

@@ -24,8 +24,9 @@ void out_ch(char ch)
 void tty_init()
 {
   outb(0x84, BASE + FCR);
-  SetBaud(38400);
+  SetBaud(9600);
   outb(Wls8, BASE + LCR);
+//FIXME : бывают конфликты с ядром
 }
 
 size_t tty_write(off_t offset, const void *buf, size_t count)

@@ -11,9 +11,10 @@
 #include <sys/rtc.h>
 #include <fos/message.h>
 
-#define ITEMS_COUNT 3
-static char *items[ITEMS_COUNT] = { "FTerm", "Tetris", "Controls test" };
-static char *cmds[ITEMS_COUNT] = { "/usr/bin/fterm", "/usr/bin/tetris", "/usr/bin/test" };
+#define ITEMS_COUNT 4
+static char *items[ITEMS_COUNT] = { "FTerm", "Tetris", "Controls test", "Drawing speed test"};
+
+static char *cmds[ITEMS_COUNT] = { "/usr/bin/fterm", "/usr/bin/tetris", "/usr/bin/test", "/usr/bin/drawtest" };
 int width, height;
 int hndl;
 int displayed = 0;
@@ -131,8 +132,8 @@ THREAD(clock_thread) {
 		struct message msg;
 		msg.recv_size = 0;
 		msg.send_size = 0;
-		msg.flags = 0;
-		msg.tid = _MSG_SENDER_SIGNAL;
+		msg.flags = MSG_ASYNC;
+		msg.tid = 0;
 		receive(&msg);
 
 	}

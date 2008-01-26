@@ -24,28 +24,30 @@ void mm_srv()
 {
   Thread *thread;
   struct message *msg = new message;
-  msg->tid = 0;
+
   while (1) {
     msg->recv_size = 0;
-    msg->tid = _MSG_SENDER_ANY;
+    msg->tid = 0;
+    msg->flags = 0;
 
     receive(msg);
 
     switch(msg->arg[0]){
     case MM_CMD_MMAP:
-      //printk("mm: mapping 0x%X bytes of memory to 0x%X\n", msg->arg[2], msg->arg[1]);
-      thread = system->procman->get_thread_by_tid(msg->tid);
-      msg->arg[0] = (u32_t) thread->process->memory->mmap(msg->arg[1] & ~0xfff, msg->arg[2], msg->arg[1] & 0xfff, msg->arg[3], 0);
+      //printk("mm: mapping 0x%X bytes of memory to 0x%X, tid=%d\n", msg->arg[2], msg->arg[1], msg->tid);
+      //thread = system->procman->get_thread_by_tid(msg->tid);
+      msg->arg[0] = (u32_t) THREAD(msg->tid)->process->memory->mmap(msg->arg[1] & ~0xfff, msg->arg[2], msg->arg[1] & 0xfff, msg->arg[3], 0);
       msg->send_size = 0;
       reply(msg);
       break;
 
     case MM_CMD_MUNMAP:
-      //printk("mm: unmapping 0x%X bytes from 0x%X\n", msg-a2, msg->arg[1]);
-      thread = system->procman->get_thread_by_tid(msg->tid);
+      //printk("mm: unmapping 0x%X bytes from 0x%X, tid=%d\n", msg->arg[2], msg->arg[1], msg->tid);
+      //thread = system->procman->get_thread_by_tid(msg->tid);
+      thread = THREAD(msg->tid);
       if(msg->arg[1] > USER_MEM_BASE){
 	msg->arg[0] = 1;
-	thread->process->memory->munmap(msg->arg[1], msg->arg[2]); //mem_free((void *)msg->arg[1], msg->arg[2]);
+	thread->process->memory->munmap(msg->arg[1], msg->arg[2]);
       } else
 	msg->arg[0] = -1;
       msg->send_size = 0;

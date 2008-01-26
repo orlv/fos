@@ -29,9 +29,12 @@ asmlinkage int main()
   setenv("STDIN", "/dev/tty", 0);
   setenv("PATH", "/bin:/usr/bin", 0);
   setenv("PWD", "/", 0);
+//  pid_t child = exec("/mnt/modules/test2", NULL);
+//  printf("  Test started: pid %x\n", child);
   exec("/mnt/modules/romfs", NULL);
-  for (int i = 0; i < 100; i++)
+  for (int i = 0; i < 1000; i++)
     sched_yield();
+  printf("init: bootstrapped tty & romfs, reading config\n");
   int hndl = open("/etc/inittab", 0);
   if(!hndl) {
 	printf("init: Fatal error, not found config file.\n");
@@ -41,7 +44,6 @@ asmlinkage int main()
 
   fstat(hndl, &st);
   char *config = new char[st.st_size];
-  char *cfg = config;
 
   read(hndl, config, st.st_size);
   close(hndl);
@@ -50,7 +52,6 @@ asmlinkage int main()
       continue;			// комментарии
     ParseLine(ptr);
   }
-  delete cfg;
 
   printf("All started up.\n");
   return 0;
@@ -58,27 +59,19 @@ asmlinkage int main()
 
 void ParseLine(char *line)
 {
-	if(!strlen(line)) return;
-  char *tmp = new char[strlen(line)];
+  if(line[0] == 0) return;
 
-  strcpy(tmp, line);
-  char *original = tmp;
   char *tokens[3];
   int i = 0;
 
-  for (char *ptr = strsep(&tmp, ":"); ptr && i < 3; ptr = strsep(&tmp, ":"), i++)
+  for (char *ptr = strsep(&line, ":"); ptr && i < 3; ptr = strsep(&line, ":"), i++)
     tokens[i] = ptr;
-  if (i < 3) {
-    delete original;
-
+  if (i < 3) 
     return;
-  }
-  if (strcmp(tokens[2], " "))
-    printf("%s\n", tokens[2]);
-  if (strcmp(tokens[1], " "))
-    exec(tokens[0], tokens[1]);
-  else
-    exec(tokens[0], NULL);
 
-  delete original;
+  if(tokens[2][0] != 0)
+    printf("%s\n", tokens[2]);
+  exec(tokens[0], tokens[1]);
+
 }
+

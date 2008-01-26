@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
   struct message msg;
   struct time *buffer = malloc(sizeof(struct time));
   while(1) {
-	msg.tid = _MSG_SENDER_ANY;
+    msg.tid = 0;
 	msg.recv_buf = buffer;
 	msg.recv_size = sizeof(struct time);
 	msg.flags = 0;

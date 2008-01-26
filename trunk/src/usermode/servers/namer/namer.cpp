@@ -40,9 +40,9 @@ asmlinkage int main()
 
   while (1) {
     msg->recv_size = MAX_PATH_LEN;
-
     msg->recv_buf = pathname;
-    msg->tid = _MSG_SENDER_ANY;
+    msg->tid = 0;
+    msg->flags = 0;
     receive(msg);
     switch (msg->arg[0]) {
     case NAMER_CMD_ADD:

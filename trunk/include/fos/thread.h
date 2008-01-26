@@ -15,13 +15,6 @@
 #include <c++/atomic.h>
 #include <fos/signal.h>
 
-#define _MSG_SYSTEM_TIDS 0x1000
-
-inline bool SYSTEM_TID(tid_t tid)
-{
-  return tid < _MSG_SYSTEM_TIDS;
-}
-
 class Thread {
  private:
   off_t stack_pl0;
@@ -41,6 +34,7 @@ class Thread {
   class TProcess *process;
   struct TSS *tss;
 
+  tid_t tid;
   gdt_entry descr;
   u16_t flags;
   tid_t send_to;

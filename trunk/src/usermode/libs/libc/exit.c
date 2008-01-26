@@ -7,6 +7,10 @@
 
 void exit(int status)
 {
+  printf("Terminating disabled!\n");
+#warning FIXME
+  while(1);
+/*
   struct message msg;
   msg.arg[0] = PROCMAN_CMD_EXIT;
   msg.send_size = 0;
@@ -14,5 +18,5 @@ void exit(int status)
   msg.flags = 0;
   msg.tid = SYSTID_PROCMAN;
   send(&msg);
-  while(1);
+  while(1);*/
 }

@@ -133,9 +133,10 @@ int connect_pci() {
   char *buffer = malloc(RECV_BUF_SIZE);
   struct message msg;
   while (1) {
-    msg.tid = _MSG_SENDER_ANY;
+    msg.tid = 0;
     msg.recv_size = RECV_BUF_SIZE;
     msg.recv_buf = buffer;
+    msg.flags = 0;
     receive(&msg);
     switch (msg.arg[0]) {
     case FS_CMD_ACCESS:

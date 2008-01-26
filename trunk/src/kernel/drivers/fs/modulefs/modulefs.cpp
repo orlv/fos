@@ -26,7 +26,8 @@ void grub_modulefs_srv()
   size_t size;
   struct dirent *dent = new struct dirent;
   while (1) {
-    msg.tid = _MSG_SENDER_ANY;
+    msg.tid = 0;
+    msg.flags = 0;
     msg.recv_buf  = buffer;
     msg.recv_size = MODULEFS_BUFF_SIZE;
     receive(&msg);

@@ -46,7 +46,8 @@ void vesafb_srv()
   resmgr_attach("/dev/vbe");
  
   while (1) {
-    msg.tid = _MSG_SENDER_ANY;
+    msg.tid = 0;
+    msg.flags = 0;
     msg.recv_size = 0;
     receive(&msg);
 

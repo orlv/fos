@@ -22,7 +22,8 @@ void thread_handler()
 
   while (1) {
     msg.recv_size = 0;
-    msg.tid = _MSG_SENDER_SIGNAL;
+    msg.tid = 0;
+    msg.flags = MSG_ASYNC;
     receive(&msg);
     if (msg.arg[0] == SIGNAL_IRQ) {
       if (msg.arg[1] == 1) {
@@ -48,9 +49,10 @@ int main(int argc, char *argv[])
   thread_create((off_t) & thread_handler);
   resmgr_attach("/dev/keyboard");
   while (1) {
-    msg.tid = _MSG_SENDER_ANY;
+    msg.tid = 0;
     msg.recv_buf = buffer;
     msg.recv_size = KB_CHARS_BUFF_SIZE;
+    msg.flags = 0;
     receive(&msg);
 
     switch (msg.arg[0]) {

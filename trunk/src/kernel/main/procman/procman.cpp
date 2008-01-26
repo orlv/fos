@@ -110,14 +110,14 @@ tid_t execute(char *pathname, char *args, size_t args_len, char *envp, size_t en
 
 void procman_srv()
 {
-  system->tid_namer = execute_module("namer", "namer", 6);
-
   Thread *thread;
   char *kmesg;
   size_t len;
 
+  tid_t tid = execute_module("namer", "namer", 6);
+  printk("procman: namer added to threads list (tid=%d)\n", tid);
+  
   struct message *msg = new message;
-  msg->tid = 0;
   char *data = new char[MAX_PATH_LEN + ARG_MAX + ENVP_MAX + 1];
   data[MAX_PATH_LEN + ARG_MAX + ENVP_MAX] = 0;
 
@@ -127,7 +127,8 @@ void procman_srv()
   //  asm("incb 0xb8000+154\n" "movb $0x2f,0xb8000+155 ");
     msg->recv_size = MAX_PATH_LEN + ARG_MAX + ENVP_MAX;
     msg->recv_buf = data;
-    msg->tid = _MSG_SENDER_ANY;
+    msg->tid = 0;
+    msg->flags = 0;
 
     receive(msg);
     //printk("procman: a0=%d from [%s]\n", msg->arg[0], THREAD(msg->tid)->process->name);
@@ -172,8 +173,9 @@ void procman_srv()
 
       /* завершить все потоки в адресном пространстве */
     case PROCMAN_CMD_EXIT:
-      thread = system->procman->get_thread_by_tid(msg->tid);
-      if(system->procman->kill(TID(thread), FLAG_TSK_TERM))
+      //thread = system->procman->get_thread_by_tid(msg->tid);
+      thread = system->procman->threads->get(msg->tid);
+      if(system->procman->kill(thread->tid, FLAG_TSK_TERM))
 	msg->arg[0] = 1;
       else
 	msg->arg[0] = 0;
@@ -183,8 +185,9 @@ void procman_srv()
 
       /* завершить только данный поток */
     case PROCMAN_CMD_THREAD_EXIT:
-      thread = system->procman->get_thread_by_tid(msg->tid);
-      if(system->procman->kill(TID(thread), FLAG_TSK_EXIT_THREAD))
+      thread = system->procman->threads->get(msg->tid);
+      //thread = system->procman->get_thread_by_tid(msg->tid);
+      if(system->procman->kill(thread->tid, FLAG_TSK_EXIT_THREAD))
 	msg->arg[0] = 1;
       else
 	msg->arg[0] = 0;
@@ -193,23 +196,25 @@ void procman_srv()
       break;
 
     case PROCMAN_CMD_CREATE_THREAD:
-      thread = system->procman->get_thread_by_tid(msg->tid);
+      thread = system->procman->threads->get(msg->tid);
+      //thread = system->procman->get_thread_by_tid(msg->tid);
       thread = thread->process->thread_create(msg->arg[1], FLAG_TSK_READY, kmalloc(PAGE_SIZE), thread->process->memory->mmap(0, PAGE_SIZE, 0, 0, 0));
-      system->procman->reg_thread(thread);
-      msg->arg[0] = (u32_t) thread;
+      msg->arg[0] = system->procman->reg_thread(thread);
       msg->send_size = 0;
       reply(msg);
       break;
 
     case PROCMAN_CMD_INTERRUPT_ATTACH:
-      thread = system->procman->get_thread_by_tid(msg->tid);
+      thread = system->procman->threads->get(msg->tid);
+      //thread = system->procman->get_thread_by_tid(msg->tid);
       msg->arg[0] = system->interrupt_attach(thread, msg->arg[1]);
       msg->send_size = 0;
       reply(msg);
       break;
 
     case PROCMAN_CMD_INTERRUPT_DETACH:
-      thread = system->procman->get_thread_by_tid(msg->tid);
+      thread = system->procman->threads->get(msg->tid);
+      //thread = system->procman->get_thread_by_tid(msg->tid);
       msg->arg[0] = system->interrupt_detach(thread, msg->arg[1]);
       msg->send_size = 0;
       reply(msg);
@@ -260,21 +265,25 @@ TProcMan::TProcMan()
   lldt(0);
   
   current_thread = thread;
-  printk("kernel: multitasking ready (kernel tid=0x%X)\n", thread);
+  threads = new tindex<Thread>(128*64, 64);
+  thread->tid = threads->add(thread);
+  printk("kernel: multitasking ready (kernel tid=%d)\n", thread->tid);
 
   stack = kmalloc(STACK_SIZE);
   thread = process->thread_create((off_t) &sched_srv, FLAG_TSK_KERN, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
   system->gdt->load_tss(SEL_N(BASE_TSK_SEL) + 1, &thread->descr);
-  //printk("kernel: scheduler thread created (tid=0x%X)\n", thread);
+  thread->tid = threads->add(thread);
+  printk("kernel: scheduler thread created (tid=%d)\n", thread->tid);
 
   stack = kmalloc(STACK_SIZE);
-  system->tid_procman = TID(process->thread_create((off_t) &procman_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT));
-  reg_thread(THREAD(system->tid_procman));
-  //printk("kernel: procman added to threads list (tid=0x%X)\n", system->tid_procman);
-
+  thread = process->thread_create((off_t) &procman_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
+  reg_thread(thread);
+  printk("kernel: procman added to threads list (tid=%d)\n", thread->tid);
+  
   stack = kmalloc(STACK_SIZE);
-  system->tid_mm = TID(process->thread_create((off_t) &mm_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT));
-  reg_thread(THREAD(system->tid_mm));
+  thread = process->thread_create((off_t) &mm_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
+  reg_thread(thread);
+  printk("kernel: mm_srv added to threads list (tid=%d)\n", thread->tid);
   
   stack = kmalloc(STACK_SIZE);
   thread = process->thread_create((off_t) &grub_modulefs_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
@@ -322,20 +331,23 @@ tid_t TProcMan::exec(register void *image, const string name,
   }
   
   reg_thread(thread);
-  return TID(thread);
+  return thread->tid;
 }
 
 /* Добавляет поток в список */
-void TProcMan::reg_thread(register Thread * thread)
+tid_t TProcMan::reg_thread(register Thread * thread)
 {
   system->mt.disable();
   threadlist->add_tail(thread);
+  thread->tid = threads->add(thread);
   system->mt.enable();
+  return thread->tid;
 }
 
 void TProcMan::unreg_thread(register List<Thread *> * thread)
 {
   system->mt.disable();
+  threads->remove(thread->item->tid);
   delete thread->item;
   delete thread;
   system->mt.enable();
@@ -364,7 +376,8 @@ List<Thread *> *TProcMan::do_kill(List<Thread *> *thread)
 
 res_t TProcMan::kill(register tid_t tid, u16_t flag)
 {
-  Thread *thread = get_thread_by_tid(tid);
+  //Thread *thread = get_thread_by_tid(tid);
+  Thread *thread = threads->get(tid);
   res_t result = RES_FAULT;
 
   if(thread) {
@@ -384,6 +397,7 @@ res_t TProcMan::kill(register tid_t tid, u16_t flag)
   return result;
 }
 
+#if 0
 /* возвращает указатель только в том случае,
    если поток существует, и не помечен для удаления */
 Thread *TProcMan::get_thread_by_tid(register tid_t tid)
@@ -408,3 +422,4 @@ Thread *TProcMan::get_thread_by_tid(register tid_t tid)
   system->mt.enable();
   return result;
 }
+#endif

@@ -176,7 +176,8 @@ void MouseHandlerThread()
   struct mouse_pos mouse_struct;
 
   while (1) {
-    msg.tid = _MSG_SENDER_ANY;
+    msg.tid = 0;
+    msg.flags = 0;
     msg.recv_buf = &mouse_struct;
     msg.recv_size = sizeof(mouse_struct);
     receive(&msg);

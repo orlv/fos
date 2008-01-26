@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
 	char *buffer = malloc(RECV_BUF_SIZE);
 	StartChild(name, "/bin/shell");
 	while (1) {
-		msg.tid = _MSG_SENDER_ANY;
+	  msg.tid = 0;
 		msg.recv_size = RECV_BUF_SIZE;
 		msg.recv_buf = buffer;
 		receive(&msg);

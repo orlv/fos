@@ -58,7 +58,7 @@ int tsleep()
 {
   struct message msg;
 
-  msg.tid = _MSG_SENDER_ANY;
+  msg.tid = 0;
   msg.recv_buf = NULL;
   msg.recv_size = 0;
   msg.flags = 0;
@@ -66,7 +66,7 @@ int tsleep()
   receive(&msg);
   alarm(0);
   reply(&msg);
-  return !(msg.tid == _MSG_SENDER_SIGNAL);
+  return !((msg.tid == 0) && (msg.flags & MSG_ASYNC));
 }
 
 void gameover()

@@ -57,9 +57,9 @@ typedef signed long res_t;
 #define RES_FAULT2   -2
 #define RES_FAULT3   -3
 
-typedef u32_t pid_t;
-typedef u32_t tid_t; /* Thread ID */
-typedef tid_t sid_t; /* Server ID (пока что равняется Thread ID) */
+typedef num_t pid_t;
+typedef num_t tid_t; /* Thread ID */
+typedef tid_t sid_t; /* Server ID */
 
 #define ALIGN(a, b)	((a + (b - 1)) & ~(b - 1))
 

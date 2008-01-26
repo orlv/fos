@@ -22,7 +22,8 @@ asmlinkage int main()
     return -1;
 
   while (1) {
-    msg.tid = _MSG_SENDER_ANY;
+    msg.tid = 0;
+    msg.flags = 0;
     msg.recv_size = RECV_BUF_SIZE;
     msg.recv_buf = buffer;
     receive(&msg);

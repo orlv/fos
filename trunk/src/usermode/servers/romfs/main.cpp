@@ -5,11 +5,15 @@
 #include <mutex.h>
 #include <string.h>
 #include "romfs.h"
+
 #define ROMFS_BUF_SIZE	0x2000
-mutex_t q_locked = 0;
+
 #define HANDLE_FILE	1
 #define HANDLE_DIR	2
+
 unsigned int last_handle = 0;
+mutex_t q_locked = 0;
+
 typedef struct h{
 	struct h *next;
 	char *data;
@@ -17,9 +21,13 @@ typedef struct h{
 	unsigned int touched;
 	unsigned int handle;
 	int type;
+	int tid;
 } handle_t;
+
 handle_t *head = NULL;
+
 void outdated();
+
 handle_t *resolve_handle(unsigned int hndl, int type) {
 	while(!mutex_try_lock(q_locked))
 		sched_yield();
@@ -33,9 +41,9 @@ handle_t *resolve_handle(unsigned int hndl, int type) {
 	mutex_unlock(q_locked);
 	return NULL;
 }
+
 asmlinkage int main(int argc, char *argv[]) {
 	romfs *rfs = new romfs("/mnt/modules/initrd.gz");
-	resmgr_attach("/");
 
 	char *buffer = new char[ROMFS_BUF_SIZE];
 	
@@ -45,8 +53,9 @@ asmlinkage int main(int argc, char *argv[]) {
 	struct message msg;
 	struct dirent dent;
 	thread_create((off_t) outdated);
+	resmgr_attach("/");
 	while(1) {
-		msg.tid = _MSG_SENDER_ANY;
+	  msg.tid = 0;
 		msg.recv_buf = buffer;
 		msg.recv_size = ROMFS_BUF_SIZE;
 		msg.flags = 0;
@@ -72,6 +81,7 @@ asmlinkage int main(int argc, char *argv[]) {
 				hndl->handle = last_handle;
 				hndl->next = head;
 				hndl->type = HANDLE_FILE;
+				hndl->tid = msg.tid;
 				head = hndl;
 				mutex_unlock(q_locked);
 				msg.arg[0] = last_handle;
@@ -168,6 +178,7 @@ asmlinkage int main(int argc, char *argv[]) {
 				hndl->handle = last_handle;
 				hndl->next = head;
 				hndl->type = HANDLE_DIR;
+				hndl->tid = msg.tid;
 				head = hndl;
 				mutex_unlock(q_locked);
 				msg.arg[0] = last_handle;
@@ -215,7 +226,7 @@ asmlinkage int main(int argc, char *argv[]) {
 void outdated() {
 	while(1) {
 		struct message msg;
-		msg.tid = _MSG_SENDER_ANY;
+		msg.tid = 0;
 		msg.recv_buf = NULL;
 		msg.recv_size = 0;
 		msg.flags = 0;
@@ -226,6 +237,7 @@ void outdated() {
 	 		sched_yield();
 		for(handle_t *ptr = head, *prev = NULL; ptr; prev = ptr, ptr = ptr->next) {
 			if(ptr->touched < uptime() - 20000) {
+				printf("romfs warning: handle %u (by %u) is too old.\n", ptr->handle, ptr->tid);
 				if(prev)
 					prev->next = ptr->next;
 				else

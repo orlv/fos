@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2007 Serge Gridassov
+  Copyright (C) 2007 - 2008 Sergey Gridassov
  */
 
 #include <stdio.h>
@@ -20,26 +20,33 @@ asmlinkage int main()
 
   for (int i = 0; i < 15; i++)
     sched_yield();
+
   while(!exec("/mnt/modules/stty", NULL));
+
   do {
     stdout = open("/dev/tty", 0);
   } while(stdout < 0);
+
   printf("Init started! If you see this text - all work fine.\n");
+
   setenv("STDOUT", "/dev/tty", 0);
   setenv("STDIN", "/dev/tty", 0);
   setenv("PATH", "/bin:/usr/bin", 0);
   setenv("PWD", "/", 0);
-//  pid_t child = exec("/mnt/modules/test2", NULL);
-//  printf("  Test started: pid %x\n", child);
+
   exec("/mnt/modules/romfs", NULL);
+
   for (int i = 0; i < 1000; i++)
     sched_yield();
+
   printf("init: bootstrapped tty & romfs, reading config\n");
+
   int hndl = open("/etc/inittab", 0);
   if(!hndl) {
 	printf("init: Fatal error, not found config file.\n");
 	return 1;
   }
+
   struct stat st;
 
   fstat(hndl, &st);
@@ -48,8 +55,10 @@ asmlinkage int main()
   read(hndl, config, st.st_size);
   close(hndl);
   for (char *ptr = strsep(&config, "\n"); ptr; ptr = strsep(&config, "\n")) {
-    if (ptr[0] == '#')
-      continue;			// комментарии
+    while(ptr[0] == ' ' || ptr[0] == '\t') ptr++; // пробелы в начале
+
+    if (ptr[0] == '#' || ptr[0] == 0)
+      continue;			// комментарии и пустые строки
     ParseLine(ptr);
   }
 
@@ -59,7 +68,6 @@ asmlinkage int main()
 
 void ParseLine(char *line)
 {
-  if(line[0] == 0) return;
 
   char *tokens[3];
   int i = 0;

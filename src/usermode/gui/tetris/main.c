@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2007 Serge Gridassov
+ *  Copyright (C) 2007 - 2008 Sergey Gridassov
  */
 
 

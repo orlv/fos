@@ -1,7 +1,12 @@
+/*
+ * Copyright (c) 2007 - 2008 Sergey Gridassov
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <fgs/fgs.h>
 #include <fgs/controls.h>
+
 int button[3];
 int hndl;
 int st;

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007 - 2008 Sergey Gridassov
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
@@ -5,12 +9,30 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
- 
-void usage();
-void rm(char *file);
-void version();
-
 int force = 0;
+
+void rm(char *file) {
+	if(unlink(file) < 0 && !force)
+		printf("rm: cannot remove `%s'\n", file);
+}
+
+void usage() {
+	printf("Usage: rm [OPTION]... FILE]...\n"
+#ifndef NOT_INCLUDE_HELP
+	"Remove (unlink) the FILE(s)..\n\n"
+	"  -f               ignore nonexistent files, never prompt\n"
+        "  -h               display this help and exit\n"
+	"  -V               output version information and exit\n\n"
+
+	"Report bugs to <grindars@grindars.org.ru>.\n"
+#endif
+	);
+}
+
+
+void version() {
+	printf("rm (FOS tiny coreutils) 0.1\n");
+}
 
 int main(int argc, char *argv[]) {
 	int opt;
@@ -40,24 +62,3 @@ int main(int argc, char *argv[]) {
 	return 0;
 }
 
-void usage() {
-	printf("Usage: rm [OPTION]... FILE]...\n"
-#ifndef NOT_INCLUDE_HELP
-	"Remove (unlink) the FILE(s)..\n\n"
-	"  -f               ignore nonexistent files, never prompt\n"
-        "  -h               display this help and exit\n"
-	"  -V               output version information and exit\n\n"
-
-	"Report bugs to <grindars@grindars.org.ru>.\n"
-#endif
-	);
-}
-
-void rm(char *file) {
-	if(unlink(file) < 0 && !force)
-		printf("rm: cannot remove `%s'\n", file);
-}
-
-void version() {
-	printf("rm (FOS tiny coreutils) 0.1\n");
-}

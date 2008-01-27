@@ -5,6 +5,8 @@
 #include <fos/fs.h>
 
 void seekdir(DIR *dir, off_t offset) {
+	if(!dir) return;
+
 	struct dirfd *fd = (struct dirfd *) dir;
 	fd->offset = offset;
 }

@@ -6,12 +6,15 @@
 #include <fos/fs.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <errno.h>
 
 ssize_t read(int fildes, void *buf, size_t nbyte)
 {
   fd_t fd = (fd_t) fildes;
-  if(!fildes || fildes < 0 || !fd->thread)
+  if(!fildes || fildes < 0 || !fd->thread) {
+    errno = EBADF;
     return -1;
+   }
 
   struct message msg;
   size_t offset = 0;
@@ -30,7 +33,7 @@ ssize_t read(int fildes, void *buf, size_t nbyte)
       return -1;
 
     if(msg.arg[2] == ERR_UNKNOWN_CMD)
-      return -2;
+      return -1;
 
     if(msg.arg[2] == ERR_TIMEOUT) {
       fildes = open(fd->fullname,  O_FOS_DNTCOPY_NAME);
@@ -42,7 +45,7 @@ ssize_t read(int fildes, void *buf, size_t nbyte)
 	free(fd1);
 	continue;
       } else
-	return -3;
+	return -1;
     }
     
     offset += msg.arg[0];

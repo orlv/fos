@@ -2,11 +2,14 @@
 #include <unistd.h>
 #include <fos/message.h>
 #include <stdlib.h>
+#include <errno.h>
 
 int closedir(DIR *dir)
 {
-  if(!dir)
+  if(!dir) {
+    errno = EBADF;
     return -1;
+  }
 
   struct dirfd *fd = (struct dirfd *) dir;
   

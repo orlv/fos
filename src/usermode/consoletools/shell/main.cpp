@@ -7,6 +7,7 @@
 #include <fos/fos.h>
 #include <unistd.h>
 #include <fcntl.h>
+
 void cd_buitin(char *directory);
 void pwd_builtin(char *reserved);
 void exit_builtin(char *reserved);
@@ -14,7 +15,9 @@ void set_builtin(char *arg);
 void unset_builtin(char *arg);
 void help_builtin(char *arg);
 void echo_builtin(char *arg);
+
 static void exec_script(char *filename);
+
 static const struct {
 	char *name;
 	void (*builtin)(char *);

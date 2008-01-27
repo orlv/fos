@@ -1,8 +1,13 @@
+/*
+ * Copyright (c) 2008 Sergey Gridassov
+ */
+
 #include <stdio.h>
 #include <dirent.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
 static int not_first_chdir = 0;
 int chdir(const char *path) {
 	char *pwd = getenv("PWD");

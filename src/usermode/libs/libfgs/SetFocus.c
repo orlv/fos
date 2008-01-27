@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2008 Sergey Gridassov
+ */
+
 #include <fos/message.h>
 #include <fos/fs.h>
 #include "privatetypes.h"

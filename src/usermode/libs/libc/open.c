@@ -8,24 +8,37 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <fos/namer.h>
+#include <errno.h>
 
 int open(const char *pathname, int flags)
 {
   if(pathname[0] != '/') {
     char *pwd = getenv("PWD");
-    if(!pwd) return -1;
-    if(pwd[0] != '/') return -1;
+    if(!pwd) {
+      errno = ENOENT;
+      return -1;
+    }
+
+    if(pwd[0] != '/') {
+      errno = ENOENT;
+      return -1;
+    }
     char *buf = malloc(strlen(pathname) + strlen(pwd) + 1);
     strcpy(buf, pwd); strcat(buf, pathname);
+
     int ret = open(buf, flags);
     free(buf);
+
     return ret;
   }
   volatile struct message msg;
   msg.arg[0] = FS_CMD_ACCESS;
   size_t len = strlen(pathname);
-  if(len > MAX_PATH_LEN)
+  if(len > MAX_PATH_LEN) {
+    errno = ENAMETOOLONG;
     return 0;
+  }
+
   msg.arg[1] = flags;
   msg.send_buf = pathname;
   msg.send_size = len+1;
@@ -49,6 +62,8 @@ int open(const char *pathname, int flags)
     fd->buf_size = msg.arg[1];
     
     return (int) fd;
-  } else
+  } else {
+    errno = ENOENT;
     return -1;
+  }
 }

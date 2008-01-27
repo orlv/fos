@@ -1,9 +1,17 @@
+/*
+ * Copyright (c) 2008 Sergey Gridassov
+ */
+
+#define CNT 512	/* количество итераций. больше - точнее, но дольше выполняется */
+
 #include <stdio.h>
 #include <string.h>
 #include <fgs/fgs.h>
 #include <fos/fos.h>
 #include <fgs/controls.h>
-#define CNT 512
+
+
+
 int EventHandler(int hwnd, int class, int a0, int a1, int a2, int a3)
 {
   switch (class) {

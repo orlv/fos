@@ -6,11 +6,21 @@
 #include <dirent.h>
 #include <string.h>
 #include <fos/message.h>
+#include <errno.h>
+
 DIR *opendir(const char *name) {
   if(name[0] != '/') {
     char *pwd = getenv("PWD");
-    if(!pwd) return NULL;
-    if(pwd[0] != '/') return NULL;
+    if(!pwd) {
+      errno = ENOENT;
+      return NULL;
+    }
+
+    if(pwd[0] != '/') {
+      errno = ENOENT;
+      return NULL;
+    }
+
     char *buf = malloc(strlen(name) + strlen(pwd) + 1);
     strcpy(buf, pwd); strcat(buf, name);
     DIR* ret = opendir(buf);
@@ -38,6 +48,8 @@ DIR *opendir(const char *name) {
 		fd->inode = msg.arg[0];
 		fd->inodes = msg.arg[1];
 		return (DIR *) fd;
-	} else 
+	} else {
+                errno = ENOENT;
 		return NULL;
+        }
 }

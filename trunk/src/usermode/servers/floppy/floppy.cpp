@@ -14,6 +14,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "floppy.h"
+#include <sys/mman.h>
 #include "dma.h"
 
 
@@ -30,12 +31,13 @@ THREAD(floppy_timer_thread)
   struct message msg;
   while(1) {
     msg.recv_size = 0;
-    msg.tid = _MSG_SENDER_SIGNAL;
+    msg.tid = 0;
+    msg.flags = MSG_ASYNC;
     alarm(1000);
     receive(&msg);
 
     if(msg.arg[0] == SIGNAL_IRQ) {
-      if(msg.arg[0] == FLOPPY_IRQ_NUM){
+      if(msg.arg[1] == FLOPPY_IRQ_NUM){
         if (motor_ticks)
           motor_ticks--;
         else if (motor_on) {
@@ -43,8 +45,8 @@ THREAD(floppy_timer_thread)
           motor_on = 0;
         }
       }
-    } else
-      printf("floppy handler: unknown signal received! (0x%X)\n", msg.arg[0]);
+    }// else
+//      printf("floppy handler: unknown signal received! (0x%X)\n", msg.arg[0]);
   }
 }
 
@@ -70,13 +72,14 @@ asmlinkage int main()
   resmgr_attach("/dev/fda");
 
   while (1) {
-    msg.tid = _MSG_SENDER_ANY;
+    msg.tid = 0;
     msg.recv_buf  = buffer;
     msg.recv_size = FLOPPY_XCHG_BUF_SIZE;
+    msg.flags = 0;
     receive(&msg);
 
-    if(msg.tid == _MSG_SENDER_SIGNAL){
-      switch(msg.arg[0]){
+/*    if(msg.arg[0] == SIGNAL_IRQ){
+      switch(msg.arg[1]){
       case FLOPPY_IRQ_NUM:
 	unmask_interrupt(FLOPPY_IRQ_NUM);
 	irq_done = 1;
@@ -87,7 +90,7 @@ asmlinkage int main()
       default:
 	printf("floppy: unknown signal received! (%d)\n", msg.arg[0]);
       }
-    } else {
+    } else {*/
       switch(msg.arg[0]){
       case FS_CMD_ACCESS:
 	msg.arg[0] = 1;
@@ -121,7 +124,7 @@ asmlinkage int main()
 	msg.send_size = 0;
       }
       reply(&msg);
-    }
+//   }
   }
   return 0;
 }
@@ -148,8 +151,10 @@ Floppy::Floppy()
   sr0 = 0;
   fdc_track = 0xff;
 
-  track_buf_phys = kmalloc(FLOPPY_BUFF_SIZE, MEM_FLAG_LOWPAGE);
-  track_buf = kmemmap((offs_t)track_buf_phys, FLOPPY_BUFF_SIZE);
+//  track_buf_phys = kmalloc(FLOPPY_BUFF_SIZE, MEM_FLAG_LOWPAGE);
+//  track_buf = kmemmap((offs_t)track_buf_phys, FLOPPY_BUFF_SIZE);
+   track_buf_phys = (void *)0x1000;
+   track_buf = kmmap(0, FLOPPY_BUFF_SIZE, 0, 0x1000);
   //  printf("0x%X",track_buf);
 
   unmask_interrupt(FLOPPY_IRQ_NUM);
@@ -198,10 +203,11 @@ bool wait_irq_tmout(u32_t tmout)
 
   while (1) {
     msg.recv_size = 0;
-    msg.tid = _MSG_SENDER_SIGNAL;
+    msg.flags = MSG_ASYNC;
+    msg.tid = 0;
     receive(&msg);
     
-    switch(msg.arg[0]){
+    switch(msg.arg[1]){
     case FLOPPY_IRQ_NUM:
       unmask_interrupt(FLOPPY_IRQ_NUM);
       if(!alarm(0))
@@ -226,7 +232,8 @@ void wait_tmout(u32_t tmout)
   alarm(tmout);
   while(1) {
     msg.recv_size = 0;
-    msg.tid = _MSG_SENDER_SIGNAL;
+    msg.tid = 0;
+    msg.flags = MSG_ASYNC;
     receive(&msg);
 
     switch(msg.arg[0]){

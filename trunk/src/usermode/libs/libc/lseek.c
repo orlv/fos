@@ -4,12 +4,15 @@
 
 #include <fos/fs.h>
 #include <unistd.h>
+#include <errno.h>
 
 off_t lseek(int fildes, off_t offset, int whence)
 {
   fd_t fd = (fd_t) fildes;
-  if(!fildes || fildes == -1 || !fd->thread)
+  if(!fildes || fildes == -1 || !fd->thread) {
+    errno = EBADF;
     return (off_t)-1;
+  }
 
   switch(whence) {
   case SEEK_SET:
@@ -22,6 +25,7 @@ off_t lseek(int fildes, off_t offset, int whence)
 
   case SEEK_END:
   default:
+    errno = EINVAL;
     return (off_t)-1;
   }
 }

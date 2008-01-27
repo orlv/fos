@@ -5,11 +5,14 @@
 #include <fos/message.h>
 #include <fos/fs.h>
 #include <stdlib.h>
+#include <errno.h>
 
 int close(int fildes)
 {
-  if(!fildes || fildes < 0)
+  if(!fildes || fildes < 0) {
+    errno = EBADF;
     return -1;
+  }
 
   fd_t fd = (fd_t) fildes;
   

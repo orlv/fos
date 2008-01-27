@@ -1,5 +1,7 @@
 /*
-  Copyright (C) 2007 Serge Gridassov
+ * Copyright (C) 2007 - 2008 Sergey Gridassov
+ * TODO:
+ * - Если кнопки задач не влезают - что-нибудь типа стрелок
  */
 
 #include <stdio.h>
@@ -13,8 +15,8 @@
 
 #define ITEMS_COUNT 4
 static char *items[ITEMS_COUNT] = { "FTerm", "Tetris", "Controls test", "Drawing speed test"};
-
 static char *cmds[ITEMS_COUNT] = { "/usr/bin/fterm", "/usr/bin/tetris", "/usr/bin/test", "/usr/bin/drawtest" };
+
 int width, height;
 int hndl;
 int displayed = 0;
@@ -22,15 +24,18 @@ int menu;
 int buttonscount = 0;
 int *buttons = NULL;
 int clock;
+int wincount = 0;
+int startbutton;
+
 typedef struct twin {
 	struct twin *next;
 	int handle;
 	char *title;
 	int button;
 } taskbar_window_t;
+
 taskbar_window_t *windows = NULL;
-int wincount = 0;
-int startbutton;
+
 void RedrawTaskBar() {
   for(int i = 0; i < buttonscount; i++) {
     DestroyControl(buttons[i]);
@@ -58,6 +63,7 @@ void RedrawTaskBar() {
   }
 //  RefreshWindow(drawing);
 }
+
 int EventHandler(int hwnd, int class, int a0, int a1, int a2, int a3)
 {
   switch (class) {
@@ -116,6 +122,7 @@ int EventHandler(int hwnd, int class, int a0, int a1, int a2, int a3)
   return 1;
 
 }
+
 THREAD(clock_thread) {
 	struct time time;
 	char tmp[8];
@@ -138,6 +145,7 @@ THREAD(clock_thread) {
 
 	}
 }
+
 asmlinkage int main(int argc, char **argv)
 {
   GUIInit();

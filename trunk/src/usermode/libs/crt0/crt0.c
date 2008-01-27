@@ -13,6 +13,8 @@ char **environ;
 
 int stdout, stdin;
 
+int errno = 0;
+
 int main(int argc, char ** argv);
 
 asm(".globl _start \n"

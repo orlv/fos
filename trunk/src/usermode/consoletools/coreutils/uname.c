@@ -1,8 +1,16 @@
+/*
+ * Copyright (c) 2007 - 2008 Sergey Gridassov
+ *
+ * TODO:
+ *  - Сделать /proc и выкинуть этот ужас.
+ */
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <fos/fos.h>
+
 int kernelauto = 1;
 int kernel = 1;
 int nodename = 0;

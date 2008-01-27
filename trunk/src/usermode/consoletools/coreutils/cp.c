@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2007 - 2008 Sergey Gridassov
+ *
+ * TODO:
+ *  - Копирование такого типа: cp /somedir/somefile /anotherdir
+ */
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>

@@ -7,8 +7,7 @@ void fgets(char *buf, size_t size, int handle) {
 	char c;
 
 	do {
-		while(!read(handle, &c, 1)) sched_yield();
-
+		read(handle, &c, 1);
 		switch(c) {
 		case 8:
 			if(start < buf) {

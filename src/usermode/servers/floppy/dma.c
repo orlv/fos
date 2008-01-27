@@ -6,6 +6,13 @@
 #include <types.h>
 #include <sys/io.h>
 #include "dma.h"
+const struct dma_channel dmainfo[] = {
+  {0x87, 0x00, 0x01},
+  {0x83, 0x02, 0x03},
+  {0x81, 0x04, 0x05},
+  {0x82, 0x06, 0x07}
+};
+
 
 /*
  * this sets up a DMA trasfer between a device and memory.  Pass the DMA

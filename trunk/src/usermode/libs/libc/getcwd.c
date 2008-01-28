@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2008 Sergey Gridassocv
+ */
+
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>

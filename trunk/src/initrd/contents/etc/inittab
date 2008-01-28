@@ -4,3 +4,4 @@
 #/bin/shell::Starting up shell
 /bin/rtc::Starting RTC
 /bin/tmpfs::Starting up tmpfs
+#/bin/test2::Testing system

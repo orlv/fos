@@ -1,3 +1,6 @@
+/*
+ * from dietlibc
+ */
 #include <string.h>
 #include <stdio.h>
 char *optarg;

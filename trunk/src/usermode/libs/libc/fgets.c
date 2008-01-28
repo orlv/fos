@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2008 Sergey Gridassocv
+ */
 #include <unistd.h>
 #include <sched.h>
 #include <stdio.h>

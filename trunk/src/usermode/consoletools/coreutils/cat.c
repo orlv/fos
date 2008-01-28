@@ -43,7 +43,7 @@ void cat(char *file) {
 		return;
 	}
   	int size = lseek(hndl, 0, SEEK_END);
-  	lseek(hndl, 0, SEEK_END);
+  	lseek(hndl, 0, SEEK_SET);
 	char *buf = malloc(size);
 	read(hndl, buf, size);
 	write(stdout, buf, size);

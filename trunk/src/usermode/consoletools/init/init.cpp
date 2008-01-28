@@ -50,7 +50,7 @@ asmlinkage int main()
   int size = lseek(hndl, 0, SEEK_END);
   lseek(hndl, 0, SEEK_SET);
 
-  char *config = new char[size];
+  char *config = new char[size + 1];
 
   read(hndl, config, size);
   close(hndl);

@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2007 - 2008 Sergey Gridassov
+ */
 #include <fos/fs.h>
 #include <unistd.h>
 #include <fos/message.h>

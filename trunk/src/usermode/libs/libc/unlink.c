@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2008 Sergey Gridassov
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

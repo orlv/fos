@@ -82,11 +82,11 @@ typedef struct {
 } rtl8139_data;
 
 static int read_eeprom(long ioaddr, int location, int addr_len);
-static void rtl8139_reset(int ioaddr, dev_t *dev);
-int rtl8139_poll(dev_t *dev, int get);
-void rtl8139_transmit(dev_t *dev);
+static void rtl8139_reset(int ioaddr, netdev_t *dev);
+int rtl8139_poll(netdev_t *dev, int get);
+void rtl8139_transmit(netdev_t *dev);
 
-int rtl8139_init(net_callbacks_t *callbacks, struct dev *dev) {
+int rtl8139_init(net_callbacks_t *callbacks, netdev_t *dev) {
 	int i;
 	dev->addr->enable = 1;
 	rtl8139_data *mydata = malloc(sizeof(rtl8139_data));
@@ -133,7 +133,7 @@ int rtl8139_init(net_callbacks_t *callbacks, struct dev *dev) {
 
 
 }
-static void rtl8139_reset(int ioaddr, dev_t *dev) {
+static void rtl8139_reset(int ioaddr, netdev_t *dev) {
 	rtl8139_data *data = dev->custom;
 	data->cur_rx = 0;
 	data->cur_tx = 0;
@@ -204,7 +204,7 @@ static int read_eeprom(long ioaddr, int location, int addr_len) {
 	return retval;
 }
 
-int rtl8139_poll(dev_t *dev, int get) {
+int rtl8139_poll(netdev_t *dev, int get) {
 	rtl8139_data *data = dev->custom;
 	int ioaddr = data->io;
 	if(inb(ioaddr + CHIPCMD) & RXBUFEMPTY)
@@ -253,7 +253,7 @@ int rtl8139_poll(dev_t *dev, int get) {
 	return 1;
 }
 
-void rtl8139_transmit(dev_t *dev) {
+void rtl8139_transmit(netdev_t *dev) {
 	rtl8139_data *data = dev->custom;
 	int ioaddr = data->io;
 	memcpy(data->tx_buffer, dev->packet, dev->packetlen);

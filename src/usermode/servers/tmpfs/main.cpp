@@ -72,8 +72,8 @@ asmlinkage int main(int argc, char *argv[]) {
 			}
 			if((msg.arg[1] & O_CREAT && !exists) || msg.arg[1] & O_TRUNC) 
 				tfs->create_file(buffer);
-			
-			if(!(msg.arg[1] & O_CREAT) || !exists) {
+		
+			if(!(msg.arg[1] & O_CREAT) && !exists) {
 				msg.arg[0] = 0;
 				msg.arg[1] = TMPFS_BUF_SIZE;
 				msg.arg[2] = ERR_NO_SUCH_FILE;
@@ -82,8 +82,10 @@ asmlinkage int main(int argc, char *argv[]) {
 				delete hndl;
 				break;
 			} else {
+				if(!exists) tfs->locate_file(buffer, &hndl->target);
 				while(!mutex_try_lock(q_locked))
 	 				 sched_yield();
+
 				last_handle ++;
 				hndl->touched = uptime();
 				hndl->handle = last_handle;
@@ -165,9 +167,10 @@ asmlinkage int main(int argc, char *argv[]) {
 				break;
 			}
 			h->touched = uptime();
-			msg.arg[2] = NO_ERR;
-			msg.arg[1] = h->target->size;
 			msg.arg[0] =  tfs->write(h->target, buffer,  size, msg.arg[2]);
+			msg.arg[1] = h->target->size;
+			msg.arg[2] = NO_ERR;
+
 			msg.send_size = 0;
 			break;
 		}

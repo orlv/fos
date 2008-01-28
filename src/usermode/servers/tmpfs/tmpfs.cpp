@@ -76,6 +76,7 @@ int tmpfs::read(tmpfs_file *file, char *to, int size, int offset) {
 }
 
 int tmpfs::write(tmpfs_file *file, char *from, int size, int offset) {
+	printf("write: %x from %u %u bytes\n", file, offset, size);
 	if(size + offset > file->size) {
 		file->size = size + offset;
 		file->data = (char *)realloc(file->data, file->size);

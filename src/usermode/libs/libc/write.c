@@ -27,7 +27,7 @@ asmlinkage ssize_t write(int fildes, const void *buf, size_t nbyte)
   while(1) {
     msg.arg[0] = FS_CMD_WRITE;
     msg.arg[1] = fd->inode;
-    msg.arg[2] = fd->offset;
+    msg.arg[2] = fd->offset + offset;
     msg.recv_size = 0;
     msg.flags = 0;
     msg.tid = fd->thread;
@@ -56,6 +56,7 @@ asmlinkage ssize_t write(int fildes, const void *buf, size_t nbyte)
     fd->file_size = msg.arg[1];
 
     offset += msg.arg[0];
+    fd->offset += offset;
 
     if((msg.arg[2] == ERR_EOF) || offset >= nbyte)
       return offset;

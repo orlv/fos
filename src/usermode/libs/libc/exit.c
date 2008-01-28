@@ -4,12 +4,13 @@
 
 #include <fos/message.h>
 #include <fos/procman.h>
-
+#include <sched.h>
+#include <stdio.h>
 void exit(int status)
 {
   printf("Terminating disabled!\n");
 #warning FIXME
-  while(1);
+  while(1) sched_yield();
 /*
   struct message msg;
   msg.arg[0] = PROCMAN_CMD_EXIT;

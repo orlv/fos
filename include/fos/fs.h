@@ -7,6 +7,7 @@
 #define _FOS_FS_H    1
 
 #include <types.h>
+#include <mutex.h>
 
 #define MAX_PATH_LEN 1024
 #define MAX_NAME_LEN 256
@@ -84,4 +85,15 @@ struct dirent {
 asmlinkage struct dirent *readdir(DIR *dir);
 #endif
 
+
+typedef struct {
+	int open_mode;
+	int allow_read;
+	int allow_write;
+	mutex_t using_mutex;
+	char *buf;
+	int buf_size;
+	int buf_ptr;
+	int handle;
+} __fopen_fd;
 #endif

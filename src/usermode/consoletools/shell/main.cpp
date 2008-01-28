@@ -148,11 +148,11 @@ static void interactive_shell() {
 
 static void exec_script(char *filename) {
 	int hndl = open(filename, 0);
-	struct stat st;
-	fstat(hndl, &st);
-	char *script = new char[st.st_size];
+	int size = lseek(hndl, 0, SEEK_END);
+	lseek(hndl, 0, SEEK_SET);
+	char *script = new char[size];
 	char *scr = script;
-	read(hndl, script, st.st_size);
+	read(hndl, script, size);
 	close(hndl);
 	for (char *ptr = strsep(&scr, "\n"); ptr; ptr = strsep(&scr, "\n")) {
 		char *args = strchr(ptr, 0x20);

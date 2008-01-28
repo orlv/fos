@@ -14,15 +14,15 @@ void *load_file(char *filename)
 
   if (!hndl)
     return NULL;
-  struct stat st;
 
-  if (fstat(hndl, &st))
-    return NULL;
-  void *buf = malloc(st.st_size);
+  int size = lseek(hndl, 0, SEEK_END);
+  lseek(hndl, 0, SEEK_SET);
+
+  void *buf = malloc(size);
 
   if (!buf)
     return NULL;
-  if (!read(hndl, buf, st.st_size)) {
+  if (!read(hndl, buf, size)) {
     free(buf);
     return NULL;
   }

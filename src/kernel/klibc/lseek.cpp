@@ -21,7 +21,10 @@ off_t lseek(int fildes, off_t offset, int whence)
     return fd->offset;
 
   case SEEK_END:
-  default:
-    return (off_t)-1;
+    if(fd->file_size - offset >= 0) {
+      fd->offset = fd->file_size - offset;
+      return fd->offset;
+    }
   }
+  return (off_t)-1;
 }

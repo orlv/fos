@@ -24,12 +24,12 @@ void mv(char *src, char *dest) {
 		close(hndl);
 		return;
 	}
-	struct stat st;
-	fstat(hndl, &st);
-	if(st.st_size) {
-		char *buf = malloc(st.st_size);
-		read(hndl, buf, st.st_size);
-		write(hndl2, buf, st.st_size);
+	int size = lseek(hndl, 0, SEEK_END);
+	lseek(hndl, 0, SEEK_SET);
+	if(size) {
+		char *buf = malloc(size);
+		read(hndl, buf, size);
+		write(hndl2, buf, size);
 		free(buf);
 	}
 	close(hndl);

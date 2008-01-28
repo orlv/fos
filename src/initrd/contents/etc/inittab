@@ -4,4 +4,3 @@
 #/bin/shell::Starting up shell
 /bin/rtc::Starting RTC
 /bin/tmpfs::Starting up tmpfs
-/bin/floppy::Starting up floppy

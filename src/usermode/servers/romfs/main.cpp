@@ -3,6 +3,7 @@
 #include <fos/message.h>
 #include <sys/stat.h>
 #include <mutex.h>
+#include <fcntl.h>
 #include <string.h>
 #include "romfs.h"
 
@@ -69,6 +70,7 @@ asmlinkage int main(int argc, char *argv[]) {
 				msg.arg[0] = 0;
 				msg.arg[1] = ROMFS_BUF_SIZE;
 				msg.arg[2] = ERR_NO_SUCH_FILE;
+				msg.arg[3] = 0;
 				msg.send_size = 0;
 				delete hndl;
 				break;
@@ -87,6 +89,7 @@ asmlinkage int main(int argc, char *argv[]) {
 				msg.arg[0] = last_handle;
 				msg.arg[1] = ROMFS_BUF_SIZE;
 				msg.arg[2] = NO_ERR;
+				msg.arg[3] = hndl->in.size;
 				msg.send_size = 0;
 				break;
 			}
@@ -128,6 +131,7 @@ asmlinkage int main(int argc, char *argv[]) {
 			handle_t *h = resolve_handle(msg.arg[1], HANDLE_FILE);
 			if(!h) {
 				msg.arg[2] = ERR_NO_SUCH_FILE;
+				msg.arg[1] = 0;
 				msg.send_size = 0;
 				break;
 			}
@@ -138,6 +142,7 @@ asmlinkage int main(int argc, char *argv[]) {
 			else
 				msg.arg[2] = NO_ERR;
 			msg.arg[0] = readed;
+			msg.arg[1] = h->in.size;
 			msg.send_size = msg.arg[0];
 			msg.send_buf = buffer;
 			break;

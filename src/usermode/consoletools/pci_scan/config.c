@@ -40,16 +40,16 @@ static void ParseLine(char *line)
 }
 
 void parse_config(void) {
-  struct stat st;
   int hndl = open("/etc/pci", 0);
   if(!hndl) {
 	printf("pci: Fatal error, config file not found .\n");
 	exit(1);
   }
-  fstat(hndl, &st);
-  char *config = malloc(st.st_size);
+  int size = lseek(hndl, 0, SEEK_END);
+  lseek(hndl, 0, SEEK_SET);
+  char *config = malloc(size);
 
-  read(hndl, config, st.st_size);
+  read(hndl, config, size);
   close(hndl);
 
   for (char *ptr = strsep(&config, "\n"); ptr; ptr = strsep(&config, "\n")) {

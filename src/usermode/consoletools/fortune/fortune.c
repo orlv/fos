@@ -38,11 +38,11 @@ int main(int argc, char *argv[])
     printf("Failed loading data file\n");
     return 1;
   }
-  struct stat st;
+  int size = lseek(hndl, 0, SEEK_END);
+  lseek(hndl, 0, SEEK_END);
 
-  fstat(hndl, &st);
-  index = malloc(st.st_size);
-  read(hndl, index, st.st_size);
+  index = malloc(size);
+  read(hndl, index, size);
   close(hndl);
 
   hdr = (str_t *) index;
@@ -57,11 +57,12 @@ int main(int argc, char *argv[])
     printf("Failed loading data\n");
     return 1;
   }
-  fstat(hndl, &st);
-  st.st_size -= sk;
-  data = malloc(st.st_size);
+  size = lseek(hndl, 0, SEEK_END);
+  lseek(hndl, 0, SEEK_END);
+  size -= sk;
+  data = malloc(size);
   lseek(hndl, sk, SEEK_SET);
-  read(hndl, data, st.st_size);
+  read(hndl, data, size);
   close(hndl);
   char *dat = data;
   char *quote = strsep(&data, "%");

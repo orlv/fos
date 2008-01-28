@@ -95,13 +95,12 @@ tid_t execute(char *pathname, char *args, size_t args_len, char *envp, size_t en
   int fd = open(pathname, 0);
 
   if (fd != -1) {
-    struct stat *statbuf = new struct stat;
-    fstat(fd, statbuf);
-    char *elf_image = new char[statbuf->st_size];
-    read(fd, elf_image, statbuf->st_size);
-    if(!check_ELF_image(elf_image, statbuf->st_size))
+    int size = lseek(fd, 0, SEEK_END);
+    lseek(fd, 0, SEEK_SET);
+    char *elf_image = new char[size];
+    read(fd, elf_image, size);
+    if(!check_ELF_image(elf_image, size))
       result = system->procman->exec(elf_image, pathname, args, args_len, envp, envp_len);
-    delete statbuf;
     delete elf_image;
   }
   close(fd);

@@ -1,3 +1,8 @@
+Mon Jan 28 16:05:41 2008  [20080128]
+Sergey Gridassov <grindars@grindars.org.ru>:
+	- В lseek добавлена поддержка SEEK_END, при этом не происходит лишнего вызова
+	  сервера. Проги переделаны на lseek() вместо fstat().
+
 Sat Jan 26 21:32:20 2008 [20080126] (kernel version 0.0.46.2)
 Oleg S Fedorov <o.s.fedorov@gmail.com>:
 	- Изменена логика выдачи tid

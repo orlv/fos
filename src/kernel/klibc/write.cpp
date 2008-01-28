@@ -49,7 +49,9 @@ ssize_t write(int fildes, const void *buf, size_t nbyte)
       } else
 	return -3;
     }
-    
+
+    fd->file_size = msg.arg[1];
+
     offset += msg.arg[0];
 
     if((msg.arg[2] == ERR_EOF) || offset >= nbyte)

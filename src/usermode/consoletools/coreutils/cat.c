@@ -42,11 +42,11 @@ void cat(char *file) {
 		printf("cat: %s: No such file or directory\n", file);
 		return;
 	}
-	struct stat st;
-	fstat(hndl, &st);
-	char *buf = malloc(st.st_size);
-	read(hndl, buf, st.st_size);
-	write(stdout, buf,  st.st_size);
+  	int size = lseek(hndl, 0, SEEK_END);
+  	lseek(hndl, 0, SEEK_END);
+	char *buf = malloc(size);
+	read(hndl, buf, size);
+	write(stdout, buf, size);
 	free(buf);	
 	close(hndl);
 }

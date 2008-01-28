@@ -60,7 +60,8 @@ int open(const char *pathname, int flags)
     fd->thread = msg.tid;
     fd->inode = msg.arg[0];
     fd->buf_size = msg.arg[1];
-    
+    fd->file_size = msg.arg[3];
+    fd->flags = flags;
     return (int) fd;
   } else {
     errno = ENOENT;

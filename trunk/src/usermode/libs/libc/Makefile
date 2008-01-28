@@ -17,7 +17,8 @@ OBJECTS		=	close.o		malloc.o	exit.o		lseek.o		\
 			fgets.o		chdir.o		putenv.o	realpath.o	\
 			unlink.o	fopen.o		freopen.o	fclose.o	\
 			fflush.o	fread.o		fdopen.o	fwrite.o	\
-			fseek.o		rewind.o	ftell.o
+			fseek.o		rewind.o	ftell.o		setjmp.o	\
+			sigjmp.o	__longjmp.o	longjmp.o
 
 include $(SYSTEM_SRC)/mk/trg_lib.mk
 

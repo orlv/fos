@@ -14,7 +14,7 @@
 #define RECV_BUF_SIZE 1000
 
 net_callbacks_t cb = { 0 };
-volatile dev_t *dev = NULL;
+volatile netdev_t *dev = NULL;
 
 THREAD(poller) {
   while(1) {
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
         printf("Realtek 8139 starting up\n");
         pci_addr_t *addr = malloc(sizeof(pci_addr_t));
         memcpy(addr, buffer, sizeof(pci_addr_t));
-        dev_t *new = malloc(sizeof(dev_t));
+        netdev_t *new = malloc(sizeof(netdev_t));
 	new->addr = addr;
         new->device_init = rtl8139_init;
         if((new->device_init)(&cb, new) < 0) {

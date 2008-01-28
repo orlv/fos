@@ -17,7 +17,7 @@ typedef struct dev {
 	u32_t ip;
 	u32_t mask;
 	u32_t gateway;
-} dev_t;
+} netdev_t;
 
 
 #define ETH_ZLEN	60

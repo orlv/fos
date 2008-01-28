@@ -2,7 +2,7 @@
 #include "endian.h"
 #include "arp.h"
 #include "nettypes.h"
-extern dev_t *dev;
+extern netdev_t *dev;
 typedef struct {
 	u8_t dest[6];
 	u8_t src[6];

@@ -11,15 +11,17 @@ romfs::romfs(char *filename) {
 }
 
 int romfs::load_fs(char *filename) {
-	struct stat st;
+//	struct stat st;
 	int hndl = open(filename, 0);
 	if(!hndl) 
 		return 1;
-	fstat(hndl, &st);
-	fs = new char[st.st_size];
+	int size = lseek(hndl, 0, SEEK_END);
+	lseek(hndl, 0, SEEK_SET);
+//	fstat(hndl, &st);
+	fs = new char[size];
 	if(!fs)
 		return 1;
-	::read(hndl, fs, st.st_size);
+	::read(hndl, fs, size);
 	close(hndl);
 	return 0;
 }

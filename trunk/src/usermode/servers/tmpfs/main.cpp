@@ -60,13 +60,24 @@ asmlinkage int main(int argc, char *argv[]) {
 		case FS_CMD_ACCESS: {
 			handle_t *hndl = new handle_t;
 			buffer[msg.recv_size] = 0;
-			if(msg.arg[1] & O_CREAT) 
-				tfs->create_file(buffer);
-			
-			if(tfs->locate_file(buffer, &hndl->target) < 0) {
+			int exists = (tfs->locate_file(buffer, &hndl->target) == 0);
+			if(msg.arg[1] & O_EXCL && exists) {
 				msg.arg[0] = 0;
 				msg.arg[1] = TMPFS_BUF_SIZE;
 				msg.arg[2] = ERR_NO_SUCH_FILE;
+				msg.arg[3] = 0;
+				msg.send_size = 0;
+				delete hndl;
+				break;			
+			}
+			if((msg.arg[1] & O_CREAT && !exists) || msg.arg[1] & O_TRUNC) 
+				tfs->create_file(buffer);
+			
+			if(!(msg.arg[1] & O_CREAT) || !exists) {
+				msg.arg[0] = 0;
+				msg.arg[1] = TMPFS_BUF_SIZE;
+				msg.arg[2] = ERR_NO_SUCH_FILE;
+				msg.arg[3] = 0;
 				msg.send_size = 0;
 				delete hndl;
 				break;
@@ -83,6 +94,7 @@ asmlinkage int main(int argc, char *argv[]) {
 				msg.arg[0] = last_handle;
 				msg.arg[1] = TMPFS_BUF_SIZE;
 				msg.arg[2] = NO_ERR;
+				msg.arg[3] = hndl->target->size;
 				msg.send_size = 0;
 				break;
 			}
@@ -125,6 +137,7 @@ asmlinkage int main(int argc, char *argv[]) {
 			handle_t *h = resolve_handle(msg.arg[1], HANDLE_FILE);
 			if(!h) {
 				msg.arg[2] = ERR_NO_SUCH_FILE;
+				msg.arg[1] = 0;
 				msg.send_size = 0;
 				break;
 			}
@@ -135,6 +148,7 @@ asmlinkage int main(int argc, char *argv[]) {
 			else
 				msg.arg[2] = NO_ERR;
 			msg.arg[0] = readed;
+			msg.arg[1] = h->target->size;
 			msg.send_size = msg.arg[0];
 			msg.send_buf = buffer;
 			break;
@@ -146,11 +160,13 @@ asmlinkage int main(int argc, char *argv[]) {
 			handle_t *h = resolve_handle(msg.arg[1], HANDLE_FILE);
 			if(!h) {
 				msg.arg[2] = ERR_NO_SUCH_FILE;
+				msg.arg[1] = 0;
 				msg.send_size = 0;
 				break;
 			}
 			h->touched = uptime();
 			msg.arg[2] = NO_ERR;
+			msg.arg[1] = h->target->size;
 			msg.arg[0] =  tfs->write(h->target, buffer,  size, msg.arg[2]);
 			msg.send_size = 0;
 			break;

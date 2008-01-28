@@ -43,6 +43,8 @@ struct fd {
   off_t offset;
   ino_t  inode;
   size_t  buf_size;
+  size_t file_size;
+  int flags;
   const char *fullname;
   //  char *name;
 };

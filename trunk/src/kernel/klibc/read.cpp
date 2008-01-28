@@ -44,7 +44,9 @@ ssize_t read(int fildes, void *buf, size_t nbyte)
       } else
 	return -3;
     }
-    
+
+    fd->file_size = msg.arg[1];
+
     offset += msg.arg[0];
     fd->offset = offset;
     

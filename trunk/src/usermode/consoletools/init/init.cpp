@@ -47,12 +47,12 @@ asmlinkage int main()
 	return 1;
   }
 
-  struct stat st;
+  int size = lseek(hndl, 0, SEEK_END);
+  lseek(hndl, 0, SEEK_SET);
 
-  fstat(hndl, &st);
-  char *config = new char[st.st_size];
+  char *config = new char[size];
 
-  read(hndl, config, st.st_size);
+  read(hndl, config, size);
   close(hndl);
   for (char *ptr = strsep(&config, "\n"); ptr; ptr = strsep(&config, "\n")) {
     while(ptr[0] == ' ' || ptr[0] == '\t') ptr++; // пробелы в начале

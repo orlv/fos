@@ -13,6 +13,9 @@ asmlinkage ssize_t write(int fildes, const void *buf, size_t nbyte)
   if(!fildes || fildes < 0 || !fd->thread)
     return -1;
 
+  if(fd->flags & O_APPEND)
+    fd->offset = fd->file_size;
+
   struct message msg;
   size_t offset = 0;
 
@@ -49,6 +52,8 @@ asmlinkage ssize_t write(int fildes, const void *buf, size_t nbyte)
       } else
 	return -3;
     }    
+
+    fd->file_size = msg.arg[1];
 
     offset += msg.arg[0];
 

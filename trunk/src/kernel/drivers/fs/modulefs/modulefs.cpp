@@ -39,6 +39,8 @@ void grub_modulefs_srv()
       msg.arg[0] = initrb->access(buffer) + 1;
       msg.arg[1] = MODULEFS_BUFF_SIZE;
       msg.arg[2] = NO_ERR;
+      if(msg.arg[0])
+        msg.arg[3] = initrb->size(msg.arg[0] - 1);
       //printk("[a0=%d]", msg.arg[0]);
       msg.send_size = 0;
       break;
@@ -53,7 +55,7 @@ void grub_modulefs_srv()
 	msg.arg[2] = ERR_EOF;
       else
 	msg.arg[2] = NO_ERR;
-
+      msg.arg[1] = initrb->size(msg.arg[1]) - 1;
       msg.send_size = msg.arg[0];
       msg.send_buf = buffer;
       break;

@@ -72,7 +72,7 @@ tid_t execute_module(char *pathname, char *args, size_t args_len)
   tid_t result = 0;
 
   int fd = initrb->access(pathname);
-  if(fd){
+  if(fd >= 0){
     size_t size = initrb->size(fd);
     char *elf_image = new char[size];
     initrb->read(fd, 0, elf_image, size);

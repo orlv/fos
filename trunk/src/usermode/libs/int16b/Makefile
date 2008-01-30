@@ -4,9 +4,9 @@
 
 include $(ROOT)/config.mk
 
-OUTPUT		=	int16b
+OUTPUT		=	vesa.bin
 OBJECTS		=	main.o
-TARGETDIR	=	$(INSTALLDIR)
+TARGETDIR	=	$(INITRDDIR)/lib
 LDFLAGS		+=	 --oformat=binary -Tldscript -Ttext=0x500
 
 include $(SYSTEM_SRC)/mk/trg_bin.mk

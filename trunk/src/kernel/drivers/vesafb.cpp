@@ -30,7 +30,7 @@ void vesafb_srv()
   vbe_mode_info_block * vbeinfo_l = new vbe_mode_info_block;
 
   while(1) {
-    int fd = open("/mnt/modules/int16b", 0);
+    int fd = open("/lib/vesa.bin", 0);
     if(fd != -1) {
       size_t size = read(fd, realmod_inj, INJ_BUF_SIZE);
       memcpy((char *)INJ_ADDRESS, realmod_inj, size);

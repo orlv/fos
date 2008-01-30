@@ -2,15 +2,11 @@
 timeout 0
 default 0
 hiddenmenu
-title FOS - FOS is Operating System (VERSION 0.0.46.2, BUILD 20080128)
+title FOS - FOS is Operating System (VERSION 0.0.46.2, BUILD 20080130)
 	root(cd0)
 	kernel /boot/fos
-	module /boot/modules/int16b
 	module /boot/modules/namer
 	module /boot/modules/init
-	module /boot/modules/int16b
-	module /boot/modules/tty
-	module /boot/modules/stty
 	module /boot/modules/romfs
 	module /boot/modules/initrd.gz
 

@@ -20,17 +20,12 @@ asmlinkage int main()
 
   for (int i = 0; i < 15; i++)
     sched_yield();
-
+/*
   while(!exec("/mnt/modules/stty", NULL));
 
-  do {
-    stdout = open("/dev/tty", 0);
-  } while(stdout < 0);
 
   printf("Init started! If you see this text - all work fine.\n");
-
-  setenv("STDOUT", "/dev/tty", 0);
-  setenv("STDIN", "/dev/tty", 0);
+*/
   setenv("PATH", "/bin:/usr/bin", 0);
   setenv("PWD", "/", 0);
 
@@ -39,11 +34,11 @@ asmlinkage int main()
   for (int i = 0; i < 1000; i++)
     sched_yield();
 
-  printf("init: bootstrapped tty & romfs, reading config\n");
+//  printf("init: bootstrapped tty & romfs, reading config\n");
 
   int hndl = open("/etc/inittab", 0);
   if(!hndl) {
-	printf("init: Fatal error, not found config file.\n");
+//	printf("init: Fatal error, not found config file.\n");
 	return 1;
   }
 
@@ -62,7 +57,7 @@ asmlinkage int main()
     ParseLine(ptr);
   }
 
-  printf("All started up.\n");
+//  printf("All started up.\n");
   return 0;
 }
 
@@ -76,6 +71,19 @@ void ParseLine(char *line)
     tokens[i] = ptr;
   if (i < 3) 
     return;
+
+  if(!strcmp(tokens[0], ".")) {
+    if(!strcmp(tokens[1], "open_tty")) {
+      char *tty = new char[strlen(tokens[2]) + 1];
+      strcpy(tty, tokens[2]);
+      setenv("STDOUT", tty, 0);
+      setenv("STDIN", tty, 0);
+     do {
+        stdout = open(tty, 0);
+      } while(stdout < 0);
+    }
+    return;
+  }
 
   if(tokens[2][0] != 0)
     printf("%s\n", tokens[2]);

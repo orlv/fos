@@ -112,14 +112,14 @@ RED		= $RED
 GREY		= $GREY
 
 # -- Modules ------------------------------------------------------------------
-GRUB_MODULES =	/boot/modules/int16b		\\
-		/boot/modules/namer		\\
+GRUB_MODULES =	/boot/modules/namer		\\
 		/boot/modules/init		\\
-		/boot/modules/int16b		\\
-		/boot/modules/tty		\\
-		/boot/modules/stty		\\
 		/boot/modules/romfs		\\
 		/boot/modules/initrd.gz
+
+#/boot/modules/int16b
+#/boot/modules/stty
+#/boot/modules/tty
 
 GRUB_MENU    = $TOPDIR/boot/grub/menu.lst
 GRUB_TFTP_MENU = $TOPDIR/boot/grub/tftpmenu.lst

@@ -11,7 +11,7 @@ OBJECTS		=	main.o		\
 
 LDLIBS		=	-\( -lcpp -lc -lfos -\)
 
-TARGETDIR	=	$(INSTALLDIR)
+TARGETDIR	=	$(INITRDDIR)/bin
 
 include $(SYSTEM_SRC)/mk/trg_bin_std.mk
 

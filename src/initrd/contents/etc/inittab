@@ -1,3 +1,5 @@
+/bin/stty::
+.:open_tty:/dev/tty
 /bin/i8042::Starting keyboard/mouse driver
 #/bin/pci_scan::Scanning PCI bus
 /usr/bin/fgs::Starting up GUI

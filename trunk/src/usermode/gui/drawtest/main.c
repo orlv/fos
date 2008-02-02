@@ -40,7 +40,7 @@ asmlinkage int main(int argc, char **argv)
   SetControlText(st3, " ");
   int total = uptime() - start;
   char tmp[256];
-  sprintf(tmp, 256, "refresh taking %u ms", total / CNT);
+  snprintf(tmp, 256, "refresh taking %u ms", total / CNT);
   SetControlText(st2, tmp);
   ControlsMessageLoop();
   GuiEnd();

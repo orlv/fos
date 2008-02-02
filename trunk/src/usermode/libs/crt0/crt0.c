@@ -1,11 +1,13 @@
 /*
-  startup.c
-  Copyright (C) 2007 Oleg Fedorov
+  crt0.c
+  Copyright (C) 2007-2008 Oleg Fedorov
+                          Sergey Gridassov
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <fcntl.h>
 char **__ARGV = 0;
 int __ARGC = 0;
@@ -14,6 +16,9 @@ char **environ;
 FILE *stdout, *stdin, *stderr;
 
 int errno = 0;
+
+int daylight = 0;
+long timezone = 0;
 
 int main(int argc, char ** argv);
 

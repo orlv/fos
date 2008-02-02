@@ -6,7 +6,6 @@
 
 
 #include <stdarg.h>
-#include <vsprintf.h>
 
 int sprintf(char *str, const char *fmt, ...)
 {

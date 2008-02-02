@@ -1,12 +1,14 @@
 /*
   include/time.h
   Copyright (C) 2006 Oleg Fedorov
+                2008 Sergey Gridassov
 */
 
 #ifndef _TIME_H
 #define _TIME_H
 
 #include <types.h>
+#include <sys/time.h>
 
 struct tm {
   int tm_sec;   /* seconds after the minute [0, 59] */
@@ -20,8 +22,15 @@ struct tm {
   int tm_isdst;	/* Daylight Saving Time flag */
 };
 
-typedef u32_t time_t;
-
 userlinkage struct tm *gmtime(const time_t * timep);
+userlinkage struct tm *gmtime_r(const time_t *timep, struct tm *r);
+userlinkage struct tm* localtime(const time_t* t);
+userlinkage struct tm* localtime_r(const time_t* t, struct tm* r);
+userlinkage time_t mktime(struct tm *tm);
+#define timelocal(a) mktime(a)
+userlinkage time_t timegm(struct tm *tm);
+userlinkage time_t time(time_t *t);
 
+extern int daylight;
+extern long timezone;
 #endif

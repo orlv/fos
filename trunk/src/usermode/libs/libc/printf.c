@@ -3,12 +3,10 @@
  */
 
 #include <stdarg.h>
-#include <vsprintf.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sched.h>
 #include <stdio.h>
-//char printbuf[256];
 
 int printf(const char *fmt, ...)
 {

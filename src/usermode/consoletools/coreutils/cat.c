@@ -46,7 +46,8 @@ void cat(char *file) {
   	lseek(hndl, 0, SEEK_SET);
 	char *buf = malloc(size);
 	read(hndl, buf, size);
-	write(stdout, buf, size);
+	fwrite(buf, size, 1, stdout);
+	fflush(stdout);
 	free(buf);	
 	close(hndl);
 }

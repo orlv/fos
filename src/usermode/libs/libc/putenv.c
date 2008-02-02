@@ -3,6 +3,7 @@
  */
 #include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
 int __add_to_environ(const char *name, const char *value, const char *combined, int replace);
 int putenv(char *string) {
 	const char *const name_end = strchr(string, '=');

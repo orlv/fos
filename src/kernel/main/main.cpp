@@ -11,7 +11,6 @@
 #include <fos/printk.h>
 #include <fos/drivers/char/timer/timer.h>
 #include <fos/traps.h>
-#include <vsprintf.h>
 #include <stdarg.h>
 #include <fos/drivers/fs/modulefs/modulefs.h>
 #include <fos/fs.h>

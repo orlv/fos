@@ -5,7 +5,6 @@
 
 #include <fos/fos.h>
 #include <stdarg.h>
-#include <vsprintf.h>
 #include <fos/printk.h>
 #include <fos/procman.h>
 

@@ -21,7 +21,10 @@ OBJECTS		=	close.o		malloc.o	exit.o		lseek.o		\
 			sigjmp.o	__longjmp.o	longjmp.o	fputc.o		\
 			vfprintf.o	fgetc.o		unlocked_fputc.o		\
 			unlocked_fwrite.o		fprintf.o	snprintf.o	\
-			vsnprintf.o	memmove.o	atol.o
+			vsnprintf.o	memmove.o	atol.o		localtime.o	\
+			gettimeofday.o	localtime_r.o	gmtime_r.o	time_table_spd.o \
+			isleap.o	mktime.o	timegm.o	strtol.o	\
+			strtoll.o	strtoull.o
 
 include $(SYSTEM_SRC)/mk/trg_lib.mk
 

@@ -27,4 +27,10 @@ userlinkage int putenv(char *string);
 userlinkage char * realpath (const char *name, char *resolved);
 userlinkage long int atol(const char* s);
 #define atoi(s) atol(s)
+
+userlinkage long int strtol(const char *nptr, char **endptr, int base);
+userlinkage long long int strtoll(const char *nptr, char **endptr, int base);
+userlinkage unsigned long long int strtoull(const char *ptr, char **endptr, int base);
+#define strtouq(a,b,c) stroull(a,b,c)
+
 #endif

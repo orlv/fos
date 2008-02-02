@@ -16,7 +16,7 @@ extern "C" {
 int printf(const char *fmt, ...);
 int sprintf(char *str, const char *fmt, ...);
 void fgets(char *buf, size_t size, FILE* handle);
-
+int snprintf(char *str, size_t size, const char *fmt, ...);
 FILE *fopen(const char *path, const char *mode);
 FILE *fdopen(int fd, const char *mode);
 FILE *freopen(const char *path, const char *mode, FILE *stream);

@@ -131,7 +131,7 @@ THREAD(clock_thread) {
 		if(get_time(&time) < 0)
 			SetControlText(clock, "RTC?");
 		else if(oldmin != time.min) {
-			sprintf(tmp, "%02u:%02u", time.hour, time.min);
+			snprintf(tmp, 8, "%02u:%02u", time.hour, time.min);
 			SetControlText(clock, tmp);
 		}
 		oldmin = time.min;

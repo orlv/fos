@@ -165,6 +165,7 @@ void gui_thread() {
 void StartChild(char *point, char *child) {
 	setenv("STDOUT", point, 1);
 	setenv("STDIN", point, 1);
+	setenv("STDERR", point, 1);
 	exec(child, NULL);
 }
 
@@ -176,7 +177,7 @@ int main(int argc, char *argv[]) {
 	mainthread = my_tid();
 	int handle;
 	do {
-		sprintf(name, "/dev/fterm%x", random());
+		snprintf(name, 32, "/dev/fterm%x", random());
 		handle = open(name, 0);
 		if(handle > 0)
 			close(handle);

@@ -1,6 +1,6 @@
 /*
  *         FOS Graphics System
- * Copyright (c) 2007 Sergey Gridassov
+ * Copyright (c) 2007-2008 Sergey Gridassov
  */
 
 #include <private/types.h>
@@ -10,7 +10,7 @@
 #define GREEN(x, bits)	((x >> (8 + 8 - bits)) & ((1 << bits) - 1))
 #define BLUE(x, bits)	((x >> (8 - bits)) & ((1 << bits) - 1))
 
-void SetPixel(int x, int y, int rgb, context_t * context)
+void SetPixel16(int x, int y, int rgb, context_t * context)
 {
   if (x < 0 || y < 0 || x >= context->w || y >= context->h)
     return;
@@ -22,7 +22,7 @@ void SetPixel(int x, int y, int rgb, context_t * context)
     ptr[x + y * context->w] = RED(rgb, 5) << 11 | GREEN(rgb, 6) << 5 | BLUE(rgb, 5);
 }
 
-int GetPixel(int x, int y, context_t * context)
+int GetPixel16(int x, int y, context_t * context)
 {
   int color;
   unsigned short *ptr = (unsigned short *)context->data;

@@ -53,6 +53,13 @@ struct win_info {
   int margin_right;
 };
 
+typedef struct  {
+	void (*FlushContext)(context_t *, int, int, int ,int, int, int, context_t *);
+	void (*border)(int, int, int, int, context_t *);
+	void (*DrawRect)(int, int, int, int, int, context_t *);
+	void (*SetPixel)(int, int, int, context_t *);
+	int (*GetPixel)(int, int, context_t *);
+} mode_callbacks;
 #define MAX_TITLE_LEN 64
 #define WIN_CMD_CREATEWINDOW	(1 + 256)
 #define WIN_CMD_DESTROYWINDOW	(2 + 256)

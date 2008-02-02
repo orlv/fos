@@ -533,15 +533,9 @@ void StartEventHandling()
   thread_create((off_t) & EventsThread);
   thread_create((off_t) & MappingThread);
   int iterations = 0;
-  int lastuptime;
-  int newuptime;
-  lastuptime = newuptime = uptime();
-  while(ready_counter) {
-    newuptime = uptime();
-    iterations += newuptime - lastuptime;
-    lastuptime = newuptime;
+  while(ready_counter) 
     sched_yield();
-  }
-  printf("FGS: Event handling subsystem started up, elapsed time ~ %u ms\n", iterations);
+ 
+  printf("FGS: Event handling subsystem started up\n", iterations);
 }
 

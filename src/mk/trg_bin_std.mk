@@ -10,6 +10,7 @@ $(OUTPUT): $(OBJECTS)
 
 install:
 	cp $(OUTPUT) $(TARGETDIR)
+	@strip $(TARGETDIR)/$(OUTPUT)
 
 clean:
 	rm -f $(OBJECTS)

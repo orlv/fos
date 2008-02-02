@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+int readline(char *buf, int size);
+
 void cd_buitin(char *directory);
 void pwd_builtin(char *reserved);
 void exit_builtin(char *reserved);
@@ -135,8 +137,8 @@ static void interactive_shell() {
 		else
 			printf("$ ");
 		fflush(stdout);
-		fgets(cmd, 256, stdin);
-		cmd[strlen(cmd) - 1] = 0; // убиваем перевод строки
+		readline(cmd, 256);
+//		cmd[strlen(cmd) - 1] = 0; // убиваем перевод строки
 		char *args = strchr(cmd, 0x20);
 		if(args) {
 			args++;

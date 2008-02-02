@@ -6,7 +6,7 @@ include $(ROOT)/config.mk
 
 OUTPUT		=	shell
 
-OBJECTS		=	main.o
+OBJECTS		=	main.o readline.o
 
 LDLIBS		=	-\( -lc -lcpp -lfos -\)
 

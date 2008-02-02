@@ -134,6 +134,7 @@ static void interactive_shell() {
 			printf(ps, pwd);
 		else
 			printf("$ ");
+		fflush(stdout);
 		fgets(cmd, 256, stdin);
 		cmd[strlen(cmd) - 1] = 0; // убиваем перевод строки
 		char *args = strchr(cmd, 0x20);

@@ -10,12 +10,12 @@
 #include <stdio.h>
 //char printbuf[256];
 
-int printf(const char *fmt, ...)
+int fprintf(FILE *stream, const char *fmt, ...)
 {
   if(stdout == NULL) return 0;
   va_list args;
   va_start(args, fmt);
-  size_t i = vfprintf(stdout, fmt, args);
+  size_t i = vfprintf(stream, fmt, args);
   va_end(args);
 
   return i;

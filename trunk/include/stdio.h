@@ -15,7 +15,7 @@ extern "C" {
 #endif
 int printf(const char *fmt, ...);
 int sprintf(char *str, const char *fmt, ...);
-void fgets(char *buf, size_t size, int handle);
+void fgets(char *buf, size_t size, FILE* handle);
 
 FILE *fopen(const char *path, const char *mode);
 FILE *fdopen(int fd, const char *mode);
@@ -27,8 +27,18 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);
 int fseek(FILE *stream, long offset, int whence);
 void rewind(FILE *stream);
 long ftell(FILE *stream);
+int fputc(int c, FILE *stream);
+int fgetc(FILE *stream);
+int unlocked_fputc(int c, FILE *stream);
+size_t unlocked_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);
+int fprintf(FILE *stream, const char *fmt, ...);
+
+#define getc(a) fgetc(a)
 #ifdef __cplusplus
 }
 #endif
-extern int stdin, stdout; 
+#ifndef iKERNEL
+extern FILE *stdin, *stdout, *stderr; 
+#define getchar() fgetc(stdin)
+#endif
 #endif

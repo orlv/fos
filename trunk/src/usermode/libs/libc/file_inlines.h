@@ -5,6 +5,7 @@
 #ifndef FILE_INLINES_H
 #define FILE_INLINES_H
 #include <fcntl.h>
+#include <string.h>
 #include <unistd.h>
 #define BUF_SIZE	512
 
@@ -58,5 +59,23 @@ static inline void internal_flush(__fopen_fd *fd) {
 		fd->buf_ptr = 0;
 	}
 }
+
+static inline int buffering_write(__fopen_fd *fd, const char *ptr, size_t size) {
+	if(size > fd->buf_size) {
+		internal_flush(fd);
+		return write(fd->handle, ptr, size);
+	}
+	if(size > fd->buf_size - fd->buf_ptr)
+		internal_flush(fd);
+
+	memcpy(fd->buf + fd->buf_ptr, ptr, size);
+	fd->buf_ptr += size;
+	char *cutptr;
+	if((cutptr = memchr(ptr, '\n', size))) {
+		internal_flush(fd);
+	}
+	return size;
+}
+
 #endif
 

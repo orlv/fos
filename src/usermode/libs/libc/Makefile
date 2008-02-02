@@ -20,7 +20,8 @@ OBJECTS		=	close.o		malloc.o	exit.o		lseek.o		\
 			fseek.o		rewind.o	ftell.o		setjmp.o	\
 			sigjmp.o	__longjmp.o	longjmp.o	fputc.o		\
 			vfprintf.o	fgetc.o		unlocked_fputc.o		\
-			unlocked_fwrite.o		fprintf.o
+			unlocked_fwrite.o		fprintf.o	snprintf.o	\
+			vsnprintf.o
 
 include $(SYSTEM_SRC)/mk/trg_lib.mk
 

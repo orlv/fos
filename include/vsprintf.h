@@ -13,5 +13,6 @@
 userlinkage int vsprintf(char *buf, const char *fmt, va_list args);
 userlinkage int vfprintf(FILE *file, const char *fmt, va_list args);
 userlinkage int sprintf(char *str, const char *fmt, ...);
+userlinkage int vsnprintf(char *buf, size_t size, const char *fmt, va_list args);
 
 #endif

@@ -36,7 +36,7 @@ void redraw()
   pstring(winhandle, 192 + 16, 8, 0x000000, "Score");
   char buf[128];
 
-  sprintf((char *)&buf, "%u", score);
+  snprintf((char *)&buf, 128, "%u", score);
   int x = (5 * 8 - strlen((char *)&buf) * 8) / 2;
 
   rect(winhandle, 192 + 16, 8 + 16, 5 * 8, 16, 0xC3C3C3);
@@ -61,7 +61,7 @@ int tsleep()
   msg.tid = 0;
   msg.recv_buf = NULL;
   msg.recv_size = 0;
-  msg.flags = 0;
+  msg.flags = MSG_ASYNC;
   alarm(200);			//200
   receive(&msg);
   alarm(0);

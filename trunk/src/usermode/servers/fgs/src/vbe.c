@@ -11,23 +11,35 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <private/vbe.h>
+#include <private/context.h>
+#include <private/universalbpp.h>
+#include <private/pixel.h>
 
 #define VBESRV_CMD_SET_MODE (BASE_CMD_N + 0)
 
 struct vbe_mode_info_block *vbe;
+mode_callbacks *calltable;
 
 struct  tmode_t {
 	int	width;
 	int	height;
 	int	bpp;
 	int	mode;
+	mode_callbacks *clbk;
 };
+
+static mode_callbacks c16 = {
+	FlushContext16,	border16,
+	DrawRect16,	SetPixel16,
+	GetPixel16,	
+};
+
 const static struct tmode_t modes[] = {
-	{640,	480,	16,	0x4111 },
-	{800,	600,	16,	0x4114 },
-	{1024,	768,	16,	0x4117 },
-	{1280,	1024,	16,	0x411a },
-	{0,	0,	0,	0	}
+	{640,	480,	16,	0x4111,	&c16 },
+	{800,	600,	16,	0x4114,	&c16 },
+	{1024,	768,	16,	0x4117,	&c16 },
+	{1280,	1024,	16,	0x411a,	&c16 },
+	{0,	0,	0,	0,	NULL }
 };
 
 int init_video(int width, int height, int bpp, context_t *screen) {
@@ -42,6 +54,7 @@ int init_video(int width, int height, int bpp, context_t *screen) {
 			screen->data = kmmap(0, width * height * screen->bpp, 0, vbe->phys_base_addr);
 			if(!screen->data)
 				return 0;
+			calltable = ptr->clbk;
 			return 1;
 		}
 	}

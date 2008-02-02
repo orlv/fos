@@ -7,7 +7,7 @@
 #include <string.h>
 #include <private/types.h>
 
-void FlushContext(context_t * context, int w, int h, int x, int y, int srcx, int srcy, context_t * target)
+void FlushContext16(context_t * context, int w, int h, int x, int y, int srcx, int srcy, context_t * target)
 {
   int y_limit = h + y;
   w *= 2;

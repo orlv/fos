@@ -5,7 +5,7 @@
 
 #include <private/types.h>
 
-void border(int x, int y, int w, int h, context_t * context)
+void border16(int x, int y, int w, int h, context_t * context)
 {
   unsigned short *ptr;
 

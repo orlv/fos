@@ -79,8 +79,8 @@ void ParseLine(char *line)
       setenv("STDOUT", tty, 0);
       setenv("STDIN", tty, 0);
      do {
-        stdout = open(tty, 0);
-      } while(stdout < 0);
+        stdout = fopen(tty, "w");
+      } while(!stdout);
     }
     return;
   }

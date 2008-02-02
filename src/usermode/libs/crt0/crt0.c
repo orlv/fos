@@ -11,7 +11,7 @@ char **__ARGV = 0;
 int __ARGC = 0;
 char **environ;
 
-int stdout, stdin;
+FILE *stdout, *stdin, *stderr;
 
 int errno = 0;
 
@@ -70,14 +70,20 @@ void _startup(int envp_size, char *envp, int args_size, char *args)
 
   char *point = getenv("STDOUT");
   if(point)
-    stdout = open(point, 0);
+    stdout = fopen(point, "w");
   else
-    stdout = -1;
+    stdout = NULL;
 
   point = getenv("STDIN");
   if(point)
-    stdin = open(point, 0);
+    stdin = fopen(point, "r");
   else
-    stdin = -1;
+    stdin = NULL;
+
+  point = getenv("STDERR");
+  if(point)
+    stderr = fopen(point, "w");
+  else
+    stderr = NULL;
   exit(main(argc, argv));
 }

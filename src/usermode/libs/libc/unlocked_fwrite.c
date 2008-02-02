@@ -11,17 +11,14 @@
 
 #include "file_inlines.h"
 
-size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
+size_t unlocked_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
 	if(!stream)
 		return 0;
 
 	__fopen_fd *fd = stream;
-	while(!mutex_try_lock(fd->using_mutex))
-		sched_yield();
 
 	int readed = buffering_write(fd, ptr, size * nmemb);
 
-	mutex_unlock(fd->using_mutex);
 	if(readed < 1)
 		return 0;
 	return readed / nmemb;

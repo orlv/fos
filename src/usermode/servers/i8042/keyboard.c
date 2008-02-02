@@ -98,7 +98,7 @@ u32_t scancodes_shifted[] = {
   0xFEa0, 0xFEa1, 0xFEa2, 0xFEa3,	/* F14/RWin */
 };
 
-#undef CONSTRUCTION_KEYCODES
+#define CONSTRUCTION_KEYCODES
 
 u32_t *code_table = scancodes;
 int extended = 0;

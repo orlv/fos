@@ -4,13 +4,13 @@
 #include <unistd.h>
 #include <sched.h>
 #include <stdio.h>
-void fgets(char *buf, size_t size, int handle) {
+void fgets(char *buf, size_t size, FILE* handle) {
 	char *start;
 	start = buf;
 	char c;
 
 	do {
-		read(handle, &c, 1);
+		c = getchar();
 		switch(c) {
 		case 8:
 			if(start < buf) {
@@ -27,5 +27,6 @@ void fgets(char *buf, size_t size, int handle) {
 				*buf = 0;
 			}
 		}
+		fflush(stdout);
 	} while(c != '\n');
 }

@@ -12,6 +12,8 @@
 #include <string.h>
 #include <mutex.h>
 #include <fos/message.h>
+#include <ctype.h>
+
 #define RECV_BUF_SIZE 2048
 
 volatile char *tty = NULL;
@@ -92,8 +94,67 @@ void scroll() {
 	pos -= 80;
 }
 
+#define hidecursor() line(winhandle, (pos % 80) * 8, (pos / 80) * 16, (pos % 80) * 8, (pos / 80) * 16 + 15, 0x000000)
+#define showcursor() line(winhandle, (pos % 80) * 8, (pos / 80) * 16, (pos % 80) * 8, (pos / 80) * 16 + 15, 0xFFFFFF);
+
+int ansi_status = 0, ansi_bufptr = 0, ansi_bufsz = 8;
+char ansi_buf[8];
+
+void ansi_execute() {
+	ansi_bufptr--;
+	switch(ansi_buf[ansi_bufptr]) {
+	case 'D': {
+		int count = atol(ansi_buf);
+		hidecursor();
+		if(count > pos % 80)
+			count -= (count - pos % 80);
+		pos -= count;
+		showcursor();
+		break;
+	}
+	case 'C': {
+		int count = atol(ansi_buf);
+		hidecursor();
+		if(pos % 80 + count > 80) count = 80;
+		pos += count;
+		showcursor();
+	}
+	default:
+		printf("Sorry, i can't handle ansi cmd %c\n", ansi_buf[ansi_bufptr]);
+	}
+}
+int ansi_statemachine(unsigned char ch, int status) {
+	if(ch == 0x1B) {
+		ansi_bufptr = 0;
+		return 1;
+	}
+	if(ansi_bufptr  > ansi_bufsz - 1) 
+		return 0;
+	switch(status) {
+	case 1:
+		if(ch == '[')
+			return 2;
+	case 2:
+		if(isdigit(ch) || ch == ';') {
+			ansi_buf[ansi_bufptr++] = ch;
+			return 2;
+		} else if(isalpha(ch)) {
+			ansi_buf[ansi_bufptr++] = ch;
+			ansi_execute();
+			return -1;
+		}
+	case -1:
+		return 0;
+	}
+	return 0;
+}
+
 void tty_putc(unsigned char ch) {
-	line(winhandle, (pos % 80) * 8, (pos / 80) * 16, (pos % 80) * 8, (pos / 80) * 16 + 15, 0x000000);
+	if(ansi_status || ch == 033) {
+		ansi_status = ansi_statemachine(ch, ansi_status);
+		if(ansi_status) return;
+	}
+	hidecursor();
 	char buf[2];
 	buf[1] = 0;
 	switch(ch) {
@@ -116,7 +177,7 @@ void tty_putc(unsigned char ch) {
 		break;
 	}
 	if(pos >= 80 * 25) scroll();
-	line(winhandle, (pos % 80) * 8, (pos / 80) * 16, (pos % 80) * 8, (pos / 80) * 16 + 15, 0xFFFFFF);
+	showcursor();
 }
 
 int tty_write(char *buf, int count) {
@@ -124,6 +185,12 @@ int tty_write(char *buf, int count) {
 		tty_putc(*buf);
 	need_redraw++;
 	return count;
+}
+
+void add_ch(char ch) {
+	if(keyptr == 255) keyptr = 0;
+	keychars[keyptr++] = ch;
+	havechars++;
 }
 
 void gui_thread() {
@@ -152,10 +219,11 @@ void gui_thread() {
 			GuiEnd();
 			exit(1);
 		case EV_KEY:
-			if(a1) break;
-			if(keyptr == 255) keyptr = 0;
-			keychars[keyptr++] = a0;
-			havechars++;
+			if(a1) {
+				add_ch(1);
+				send(&notify);
+			}
+			add_ch(a0);
 			send(&notify);
 			break;
 		}

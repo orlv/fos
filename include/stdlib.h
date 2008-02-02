@@ -24,5 +24,7 @@ userlinkage char *getenv(const char *name);
 userlinkage int setenv(const char *name, const char *value, int replace);
 userlinkage int unsetenv (const char * name);
 userlinkage int putenv(char *string);
-char * realpath (const char *name, char *resolved);
+userlinkage char * realpath (const char *name, char *resolved);
+userlinkage long int atol(const char* s);
+#define atoi(s) atol(s)
 #endif

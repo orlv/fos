@@ -12,5 +12,14 @@ static inline int isxdigit(int ch) {
 	return (unsigned int)( ch         - '0') < 10u  || 
 		(unsigned int)((ch | 0x20) - 'a') <  6u;
 }
+static inline int isalpha(int ch) {
+  return (unsigned int)((ch | 0x20) - 'a') < 26u;
+}
+
+static inline int isdigit ( int ch ) {
+    return (unsigned int)(ch - '0') < 10u;
+}
+
+
 #endif
  

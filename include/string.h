@@ -235,6 +235,7 @@ char*strtok_r(char*s,const char*delim,char**ptrptr);
 size_t strspn(const char *s, const char *accept);
 size_t strcspn(const char *s, const char *reject);
 char *strsep(char **stringp, const char *delim);
+void *memmove(void *dst, const void *src, size_t count);
 #ifdef __cplusplus
 }
 #endif

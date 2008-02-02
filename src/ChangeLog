@@ -5,6 +5,8 @@ Sergey Gridassov <grindars@grindars.org.ru>:
 		отправлена серверу, пока в ней не встретится перевод
 		строки или не будет вызвана fflush!
 	- Реализованы snprintf и vsnprintf
+	- Для шелла реализована readline
+	- Терминал поддерживает ANSI команды С и D
 
 
 Mon Jan 28 16:05:41 2008  [20080128]

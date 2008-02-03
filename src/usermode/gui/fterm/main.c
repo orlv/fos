@@ -104,7 +104,11 @@ void ansi_execute() {
 	ansi_bufptr--;
 	switch(ansi_buf[ansi_bufptr]) {
 	case 'D': {
-		int count = atol(ansi_buf);
+		int count;
+		if(ansi_bufptr)
+			count = atol(ansi_buf);
+		else
+			count = 1;
 		hidecursor();
 		if(count > pos % 80)
 			count -= (count - pos % 80);
@@ -113,7 +117,11 @@ void ansi_execute() {
 		break;
 	}
 	case 'C': {
-		int count = atol(ansi_buf);
+		int count;
+		if(ansi_bufptr)
+			count = atol(ansi_buf);
+		else
+			count = 1;
 		hidecursor();
 		if(pos % 80 + count > 80) count = 80;
 		pos += count;

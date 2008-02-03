@@ -1,6 +1,7 @@
 /*
-  Copyright (C) 2008 Sergey Gridassov
+ * Copyright (C) 2008 Sergey Gridassov
  */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,7 +9,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-int readline(char *buf, int size);
+#include "readline.h"
 
 void cd_buitin(char *directory);
 void pwd_builtin(char *reserved);
@@ -129,6 +130,12 @@ static void eval(char *cmd, char *args) {
 static void interactive_shell() {
 	exec_script("/root/.login");
 	char *cmd = new char[256];
+	readline_context *rc = readline_init(16);
+	if(!rc) {
+		printf("Readline failure, aborting.\n");
+		exit(1);
+	}
+
 	while(1) {
 		char *pwd = getenv("PWD");
 		char *ps = getenv("PS1");
@@ -137,7 +144,7 @@ static void interactive_shell() {
 		else
 			printf("$ ");
 		fflush(stdout);
-		readline(cmd, 256);
+		readline(cmd, 256, rc);
 //		cmd[strlen(cmd) - 1] = 0; // убиваем перевод строки
 		char *args = strchr(cmd, 0x20);
 		if(args) {

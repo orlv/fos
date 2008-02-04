@@ -227,10 +227,13 @@ res_t receive(message *message)
   
   if((received_message->flags & MSG_ASYNC)) { 
     message->tid = 0;
+    message->pid = 0;
     message->flags &= MSG_ASYNC;
     delete received_message; /* асинхронные сообщения не требуют ответа, сразу удаляем из ядра */
-  } else
+  } else {
     message->tid = received_message->thread->tid; /* укажем отправителя сообщения */
+    message->pid = received_message->thread->process->pid;
+  }
 
   return RES_SUCCESS;
 }
@@ -311,6 +314,8 @@ res_t send(message *message)
   message->recv_size = send_message->reply_size;  /* сколько байт ответа пришло */
   message->tid = send_message->thread->tid;       /* ответ на сообщение мог прийти не от изначального получателя,
 						     а от другого процесса (при использовании получателем forward()) */
+  message->pid = send_message->thread->process->pid;
+
   message->arg[0] = send_message->arg[0];
   message->arg[1] = send_message->arg[1];
   message->arg[2] = send_message->arg[2];

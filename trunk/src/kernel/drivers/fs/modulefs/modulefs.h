@@ -18,7 +18,7 @@ class ModuleFS {
   ModuleFS(multiboot_info_t * mbi);
  
   size_t read(u32_t n, off_t offset, void *buf, size_t count);
-  int access(const string name);
+  int access(const char * name);
   void stat(struct stat *statbuf, u32_t n);
   size_t size(u32_t n);
   int count();

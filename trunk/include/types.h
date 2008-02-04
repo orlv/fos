@@ -22,8 +22,6 @@ typedef void *ptr_t;
 
 typedef char *p_char_t;
 
-typedef char *string;
-
 typedef unsigned char u8_t;
 typedef unsigned short u16_t;
 typedef unsigned long u32_t;

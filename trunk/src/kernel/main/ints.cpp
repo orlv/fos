@@ -30,7 +30,7 @@ void dump_stack(u32_t ebp)
   printk("\n");
 }
 
-void exception(string str, unsigned int cs,  unsigned int address, unsigned int errorcode, unsigned int ebp)
+void exception(char *str, unsigned int cs,  unsigned int address, unsigned int errorcode, unsigned int ebp)
 {
 #if 0
   printk("\n--------------------------------------------------------------------------------" \

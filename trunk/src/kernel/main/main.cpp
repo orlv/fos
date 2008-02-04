@@ -22,7 +22,7 @@ ModuleFS *initrb; /* Модули, загруженные GRUB */
 
 void out_banner()
 {
-  extern const string version;
+  extern const char *version;
   extern u32_t build;
 
   printk(" FOS %s (%s) \n"						\

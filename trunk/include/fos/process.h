@@ -19,7 +19,7 @@ class TProcess {
   List<Thread *> *threads;
   VMM *memory;
   u32_t LoadELF(register void *image);
-  string name;
+  const char *name;
 
   Thread *thread_create(off_t eip,
 			u16_t flags,

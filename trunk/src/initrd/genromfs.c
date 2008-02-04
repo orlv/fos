@@ -59,7 +59,7 @@
 
 #include <stdio.h>  /* Userland pieces of the ANSI C standard I/O package  */
 #include <stdlib.h> /* Userland prototypes of the ANSI C std lib functions */
-#include <string.h> /* Userland prototypes of the string handling funcs    */
+#include <string.h> /* Userland prototypes of the char *handling funcs    */
 #include <unistd.h> /* Userland prototypes of the Unix std system calls    */
 #include <fcntl.h>  /* Flag value for file handling functions              */
 #include <time.h>

@@ -14,20 +14,20 @@
 
 class Tobject {
 public:
-  Tobject(const string name, sid_t sid);
-   Tobject(const string name);
+  Tobject(const char *name, sid_t sid);
+   Tobject(const char *name);
   ~Tobject();
 
   sid_t sid;
-  string name;
+  char *name;
    List < Tobject * >*sub_objects;	/* объект может содержать в себе другие объекты */
 
-  void set_name(const string name);	/* меняет имя объекта */
+  void set_name(const char *name);	/* меняет имя объекта */
 
-  Tobject *add_sub(const string name, sid_t sid);
-  Tobject *add_sub(const string name);
+  Tobject *add_sub(const char *name, sid_t sid);
+  Tobject *add_sub(const char *name);
 
-  Tobject *access(const string name);
+  Tobject *access(const char *name);
 };
 
 class Namer {
@@ -35,10 +35,10 @@ public:
   Tobject * rootdir;
   Namer();
 
-  Tobject *resolve(const string name);
-  Tobject *add(const string name, sid_t sid);
+  Tobject *resolve(char *name);
+  Tobject *add(const char *name, sid_t sid);
 
-  //res_t remove(const string name);
+  //res_t remove(const char *name);
   //obj_info_t *list(off_t offset);  
 };
 

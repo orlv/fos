@@ -29,7 +29,7 @@ off_t *seek;
 int main(int argc, char *argv[])
 {
   if (argc < 3) {
-    printf("Usage: %s <string file> <data file>\n", argv[0]);
+    printf("Usage: %s <char *file> <data file>\n", argv[0]);
     return 1;
   }
   int hndl = open(argv[2], 0);

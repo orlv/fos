@@ -64,7 +64,7 @@ int check_ELF_image(register void *image, register size_t image_size)
   return 0;
 }
 
-tid_t execute_module(char *pathname, char *args, size_t args_len)
+tid_t execute_module(const char *pathname, const char *args, size_t args_len)
 {
   printk("procman: executing module %s\n", pathname);
 
@@ -263,7 +263,7 @@ TProcMan::TProcMan()
   
   stack = kmalloc(STACK_SIZE);
   thread = process->thread_create(0, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
-  threadlist = new List<Thread *>(thread);
+  task.active = new List<Thread *>(thread);
   system->gdt->load_tss(SEL_N(BASE_TSK_SEL), &thread->descr);
   ltr(BASE_TSK_SEL);
   lldt(0);
@@ -297,15 +297,15 @@ TProcMan::TProcMan()
   reg_thread(thread);
 }
 
-tid_t TProcMan::exec(register void *image, const string name,
-		     const string args, size_t args_len,
-		     const string envp, size_t envp_len)
+tid_t TProcMan::exec(register void *image, const char *name,
+		     const char *args, size_t args_len,
+		     const char *envp, size_t envp_len)
 {
   TProcess *process = new TProcess();
 
   process->memory = new VMM(USER_MEM_BASE, USER_MEM_SIZE);
   process->name = new char[strlen(name) + 1];
-  strcpy(process->name, name);
+  strcpy((char *)process->name, name);
 
   /* создаём каталог страниц процесса */
   process->memory->pager = new Pager(OFFSET(kmalloc(PAGE_SIZE)), MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS|MMU_PAGE_USER_ACCESSABLE);
@@ -342,7 +342,7 @@ tid_t TProcMan::exec(register void *image, const string name,
 tid_t TProcMan::reg_thread(register Thread * thread)
 {
   system->mt.disable();
-  threadlist->add_tail(thread);
+  task.active->add_tail(thread);
   thread->tid = task.tid->add(thread);
   system->mt.enable();
   return thread->tid;
@@ -363,8 +363,8 @@ List<Thread *> *TProcMan::do_kill(List<Thread *> *thread)
   system->mt.disable();
   if(thread->item->flags & FLAG_TSK_TERM) {
     TProcess *process = thread->item->process;
-    List<Thread *> *current, *n;// = threadlist;
-    list_for_each_safe(current, n, threadlist){
+    List<Thread *> *current, *n;// = task.active;
+    list_for_each_safe(current, n, task.active){
       if (current->item->process == process)
       	unreg_thread(current);
     }
@@ -375,7 +375,7 @@ List<Thread *> *TProcMan::do_kill(List<Thread *> *thread)
   }
   system->mt.enable();
   //return next;
-  return threadlist;
+  return task.active;
 }
 
 res_t TProcMan::kill(register tid_t tid, u16_t flag)

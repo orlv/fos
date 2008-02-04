@@ -251,11 +251,16 @@ TProcMan::TProcMan()
   void *stack;
   TProcess *process = new TProcess();
 
+  pid = new tindex<TProcess>(128*64, 64);
+  threads = new tindex<Thread>(128*64, 64);
+  
   process->name = "kernel";
   
   process->memory = system->kmem;
   process->memory->pager->pagedir = system->kmem->pager->pagedir;
 
+  process->pid = pid->add(process);
+  
   stack = kmalloc(STACK_SIZE);
   thread = process->thread_create(0, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
   threadlist = new List<Thread *>(thread);
@@ -264,7 +269,6 @@ TProcMan::TProcMan()
   lldt(0);
   
   current_thread = thread;
-  threads = new tindex<Thread>(128*64, 64);
   thread->tid = threads->add(thread);
   printk("kernel: multitasking ready (kernel tid=%d)\n", thread->tid);
 

@@ -59,6 +59,7 @@ OBJECTS =	main/boot/setup.o		\
 		main/idt.o			\
 		main/syscall.o  		\
 		main/main.o			\
+		main/ipc.o			\
 		main/version.o
 
 OBJECTS +=	drivers/vesafb.o		\

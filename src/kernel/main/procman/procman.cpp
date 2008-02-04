@@ -173,7 +173,7 @@ void procman_srv()
       /* завершить все потоки в адресном пространстве */
     case PROCMAN_CMD_EXIT:
       //thread = system->procman->get_thread_by_tid(msg->tid);
-      thread = system->procman->threads->get(msg->tid);
+      thread = system->procman->task.tid->get(msg->tid);
       if(system->procman->kill(thread->tid, FLAG_TSK_TERM))
 	msg->arg[0] = 1;
       else
@@ -184,7 +184,7 @@ void procman_srv()
 
       /* завершить только данный поток */
     case PROCMAN_CMD_THREAD_EXIT:
-      thread = system->procman->threads->get(msg->tid);
+      thread = system->procman->task.tid->get(msg->tid);
       //thread = system->procman->get_thread_by_tid(msg->tid);
       if(system->procman->kill(thread->tid, FLAG_TSK_EXIT_THREAD))
 	msg->arg[0] = 1;
@@ -195,7 +195,7 @@ void procman_srv()
       break;
 
     case PROCMAN_CMD_CREATE_THREAD:
-      thread = system->procman->threads->get(msg->tid);
+      thread = system->procman->task.tid->get(msg->tid);
       //thread = system->procman->get_thread_by_tid(msg->tid);
       thread = thread->process->thread_create(msg->arg[1], FLAG_TSK_READY, kmalloc(PAGE_SIZE), thread->process->memory->mmap(0, PAGE_SIZE, 0, 0, 0));
       msg->arg[0] = system->procman->reg_thread(thread);
@@ -204,7 +204,7 @@ void procman_srv()
       break;
 
     case PROCMAN_CMD_INTERRUPT_ATTACH:
-      thread = system->procman->threads->get(msg->tid);
+      thread = system->procman->task.tid->get(msg->tid);
       //thread = system->procman->get_thread_by_tid(msg->tid);
       msg->arg[0] = system->interrupt_attach(thread, msg->arg[1]);
       msg->send_size = 0;
@@ -212,7 +212,7 @@ void procman_srv()
       break;
 
     case PROCMAN_CMD_INTERRUPT_DETACH:
-      thread = system->procman->threads->get(msg->tid);
+      thread = system->procman->task.tid->get(msg->tid);
       //thread = system->procman->get_thread_by_tid(msg->tid);
       msg->arg[0] = system->interrupt_detach(thread, msg->arg[1]);
       msg->send_size = 0;
@@ -251,15 +251,15 @@ TProcMan::TProcMan()
   void *stack;
   TProcess *process = new TProcess();
 
-  pid = new tindex<TProcess>(128*64, 64);
-  threads = new tindex<Thread>(128*64, 64);
+  task.pid = new tindex<TProcess>(128*64, 64);
+  task.tid = new tindex<Thread>(128*64, 64);
   
   process->name = "kernel";
   
   process->memory = system->kmem;
   process->memory->pager->pagedir = system->kmem->pager->pagedir;
 
-  process->pid = pid->add(process);
+  process->pid = task.pid->add(process);
   
   stack = kmalloc(STACK_SIZE);
   thread = process->thread_create(0, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
@@ -269,13 +269,13 @@ TProcMan::TProcMan()
   lldt(0);
   
   current_thread = thread;
-  thread->tid = threads->add(thread);
+  thread->tid = task.tid->add(thread);
   printk("kernel: multitasking ready (kernel tid=%d)\n", thread->tid);
 
   stack = kmalloc(STACK_SIZE);
   thread = process->thread_create((off_t) &sched_srv, FLAG_TSK_KERN, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
   system->gdt->load_tss(SEL_N(BASE_TSK_SEL) + 1, &thread->descr);
-  thread->tid = threads->add(thread);
+  thread->tid = task.tid->add(thread);
   printk("kernel: scheduler thread created (tid=%d)\n", thread->tid);
 
   stack = kmalloc(STACK_SIZE);
@@ -333,7 +333,7 @@ tid_t TProcMan::exec(register void *image, const string name,
     kfree(envp_buf, envp_len);
   }
 
-  process->pid = pid->add(process);
+  process->pid = task.pid->add(process);
   reg_thread(thread);
   return thread->tid;
 }
@@ -343,7 +343,7 @@ tid_t TProcMan::reg_thread(register Thread * thread)
 {
   system->mt.disable();
   threadlist->add_tail(thread);
-  thread->tid = threads->add(thread);
+  thread->tid = task.tid->add(thread);
   system->mt.enable();
   return thread->tid;
 }
@@ -351,7 +351,7 @@ tid_t TProcMan::reg_thread(register Thread * thread)
 void TProcMan::unreg_thread(register List<Thread *> * thread)
 {
   system->mt.disable();
-  threads->remove(thread->item->tid);
+  task.tid->remove(thread->item->tid);
   delete thread->item;
   delete thread;
   system->mt.enable();
@@ -380,7 +380,7 @@ List<Thread *> *TProcMan::do_kill(List<Thread *> *thread)
 
 res_t TProcMan::kill(register tid_t tid, u16_t flag)
 {
-  Thread *thread = threads->get(tid);
+  Thread *thread = task.tid->get(tid);
   res_t result = RES_FAULT;
 
   if(thread) {

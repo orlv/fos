@@ -391,7 +391,7 @@ res_t reply(message *message)
   переадресовать сообщение другому получателю
   отправитель сообщения не меняется
   должно вызываться только привилегированным потоком
- */
+*/
 res_t forward(message *message, tid_t to)
 {
   Thread *thread;

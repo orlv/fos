@@ -332,7 +332,8 @@ tid_t TProcMan::exec(register void *image, const string name,
     thread->tss->edx = envp_len;
     kfree(envp_buf, envp_len);
   }
-  
+
+  process->pid = pid->add(process);
   reg_thread(thread);
   return thread->tid;
 }
@@ -379,7 +380,6 @@ List<Thread *> *TProcMan::do_kill(List<Thread *> *thread)
 
 res_t TProcMan::kill(register tid_t tid, u16_t flag)
 {
-  //Thread *thread = get_thread_by_tid(tid);
   Thread *thread = threads->get(tid);
   res_t result = RES_FAULT;
 
@@ -399,30 +399,3 @@ res_t TProcMan::kill(register tid_t tid, u16_t flag)
 
   return result;
 }
-
-#if 0
-/* возвращает указатель только в том случае,
-   если поток существует, и не помечен для удаления */
-Thread *TProcMan::get_thread_by_tid(register tid_t tid)
-{
-  system->mt.disable();
-  List<Thread *> *current = threadlist;
-  Thread *result = 0;
-
-  /* проходим список потоков в поисках соответствия */
-  do {
-    if ((tid_t)current->item == tid) {
-      if(current->item->flags & (FLAG_TSK_TERM | FLAG_TSK_EXIT_THREAD))
-	result = 0;
-      else
-	result = current->item;
-      
-      break;
-    }
-    current = current->next;
-  } while (current != threadlist);
-
-  system->mt.enable();
-  return result;
-}
-#endif

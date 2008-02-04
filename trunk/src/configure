@@ -1,4 +1,33 @@
 #!/bin/bash
+echo -n "Checking for gcc "
+if [ "$CC" == "" ]; then
+	CC="gcc"
+fi
+
+echo $CC
+
+echo -n "Checking for gcc can create helloworld "
+echo -e "int main(int argc, char argv[]) { return 0; }\n\n" > conftest.c
+
+if gcc conftest.c -o conftest; then
+	if ./conftest; then
+		CCVALID=1
+	else
+		CCVALID=0
+	fi
+else
+	CCVALID=0
+fi
+rm -f conftest.c conftest
+
+if [ $CCVALID == 1 ]; then
+	echo "yes"
+else
+	echo "no"
+	echo "GCC is invalid. Check for $CC validity."
+	exit 1
+fi
+
 echo -n "Checking for BSD "
 if uname | grep BSD; then
 	echo yes
@@ -29,7 +58,7 @@ XCFLAGS=
 XLDFLAGS=
 echo -n "Checking for gcc version "
 
-GCCVER=$( gcc --version 2>/dev/null | head -n 1 | cut -d ' ' -f 3 | cut -d '.' -f 1  )
+GCCVER=$( $CC --version 2>/dev/null | head -n 1 | cut -d ' ' -f 3 | cut -d '.' -f 1  )
 
 if case $GCCVER in
 	"4" )
@@ -69,7 +98,7 @@ Generated at:
 Kernel and hardware info:
 	$(uname -srmp)
 GCC version:
-	$(gcc --version | head -n 1)
+	$($CC --version | head -n 1)
 LD (binutils) version:
 	$(ld --version | head -n 1)
 Shell version:
@@ -132,9 +161,9 @@ GRUB_KERNEL  = /boot/fos
 # Базовый адрес пользовательских программ
 USER_MEM_BASE = 0x8000000
 # -----------------------------------------------------------------------------
-CC = gcc
-C++ = gcc
-AS = gcc
+CC = $CC
+C++ = $CC
+AS = $CC
 LD = ld
 AR = ar
 MAKE = $MAKE

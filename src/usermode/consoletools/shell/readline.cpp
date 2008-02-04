@@ -11,6 +11,7 @@
 
 
 static void readline_add_to_history(char *str, readline_context *c) {
+	if(str[0] == 0) return;
 	char *newstr = new char[strlen(str) + 1];
 	if(!newstr) return;
 	strcpy(newstr, str);

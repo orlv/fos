@@ -22,7 +22,7 @@ OBJECTS		+=	dhcpc/dhcpc.o
 OBJECTS		+=	resolv/resolv.o
 
 LDLIBS		=	-\( -lc -lcpp -lfos -lpci -\)
-
+CFLAGS		+=	-Wno-pointer-sign -Wno-strict-aliasing
 TARGETDIR	=	$(INITRDDIR)/bin
 
 CFLAGS+=-Icore -Ihttpd -Idhcpc -Iresolv

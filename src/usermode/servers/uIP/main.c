@@ -33,7 +33,8 @@ int main(int argc, char *argv[]) {
 	uip_setethaddr(rtl8139_mac);
 	resolv_init();
 	dhcpc_init(rtl8139_mac, 6);
-	httpd_init();
+//	httpd_init();
+	resolv_query("grindars.org.ru");
   printf("Stack started\n");
   while(1) {
     uip_len = rtl8139_poll();

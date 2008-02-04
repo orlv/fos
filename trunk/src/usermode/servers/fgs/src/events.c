@@ -533,9 +533,10 @@ void StartEventHandling()
   thread_create((off_t) & EventsThread);
   thread_create((off_t) & MappingThread);
   int iterations = 0;
-  while(ready_counter) 
+  while(ready_counter) {
+    iterations++;
     sched_yield();
- 
-  printf("FGS: Event handling subsystem started up\n", iterations);
+  }
+  printf("FGS: Event handling subsystem started up (%u iterations)\n", iterations);
 }
 

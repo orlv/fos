@@ -55,7 +55,7 @@
  * the form a.b.c.d and converts it into a 4-byte array that can be
  * used by other uIP functions.
  *
- * \param addrstr A pointer to a string containing the IP address in
+ * \param addrstr A pointer to a char *containing the IP address in
  * textual form.
  *
  * \param addr A pointer to a 4-byte array that will be filled in with

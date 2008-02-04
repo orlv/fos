@@ -141,7 +141,7 @@ int ModuleFS::count() {
   return mbi->mods_count;
 }
 
-int ModuleFS::access(const string name)
+int ModuleFS::access(const char *name)
 {
   char *_name = (char *) __get_name(name);
   /* Ищем соответствующее имя файла */

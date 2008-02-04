@@ -130,7 +130,7 @@ asmlinkage int main()
   return 0;
 }
 
-static inline size_t p_len(string p)
+static inline size_t p_len(const char *p)
 {
   size_t i = 0;
 
@@ -139,13 +139,13 @@ static inline size_t p_len(string p)
   return i;
 }
 
-List < string > *path_strip(const string path)
+List < char *> *path_strip(const char *path)
 {
-  string name;
+  char *name;
   size_t len;
-  string p = path;
+  const char *p = path;
 
-  List < string > *lpath = 0;
+  List < char *> *lpath = 0;
 
   while (1) {
     while (*p == '/')
@@ -158,7 +158,7 @@ List < string > *path_strip(const string path)
       if (lpath)
 	lpath->add_tail(name);
       else
-	lpath = new List < string > (name);
+	lpath = new List < char *> (name);
       p += len;
     } else
       break;
@@ -167,12 +167,12 @@ List < string > *path_strip(const string path)
   return lpath;
 }
 
-Tobject::Tobject(const string name)
+Tobject::Tobject(const char *name)
 {
   set_name(name);
 }
 
-Tobject::Tobject(const string name, sid_t sid)
+Tobject::Tobject(const char *name, sid_t sid)
 {
   this->sid = sid;
   set_name(name);
@@ -191,7 +191,7 @@ Tobject::~Tobject()
   delete sub_objects;
 }
 
-void Tobject::set_name(const string name)
+void Tobject::set_name(const char *name)
 {
   delete this->name;
   this->name = new char[strlen(name) + 1];
@@ -199,7 +199,7 @@ void Tobject::set_name(const string name)
   strcpy(this->name, name);
 }
 
-Tobject *Tobject::add_sub(const string name, sid_t sid)
+Tobject *Tobject::add_sub(const char *name, sid_t sid)
 {
   Tobject *object = new Tobject(name, sid);
 
@@ -211,7 +211,7 @@ Tobject *Tobject::add_sub(const string name, sid_t sid)
   return object;
 }
 
-Tobject *Tobject::add_sub(const string name)
+Tobject *Tobject::add_sub(const char *name)
 {
   Tobject *object = new Tobject(name);
 
@@ -223,7 +223,7 @@ Tobject *Tobject::add_sub(const string name)
   return object;
 }
 
-Tobject *Tobject::access(const string name)
+Tobject *Tobject::access(const char *name)
 {
   if (!sub_objects)
     return 0;
@@ -249,20 +249,20 @@ Namer::Namer()
 }
 
 /* режет строку пути на список из элементов пути */
-List < string > *path_strip(const string path);
+List < char *> *path_strip(const char *path);
 
-Tobject *Namer::resolve(string name)
+Tobject *Namer::resolve(char *name)
 {
   if (strlen(name) == 1 && (strcmp(name, ".") || strcmp(name, "/"))) {
     return rootdir;
   }
 
-  List < string > *path = path_strip(name);
-  List < string > *entry = path;
+  List < char *> *path = path_strip(name);
+  List < char *> *entry = path;
   Tobject *object = rootdir;
   Tobject *obj = object;
 
-  List < string > *e = path;
+  List < char *> *e = path;
 
   /* отыщем сервер */
   do {
@@ -311,16 +311,16 @@ Tobject *Namer::resolve(string name)
   добавляет запись об последнем объекте пути
   если промежуточных элементов не существует - они создаются
  */
-Tobject *Namer::add(const string name, sid_t sid)
+Tobject *Namer::add(const char *name, sid_t sid)
 {
   if (strlen(name) == 1 && (strcmp(name, ".") || strcmp(name, "/"))) {
     rootdir->sid = sid;
     return rootdir;
   }
 
-  List < string > *path = path_strip(name);
-  List < string > *entry = path;
-  string n;
+  List < char *> *path = path_strip(name);
+  List < char *> *entry = path;
+  char *n;
 
   Tobject *object = rootdir;
   Tobject *obj;
@@ -337,7 +337,7 @@ Tobject *Namer::add(const string name, sid_t sid)
     entry = entry->next;
   } while (entry != path);
 
-  List < string > *e;
+  List < char *> *e;
   list_for_each_safe(entry, e, path) {
     delete entry;
   }

@@ -181,9 +181,9 @@ PT_THREAD(psock_send(struct psock *psock, const char *buf, unsigned int len));
 /**
  * \brief      Send a null-terminated string.
  * \param psock Pointer to the protosocket.
- * \param str  The string to be sent.
+ * \param str  The char *to be sent.
  *
- *             This function sends a null-terminated string over the
+ *             This function sends a null-terminated char *over the
  *             protosocket.
  *
  * \hideinitializer

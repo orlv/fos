@@ -20,7 +20,7 @@ void sched_srv()
 
 void TProcMan::scheduler()
 {
-  List<Thread *> *curr = threadlist;
+  List<Thread *> *curr = task.active;
   u32_t _uptime;
 
   while (1) {

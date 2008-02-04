@@ -36,9 +36,6 @@
 #define FLAG_TSK_SYSCALL      0x40 /* поток выполняет системный вызов */
 
 class TProcMan {
- private:
-  List<Thread *> *threadlist;
-
  public:
   TProcMan();
 
@@ -54,9 +51,9 @@ class TProcMan {
   void unreg_thread(register List<Thread *> *thread);
 
   
-  tid_t exec(register void *image, const string name,
-	     const string args, size_t args_len,
-	     const string envp, size_t envp_len);
+  tid_t exec(register void *image, const char *name,
+	     const char *args, size_t args_len,
+	     const char *envp, size_t envp_len);
   void scheduler();
   List<Thread *> *do_kill(List<Thread *> *thread);
   res_t kill(register tid_t tid, u16_t flag);

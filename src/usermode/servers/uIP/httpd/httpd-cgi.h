@@ -65,7 +65,7 @@ struct httpd_cgi_call {
 /**
  * \brief      HTTPD CGI function declaration
  * \param name The C variable name of the function
- * \param str  The string name of the function, used in the script file
+ * \param str  The char *name of the function, used in the script file
  * \param function A pointer to the function that implements it
  *
  *             This macro is used for declaring a HTTPD CGI

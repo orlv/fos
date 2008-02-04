@@ -31,13 +31,13 @@ class Thread {
   ~Thread();
   void run();
 
-  class TProcess *process;
+  class TProcess *process; /* процесс, в рамках которого запущена нить */
   struct TSS *tss;
 
   tid_t tid;
   gdt_entry descr;
   u16_t flags;
-  tid_t send_to;
+  tid_t send_to; /* при отправке сообщения, здесь указывается адресат */
   void set_tss(register off_t eip,
 	       register void *kernel_stack,
 	       register void *user_stack,

@@ -1,6 +1,6 @@
 /*
   fos/process.h
-  Copyright (C) 2005-2007 Oleg Fedorov
+  Copyright (C) 2005-2008 Oleg Fedorov
 */
 
 #ifndef _FOS_PROCESS_H
@@ -15,8 +15,8 @@ class TProcess {
   ~TProcess();
   void run();
 
+  pid_t pid;
   List<Thread *> *threads;
-  List<Thread *> *waiting;
   VMM *memory;
   u32_t LoadELF(register void *image);
   string name;

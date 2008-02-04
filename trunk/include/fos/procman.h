@@ -1,6 +1,6 @@
 /*
   include/fos/procman.h
-  Copyright (C) 2007 Oleg Fedorov
+  Copyright (C) 2007-2008 Oleg Fedorov
  */
 
 #ifndef _FOS_PROCMAN_H
@@ -36,16 +36,19 @@
 #define FLAG_TSK_SYSCALL      0x40 /* поток выполняет системный вызов */
 
 class TProcMan {
-private:
+ private:
   List<Thread *> *threadlist;
   
-public:
+ public:
   TProcMan();
 
-  tindex<Thread> *threads;
+  tindex<Thread> *threads; /* список tid */
+  tindex<TProcess> *pid;   /* список pid */
+  
   tid_t reg_thread(register Thread *thread);
   void unreg_thread(register List<Thread *> *thread);
 
+  
   tid_t exec(register void *image, const string name,
 	     const string args, size_t args_len,
 	     const string envp, size_t envp_len);
@@ -55,11 +58,6 @@ public:
   u32_t curr_proc;
   Thread *current_thread;
 };
-
-/*static inline tid_t TID(Thread *thread)
-{
-  return thread->tid;
-  }*/
 
 #endif /* iKERNEL */
 

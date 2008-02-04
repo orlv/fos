@@ -37,10 +37,12 @@ struct message {
   void * recv_buf;
   size_t recv_size;
 
+  pid_t  pid;
   tid_t  tid;
+  
   u32_t  flags;
   arg_t  arg[MSG_ARGS_CNT];
-} __attribute__ ((packed));
+};
 
 #ifdef iKERNEL
 

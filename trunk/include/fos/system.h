@@ -161,7 +161,7 @@ static inline int free_page(u32_t n)
 
 static inline Thread * THREAD(tid_t tid)
 {
-  return system->procman->threads->get(tid);
+  return system->procman->task.tid->get(tid);
 }
 
 #endif

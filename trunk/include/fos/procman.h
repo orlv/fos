@@ -38,12 +38,17 @@
 class TProcMan {
  private:
   List<Thread *> *threadlist;
-  
+
  public:
   TProcMan();
 
-  tindex<Thread> *threads; /* список tid */
-  tindex<TProcess> *pid;   /* список pid */
+  struct {
+    List<Thread *> *active; /* готовый к выполнению */
+    List<Thread *> *wait;   /* ожидающий события    */
+    List<Thread *> *zombie; /* ожидающий завершения */
+    tindex<Thread> *tid;    /* список tid           */
+    tindex<TProcess> *pid;  /* список pid           */
+  } task;
   
   tid_t reg_thread(register Thread *thread);
   void unreg_thread(register List<Thread *> *thread);

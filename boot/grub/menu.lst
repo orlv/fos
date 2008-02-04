@@ -2,7 +2,7 @@
 timeout 0
 default 0
 hiddenmenu
-title FOS - FOS is Operating System (VERSION 0.0.46.2, BUILD 20080203)
+title FOS - FOS is Operating System (VERSION 0.0.46.2, BUILD 20080204)
 	root(cd0)
 	kernel /boot/fos
 	module /boot/modules/namer

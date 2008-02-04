@@ -48,7 +48,7 @@ int main(int argc, char *argv)
   init_windowing();
   StartEventHandling();
   exec("/usr/bin/taskbar", NULL);
-  exec("/usr/bin/fterm", NULL);
+//  exec("/usr/bin/fterm", NULL);
   printf("FGS: Started up shell (/usr/bin/taskbar)\n");
   SetBusy(-1);
   for (;;) {

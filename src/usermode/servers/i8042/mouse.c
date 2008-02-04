@@ -4,6 +4,7 @@
 #include <fos/message.h>
 #include <stdio.h>
 #include "mouse.h"
+#include "keyboard.h"
 #include "i8042.h"
 
 #define debug_printf printf
@@ -97,7 +98,7 @@ static void make_move()
  * Process a byte, received from mouse.
  * Return 1 when new move record is generated.
  */
-void receive_byte(unsigned char byte)
+void mouse_receive_byte(unsigned char byte)
 {
   if (count == 0 && !(byte & 8))
     return;
@@ -133,6 +134,8 @@ void receive_byte(unsigned char byte)
  * Return 0 when a new move record is generated and
  * a signal to mouse task is needed.
  */
+
+
 void mouse_ps2_interrupt()
 {
   unsigned char c, sts, strobe;
@@ -141,15 +144,15 @@ void mouse_ps2_interrupt()
 
   c = inb(KBD_DATA);
   if (!(sts & KBSTS_AUX_DATAVL)) {
+    keyboard_receive_byte(c);
     unmask_interrupt(12);
     return;
   }
-
   strobe = inb(KBDC_XT_CTL);
   outb(strobe | KBDC_XT_CLEAR, KBDC_XT_CTL);
   outb(strobe, KBDC_XT_CTL);
 
-  receive_byte(c);
+  mouse_receive_byte(c);
   unmask_interrupt(12);
 }
 

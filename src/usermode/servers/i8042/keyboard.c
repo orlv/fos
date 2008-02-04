@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "keyboard.h"
+#include "mouse.h"
 #include "i8042.h"
 
 #define debug_printf printf
@@ -154,7 +155,7 @@ static int set_rate_delay(int cps, int msec)
   return i8042_kbd_command(KBDK_TYPEMATIC, param);
 }
 
-static void receive_byte(unsigned char scancode)
+void keyboard_receive_byte(unsigned char scancode)
 {
   int released;
 
@@ -235,7 +236,12 @@ void keyboard_ps2_interrupt()
   strobe = inb(KBDC_XT_CTL);
   outb(strobe | KBDC_XT_CLEAR, KBDC_XT_CTL);
   outb(strobe, KBDC_XT_CTL);
-  receive_byte(c);
+  if(sts & KBSTS_AUX_DATAVL) {
+    mouse_receive_byte(c);
+    unmask_interrupt(1);
+    return;
+  }
+  keyboard_receive_byte(c);
   unmask_interrupt(1);
 }
 

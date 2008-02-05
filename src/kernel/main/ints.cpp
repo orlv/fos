@@ -58,7 +58,8 @@ void exception(const char *str, unsigned int cs,  unsigned int address, unsigned
     printk("fault in user task! task terminated\n");
     dump_stack(ebp);
     system->procman->current_thread->flags |= FLAG_TSK_TERM;
-    system->procman->current_thread->flags &= ~FLAG_TSK_READY;
+    #warning см. сюда
+    //system->procman->current_thread->flags &= ~FLAG_TSK_READY;
     while(1) sched_yield();
   }
 }

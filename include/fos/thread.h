@@ -18,6 +18,7 @@
 #define WFLAG_SEND   0x01
 #define WFLAG_RECV   0x02
 #define WFLAG_SIGNAL 0x02
+#define WFLAG_KILL   0x04
 
 class Thread {
  private:

@@ -77,10 +77,17 @@ void ParseLine(char *line)
       char *tty = new char[strlen(tokens[2]) + 1];
       strcpy(tty, tokens[2]);
       setenv("STDOUT", tty, 0);
-      setenv("STDIN", tty, 0);
      do {
         stdout = fopen(tty, "w");
       } while(!stdout);
+    } else if(!strcmp(tokens[1], "open_in")) {
+      char *tty = new char[strlen(tokens[2]) + 1];
+      strcpy(tty, tokens[2]);
+      setenv("STDIN", tty, 0);
+     do {
+        stdin = fopen(tty, "w");
+      } while(!stdin);
+      fclose(stdin);
     }
     return;
   }

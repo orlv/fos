@@ -50,7 +50,8 @@ void syscall_exit()
 {
   system->procman->current_thread->flags &= ~FLAG_TSK_SYSCALL;
   if((system->procman->current_thread->flags & FLAG_TSK_TERM) || (system->procman->current_thread->flags & FLAG_TSK_EXIT_THREAD)) {
-    system->procman->current_thread->flags &= ~FLAG_TSK_READY;
+#warning см. сюда
+    //system->procman->current_thread->flags &= ~FLAG_TSK_READY;
     sched_yield();
   }
 }

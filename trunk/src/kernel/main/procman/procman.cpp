@@ -197,7 +197,7 @@ void procman_srv()
     case PROCMAN_CMD_CREATE_THREAD:
       thread = system->procman->task.tid->get(msg->tid);
       //thread = system->procman->get_thread_by_tid(msg->tid);
-      thread = thread->process->thread_create(msg->arg[1], FLAG_TSK_READY, kmalloc(PAGE_SIZE), thread->process->memory->mmap(0, PAGE_SIZE, 0, 0, 0));
+      thread = thread->process->thread_create(msg->arg[1], 0/*FLAG_TSK_READY*/, kmalloc(PAGE_SIZE), thread->process->memory->mmap(0, PAGE_SIZE, 0, 0, 0));
       msg->arg[0] = system->procman->reg_thread(thread);
       msg->send_size = 0;
       reply(msg);
@@ -264,7 +264,7 @@ TProcMan::TProcMan()
   process->pid = task.pid->add(process);
   
   stack = kmalloc(STACK_SIZE);
-  thread = process->thread_create(0, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
+  thread = process->thread_create(0, FLAG_TSK_KERN /*| FLAG_TSK_READY*/, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
   task.wait = new List<Thread *>(thread);
   thread->me = task.active = new List<Thread *>(thread);
   system->gdt->load_tss(SEL_N(BASE_TSK_SEL), &thread->descr);
@@ -282,21 +282,21 @@ TProcMan::TProcMan()
   printk("kernel: scheduler thread created (tid=%d)\n", thread->tid);
 
   stack = kmalloc(STACK_SIZE);
-  thread = process->thread_create((off_t) &procman_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
+  thread = process->thread_create((off_t) &procman_srv, FLAG_TSK_KERN /*| FLAG_TSK_READY*/, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
   reg_thread(thread);
   printk("kernel: procman added to threads list (tid=%d)\n", thread->tid);
   
   stack = kmalloc(STACK_SIZE);
-  thread = process->thread_create((off_t) &mm_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
+  thread = process->thread_create((off_t) &mm_srv, FLAG_TSK_KERN /* | FLAG_TSK_READY*/, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
   reg_thread(thread);
   printk("kernel: mm_srv added to threads list (tid=%d)\n", thread->tid);
   
   stack = kmalloc(STACK_SIZE);
-  thread = process->thread_create((off_t) &grub_modulefs_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
+  thread = process->thread_create((off_t) &grub_modulefs_srv, FLAG_TSK_KERN /*| FLAG_TSK_READY*/, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
   reg_thread(thread);
 
   stack = kmalloc(STACK_SIZE);
-  thread = process->thread_create((off_t) &vesafb_srv, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
+  thread = process->thread_create((off_t) &vesafb_srv, FLAG_TSK_KERN /*| FLAG_TSK_READY*/, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
   reg_thread(thread);
 }
 
@@ -318,7 +318,7 @@ tid_t TProcMan::exec(register void *image, const char *name,
   }
 
   off_t eip = process->LoadELF(image);
-  Thread *thread = process->thread_create(eip, FLAG_TSK_READY, kmalloc(STACK_SIZE), process->memory->mmap(0, STACK_SIZE, 0, 0, 0));
+  Thread *thread = process->thread_create(eip, 0 /*FLAG_TSK_READY*/, kmalloc(STACK_SIZE), process->memory->mmap(0, STACK_SIZE, 0, 0, 0));
 
   if(args) {
     char *args_buf = (char *) kmalloc(args_len);
@@ -383,6 +383,8 @@ List<Thread *> *TProcMan::do_kill(List<Thread *> *thread)
 
 res_t TProcMan::kill(register tid_t tid, u16_t flag)
 {
+  printk("procman: kill not implemented!\n");
+#if 0
   Thread *thread = task.tid->get(tid);
   res_t result = RES_FAULT;
 
@@ -401,4 +403,6 @@ res_t TProcMan::kill(register tid_t tid, u16_t flag)
   }
 
   return result;
+#endif
+  return 0;
 }

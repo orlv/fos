@@ -15,6 +15,10 @@
 #include <c++/atomic.h>
 #include <fos/signal.h>
 
+#define WFLAG_SEND   0x01
+#define WFLAG_RECV   0x02
+#define WFLAG_SIGNAL 0x02
+
 class Thread {
  private:
   off_t stack_pl0;
@@ -29,14 +33,20 @@ class Thread {
 	 u16_t data_segment=USER_DATA_SEGMENT);
 
   ~Thread();
+
   void run();
+  void start(u32_t flag);
+  void wait(u32_t flag);
+
+  List<Thread *> *me;
 
   class TProcess *process; /* процесс, в рамках которого запущена нить */
   struct TSS *tss;
 
   tid_t tid;
   gdt_entry descr;
-  u16_t flags;
+  u32_t wflags; /* флаги ожидания */
+  u32_t flags;
   tid_t send_to; /* при отправке сообщения, здесь указывается адресат */
   void set_tss(register off_t eip,
 	       register void *kernel_stack,
@@ -49,7 +59,6 @@ class Thread {
       List<kmessage *> list;
       atomic_t count;
     } unread;
-
     struct {
       List<kmessage *> list;
       atomic_t count;
@@ -59,12 +68,7 @@ class Thread {
   
   struct {
     u32_t time;
-    inline u32_t get() {
-      return time;
-    };
-    inline void set(u32_t time) {
-      this->time = time;
-    };
+    List<Thread *> *timer;
   } alarm;
   
   List<signal *> signals;
@@ -75,6 +79,7 @@ class Thread {
     sig->n = n;
     signals.add_tail(sig);
     signals_cnt.inc();
+    start(WFLAG_SIGNAL);
   }
   void parse_signals();
 };

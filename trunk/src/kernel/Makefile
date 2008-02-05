@@ -96,7 +96,7 @@ all:    $(OBJECTS)
 
 install:
 	cp fos $(KERNEL_PATHNAME)
-	strip $(KERNEL_PATHNAME)
+#	strip $(KERNEL_PATHNAME)
 
 
 #--------------------------------- Clean -------------------------------------#

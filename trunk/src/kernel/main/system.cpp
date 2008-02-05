@@ -25,14 +25,14 @@ void SYSTEM::panic(register const char *fmt, ...)
   vsprintf(panic_buf, fmt, args);
   va_end(args);
 
-  printk("\n--------------------------------------------------------------------------------");
+  printk("\n-------------------------------------------------------------------------------\n");
   printk("Kernel panic: %s \n", panic_buf);
   u16_t id = curPID();
   printk("ID: %d \n", id);
   if (procman->current_thread)
     printk("PID: %d \n", procman->current_thread->process);
   printk("System Halted!\n");
-  printk("--------------------------------------------------------------------------------");
+  printk("--------------------------------------------------------------------------------\n");
   halt();
 }
 

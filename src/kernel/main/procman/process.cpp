@@ -77,7 +77,7 @@ u32_t TProcess::LoadELF(register void *image)
 Thread *TProcess::thread_create(off_t eip, u16_t flags,	void * kernel_stack, void * user_stack, u16_t code_segment, u16_t data_segment)
 {
   Thread *thread = new Thread(this, eip, flags, kernel_stack, user_stack , code_segment, data_segment);
-
+  
   if(!threads){
     threads = new List<Thread *>(thread);
   } else {

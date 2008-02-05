@@ -21,39 +21,48 @@ void sched_srv()
 void TProcMan::scheduler()
 {
   List<Thread *> *curr = task.active;
+  current_thread = curr->item;
   u32_t _uptime;
 
   while (1) {
     _uptime = kuptime();
-    
+    timer.check(_uptime);
     /* Выбираем следующий подходящий для запуска поток */
-    do {
-      if(((curr->item->flags & FLAG_TSK_TERM) || (curr->item->flags & FLAG_TSK_EXIT_THREAD)) && !(curr->item->flags & FLAG_TSK_SYSCALL)){
+    //do {
+      /*      if(((curr->item->flags & FLAG_TSK_TERM) || (curr->item->flags & FLAG_TSK_EXIT_THREAD)) && !(curr->item->flags & FLAG_TSK_SYSCALL)){
 	curr->item->flags &= ~FLAG_TSK_READY;
 	curr = do_kill(curr);
 	continue;
-      } else
-	curr = curr->next;
+	} else */
 
-      /* если установлен и истек таймер -- отправляем сигнал */
-      if(curr->item->alarm.get() && curr->item->alarm.get() < _uptime){
-        curr->item->alarm.set(0);
-        curr->item->put_signal(0, SIGNAL_ALARM);
-      }
+    if(!current_thread->wflags && (curr != task.active)){
+      curr->move_tail(task.active);
+    }
 
-      /* если пришли сигналы -- отправляем соответствующие сообщения */
-      if(curr->item->signals_cnt.value()){
-        curr->item->parse_signals();
-      }
+    curr = task.active->next;
+    current_thread = curr->item;
+    
+    /* если установлен и истек таймер -- отправляем сигнал */
+    /*    if(curr->item->alarm.get() && curr->item->alarm.get() < _uptime){
+      curr->item->alarm.set(0);
+      curr->item->put_signal(0, SIGNAL_ALARM);
+      }*/
+    if(curr->item->alarm.time && curr->item->alarm.time <= _uptime){
+      curr->item->alarm.time = 0;
+      curr->item->put_signal(0, SIGNAL_ALARM);
+    }
+
+    /* если пришли сигналы -- отправляем соответствующие сообщения */
+    if(curr->item->signals_cnt.value()){
+      curr->item->parse_signals();
+    }
       
       /* Процесс готов к запуску? */
-      if ((curr->item->flags & FLAG_TSK_READY) &&
+      /*      if ((curr->item->flags & FLAG_TSK_READY) &&
 	  !((curr->item->flags & FLAG_TSK_SEND) || (curr->item->flags & FLAG_TSK_RECV)))
 	break;
-    } while (1);
-
-    current_thread = curr->item;
-
+	} while (1);*/
+    //printk("[%s]\n", curr->item->process->name);
     /*
      * Переключимся на выбранный процесс
      */

@@ -24,6 +24,8 @@ Thread::Thread(class TProcess *process, off_t eip, u16_t flags, void * kernel_st
 
 Thread::~Thread()
 {
+  printk("Terminating threads not implemented!\n");
+#if 0
   for(int n=0; n<256; n++){
     if(system->user_int_handler[n] == this){
       system->pic->mask(n);
@@ -48,6 +50,7 @@ Thread::~Thread()
 
   kfree((void *)stack_pl0, STACK_SIZE);
   kfree((void *)tss, sizeof(TSS));
+#endif
 }
 
 void Thread::set_tss(register off_t eip,
@@ -84,6 +87,19 @@ void Thread::run()
   __asm__ __volatile__("ljmp $0x38, $0");
 }
 
+void Thread::start(u32_t flag)
+{
+  wflags &= ~flag; /* сбросим флаг */
+  if(!wflags)
+    system->procman->activate(me);
+}
+
+void Thread::wait(u32_t flag)
+{
+  system->procman->stop(me);
+  wflags |= flag;
+}
+
 res_t Thread::put_message(kmessage *message)
 {
   system->mt.disable();
@@ -94,7 +110,7 @@ res_t Thread::put_message(kmessage *message)
 
   messages.unread.list.add_tail(message);
   messages.unread.count.inc();
-  flags &= ~FLAG_TSK_RECV;	/* сбросим флаг ожидания получения сообщения (если он там есть) */
+  start(WFLAG_RECV); /* сбросим флаг ожидания получения сообщения (если он там есть) */
 
   system->mt.enable();
   return RES_SUCCESS;
@@ -104,6 +120,7 @@ void Thread::parse_signals()
 {
   List<signal *> *curr, *n;
 
+  //printk("[%s]\n", process->name);
   list_for_each_safe(curr, n, (&signals)) {
     kmessage *message = new kmessage;
     message->size = 0;

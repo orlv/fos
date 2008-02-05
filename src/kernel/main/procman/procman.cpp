@@ -253,6 +253,8 @@ TProcMan::TProcMan()
 
   task.pid = new tindex<TProcess>(128*64, 64);
   task.tid = new tindex<Thread>(128*64, 64);
+
+  timer.threads = new List<Thread *>;
   
   process->name = "kernel";
   
@@ -263,7 +265,8 @@ TProcMan::TProcMan()
   
   stack = kmalloc(STACK_SIZE);
   thread = process->thread_create(0, FLAG_TSK_KERN | FLAG_TSK_READY, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
-  task.active = new List<Thread *>(thread);
+  task.wait = new List<Thread *>(thread);
+  thread->me = task.active = new List<Thread *>(thread);
   system->gdt->load_tss(SEL_N(BASE_TSK_SEL), &thread->descr);
   ltr(BASE_TSK_SEL);
   lldt(0);
@@ -342,7 +345,7 @@ tid_t TProcMan::exec(register void *image, const char *name,
 tid_t TProcMan::reg_thread(register Thread * thread)
 {
   system->mt.disable();
-  task.active->add_tail(thread);
+  thread->me = task.active->add_tail(thread);
   thread->tid = task.tid->add(thread);
   system->mt.enable();
   return thread->tid;

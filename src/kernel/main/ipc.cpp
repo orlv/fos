@@ -12,7 +12,7 @@
 
 static void wait_message()
 {
-  system->procman->current_thread->flags |= FLAG_TSK_RECV;
+  system->procman->current_thread->wait(WFLAG_RECV);
   system->mt.enable();
   sched_yield();
   system->mt.disable();
@@ -56,7 +56,8 @@ static void kill_message(kmessage *message)
   message->size = 0;
   Thread *thread = message->thread;
   if(!(message->flags & MSG_ASYNC))
-    thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
+    thread->start(WFLAG_SEND);
+    //thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
 }
 
 static inline bool check_message(message *message, int flags)
@@ -300,8 +301,12 @@ res_t send(message *message)
   //system->mt.disable();
   thread->messages.unread.list.add_tail(send_message);       /* добавим сообщение процессу-получателю */
   thread->messages.unread.count.inc();
-  thread->flags &= ~FLAG_TSK_RECV;	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
-  send_message->thread->flags |= FLAG_TSK_SEND;	 /* ожидаем ответа */
+  //thread->flags &= ~FLAG_TSK_RECV;	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
+  thread->start(WFLAG_RECV);
+  
+  //send_message->thread->flags |= FLAG_TSK_SEND;	 /* ожидаем ответа */
+  send_message->thread->wait(WFLAG_SEND);
+  
   system->mt.enable();
   sched_yield();                                 /*  ожидаем ответа  */
 
@@ -355,7 +360,8 @@ res_t reply(message *message)
     system->mt.disable();
     delete entry; /* удалим запись о сообщении из списка полученных сообщений */
     if(!(send_message->flags & MSG_ASYNC))
-      send_message->thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
+      send_message->thread->start(WFLAG_SEND); /* сбросим у отправителя флаг TSK_SEND */
+      //send_message->thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
     system->mt.enable();
     return RES_SUCCESS;
   }
@@ -381,7 +387,8 @@ res_t reply(message *message)
   system->mt.disable();
   delete entry; /* удалим запись о сообщении из списка полученных сообщений */
   //if(TID(thread) > 0x1000)
-  thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
+  thread->start(WFLAG_SEND); /* сбросим у отправителя флаг TSK_SEND */
+  //thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
   system->mt.enable();
 
   return RES_SUCCESS;
@@ -456,7 +463,8 @@ res_t forward(message *message, tid_t to)
   entry->move_tail(&thread->messages.unread.list);
   thread->messages.unread.count.inc();
   system->procman->current_thread->messages.read.count.dec();
-  thread->flags &= ~FLAG_TSK_RECV;	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
+  thread->start(WFLAG_RECV);	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
+  //thread->flags &= ~FLAG_TSK_RECV;	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
   system->mt.enable();
 
   return RES_SUCCESS;

@@ -62,6 +62,9 @@ class TProcMan {
       thread->alarm.time = time;
       if(!thread->alarm.timer)
 	thread->alarm.timer = threads->add_tail(thread);
+      else if(!time) {
+	delete thread->alarm.timer;
+      }
     }
     List<Thread *> *threads;
   } timer;

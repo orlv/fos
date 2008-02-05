@@ -41,6 +41,7 @@ void TProcMan::scheduler()
 
     curr = task.active->next;
     current_thread = curr->item;
+    //printk("[%s]\n", curr->item->process->name);
     
     /* если установлен и истек таймер -- отправляем сигнал */
     /*    if(curr->item->alarm.get() && curr->item->alarm.get() < _uptime){

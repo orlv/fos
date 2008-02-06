@@ -59,12 +59,58 @@ class Thread {
     struct {
       List<kmessage *> list;
       atomic_t count;
+
+      inline List<kmessage *> *get(Thread *sender, u32_t flags){
+	List<kmessage *> *entry;
+	/* пройдём по списку в поисках нужного сообщения */
+	list_for_each (entry, list) {
+	if(entry->item->thread == sender)
+	  return entry;
+	}
+	/* сообщение не найдено, и не придёт */
+	if(sender && count.value() > MAX_MSG_COUNT)
+	  return -1;
+	
+	/* сообщение не найдено, но можно повторить попытку позже */
+	return 0;
+      }
     } unread;
+
     struct {
       List<kmessage *> list;
       atomic_t count;
     } read;
+
+    /* находит сообщение в списке непрочтённых */
+    inline kmessage *get(Thread *sender, u32_t flags) {
+      kmessage *msg;
+      List<kmessage *> *entry;
+
+      if((from) || (flags & MSG_ASYNC)) {
+	entry = unread.get(sender, flags);
+      } else { /* любое сообщение */
+	entry = (unread.count.value())?(unread.list.next):(0);
+      }
+
+      if(!entry || (entry == -1)) return (kmessage *)entry; /* возврат ошибки */
+
+      msg = entry->item;
+      if (!(msg->flags & MSG_ASYNC)){ /* перемещаем сообщение в очередь полученных сообщений */
+	entry->move_tail(&read.list);
+	read.count.inc();
+      } else /* убираем сообщение из списков */
+	delete entry; 
+
+      unread.count.dec();
+      return msg;
+    }
   } messages;
+
+  /*  inline void wait_message(){
+    wait(WFLAG_RECV);
+    sched_yield();
+    }*/
+
   res_t put_message(kmessage *message);
   
   struct {

@@ -96,8 +96,11 @@ void Thread::start(u32_t flag)
 
 void Thread::wait(u32_t flag)
 {
-  system->procman->stop(me);
+#warning потенциальная блокировка!
+  if(!wflags)
+    system->procman->stop(me);
   wflags |= flag;
+  sched_yield();
 }
 
 res_t Thread::put_message(kmessage *message)

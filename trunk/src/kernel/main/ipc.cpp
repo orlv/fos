@@ -206,6 +206,7 @@ res_t receive(message *msg)
 
 #warning Добавить lock страниц буфера при отправке (во избежание освобождения этих станиц другим потоком процесса)
 
+#error ЗАКОНЧИТЬ ЭТУ ЧАСТЬ КОДА
 res_t send(message *msg)
 {
   if(check_message(msg, MSG_CHK_SENDBUF | MSG_CHK_RECVBUF | MSG_CHK_FLAGS))

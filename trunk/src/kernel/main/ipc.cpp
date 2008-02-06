@@ -10,45 +10,47 @@
 #include <fos/drivers/char/timer/timer.h>
 #include <string.h>
 
-/*
-static void wait_message()
+List<kmessage *> * Messenger::msg_list::get(Thread *sender, u32_t flags)
 {
-  system->procman->current_thread->wait(WFLAG_RECV);
-  system->mt.enable();
-  sched_yield();
-  system->mt.disable();
+  List<kmessage *> *entry;
+  /* пройдём по списку в поисках нужного сообщения */
+  list_for_each (entry, list) {
+    if(entry->item->thread == sender)
+      return entry;
+  }
+  /* сообщение не найдено, и не придёт */
+  if(sender && count.value() > MAX_MSG_COUNT)
+    return -1;
+      
+  /* сообщение не найдено, но можно повторить попытку позже */
+  return 0;
 }
-*/
-/*
-static List<kmessage *> *get_any_message()
-{
-  system->mt.disable();
-  if (!system->procman->current_thread->messages.unread.count.value())
-    wait_message();
 
-  return system->procman->current_thread->messages.unread.list.next;
-  }*/
-
- /*
-static List<kmessage *> *get_message_from(Thread *from)
+/* находит сообщение в списке непрочтённых */
+kmessage *Messenger::get(Thread *sender, u32_t flags)
 {
-  system->mt.disable();
-  List<kmessage *> *messages = &system->procman->current_thread->messages.unread.list;
+  kmessage *msg;
   List<kmessage *> *entry;
 
-  while(1) {
-    list_for_each (entry, messages) {
-      if(entry->item->thread == from)
-	return entry;
-    }
-
-    if (from && system->procman->current_thread->messages.unread.count.value() > MAX_MSG_COUNT)
-      return 0;
-    
-    wait_message();
+  if((from) || (flags & MSG_ASYNC)) {
+    entry = unread.get(sender, flags);
+  } else { /* любое сообщение */
+    entry = (unread.count.value())?(unread.list.next):(0);
   }
+
+  if(!entry || (entry == -1)) return (kmessage *)entry; /* возврат ошибки */
+
+  msg = entry->item;
+  if (!(msg->flags & MSG_ASYNC)){ /* перемещаем сообщение в очередь полученных сообщений */
+    entry->move_tail(&read.list);
+    read.count.inc();
+  } else /* убираем сообщение из списков */
+    delete entry; 
+
+  unread.count.dec();
+  return msg;
 }
-*/
+
 #define MSG_CHK_SENDBUF  1
 #define MSG_CHK_RECVBUF  2
 #define MSG_CHK_FLAGS    4
@@ -114,110 +116,35 @@ kernel: message->send_buf=0x%X\n", OFFSET(message->send_buf));
   return 0;
 }
 
-#if 0
-static kmessage * get_message(tid_t from, u32_t flags)
+
+void kmessage::init(u32_t flags, message *msg)
 {
-  //List<kmessage *> *entry;
-  kmessage *message;
+  /* проверим флаги */
 
-  if((flags & MSG_ASYNC))
-    message = get_message_from(0);
-  else if(from)
-    message = get_message_from(THREAD(from));
-  else
-    entry = get_any_message();
-  
-  if(!entry) {
-    system->mt.enable();
-    return 0;
-  }
-
-  kmessage *message = entry->item;
-
-#if 0 /* вариант проверки флагов с удалением неподходящих сообщений */
-  if((flags & MSG_MEM_TAKE)) {
-    if((message->flags & MSG_MEM_SEND)) break;
-    else {
-      delete entry;
-      kill_message(message);
-      continue;
-    }
-  } else if(flags & MSG_MEM_SHARE) {
-    if((message->flags & MSG_MEM_SHARE)) break;
-    else {
-      delete entry;
-      kill_message(message);
-      continue;
-    }
-  } else if(message->flags & (MSG_MEM_SEND | MSG_MEM_SHARE)) {
-    delete entry;
-    kill_message(message);
-  }
-#endif
-  
-  /* сверяем флаги */
   if(flags & MSG_MEM_TAKE) {
-    if(!(message->flags & MSG_MEM_SEND)){
-      //printk("trunk1\n");
-      message->size = 0; /* при несовпадении флагов не передаем буфер, передаем только аргументы */
+    if(!(this->flags & MSG_MEM_SEND)){
+      size = 0; /* при несовпадении флагов не передаем буфер, передаем только аргументы */
     }
   } else if(flags & MSG_MEM_SHARE) {
-    if(!(message->flags & MSG_MEM_SHARE)){
-      //printk("trunk2\n");
-      message->size = 0;
+    if(!(this->flags & MSG_MEM_SHARE)){
+      size = 0;
     }
-  } else if((message->flags & (MSG_MEM_SEND | MSG_MEM_SHARE))) {
-    //printk("trunk3\n");
-    message->size = 0;
+  } else if((this->flags & (MSG_MEM_SEND | MSG_MEM_SHARE))) {
+    size = 0;
   }
-  //break;
-  //}
-  Thread *current_thread = system->procman->current_thread;  
-  //printk("[0x%X]", message->thread);
-  if (!(message->flags & MSG_ASYNC)){ /* перемещаем сообщение в очередь полученных сообщений */
-    entry->move_tail(&current_thread->messages.read.list);
-    current_thread->messages.read.count.inc();
-  } else
-    delete entry; /* убираем сообщение из очереди новых сообщений */
 
-  current_thread->messages.unread.count.dec();
-  system->mt.enable();
+  msg->send_size = reply_size;
   
-  return message;
-}
-#endif
-
-static void msg_check_share_flags(kmsg *message, u32_t flags)
-{
-  if(flags & MSG_MEM_TAKE) {
-    if(!(message->flags & MSG_MEM_SEND)){
-      message->size = 0; /* при несовпадении флагов не передаем буфер, передаем только аргументы */
-    }
-  } else if(flags & MSG_MEM_SHARE) {
-    if(!(message->flags & MSG_MEM_SHARE)){
-      message->size = 0;
-    }
-  } else if((message->flags & (MSG_MEM_SEND | MSG_MEM_SHARE))) {
-    message->size = 0;
-  }
-}
-
-static void msg_calc_size(kmessage *kmsg, message *msg)
-{
-  size_t size = kmsg->size;
-  msg->send_size = kmsg->reply_size;
-
-  /*  if((message->flags & (MSG_MEM_SEND | MSG_MEM_SHARE))){
-      printk("SHM! rs=0x%X\n", rcv_size);
-    }*/
+  /* проверим соответствие размеров буферов
+     решаем, сколько байт сообщения копировать */
   
-  if (size > msg->recv_size) /* решаем, сколько байт сообщения копировать */
-    kmsg->size = size = msg->recv_size;
+  if(size > msg->recv_size)
+    size = msg->recv_size;
   else
     msg->recv_size = size;
 }
 
-static void msg_copy(kmessage *kmsg, message *msg)
+void Messenger::import(kmessage *kmsg, message *msg)
 {
   if (kmsg->size) {
     size_t size = kmsg->size;
@@ -225,28 +152,36 @@ static void msg_copy(kmessage *kmsg, message *msg)
       memcpy(msg->recv_buf, kmsg->buffer, rcv_size); /* копируем сообщение из ядра в память получателя */
       delete (u32_t *) kmsg->buffer; /* переданные данные больше не нужны в ядре, освобождаем память */
     } else {
-      rcv_size &= ~0xfff;
-      if(rcv_size) {
+      size &= ~0xfff;
+      if(size) {
 	/* монтируем буфер в свободное место адр. пр-ва получателя */
-	//printk("kernel: buf=[0x%X] rcv_size=[0x%X]", received_message->buffer, rcv_size);
-	message->recv_buf = system->procman->current_thread->process->memory->mmap(0, rcv_size, 0, OFFSET(received_message->buffer), received_message->thread->process->memory);
+	msg->recv_buf = thread->process->memory->mmap(0, size, 0, OFFSET(kmsg->buffer), kmsg->thread->process->memory);
 	
-	if(message->flags & MSG_MEM_SEND) /* демонтируем буфер из памяти отправителя */
-	  received_message->thread->process->memory->munmap(OFFSET(received_message->buffer), received_message->size);
+	if(kmsg->flags & MSG_MEM_SEND) /* демонтируем буфер из памяти отправителя */
+	  kmsg->thread->process->memory->munmap(OFFSET(kmsg->buffer), kmsg->size);
       }
     }
   }
 
-  message->arg[0] = received_message->arg[0];
-  message->arg[1] = received_message->arg[1];
-  message->arg[2] = received_message->arg[2];
-  message->arg[3] = received_message->arg[3];
+  msg->arg[0] = kmsg->arg[0];
+  msg->arg[1] = kmsg->arg[1];
+  msg->arg[2] = kmsg->arg[2];
+  msg->arg[3] = kmsg->arg[3];
 
+  if((kmsg->flags & MSG_ASYNC)) { 
+    msg->tid = 0;
+    msg->pid = 0;
+    msg->flags &= MSG_ASYNC;
+    delete kmsg; /* асинхронные сообщения не требуют ответа, сразу удаляем из ядра */
+  } else {
+    msg->tid = kmsg->thread->tid; /* укажем отправителя сообщения */
+    msg->pid = kmsg->thread->process->pid;
+  }
 }
 
 res_t receive(message *msg)
 {
-  if(check_message(message, MSG_CHK_RECVBUF))
+  if(check_message(msg, MSG_CHK_RECVBUF))
     return RES_FAULT;
 
   kmessage *kmsg = 0;
@@ -254,78 +189,26 @@ res_t receive(message *msg)
   Thread *sender = (msg->tid)?(THREAD(msg->tid)):(0);
   
   while(!kmsg){
-    kmsg = me->message.get(sender, msg->flags);
+    kmsg = me->messages.get(sender, msg->flags);
     if(!kmsg)
       wait(WFLAG_RECV);
   }
   if(kmsg == -1) return RES_FAULT;
 
-  /*  обработка сообщения  */
-  msg_check_share_flags(flags);
-  size_t rcv_size = msg_calc_size(kmsg, msg);
+  /*  подготовка сообщения  */
+  kmsg.init(flags, msg);
+
+  /* передача сообщения в пространство пользователя */
+  messages.import(kmsg, msg);
   
-#if 0  
-  //printk("receive [%s]\n", system->procman->current_thread->process->name);
-  //kmessage *received_message = get_message(message->tid, message->flags);
-  //if(!received_message) return RES_FAULT;
-
-  size_t rcv_size = received_message->size;
-  message->send_size = received_message->reply_size;
-
-  /*  if((message->flags & (MSG_MEM_SEND | MSG_MEM_SHARE))){
-    printk("SHM! rs=0x%X\n", rcv_size);
-    }*/
-  
-  if (rcv_size > message->recv_size) /* решаем, сколько байт сообщения копировать */
-    rcv_size = message->recv_size;
-  else
-    message->recv_size = rcv_size;
-#endif
-
-#if 0
-  if (rcv_size) {
-    if(!(received_message->flags & (MSG_MEM_SEND | MSG_MEM_SHARE))) {
-      /* копируем сообщение из ядра в память получателя */
-      memcpy(message->recv_buf, received_message->buffer, rcv_size);
-      delete (u32_t *) received_message->buffer; /* переданные данные больше не нужны в ядре, освобождаем память */
-    } else {
-      //printk("shared message!\n");
-      rcv_size &= ~0xfff;
-      if(rcv_size) {
-	/* монтируем буфер в свободное место адр. пр-ва получателя */
-	//printk("kernel: buf=[0x%X] rcv_size=[0x%X]", received_message->buffer, rcv_size);
-	message->recv_buf = system->procman->current_thread->process->memory->mmap(0, rcv_size, 0, OFFSET(received_message->buffer), received_message->thread->process->memory);
-	
-	if(message->flags & MSG_MEM_SEND) /* демонтируем буфер из памяти отправителя */
-	  received_message->thread->process->memory->munmap(OFFSET(received_message->buffer), received_message->size);
-      }
-    }
-  }
-
-  message->arg[0] = received_message->arg[0];
-  message->arg[1] = received_message->arg[1];
-  message->arg[2] = received_message->arg[2];
-  message->arg[3] = received_message->arg[3];
-#endif
-  
-  if((received_message->flags & MSG_ASYNC)) { 
-    message->tid = 0;
-    message->pid = 0;
-    message->flags &= MSG_ASYNC;
-    delete received_message; /* асинхронные сообщения не требуют ответа, сразу удаляем из ядра */
-  } else {
-    message->tid = received_message->thread->tid; /* укажем отправителя сообщения */
-    message->pid = received_message->thread->process->pid;
-  }
-
   return RES_SUCCESS;
 }
 
 #warning Добавить lock страниц буфера при отправке (во избежание освобождения этих станиц другим потоком процесса)
 
-res_t send(message *message)
+res_t send(message *msg)
 {
-  if(check_message(message, MSG_CHK_SENDBUF | MSG_CHK_RECVBUF | MSG_CHK_FLAGS))
+  if(check_message(msg, MSG_CHK_SENDBUF | MSG_CHK_RECVBUF | MSG_CHK_FLAGS))
     return RES_FAULT;
 
   Thread *thread; /* процесс-получатель */

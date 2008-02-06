@@ -46,13 +46,40 @@ struct message {
 
 #ifdef iKERNEL
 
-struct kmessage {
+class kmessage {
+ public:
   void * buffer;
   size_t size;
   size_t reply_size;
   class Thread * volatile thread;
   u32_t flags;
   arg_t  arg[MSG_ARGS_CNT];
+  void init(u32_t flags, message *msg);
+};
+
+class msg_list {
+  List<kmessage *> list;
+  atomic_t count;
+  List<kmessage *> *get(Thread *sender, u32_t flags);
+};
+
+class Messenger {
+ private:
+  class Thread *thread;
+ public:
+  Messenger(class Thread *thread) {
+    this->thread = thread;
+  }
+
+  msg_list unread;
+  msg_list read;
+
+  /* переместить сообщение в пространство процесса */
+  void import(kmessage *kmsg, message *msg);
+
+  res_t put_message(kmessage *message);
+  /* находит сообщение в списке непрочтённых */
+  kmessage *get(Thread *sender, u32_t flags);
 };
 
 #endif

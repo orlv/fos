@@ -10,15 +10,10 @@
 #include <fos/printk.h>
 
 Thread::Thread(class TProcess *process, off_t eip, u16_t flags, void * kernel_stack, void * user_stack, u16_t code_segment, u16_t data_segment)
+  :Messenger(this)
 {
-  //kmessage *_msg = new(kmessage);
-  //  new_messages = new List<kmessage *>(_msg);      /* пустое сообщение */
-  //  received_messages = new List<kmessage *>(_msg); /* пустое сообщение */
-  
   this->process = process;
-
   set_tss(eip, kernel_stack, user_stack, code_segment, data_segment);
-
   this->flags = flags;
 }
 

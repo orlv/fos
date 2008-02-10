@@ -14,11 +14,12 @@
 #include <c++/list.h>
 #include <c++/atomic.h>
 #include <fos/signal.h>
+//#include <fos/system.h>
 
-#define WFLAG_SEND   0x01
-#define WFLAG_RECV   0x02
-#define WFLAG_SIGNAL 0x02
-#define WFLAG_KILL   0x04
+//#define WFLAG_SEND   0x01
+//#define WFLAG_RECV   0x02
+//#define WFLAG_SIGNAL 0x02
+//#define WFLAG_KILL   0x04
 
 class Thread {
  private:
@@ -46,7 +47,32 @@ class Thread {
 
   tid_t tid;
   gdt_entry descr;
-  u32_t wflags; /* флаги ожидания */
+
+  bool wstate;
+  bool wflag; /* ожидание сообщения */
+  void activate();
+  void stop();
+  
+  inline void start(){
+    if(wflag) {
+      wflag = 0;
+      if(wstate) {
+	wstate = 0;
+	activate();
+      }
+    }
+  }
+
+  inline void wait(){
+    if(wflag) {
+      stop();
+      wstate = 1;
+      extern atomic_t mt_state;
+      mt_state.set(0);
+      sched_yield();
+    }
+  }
+  
   u32_t flags;
   tid_t send_to; /* при отправке сообщения, здесь указывается адресат */
   void set_tss(register off_t eip,
@@ -75,7 +101,7 @@ class Thread {
     sig->n = n;
     signals.add_tail(sig);
     signals_cnt.inc();
-    start(WFLAG_SIGNAL);
+    start();
   }
   void parse_signals();
 };

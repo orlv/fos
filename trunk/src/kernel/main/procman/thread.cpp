@@ -82,20 +82,14 @@ void Thread::run()
   __asm__ __volatile__("ljmp $0x38, $0");
 }
 
-void Thread::start(u32_t flag)
+void Thread::activate()
 {
-  wflags &= ~flag; /* сбросим флаг */
-  if(!wflags)
-    system->procman->activate(me);
+  system->procman->activate(me);
 }
 
-void Thread::wait(u32_t flag)
+void Thread::stop()
 {
-#warning потенциальная блокировка!
-  if(!wflags)
-    system->procman->stop(me);
-  wflags |= flag;
-  sched_yield();
+  system->procman->stop(me);
 }
 
 void Thread::parse_signals()

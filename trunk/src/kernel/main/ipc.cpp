@@ -62,7 +62,7 @@ res_t Messenger::put_message(kmessage *message)
   unread.list.add_tail(message);
   unread.count.inc();
 
-  thread->start(WFLAG_RECV); /* сбросим флаг ожидания получения сообщения (если он там есть) */
+  thread->start();
 
   system->mt.enable();
   return RES_SUCCESS;
@@ -78,7 +78,7 @@ static void kill_message(kmessage *message)
   message->size = 0;
   Thread *thread = message->thread;
   if(!(message->flags & MSG_ASYNC))
-    thread->start(WFLAG_SEND);
+    thread->start();
     //thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
 }
 
@@ -229,12 +229,15 @@ res_t receive(message *msg)
   kmessage *kmsg = 0;
   Thread *me = system->procman->current_thread;
   Thread *sender = (msg->tid)?(THREAD(msg->tid)):(0);
-  
-  while(!kmsg){
+
+  system->mt.disable();
+    
+  do {
+    me->wflag = 1;
     kmsg = me->messages->get(sender, msg->flags);
     if(!kmsg)
-      me->wait(WFLAG_RECV);
-  }
+      me->wait();
+  } while(!kmsg);
   if((s32_t)kmsg == -1) return RES_FAULT;
 
   /*  подготовка сообщения  */
@@ -294,11 +297,14 @@ res_t send(message *msg)
   kmessage *kmsg = recipient->messages->import(msg, me);
 
   /* разблокируем получателя */
-  recipient->start(WFLAG_RECV); 
+  recipient->start();
 
-  /* ждём ответа */
-  me->wait(WFLAG_SEND);
-
+  /* Остановка. Ждём ответа */
+  me->wait();
+  //me->wstate = 1;
+  //system->procman->stop(me);
+  //system->mt.enable();
+  //sched_yield();
 
   /*
    * Обрабатываем ответ:
@@ -361,7 +367,8 @@ res_t reply(message *msg)
   if(sender->flags & (FLAG_TSK_TERM | FLAG_TSK_EXIT_THREAD)) {
     /* поток-отправитель ожидает завершения */
     delete entry; /* удалим запись о сообщении из списка полученных сообщений */
-    kmsg->thread->start(WFLAG_SEND); /* сбросим у отправителя флаг SEND */
+    system->procman->activate(kmsg->thread->me);
+    //kmsg->thread->start(); /* сбросим у отправителя флаг SEND */
     return RES_SUCCESS;
   }
   //printk("reply [%s]->[0x%X]\n", system->procman->current_thread->process->name, send_message->thread /*->process->name*/);
@@ -383,7 +390,8 @@ res_t reply(message *msg)
   kmsg->arg[3] = msg->arg[3];
 
   delete entry; /* удалим запись о сообщении из списка полученных сообщений */
-  sender->start(WFLAG_SEND); /* сбросим у отправителя флаг SEND */
+  //sender->start(WFLAG_SEND); /* сбросим у отправителя флаг SEND */
+  system->procman->activate(sender->me);
 
   return RES_SUCCESS;
 }
@@ -450,7 +458,8 @@ res_t forward(message *message, tid_t to)
   entry->move_tail(&recipient->messages->unread.list);
   recipient->messages->unread.count.inc();
   system->procman->current_thread->messages->read.count.dec();
-  recipient->start(WFLAG_RECV);	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
+  //recipient->start(WFLAG_RECV);	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
+  system->procman->activate(recipient->me);
 
   return RES_SUCCESS;
 }

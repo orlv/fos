@@ -35,7 +35,14 @@ void TProcMan::scheduler()
 	continue;
 	} else */
 
-    if(!current_thread->wflags && (curr != task.active)){
+    system->cli();
+    if(current_thread->wstate && !current_thread->wflag){
+      current_thread->wstate = 0;
+      activate(current_thread->me);
+    }
+    system->sti();
+    
+    if(!current_thread->wstate && (curr != task.active)){
       curr->move_tail(task.active);
     }
 

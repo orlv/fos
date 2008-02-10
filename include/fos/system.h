@@ -54,9 +54,6 @@ class SYSTEM {
   SYSTEM(register multiboot_info_t * mbi);
   
   TProcMan *procman;
-  /*  tid_t tid_procman;
-  tid_t tid_namer;
-  tid_t tid_mm;*/
   GDT *gdt;
   IDT *idt;
   PIC *pic;

@@ -46,6 +46,9 @@ struct message {
 
 #ifdef iKERNEL
 
+#include <c++/atomic.h>
+#include <c++/list.h>
+
 class kmessage {
  public:
   void * buffer;
@@ -54,10 +57,11 @@ class kmessage {
   class Thread * volatile thread;
   u32_t flags;
   arg_t  arg[MSG_ARGS_CNT];
-  void init(u32_t flags, message *msg);
+  void check_size(message *msg);
 };
 
 class msg_list {
+ public:
   List<kmessage *> list;
   atomic_t count;
   List<kmessage *> *get(Thread *sender, u32_t flags);
@@ -75,7 +79,8 @@ class Messenger {
   msg_list read;
 
   /* переместить сообщение в пространство процесса */
-  void import(kmessage *kmsg, message *msg);
+  kmessage *import(message *msg, Thread *sender);
+  void move_to_userspace(kmessage *kmsg, message *msg);
 
   res_t put_message(kmessage *message);
   /* находит сообщение в списке непрочтённых */

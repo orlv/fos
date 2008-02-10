@@ -11,7 +11,7 @@
 #define O_TRUNC		(1 << 3)
 #define O_RDONLY	(1 << 4)
 #define O_WRONLY	(1 << 5)
+
 userlinkage int open(const char *pathname, int flags);
-//userlinkage int open2(const char *pathname, int flags);
 
 #endif

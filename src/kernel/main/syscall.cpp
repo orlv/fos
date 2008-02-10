@@ -48,6 +48,7 @@ void syscall_enter()
 
 void syscall_exit()
 {
+  __mt_on();
   system->procman->current_thread->flags &= ~FLAG_TSK_SYSCALL;
   if((system->procman->current_thread->flags & FLAG_TSK_TERM) || (system->procman->current_thread->flags & FLAG_TSK_EXIT_THREAD)) {
 #warning см. сюда

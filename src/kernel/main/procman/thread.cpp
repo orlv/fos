@@ -10,8 +10,8 @@
 #include <fos/printk.h>
 
 Thread::Thread(class TProcess *process, off_t eip, u16_t flags, void * kernel_stack, void * user_stack, u16_t code_segment, u16_t data_segment)
-  :Messenger(this)
 {
+  Messenger(this);
   this->process = process;
   set_tss(eip, kernel_stack, user_stack, code_segment, data_segment);
   this->flags = flags;
@@ -98,22 +98,6 @@ void Thread::wait(u32_t flag)
   sched_yield();
 }
 
-res_t Thread::put_message(kmessage *message)
-{
-  system->mt.disable();
-  if(messages.unread.count.value() >= MAX_MSG_COUNT){
-    system->mt.enable();
-    return RES_FAULT2;
-  }
-
-  messages.unread.list.add_tail(message);
-  messages.unread.count.inc();
-  start(WFLAG_RECV); /* сбросим флаг ожидания получения сообщения (если он там есть) */
-
-  system->mt.enable();
-  return RES_SUCCESS;
-}
-
 void Thread::parse_signals()
 {
   List<signal *> *curr, *n;
@@ -126,7 +110,7 @@ void Thread::parse_signals()
     message->arg[1] = curr->item->data;
     message->flags = MSG_ASYNC;
     message->thread = 0;
-    put_message(message);
+    messages->put_message(message);
     delete curr->item;
     delete curr;
     signals_cnt.dec();

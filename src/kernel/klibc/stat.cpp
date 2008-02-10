@@ -2,6 +2,8 @@
   Copyright (C) 2007 Oleg Fedorov
  */
 
+#undef iKERNEL
+
 #include <fos/message.h>
 #include <fos/fs.h>
 #include <string.h>

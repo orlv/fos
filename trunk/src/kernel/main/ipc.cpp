@@ -10,17 +10,17 @@
 #include <fos/drivers/char/timer/timer.h>
 #include <string.h>
 
-List<kmessage *> * Messenger::msg_list::get(Thread *sender, u32_t flags)
+List<kmessage *> *msg_list::get(Thread *sender, u32_t flags)
 {
   List<kmessage *> *entry;
   /* пройдём по списку в поисках нужного сообщения */
-  list_for_each (entry, list) {
+  list_for_each (entry, (&list)) {
     if(entry->item->thread == sender)
       return entry;
   }
   /* сообщение не найдено, и не придёт */
   if(sender && count.value() > MAX_MSG_COUNT)
-    return -1;
+    return (List<kmessage *> *)-1;
       
   /* сообщение не найдено, но можно повторить попытку позже */
   return 0;
@@ -32,13 +32,13 @@ kmessage *Messenger::get(Thread *sender, u32_t flags)
   kmessage *msg;
   List<kmessage *> *entry;
 
-  if((from) || (flags & MSG_ASYNC)) {
+  if((sender) || (flags & MSG_ASYNC)) {
     entry = unread.get(sender, flags);
   } else { /* любое сообщение */
     entry = (unread.count.value())?(unread.list.next):(0);
   }
 
-  if(!entry || (entry == -1)) return (kmessage *)entry; /* возврат ошибки */
+  if(!entry || ((s32_t)entry == -1)) return (kmessage *)entry; /* возврат ошибки */
 
   msg = entry->item;
   if (!(msg->flags & MSG_ASYNC)){ /* перемещаем сообщение в очередь полученных сообщений */
@@ -49,6 +49,23 @@ kmessage *Messenger::get(Thread *sender, u32_t flags)
 
   unread.count.dec();
   return msg;
+}
+
+res_t Messenger::put_message(kmessage *message)
+{
+  system->mt.disable();
+  if(unread.count.value() >= MAX_MSG_COUNT){
+    system->mt.enable();
+    return RES_FAULT2;
+  }
+
+  unread.list.add_tail(message);
+  unread.count.inc();
+
+  thread->start(WFLAG_RECV); /* сбросим флаг ожидания получения сообщения (если он там есть) */
+
+  system->mt.enable();
+  return RES_SUCCESS;
 }
 
 #define MSG_CHK_SENDBUF  1
@@ -116,40 +133,35 @@ kernel: message->send_buf=0x%X\n", OFFSET(message->send_buf));
   return 0;
 }
 
-
-void kmessage::init(u32_t flags, message *msg)
+void kmessage::check_size(message *msg)
 {
   /* проверим флаги */
-
-  if(flags & MSG_MEM_TAKE) {
-    if(!(this->flags & MSG_MEM_SEND)){
+  if(msg->flags & MSG_MEM_TAKE) {
+    if(!(flags & MSG_MEM_SEND))
       size = 0; /* при несовпадении флагов не передаем буфер, передаем только аргументы */
-    }
-  } else if(flags & MSG_MEM_SHARE) {
-    if(!(this->flags & MSG_MEM_SHARE)){
+  } else if(msg->flags & MSG_MEM_SHARE) {
+    if(!(flags & MSG_MEM_SHARE))
       size = 0;
-    }
-  } else if((this->flags & (MSG_MEM_SEND | MSG_MEM_SHARE))) {
+  } else if((flags & (MSG_MEM_SEND | MSG_MEM_SHARE)))
     size = 0;
-  }
 
   msg->send_size = reply_size;
   
   /* проверим соответствие размеров буферов
      решаем, сколько байт сообщения копировать */
-  
   if(size > msg->recv_size)
     size = msg->recv_size;
   else
     msg->recv_size = size;
 }
 
-void Messenger::import(kmessage *kmsg, message *msg)
+/* экспорт сообщения в пользовательское пространство памяти */
+void Messenger::move_to_userspace(kmessage *kmsg, message *msg)
 {
   if (kmsg->size) {
     size_t size = kmsg->size;
     if(!(kmsg->flags & (MSG_MEM_SEND | MSG_MEM_SHARE))) {
-      memcpy(msg->recv_buf, kmsg->buffer, rcv_size); /* копируем сообщение из ядра в память получателя */
+      memcpy(msg->recv_buf, kmsg->buffer, size); /* копируем сообщение из ядра в память получателя */
       delete (u32_t *) kmsg->buffer; /* переданные данные больше не нужны в ядре, освобождаем память */
     } else {
       size &= ~0xfff;
@@ -179,6 +191,36 @@ void Messenger::import(kmessage *kmsg, message *msg)
   }
 }
 
+/* импорт сообщения в пространство памяти ядра */
+kmessage *Messenger::import(message *msg, Thread *sender)
+{
+  kmessage *kmsg = new kmessage;
+  kmsg->flags = msg->flags;
+  kmsg->size  = msg->send_size;
+
+  if(kmsg->size) {
+    if(!(msg->flags & (MSG_MEM_SEND | MSG_MEM_SHARE))) {
+      /* скопируем сообщение в память ядра */
+      kmsg->buffer = new char[kmsg->size];
+      memcpy(kmsg->buffer, msg->send_buf, kmsg->size);
+    } else
+      kmsg->buffer = (void *) msg->send_buf;
+  }
+
+  kmsg->arg[0] = msg->arg[0];
+  kmsg->arg[1] = msg->arg[1];
+  kmsg->arg[2] = msg->arg[2];
+  kmsg->arg[3] = msg->arg[3];
+  
+  kmsg->reply_size = msg->recv_size;
+  kmsg->thread = sender;
+
+  unread.list.add_tail(kmsg);       /* добавим сообщение процессу-получателю */
+  unread.count.inc();
+  
+  return kmsg;
+}
+
 res_t receive(message *msg)
 {
   if(check_message(msg, MSG_CHK_RECVBUF))
@@ -189,173 +231,159 @@ res_t receive(message *msg)
   Thread *sender = (msg->tid)?(THREAD(msg->tid)):(0);
   
   while(!kmsg){
-    kmsg = me->messages.get(sender, msg->flags);
+    kmsg = me->messages->get(sender, msg->flags);
     if(!kmsg)
-      wait(WFLAG_RECV);
+      me->wait(WFLAG_RECV);
   }
-  if(kmsg == -1) return RES_FAULT;
+  if((s32_t)kmsg == -1) return RES_FAULT;
 
   /*  подготовка сообщения  */
-  kmsg.init(flags, msg);
+  kmsg->check_size(msg);
 
-  /* передача сообщения в пространство пользователя */
-  messages.import(kmsg, msg);
+  /* вывод сообщения в пространство пользователя */
+  me->messages->move_to_userspace(kmsg, msg);
   
   return RES_SUCCESS;
 }
 
 #warning Добавить lock страниц буфера при отправке (во избежание освобождения этих станиц другим потоком процесса)
 
-#error ЗАКОНЧИТЬ ЭТУ ЧАСТЬ КОДА
 res_t send(message *msg)
 {
   if(check_message(msg, MSG_CHK_SENDBUF | MSG_CHK_RECVBUF | MSG_CHK_FLAGS))
     return RES_FAULT;
 
-  Thread *thread; /* процесс-получатель */
+  Thread *recipient; /* процесс-получатель */
 
   system->mt.disable();
-  thread = THREAD(message->tid);
+  recipient = THREAD(msg->tid);
 
-  //printk("send [%s]->[%s] \n", system->procman->current_thread->process->name, thread->process->name);
-  
-  if (!thread){
-    message->send_size = 0;
-    system->mt.enable();
+  //printk("send [%s]->[%s] \n", system->procman->current_thread->process->name, recipient->process->name);
+
+  /* 
+   * Проверки возможности отправки сообщения:
+   */
+
+  /* получателя не существует */
+  if (!recipient){
+    msg->send_size = 0;
     return RES_FAULT;
   }
 
-  //  system->mt.enable(); /* #1 */
-
-  if(thread->messages.unread.count.value() >= MAX_MSG_COUNT){
-    message->send_size = 0;
-    system->mt.enable();
+  /* очередь сообщений получателя переполнена */
+  if(recipient->messages->unread.count.value() >= MAX_MSG_COUNT){
+    msg->send_size = 0;
     return RES_FAULT2;
   }
 
-  Thread *my_thread = system->procman->current_thread;
-  /* простое предупреждение взаимоблокировки */
-  my_thread->send_to = thread->tid;
-  if(thread->send_to == my_thread->tid){
-    my_thread->send_to = 0;
-    message->send_size = 0;
-    system->mt.enable();
+  Thread *me = system->procman->current_thread;
+
+  me->send_to = recipient->tid;
+  /* взаимоблокировка */
+  if(recipient->send_to == me->tid){
+    me->send_to = 0;
+    msg->send_size = 0;
     return RES_FAULT3;
   }
-  
-  kmessage *send_message = new kmessage;
-  send_message->flags = message->flags;
-  send_message->size = message->send_size;
 
-  if(send_message->size) {
-    if(!(message->flags & (MSG_MEM_SEND | MSG_MEM_SHARE))) {
-      /* скопируем сообщение в память ядра */
-      send_message->buffer = new char[send_message->size];
-      memcpy(send_message->buffer, message->send_buf, send_message->size);
-    } else
-      send_message->buffer = (void *) message->send_buf;
+  /*
+   * Отправка сообщения:
+   */
+
+  /* добавляем получателю сообщение  */
+  kmessage *kmsg = recipient->messages->import(msg, me);
+
+  /* разблокируем получателя */
+  recipient->start(WFLAG_RECV); 
+
+  /* ждём ответа */
+  me->wait(WFLAG_SEND);
+
+
+  /*
+   * Обрабатываем ответ:
+   */
+  
+  /* скопируем полученный ответ в память процесса */
+  if(kmsg->reply_size) {
+    memcpy(msg->recv_buf, kmsg->buffer, kmsg->reply_size);
+    delete (u32_t *) kmsg->buffer;
   }
 
-  send_message->arg[0] = message->arg[0];
-  send_message->arg[1] = message->arg[1];
-  send_message->arg[2] = message->arg[2];
-  send_message->arg[3] = message->arg[3];
-  
-  send_message->reply_size = message->recv_size;
-  send_message->thread = my_thread;
+  msg->send_size = kmsg->size;	      /* размер дошедших данных (байт) */
+  msg->recv_size = kmsg->reply_size;  /* размер ответа (байт) */
+  msg->tid = kmsg->thread->tid;       /* ответ мог прийти не от изначального получателя,
+					 а от другого процесса (при использовании переадресации получателем) */
+  msg->pid = me->process->pid;
 
-  //system->mt.disable();
-  thread->messages.unread.list.add_tail(send_message);       /* добавим сообщение процессу-получателю */
-  thread->messages.unread.count.inc();
-  //thread->flags &= ~FLAG_TSK_RECV;	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
-  thread->start(WFLAG_RECV);
+  msg->arg[0] = kmsg->arg[0];
+  msg->arg[1] = kmsg->arg[1];
+  msg->arg[2] = kmsg->arg[2];
+  msg->arg[3] = kmsg->arg[3];
   
-  //send_message->thread->flags |= FLAG_TSK_SEND;	 /* ожидаем ответа */
-  send_message->thread->wait(WFLAG_SEND);
-  
-  system->mt.enable();
-  sched_yield();                                 /*  ожидаем ответа  */
-
-  if(send_message->reply_size) { /* скопируем полученный ответ в память процесса */
-    memcpy(message->recv_buf, send_message->buffer, send_message->reply_size);
-    delete (u32_t *) send_message->buffer;
-  }
-
-  message->send_size = send_message->size;	  /* сколько байт дошло до получателя */
-  message->recv_size = send_message->reply_size;  /* сколько байт ответа пришло */
-  message->tid = send_message->thread->tid;       /* ответ на сообщение мог прийти не от изначального получателя,
-						     а от другого процесса (при использовании получателем forward()) */
-  message->pid = send_message->thread->process->pid;
-
-  message->arg[0] = send_message->arg[0];
-  message->arg[1] = send_message->arg[1];
-  message->arg[2] = send_message->arg[2];
-  message->arg[3] = send_message->arg[3];
-  
-  delete send_message;
-  my_thread->send_to = 0;
+  delete kmsg;
+  me->send_to = 0;
 
   return RES_SUCCESS;
 }
 
-res_t reply(message *message)
+res_t reply(message *msg)
 {
-  if(check_message(message, MSG_CHK_SENDBUF))
+  if(check_message(msg, MSG_CHK_SENDBUF))
     return RES_FAULT;
 
-  kmessage *send_message = 0;
+  Thread *me = system->procman->current_thread;
+  kmessage *kmsg = 0;
   List<kmessage *> *entry;
-  List<kmessage *> *messages = &system->procman->current_thread->messages.read.list;
+  List<kmessage *> *messages = &me->messages->read.list;
 
-  /* Ищем сообщение в списке полученных (чтобы ответ дошел, пользовательское приложение не должно менять поле tid) */
   system->mt.disable();
-  list_for_each (entry, messages) {
-    send_message = entry->item;
-    if(send_message->thread == THREAD(message->tid))
-      break;
-  }
-  system->mt.enable();
+  Thread *sender = THREAD(msg->tid);
 
-  if(!send_message || (send_message->thread->tid != message->tid)){
-    message->send_size = 0;
+  if(!sender || (msg->flags & MSG_ASYNC)) {
+    msg->send_size = 0;
     return RES_FAULT;
   }
 
-  if(send_message->thread->flags & (FLAG_TSK_TERM | FLAG_TSK_EXIT_THREAD)) {
+  /* Ищем сообщение в списке полученных */
+  list_for_each (entry, messages) {
+    if(entry->item->thread == sender){
+      kmsg = entry->item;
+      break;
+    }
+  }
+
+  if(!kmsg) {
+    msg->send_size = 0;
+    return RES_FAULT;
+  }
+
+  if(sender->flags & (FLAG_TSK_TERM | FLAG_TSK_EXIT_THREAD)) {
     /* поток-отправитель ожидает завершения */
-    system->mt.disable();
     delete entry; /* удалим запись о сообщении из списка полученных сообщений */
-    if(!(send_message->flags & MSG_ASYNC))
-      send_message->thread->start(WFLAG_SEND); /* сбросим у отправителя флаг TSK_SEND */
-      //send_message->thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
-    system->mt.enable();
+    kmsg->thread->start(WFLAG_SEND); /* сбросим у отправителя флаг SEND */
     return RES_SUCCESS;
   }
   //printk("reply [%s]->[0x%X]\n", system->procman->current_thread->process->name, send_message->thread /*->process->name*/);
-  Thread *thread = send_message->thread;
-  send_message->thread = system->procman->current_thread;
+  kmsg->thread = me;
 
-  if (send_message->reply_size < message->send_size)
-    message->send_size = send_message->reply_size;
+  if(kmsg->reply_size < msg->send_size)
+    msg->send_size = kmsg->reply_size;
   else
-    send_message->reply_size = message->send_size;
+    kmsg->reply_size = msg->send_size;
 
-  if (send_message->reply_size) {
-    send_message->buffer = new char[send_message->reply_size];
-    memcpy(send_message->buffer, message->send_buf, send_message->reply_size);
+  if(kmsg->reply_size) {
+    kmsg->buffer = new char[kmsg->reply_size];
+    memcpy(kmsg->buffer, msg->send_buf, kmsg->reply_size);
   }
 
-  send_message->arg[0] = message->arg[0];
-  send_message->arg[1] = message->arg[1];
-  send_message->arg[2] = message->arg[2];
-  send_message->arg[3] = message->arg[3];
+  kmsg->arg[0] = msg->arg[0];
+  kmsg->arg[1] = msg->arg[1];
+  kmsg->arg[2] = msg->arg[2];
+  kmsg->arg[3] = msg->arg[3];
 
-  system->mt.disable();
   delete entry; /* удалим запись о сообщении из списка полученных сообщений */
-  //if(TID(thread) > 0x1000)
-  thread->start(WFLAG_SEND); /* сбросим у отправителя флаг TSK_SEND */
-  //thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
-  system->mt.enable();
+  sender->start(WFLAG_SEND); /* сбросим у отправителя флаг SEND */
 
   return RES_SUCCESS;
 }
@@ -367,71 +395,62 @@ res_t reply(message *message)
 */
 res_t forward(message *message, tid_t to)
 {
-  Thread *thread;
-  system->mt.disable();
-  thread = THREAD(to);
+  Thread *recipient;
 
-  if (!thread) {
+  system->mt.disable();
+  recipient = THREAD(to);
+
+  if (!recipient) {
     message->send_size = 0;
-    system->mt.enable();
     return RES_FAULT;
   }
 
-  if (thread->messages.unread.count.value() >= MAX_MSG_COUNT) {
+  if (recipient->messages->unread.count.value() >= MAX_MSG_COUNT) {
     message->send_size = 0;
-    system->mt.enable();
     return RES_FAULT2;
   }
 
-  Thread *thread_sender = THREAD(message->tid);
+  Thread *sender = THREAD(message->tid);
   //printk("forward [%s]->[%s] \n", thread_sender->process->name , thread->process->name);
 
   /* простое предупреждение взаимоблокировки */
-  thread_sender->send_to = thread->tid;
-  if (thread->send_to == thread_sender->tid) {
-    thread_sender->send_to = 0;
+  sender->send_to = recipient->tid;
+  if (recipient->send_to == sender->tid) {
+    sender->send_to = 0;
     message->send_size = 0;
-    system->mt.enable();
     return RES_FAULT3;
   }
 
-  kmessage *send_message = 0;
+  kmessage *kmsg = 0;
   List<kmessage *> *entry;
-  List<kmessage *> *messages = &system->procman->current_thread->messages.read.list;
+  List<kmessage *> *messages = &system->procman->current_thread->messages->read.list;
 
   /* Ищем сообщение в списке полученных */
-  //system->mt.disable();
   list_for_each (entry, messages) {
-    send_message = entry->item;
-    if(send_message->thread == thread_sender /*THREAD(message->tid)*/)
+    if(entry->item->thread == sender) {
+      kmsg = entry->item;
       break;
+    }
   }
-  //system->mt.enable();
 
-  if(!send_message || (send_message->thread != thread_sender /*THREAD(message->tid)*/)){
+  if(!kmsg){
     message->send_size = 0;
-    system->mt.enable();
     return RES_FAULT;
   }
 
   //printk("forward [%s]->[%s] \n", send_message->thread->process->name , thread->process->name);
-  
-  send_message->size = message->send_size;
-  if(send_message->size){
-    send_message->buffer = new char[send_message->size];
-    memcpy(send_message->buffer, message->send_buf, send_message->size);
-    //printk("{%s}", message->send_buf);
+  kmsg->size = message->send_size;
+  if(kmsg->size){
+    kmsg->buffer = new char[kmsg->size];
+    memcpy(kmsg->buffer, message->send_buf, kmsg->size);
   }
 
-  send_message->thread = thread_sender;
+  kmsg->thread = sender;
 
-  //system->mt.disable();
-  entry->move_tail(&thread->messages.unread.list);
-  thread->messages.unread.count.inc();
-  system->procman->current_thread->messages.read.count.dec();
-  thread->start(WFLAG_RECV);	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
-  //thread->flags &= ~FLAG_TSK_RECV;	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
-  system->mt.enable();
+  entry->move_tail(&recipient->messages->unread.list);
+  recipient->messages->unread.count.inc();
+  system->procman->current_thread->messages->read.count.dec();
+  recipient->start(WFLAG_RECV);	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
 
   return RES_SUCCESS;
 }

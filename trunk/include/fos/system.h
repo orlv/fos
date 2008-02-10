@@ -40,6 +40,11 @@ static inline bool __mt_status()
   return mt_state.value() == 0;
 }
 
+static inline void __mt_on()
+{
+  extern atomic_t mt_state;
+  mt_state.set(0);
+}
 
 class SYSTEM {
  private:

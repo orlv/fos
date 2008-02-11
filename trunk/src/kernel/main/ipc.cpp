@@ -32,6 +32,7 @@ kmessage *Messenger::get(Thread *sender, u32_t flags)
   kmessage *msg;
   List<kmessage *> *entry;
 
+  printk("boo\n");
   if((sender) || (flags & MSG_ASYNC)) {
     entry = unread.get(sender, flags);
   } else { /* любое сообщение */
@@ -234,7 +235,7 @@ res_t receive(message *msg)
     
   do {
     me->wflag = 1;
-    kmsg = me->messages->get(sender, msg->flags);
+    kmsg = me->messages.get(sender, msg->flags);
     if(!kmsg)
       me->wait();
   } while(!kmsg);
@@ -244,7 +245,7 @@ res_t receive(message *msg)
   kmsg->check_size(msg);
 
   /* вывод сообщения в пространство пользователя */
-  me->messages->move_to_userspace(kmsg, msg);
+  me->messages.move_to_userspace(kmsg, msg);
   
   return RES_SUCCESS;
 }
@@ -274,7 +275,7 @@ res_t send(message *msg)
   }
 
   /* очередь сообщений получателя переполнена */
-  if(recipient->messages->unread.count.value() >= MAX_MSG_COUNT){
+  if(recipient->messages.unread.count.value() >= MAX_MSG_COUNT){
     msg->send_size = 0;
     return RES_FAULT2;
   }
@@ -294,7 +295,7 @@ res_t send(message *msg)
    */
 
   /* добавляем получателю сообщение  */
-  kmessage *kmsg = recipient->messages->import(msg, me);
+  kmessage *kmsg = recipient->messages.import(msg, me);
 
   /* разблокируем получателя */
   recipient->start();
@@ -341,7 +342,7 @@ res_t reply(message *msg)
   Thread *me = system->procman->current_thread;
   kmessage *kmsg = 0;
   List<kmessage *> *entry;
-  List<kmessage *> *messages = &me->messages->read.list;
+  List<kmessage *> *messages = &me->messages.read.list;
 
   system->mt.disable();
   Thread *sender = THREAD(msg->tid);
@@ -413,7 +414,7 @@ res_t forward(message *message, tid_t to)
     return RES_FAULT;
   }
 
-  if (recipient->messages->unread.count.value() >= MAX_MSG_COUNT) {
+  if (recipient->messages.unread.count.value() >= MAX_MSG_COUNT) {
     message->send_size = 0;
     return RES_FAULT2;
   }
@@ -431,7 +432,7 @@ res_t forward(message *message, tid_t to)
 
   kmessage *kmsg = 0;
   List<kmessage *> *entry;
-  List<kmessage *> *messages = &system->procman->current_thread->messages->read.list;
+  List<kmessage *> *messages = &system->procman->current_thread->messages.read.list;
 
   /* Ищем сообщение в списке полученных */
   list_for_each (entry, messages) {
@@ -455,9 +456,9 @@ res_t forward(message *message, tid_t to)
 
   kmsg->thread = sender;
 
-  entry->move_tail(&recipient->messages->unread.list);
-  recipient->messages->unread.count.inc();
-  system->procman->current_thread->messages->read.count.dec();
+  entry->move_tail(&recipient->messages.unread.list);
+  recipient->messages.unread.count.inc();
+  system->procman->current_thread->messages.read.count.dec();
   //recipient->start(WFLAG_RECV);	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
   system->procman->activate(recipient->me);
 

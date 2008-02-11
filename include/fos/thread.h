@@ -81,7 +81,7 @@ class Thread {
 	       u16_t code_segment=USER_CODE_SEGMENT,
 	       u16_t data_segment=USER_DATA_SEGMENT);
 
-  Messenger *messages;
+  Messenger messages;
 
   /*  inline void wait_message(){
     wait(WFLAG_RECV);

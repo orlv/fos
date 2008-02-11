@@ -9,9 +9,9 @@
 #include <fos/pager.h>
 #include <fos/printk.h>
 
-Thread::Thread(class TProcess *process, off_t eip, u16_t flags, void * kernel_stack, void * user_stack, u16_t code_segment, u16_t data_segment)
+Thread::Thread(class TProcess *process, off_t eip, u16_t flags, void * kernel_stack, void * user_stack, u16_t code_segment, u16_t data_segment):messages(this)
 {
-  Messenger(this);
+  
   this->process = process;
   set_tss(eip, kernel_stack, user_stack, code_segment, data_segment);
   this->flags = flags;
@@ -104,7 +104,7 @@ void Thread::parse_signals()
     message->arg[1] = curr->item->data;
     message->flags = MSG_ASYNC;
     message->thread = 0;
-    messages->put_message(message);
+    messages.put_message(message);
     delete curr->item;
     delete curr;
     signals_cnt.dec();

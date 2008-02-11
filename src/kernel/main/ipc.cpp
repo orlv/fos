@@ -32,7 +32,6 @@ kmessage *Messenger::get(Thread *sender, u32_t flags)
   kmessage *msg;
   List<kmessage *> *entry;
 
-  printk("boo\n");
   if((sender) || (flags & MSG_ASYNC)) {
     entry = unread.get(sender, flags);
   } else { /* любое сообщение */

@@ -67,8 +67,8 @@ class Thread {
     if(wflag) {
       stop();
       wstate = 1;
-      extern atomic_t mt_state;
-      mt_state.set(0);
+      extern atomic_t preempt_count;
+      preempt_count.set(0);
       sched_yield();
     }
   }

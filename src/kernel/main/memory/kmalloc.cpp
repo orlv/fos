@@ -93,7 +93,7 @@ void init_memory()
   }
 
   /* ----------------- */
-  __mt_reset();
+  preempt_reset();
   
   /* --  Хип ядра  -- */
   HeapMemBlock *kheap;
@@ -183,10 +183,10 @@ void init_memory()
 void *kmalloc(register size_t size)
 {
   void *ptr;
-  system->mt.disable();
+  system->preempt.disable();
   if(!(ptr = system->kmem->mmap(0, size, 0, 0, 0)))
     system->panic("No memory left!!! \nCan't allocate 0x%X bytes of kernel memory!", size);
-  system->mt.enable();
+  system->preempt.enable();
 
   memset(ptr, 0, size);
   return ptr;
@@ -194,7 +194,7 @@ void *kmalloc(register size_t size)
 
 void kfree(register void *ptr, size_t size)
 {
-  system->mt.disable();
+  system->preempt.disable();
   system->kmem->munmap((off_t)ptr, size);
-  system->mt.enable();
+  system->preempt.enable();
 }

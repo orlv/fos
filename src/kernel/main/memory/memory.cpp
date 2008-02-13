@@ -93,7 +93,7 @@ VMM::~VMM()
 off_t VMM::alloc_free_area(register size_t &length)
 {
   memblock *p;
-  __mt_disable();
+  preempt_disable();
   List<memblock *> *curr  = FreeMem;
   /* ищем свободный блок подходящего размера */
   while(1){
@@ -102,7 +102,7 @@ off_t VMM::alloc_free_area(register size_t &length)
       break;
     curr = curr->next;
     if(curr == FreeMem){
-      __mt_enable();
+      preempt_enable();
       printk("VMM: can't allocate %d bytes of memory!\n", length);
       length = 0;
       return 0;
@@ -122,7 +122,7 @@ off_t VMM::alloc_free_area(register size_t &length)
     delete curr;
   }
 
-  __mt_enable();
+  preempt_enable();
   return vptr;
 }
 
@@ -130,7 +130,7 @@ off_t VMM::alloc_free_area(register size_t &length)
 off_t VMM::cut_free_area(off_t start, size_t &length)
 {
   memblock *p;
-  __mt_disable();
+  preempt_disable();
   List<memblock *> *curr = FreeMem;
   /* поиск необходимого блока */
   while(1) {
@@ -141,7 +141,7 @@ off_t VMM::cut_free_area(off_t start, size_t &length)
     }
     curr = curr->next;
     if ((curr == FreeMem) || (p->vptr >= start)) {
-      __mt_enable();
+      preempt_enable();
       printk("VMM: can't alloc %d bytes starting from 0x%X!\n", length, start);
       length = 0;
       return 0;
@@ -170,7 +170,7 @@ off_t VMM::cut_free_area(off_t start, size_t &length)
     p->size = start - p->vptr;
   }
   //printk("*vptr=0x%X, size=0x%X\n", p->vptr, p->size);
-  __mt_enable();
+  preempt_enable();
   return start;
 }
 
@@ -250,11 +250,11 @@ int VMM::munmap(register off_t start, register size_t length)
   length = ((length + MM_MINALLOC - 1) / MM_MINALLOC) * PAGE_SIZE;
   u32_t vptr = start;
 
-  __mt_disable();  
+  preempt_disable();  
   /* проверим, смонтированы ли страницы */
   #warning данный код следует оптимизировать
   if(!check_pages(PAGE(vptr), pager->pagedir, PAGE(length))) {
-    __mt_enable();
+    preempt_enable();
     printk("Trying to delete non-allocated page(s)!\n");
     return 0;
   }
@@ -273,7 +273,7 @@ int VMM::munmap(register off_t start, register size_t length)
     p->size = length;
     FreeMem = FreeMem->add_tail(p);
     c = FreeMem->item;
-    __mt_enable();
+    preempt_enable();
     return length;
   }
 
@@ -283,7 +283,7 @@ int VMM::munmap(register off_t start, register size_t length)
     if (c->vptr == vptr + length) {
       c->vptr = vptr;
       c->size += length;
-      __mt_enable();
+      preempt_enable();
       return length;
     }
     
@@ -298,7 +298,7 @@ int VMM::munmap(register off_t start, register size_t length)
 	delete next;
 	delete curr->next;
       }
-      __mt_enable();
+      preempt_enable();
       return length;
     }
 
@@ -309,7 +309,7 @@ int VMM::munmap(register off_t start, register size_t length)
       p->vptr = vptr;
       p->size = length;
       curr->add(p);
-      __mt_enable();
+      preempt_enable();
       return length;
     }
     
@@ -320,6 +320,6 @@ int VMM::munmap(register off_t start, register size_t length)
   p->vptr = vptr;
   p->size = length;
   curr->add_tail(p);
-  __mt_enable();
+  preempt_enable();
   return length;
 }

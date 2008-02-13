@@ -1,6 +1,6 @@
 /*
   fos/system.h
-  Copyright (C) 2007 Oleg Fedorov
+  Copyright (C) 2007-2008 Oleg Fedorov
 */
 
 #ifndef _FOS_SYSTEM_H
@@ -16,34 +16,34 @@
 #include <fos/page.h>
 #include <c++/stack.h>
 
-static inline void __mt_reset()
+static inline void preempt_reset()
 {
-  extern atomic_t mt_state;
-  mt_state.set(1);
+  extern atomic_t preempt_count;
+  preempt_count.set(1);
 }
   
-static inline void __mt_disable()
+static inline void preempt_disable()
 {
-  extern atomic_t mt_state;
-  mt_state.inc();
+  extern atomic_t preempt_count;
+  preempt_count.inc();
 }
 
-static inline void __mt_enable()
+static inline void preempt_enable()
 {
-  extern atomic_t mt_state;
-  if(mt_state.value()) mt_state.dec();
+  extern atomic_t preempt_count;
+  if(preempt_count.value()) preempt_count.dec();
 }
 
-static inline bool __mt_status()
+static inline bool preempt_status()
 {
-  extern atomic_t mt_state;
-  return mt_state.value() == 0;
+  extern atomic_t preempt_count;
+  return preempt_count.value() == 0;
 }
 
-static inline void __mt_on()
+static inline void preempt_on()
 {
-  extern atomic_t mt_state;
-  mt_state.set(0);
+  extern atomic_t preempt_count;
+  preempt_count.set(0);
 }
 
 class SYSTEM {
@@ -73,21 +73,21 @@ class SYSTEM {
 
   struct {
     inline void reset() {
-      __mt_reset();
+      preempt_reset();
     }
 
     inline void disable() {
-      __mt_disable();
+      preempt_disable();
     }
 
     inline void enable() {
-      __mt_enable();
+      preempt_enable();
     }
 
     inline bool status() {
-      return __mt_status();
+      return preempt_status();
     }
-  } mt;
+  } preempt;
   
   inline void hlt() { asm("hlt"); };
   

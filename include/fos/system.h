@@ -28,10 +28,18 @@ static inline void preempt_disable()
   preempt_count.inc();
 }
 
+static inline void preempt_enable_no_resched()
+{
+  extern atomic_t preempt_count;
+  if(preempt_count.value()) preempt_count.dec();
+}
+
 static inline void preempt_enable()
 {
   extern atomic_t preempt_count;
   if(preempt_count.value()) preempt_count.dec();
+  /*  if(!preempt_count.value() && пропущено_переключение)
+      sched_yield();*/
 }
 
 static inline bool preempt_status()

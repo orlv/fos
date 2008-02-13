@@ -344,26 +344,26 @@ tid_t TProcMan::exec(register void *image, const char *name,
 /* Добавляет поток в список */
 tid_t TProcMan::reg_thread(register Thread * thread)
 {
-  system->mt.disable();
+  system->preempt.disable();
   thread->me = task.active->add_tail(thread);
   thread->tid = task.tid->add(thread);
-  system->mt.enable();
+  system->preempt.enable();
   return thread->tid;
 }
 
 void TProcMan::unreg_thread(register List<Thread *> * thread)
 {
-  system->mt.disable();
+  system->preempt.disable();
   task.tid->remove(thread->item->tid);
   delete thread->item;
   delete thread;
-  system->mt.enable();
+  system->preempt.enable();
 }
 
 List<Thread *> *TProcMan::do_kill(List<Thread *> *thread)
 {
   List<Thread *> *next;
-  system->mt.disable();
+  system->preempt.disable();
   if(thread->item->flags & FLAG_TSK_TERM) {
     TProcess *process = thread->item->process;
     List<Thread *> *current, *n;// = task.active;
@@ -376,7 +376,7 @@ List<Thread *> *TProcMan::do_kill(List<Thread *> *thread)
     next = thread->next;
     unreg_thread(thread);
   }
-  system->mt.enable();
+  system->preempt.enable();
   //return next;
   return task.active;
 }
@@ -389,7 +389,7 @@ res_t TProcMan::kill(register tid_t tid, u16_t flag)
   res_t result = RES_FAULT;
 
   if(thread) {
-    system->mt.disable();
+    system->preempt.disable();
     if(!(thread->flags & FLAG_TSK_KERN)) {
 
       thread->flags |= flag;      /* поставим флаг завершения */
@@ -399,7 +399,7 @@ res_t TProcMan::kill(register tid_t tid, u16_t flag)
 
       result = RES_SUCCESS;
     }
-    system->mt.enable();
+    system->preempt.enable();
   }
 
   return result;

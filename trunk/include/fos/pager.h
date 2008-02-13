@@ -36,19 +36,19 @@ static inline u32_t check_pages(register u32_t log_page, register u32_t * pagedi
 {
   u32_t *pagetable = 0;
 
-  __mt_disable();
+  preempt_disable();
 
   while(count) {
     if(!pagetable) {
       pagetable = (u32_t *)(kmem_log_addr(PAGE(OFFSET(pagetable_addr(log_page, pagedir)))) * PAGE_SIZE);
       if(!pagetable) {
-	__mt_enable();
+	preempt_enable();
 	return 0;
       }
     }
     
     if(!page_phys_address(log_page, pagedir, pagetable)){
-      __mt_enable();
+      preempt_enable();
       return 0;
     }
     count--;
@@ -58,7 +58,7 @@ static inline u32_t check_pages(register u32_t log_page, register u32_t * pagedi
       pagetable = 0;
   }
   
-  __mt_enable();
+  preempt_enable();
   return 1;
 }
 

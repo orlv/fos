@@ -60,13 +60,13 @@ void vesafb_srv()
       break;
 
     case VBESRV_CMD_SET_MODE:
-      system->mt.disable();
+      system->preempt.disable();
       system->cli();
       system->pic->lock(); /* обязательно необходимо запретить все IRQ */
       vbeinfo = vbe_set_video_mode(msg.arg[1]);
       system->pic->unlock();
       system->sti();
-      system->mt.enable();
+      system->preempt.enable();
 
       if(vbeinfo) {
 	vbeinfo_l = new vbe_mode_info_block;

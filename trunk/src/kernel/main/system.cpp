@@ -12,7 +12,7 @@ SYSTEM::SYSTEM(register multiboot_info_t * mbi)
 {
   this->mbi = mbi;
   user_int_handler = new Thread* [256];
-  mt.disable();
+  preempt.disable();
 }
 
 void SYSTEM::panic(register const char *fmt, ...)

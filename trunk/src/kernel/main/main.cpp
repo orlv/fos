@@ -62,8 +62,8 @@ asmlinkage void init()
   
   printk("Kernel: start task switching\n");
  
-  system->mt.reset();  /* сбросим счетчик на 1 */
-  system->mt.enable();
+  system->preempt.reset();  /* сбросим счетчик на 1 */
+  system->preempt.enable();
 
   sched_yield();
 

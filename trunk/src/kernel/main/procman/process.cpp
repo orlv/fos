@@ -81,9 +81,9 @@ Thread *TProcess::thread_create(off_t eip, u16_t flags,	void * kernel_stack, voi
   if(!threads){
     threads = new List<Thread *>(thread);
   } else {
-    __mt_disable();
+    preempt_disable();
     threads->add_tail(thread);
-    __mt_enable();
+    preempt_enable();
   }
   return thread;
 }

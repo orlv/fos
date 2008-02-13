@@ -27,7 +27,7 @@ static void * volatile reserved_block = NULL;
 
 size_t volatile heap_free = 0;
 
-atomic_t mt_state;
+atomic_t preempt_count;
 
 void *malloc(register size_t size)
 {
@@ -42,7 +42,7 @@ void *malloc(register size_t size)
   nunits = (size + sizeof(HeapMemBlock) - 1) / sizeof(HeapMemBlock) + 1;
   //printk("{0x%X}", nunits*sizeof(HeapMemBlock));
   //heap_mutex.lock();
-  __mt_disable();
+  preempt_disable();
   //printk("\"0x%X\"", heap_free_ptr);
   if ((prevp = heap_free_ptr) == NULL) {	/* списка своб. памяти ещё нет */
     kmem_block.next = heap_free_ptr = prevp = &kmem_block;
@@ -64,14 +64,14 @@ void *malloc(register size_t size)
       //printk("(0x%x, 0x%X)=0x%X\n", p, p->size*sizeof(HeapMemBlock), (u32_t)(p + 1));
       //heap_mutex.unlock();
       heap_free -= p->size*sizeof(HeapMemBlock);
-      __mt_enable();
+      preempt_enable();
       memset((void *)(p+1), 0, size);
       return (void *)(p+1);
     }
 
     if(p == heap_free_ptr){	/* прошли первый цикл по списку */
       //heap_mutex.unlock();
-      //__mt_enable();
+      //preempt_enable();
       if(!(p = morecore(nunits*sizeof(struct HeapMemBlock)))){
 	system->panic("no free memory available in kernel heap!");
       }
@@ -130,7 +130,7 @@ void free(register void *ptr)
 
   //printk("[0x%x, 0x%x]\n", bp, bp->size*sizeof(HeapMemBlock));
   
-  __mt_disable();
+  preempt_disable();
   heap_free += bp->size*sizeof(HeapMemBlock);
   for (p = heap_free_ptr; !(p < bp && p->next > bp); p = p->next)
     if ((p >= p->next && (p < bp || p->next > bp)))
@@ -152,7 +152,7 @@ void free(register void *ptr)
 
   heap_free_ptr = p;
   
-  __mt_enable();
+  preempt_enable();
 }
 
 void *realloc(register void *ptr, register size_t size)

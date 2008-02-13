@@ -53,9 +53,9 @@ kmessage *Messenger::get(Thread *sender, u32_t flags)
 
 res_t Messenger::put_message(kmessage *message)
 {
-  system->mt.disable();
+  system->preempt.disable();
   if(unread.count.value() >= MAX_MSG_COUNT){
-    system->mt.enable();
+    system->preempt.enable();
     return RES_FAULT2;
   }
 
@@ -64,7 +64,7 @@ res_t Messenger::put_message(kmessage *message)
 
   thread->start();
 
-  system->mt.enable();
+  system->preempt.enable();
   return RES_SUCCESS;
 }
 
@@ -230,7 +230,7 @@ res_t receive(message *msg)
   Thread *me = system->procman->current_thread;
   Thread *sender = (msg->tid)?(THREAD(msg->tid)):(0);
 
-  system->mt.disable();
+  system->preempt.disable();
     
   do {
     me->wflag = 1;
@@ -258,7 +258,7 @@ res_t send(message *msg)
 
   Thread *recipient; /* процесс-получатель */
 
-  system->mt.disable();
+  system->preempt.disable();
   recipient = THREAD(msg->tid);
 
   //printk("send [%s]->[%s] \n", system->procman->current_thread->process->name, recipient->process->name);
@@ -303,7 +303,7 @@ res_t send(message *msg)
   me->wait();
   //me->wstate = 1;
   //system->procman->stop(me);
-  //system->mt.enable();
+  //system->preempt.enable();
   //sched_yield();
 
   /*
@@ -343,7 +343,7 @@ res_t reply(message *msg)
   List<kmessage *> *entry;
   List<kmessage *> *messages = &me->messages.read.list;
 
-  system->mt.disable();
+  system->preempt.disable();
   Thread *sender = THREAD(msg->tid);
 
   if(!sender || (msg->flags & MSG_ASYNC)) {
@@ -405,7 +405,7 @@ res_t forward(message *message, tid_t to)
 {
   Thread *recipient;
 
-  system->mt.disable();
+  system->preempt.disable();
   recipient = THREAD(to);
 
   if (!recipient) {

@@ -26,7 +26,7 @@ u32_t umap_page(register u32_t log_page, register u32_t * pagedir)
 {
   u32_t page;
   //  printk("um lp=[0x%X], pd=[0x%X]\n", log_page, pagedir);
-  __mt_disable();
+  preempt_disable();
   u32_t *pagetable = (u32_t *)(kmem_log_addr(PAGE(OFFSET(pagetable_addr(log_page, pagedir)))) * PAGE_SIZE);
 
   /* Узнаём физический адрес страницы */
@@ -36,7 +36,7 @@ u32_t umap_page(register u32_t log_page, register u32_t * pagedir)
   //  printk("* pt_log=[0x%X], page_ph=0x%X \n ", pagetable, page);
   pagetable[log_page & 0x3ff] = 0;
   flush_tlb_single(log_page*PAGE_SIZE);
-  __mt_enable();
+  preempt_enable();
   return (page);
 }
 
@@ -50,7 +50,7 @@ u32_t map_page(register u32_t phys_page, register u32_t log_page, register u32_t
   /*
    * Узнаем физический адрес таблицы, в которой будет расположена страница
    */
-  __mt_disable();
+  preempt_disable();
   u32_t *pagetable = pagetable_addr(log_page, pagedir);
   /* Если pagetable не существует - создаём её */
   //printk("p=[0x%X], l=[0x%X], pd=[0x%X], pt=[0x%X]\n", phys_page, log_page, pagedir, pagetable);
@@ -71,7 +71,7 @@ u32_t map_page(register u32_t phys_page, register u32_t log_page, register u32_t
   }
   pagetable[log_page & 0x3ff] = (phys_page * PAGE_SIZE) | flags;
   flush_tlb_single(log_page*PAGE_SIZE);
-  __mt_enable();  
+  preempt_enable();  
   //printk("{0x%X} \n", pagetable[log_page & 0x3ff]);
   return ((unsigned long)pagetable);
 }

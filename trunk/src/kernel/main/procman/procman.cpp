@@ -307,8 +307,7 @@ tid_t TProcMan::exec(register void *image, const char *name,
   TProcess *process = new TProcess();
 
   process->memory = new VMM(USER_MEM_BASE, USER_MEM_SIZE);
-  process->name = new char[strlen(name) + 1];
-  strcpy((char *)process->name, name);
+  process->name = strdup(name);
 
   /* создаём каталог страниц процесса */
   process->memory->pager = new Pager(OFFSET(kmalloc(PAGE_SIZE)), MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS|MMU_PAGE_USER_ACCESSABLE);

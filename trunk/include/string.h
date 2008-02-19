@@ -215,28 +215,30 @@ return __res;
 
 static inline void * memchr(const void * cs,char c,int count)
 {
-register void * __res;
-if (!count)
-	return NULL;
-__asm__("cld\n\t"
-	"repne\n\t"
-	"scasb\n\t"
-	"je 1f\n\t"
-	"movl $1,%0\n"
-	"1:\tdecl %0"
-	:"=D" (__res):"a" (c),"D" (cs),"c" (count));
-return __res;
+  register void * __res;
+  if (!count)
+    return NULL;
+  __asm__("cld\n\t"
+	  "repne\n\t"
+	  "scasb\n\t"
+	  "je 1f\n\t"
+	  "movl $1,%0\n"
+	  "1:\tdecl %0"
+	  :"=D" (__res):"a" (c),"D" (cs),"c" (count));
+  return __res;
 }
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-char*strtok_r(char*s,const char*delim,char**ptrptr);
-size_t strspn(const char *s, const char *accept);
-size_t strcspn(const char *s, const char *reject);
-char *strsep(char **stringp, const char *delim);
-void *memmove(void *dst, const void *src, size_t count);
+  char*strtok_r(char*s,const char*delim,char**ptrptr);
+  size_t strspn(const char *s, const char *accept);
+  size_t strcspn(const char *s, const char *reject);
+  char *strsep(char **stringp, const char *delim);
+  void *memmove(void *dst, const void *src, size_t count);
+  char *strdup(const char *s);
 #ifdef __cplusplus
 }
 #endif
+
 #endif

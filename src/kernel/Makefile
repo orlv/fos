@@ -79,7 +79,8 @@ OBJECTS +=	klibc/close.o			\
 		klibc/vsprintf.o		\
 		klibc/printk.o			\
 		klibc/stat.o			\
-		klibc/fstat.o
+		klibc/fstat.o			\
+		klibc/strdup.o
 
 OBJECTS +=	klibcpp/purestub.o		\
 		klibcpp/tmutex.o

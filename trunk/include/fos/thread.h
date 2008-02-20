@@ -64,17 +64,16 @@ class Thread {
 
   inline void wait(u32_t flag){
     preempt_disable();
-    state |= flag;
     deactivate();
+    state |= flag;
     sched_yield();
   }
 
   inline void wait_no_resched(u32_t flag){
     preempt_disable();
-    state |= flag;
     deactivate();
+    state |= flag;
   }
-
   
   u32_t flags;
   tid_t send_to; /* при отправке сообщения, здесь указывается адресат */

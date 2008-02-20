@@ -233,9 +233,10 @@ res_t receive(message *msg)
   Thread *sender = (msg->tid)?(THREAD(msg->tid)):(0);
 
   system->preempt.disable();
-    
+
+  printk("receive [%s] \n", system->procman->current_thread->process->name);
+  
   do {
-    //me->wflag = 1;
     kmsg = me->messages.get(sender, msg->flags);
     if(!kmsg)
       me->wait(TSTATE_WAIT_ON_RECV);
@@ -263,8 +264,6 @@ res_t send(message *msg)
   system->preempt.disable();
   recipient = THREAD(msg->tid);
 
-  //printk("send [%s]->[%s] \n", system->procman->current_thread->process->name, recipient->process->name);
-
   /* 
    * Проверки возможности отправки сообщения:
    */
@@ -275,6 +274,8 @@ res_t send(message *msg)
     return RES_FAULT;
   }
 
+  printk("send [%s]->[%s] \n", system->procman->current_thread->process->name, recipient->process->name);
+  
   /* очередь сообщений получателя переполнена */
   if(recipient->messages.unread.count.value() >= MAX_MSG_COUNT){
     msg->send_size = 0;
@@ -298,21 +299,17 @@ res_t send(message *msg)
   /* добавляем получателю сообщение  */
   kmessage *kmsg = recipient->messages.import(msg, me);
 
-  preempt_disable();
+  //preempt_disable();
+
   /* Остановка. Ждём ответа */
-  me->wait(TSTATE_WAIT_ON_SEND);
+  me->wait_no_resched(TSTATE_WAIT_ON_SEND);
 
   /* Разблокируем получателя */
   recipient->start(TSTATE_WAIT_ON_RECV);
 
   sched_yield();
-  preempt_enable();
+  //preempt_enable();
   
-  //me->wstate = 1;
-  //system->procman->stop(me);
-  //system->preempt.enable();
-  //sched_yield();
-
   /*
    * Обрабатываем ответ:
    */

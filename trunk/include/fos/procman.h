@@ -60,9 +60,9 @@ class TProcMan {
     }
     inline void add(Thread *thread, u32_t time) {
       thread->alarm.time = time;
-      if(!thread->alarm.timer)
+      if(!thread->alarm.timer) /* таймера не сущестует - создаём */
 	thread->alarm.timer = threads->add_tail(thread);
-      else if(!time) {
+      else if(!time) { /* таймер существует, а time не задан - удаляем таймер */
 	delete thread->alarm.timer;
       }
     }

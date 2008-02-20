@@ -21,34 +21,34 @@
 
 class atomic_t {
 private:
-  volatile int counter;
+  volatile int __value;
 public:
   atomic_t()
     {
-      counter = 0;
+      __value = 0;
     }
 
   inline int value()
   {
-    return counter;
+    return __value;
   }
 
   inline int set(int i)
   {
-    return (counter = i);
+    return (__value = i);
   }
 
   /**
    * add - add integer to atomic variable
-   * @i: integer value to add
+   * @i: integer __value to add
    * 
    * Atomically adds @i to "count".
    */
   inline void add(int i)
   {
     __asm__ __volatile__("addl %1,%0"
-			 :"=m" (counter)
-			 :"ir" (i), "m" (counter));
+			 :"=m" (__value)
+			 :"ir" (i), "m" (__value));
   }
 
   /**
@@ -60,8 +60,8 @@ public:
   inline void sub(int i)
   {
     __asm__ __volatile__("subl %1,%0"
-			 :"=m" (counter)
-			 :"ir" (i), "m" (counter));
+			 :"=m" (__value)
+			 :"ir" (i), "m" (__value));
   }
 
   /**
@@ -77,8 +77,8 @@ public:
     unsigned char c;
 
     __asm__ __volatile__("subl %2,%0; sete %1"
-			 :"=m" (counter), "=qm" (c)
-			 :"ir" (i), "m" (counter) : "memory");
+			 :"=m" (__value), "=qm" (c)
+			 :"ir" (i), "m" (__value) : "memory");
     return c;
   }
 
@@ -90,8 +90,8 @@ public:
   inline void inc()
   {
     __asm__ __volatile__("incl %0"
-			 :"=m" (counter)
-			 :"m" (counter));
+			 :"=m" (__value)
+			 :"m" (__value));
   }
 
   /**
@@ -102,8 +102,8 @@ public:
   inline void dec()
   {
     __asm__ __volatile__("decl %0"
-			 :"=m" (counter)
-			 :"m" (counter));
+			 :"=m" (__value)
+			 :"m" (__value));
   }
 
   /**
@@ -117,8 +117,8 @@ public:
   {
     unsigned char c;
     __asm__ __volatile__("decl %0; sete %1"
-			 :"=m" (counter), "=qm" (c)
-			 :"m" (counter) : "memory");
+			 :"=m" (__value), "=qm" (c)
+			 :"m" (__value) : "memory");
     return c != 0;
   }
 
@@ -133,8 +133,8 @@ public:
   {
     unsigned char c;
     __asm__ __volatile__("incl %0; sete %1"
-			 :"=m" (counter), "=qm" (c)
-			 :"m" (counter) : "memory");
+			 :"=m" (__value), "=qm" (c)
+			 :"m" (__value) : "memory");
     return c != 0;
   }
 
@@ -150,8 +150,8 @@ public:
   {
     unsigned char c;
     __asm__ __volatile__("addl %2,%0; sets %1"
-			 :"=m" (counter), "=qm" (c)
-			 :"ir" (i), "m" (counter) : "memory");
+			 :"=m" (__value), "=qm" (c)
+			 :"ir" (i), "m" (__value) : "memory");
     return c;
   }
 
@@ -173,13 +173,13 @@ public:
     __i = i;
     __asm__ __volatile__("xaddl %0, %1;"
 			 :"=r"(i)
-			 :"m"(counter), "0"(i));
+			 :"m"(__value), "0"(i));
     return i + __i;
 
 #ifdef CONFIG_M386
   no_xadd: /* Legacy 386 processor */
     //local_irq_save(flags);
-    __i = this->value(v);
+    __i = this->__value(v);
     this->set(v, i + __i);
     //local_irq_restore(flags);
     return i + __i;
@@ -193,12 +193,12 @@ public:
 
   inline int cmpxchg(int old, int _new)
   {
-    return _cmpxchg(&counter, old, _new);
+    return _cmpxchg(&__value, old, _new);
   }
 
   inline int _xchg(int _new)
   {
-    return xchg(&counter, _new);
+    return xchg(&__value, _new);
   }
 
   /**

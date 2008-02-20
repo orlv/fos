@@ -36,13 +36,15 @@ void TProcMan::scheduler()
 	} else */
 
     system->cli();
-    if(current_thread->wstate && !current_thread->wflag){
-      current_thread->wstate = 0;
-      activate(current_thread->me);
+    /* если поток только что приостановился в ожидании сообщения,
+       и сообщения уже пришли — активируем */
+    if((current_thread->state | TSTATE_WAIT_ON_RECV) && curr->item->signals_cnt.value()){
+      current_thread->start(TSTATE_WAIT_ON_RECV);
     }
     system->sti();
-    
-    if(!current_thread->wstate && (curr != task.active)){
+
+    /* поток активен → перемещаем в конец списка активных задач */
+    if(!current_thread->state && (curr != task.active)){
       curr->move_tail(task.active);
     }
 
@@ -57,12 +59,16 @@ void TProcMan::scheduler()
       }*/
     if(curr->item->alarm.time && curr->item->alarm.time <= _uptime){
       curr->item->alarm.time = 0;
+      system->cli();
       curr->item->put_signal(0, SIGNAL_ALARM);
+      system->sti();
     }
 
     /* если пришли сигналы -- отправляем соответствующие сообщения */
     if(curr->item->signals_cnt.value()){
+      system->cli();
       curr->item->parse_signals();
+      system->sti();
     }
       
       /* Процесс готов к запуску? */
@@ -78,5 +84,10 @@ void TProcMan::scheduler()
     /*
      * Если мы здесь - значит произошло вытеснение процесса и переключение на планировщик
      */
+
+    if(!preempt_status()){
+      extern atomic_t preempt_count;
+      preempt_count.set(0);
+    }
   }
 }

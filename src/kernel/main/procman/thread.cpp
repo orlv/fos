@@ -87,7 +87,7 @@ void Thread::activate()
   system->procman->activate(me);
 }
 
-void Thread::stop()
+void Thread::deactivate()
 {
   system->procman->stop(me);
 }

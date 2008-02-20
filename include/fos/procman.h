@@ -53,7 +53,7 @@ class TProcMan {
       list_for_each_safe(curr, n, threads){
 	if(curr->item->alarm.time <= uptime) {
 	  curr->item->alarm.timer = 0;
-	  curr->item->start();
+	  curr->item->start(TSTATE_WAIT_ON_RECV);
 	  delete curr;
 	}
       }

@@ -1,6 +1,6 @@
 /*
   fos/thread.h
-  Copyright (C) 2005-2007 Oleg Fedorov
+  Copyright (C) 2005-2008 Oleg Fedorov
 */
 
 #ifndef _FOS_THREAD_H
@@ -10,16 +10,14 @@
 #include <fos/tss.h>
 #include <fos/gdt.h>
 #include <fos/mm.h>
-#include <fos/message.h>
+#include <fos/messenger.h>
 #include <c++/list.h>
-#include <c++/atomic.h>
+#include <mutex.h>
 #include <fos/signal.h>
-//#include <fos/system.h>
+#include <fos/preempt.h>
 
-//#define WFLAG_SEND   0x01
-//#define WFLAG_RECV   0x02
-//#define WFLAG_SIGNAL 0x02
-//#define WFLAG_KILL   0x04
+#define TSTATE_WAIT_ON_SEND  0x01 /* ожидает при отправке сообщения */
+#define TSTATE_WAIT_ON_RECV  0x02 /* ожидает при получении сообщения */
 
 class Thread {
  private:
@@ -37,8 +35,8 @@ class Thread {
   ~Thread();
 
   void run();
-  void start(u32_t flag);
-  void wait(u32_t flag);
+  //void start(u32_t flag);
+  //  void wait(u32_t flag);
 
   List<Thread *> *me;
 
@@ -48,30 +46,35 @@ class Thread {
   tid_t tid;
   gdt_entry descr;
 
-  bool wstate;
-  bool wflag; /* ожидание сообщения */
+  u32_t state; /* состояние выполнения потока */
+  mutex_t starting; /* захватываем перед изменением состояния */
   void activate();
-  void stop();
-  
-  inline void start(){
-    if(wflag) {
-      wflag = 0;
-      if(wstate) {
-	wstate = 0;
-	activate();
+  void deactivate();
+
+  inline void start(u32_t flag){
+    if(state) {
+      if(mutex_try_lock(starting)){
+	state &= ~flag;
+	if(!state)
+	  activate();
+	mutex_unlock(starting);
       }
     }
   }
 
-  inline void wait(){
-    if(wflag) {
-      stop();
-      wstate = 1;
-      extern atomic_t preempt_count;
-      preempt_count.set(0);
-      sched_yield();
-    }
+  inline void wait(u32_t flag){
+    preempt_disable();
+    state |= flag;
+    deactivate();
+    sched_yield();
   }
+
+  inline void wait_no_resched(u32_t flag){
+    preempt_disable();
+    state |= flag;
+    deactivate();
+  }
+
   
   u32_t flags;
   tid_t send_to; /* при отправке сообщения, здесь указывается адресат */
@@ -101,7 +104,7 @@ class Thread {
     sig->n = n;
     signals.add_tail(sig);
     signals_cnt.inc();
-    start();
+    start(TSTATE_WAIT_ON_RECV);
   }
   void parse_signals();
 };

@@ -62,7 +62,7 @@ res_t Messenger::put_message(kmessage *message)
   unread.list.add_tail(message);
   unread.count.inc();
 
-  thread->start();
+  thread->start(TSTATE_WAIT_ON_RECV);
 
   system->preempt.enable();
   return RES_SUCCESS;
@@ -72,15 +72,17 @@ res_t Messenger::put_message(kmessage *message)
 #define MSG_CHK_RECVBUF  2
 #define MSG_CHK_FLAGS    4
 
+#if 0
 static void kill_message(kmessage *message)
 {
   message->reply_size = 0;
   message->size = 0;
   Thread *thread = message->thread;
   if(!(message->flags & MSG_ASYNC))
-    thread->start();
-    //thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
+    thread->start(TSTATE_WAIT_ON_SEND);
+  //thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
 }
+#endif
 
 static inline bool check_message(message *message, int flags)
 {
@@ -233,10 +235,10 @@ res_t receive(message *msg)
   system->preempt.disable();
     
   do {
-    me->wflag = 1;
+    //me->wflag = 1;
     kmsg = me->messages.get(sender, msg->flags);
     if(!kmsg)
-      me->wait();
+      me->wait(TSTATE_WAIT_ON_RECV);
   } while(!kmsg);
   if((s32_t)kmsg == -1) return RES_FAULT;
 
@@ -296,11 +298,16 @@ res_t send(message *msg)
   /* добавляем получателю сообщение  */
   kmessage *kmsg = recipient->messages.import(msg, me);
 
-  /* разблокируем получателя */
-  recipient->start();
-
+  preempt_disable();
   /* Остановка. Ждём ответа */
-  me->wait();
+  me->wait(TSTATE_WAIT_ON_SEND);
+
+  /* Разблокируем получателя */
+  recipient->start(TSTATE_WAIT_ON_RECV);
+
+  sched_yield();
+  preempt_enable();
+  
   //me->wstate = 1;
   //system->procman->stop(me);
   //system->preempt.enable();
@@ -367,8 +374,8 @@ res_t reply(message *msg)
   if(sender->flags & (FLAG_TSK_TERM | FLAG_TSK_EXIT_THREAD)) {
     /* поток-отправитель ожидает завершения */
     delete entry; /* удалим запись о сообщении из списка полученных сообщений */
-    system->procman->activate(kmsg->thread->me);
-    //kmsg->thread->start(); /* сбросим у отправителя флаг SEND */
+    //system->procman->activate(kmsg->thread->me);
+    kmsg->thread->start(TSTATE_WAIT_ON_SEND); /* сбросим у отправителя флаг SEND */
     return RES_SUCCESS;
   }
   //printk("reply [%s]->[0x%X]\n", system->procman->current_thread->process->name, send_message->thread /*->process->name*/);
@@ -458,8 +465,7 @@ res_t forward(message *message, tid_t to)
   entry->move_tail(&recipient->messages.unread.list);
   recipient->messages.unread.count.inc();
   system->procman->current_thread->messages.read.count.dec();
-  //recipient->start(WFLAG_RECV);	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
-  system->procman->activate(recipient->me);
+  recipient->start(TSTATE_WAIT_ON_RECV);	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
 
   return RES_SUCCESS;
 }

@@ -84,7 +84,6 @@ asmlinkage void init()
   }
 #else
   while(1) { //printk(".");
-    /*system->hlt();*/
-    sched_yield();}
+    system->hlt(); }
 #endif
 }

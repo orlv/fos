@@ -402,8 +402,8 @@ res_t reply(message *msg)
   kmsg->arg[3] = msg->arg[3];
 
   delete entry; /* удалим запись о сообщении из списка полученных сообщений */
-  //sender->start(WFLAG_SEND); /* сбросим у отправителя флаг SEND */
-  system->procman->activate(sender->me);
+  sender->start(TSTATE_WAIT_ON_SEND); /* сбросим у отправителя флаг SEND */
+  //system->procman->activate(sender->me);
   system->preempt.enable();
   return RES_SUCCESS;
 }
@@ -433,7 +433,7 @@ res_t forward(message *message, tid_t to)
   }
 
   Thread *sender = THREAD(message->tid);
-  //printk("forward [%s]->[%s] \n", thread_sender->process->name , thread->process->name);
+  printk("forward [%s]->[%s] \n", sender->process->name , recipient->process->name);
 
   /* простое предупреждение взаимоблокировки */
   sender->send_to = recipient->tid;

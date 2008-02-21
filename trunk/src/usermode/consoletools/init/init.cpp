@@ -20,12 +20,11 @@ asmlinkage int main()
 
   for (int i = 0; i < 15; i++)
     sched_yield();
-/*
+
   while(!exec("/mnt/modules/stty", NULL));
 
-
   printf("Init started! If you see this text - all work fine.\n");
-*/
+
   setenv("PATH", "/bin:/usr/bin", 0);
   setenv("PWD", "/", 0);
 

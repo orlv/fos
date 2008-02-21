@@ -206,7 +206,7 @@ IRQ_HANDLER(irq_0)
   extern Timer *SysTimer;
   SysTimer->tick(); /* Считаем время */
 
-  //  asm("incb 0xb8000+150\n" "movb $0x5e,0xb8000+151 ");
+  asm("incb 0xb8000+150\n" "movb $0x5e,0xb8000+151 ");
 
   if ((curPID() == 1) || (!system->preempt.status())) { /* Если мы в scheduler() */
     system->outportb(0x20, 0x20);

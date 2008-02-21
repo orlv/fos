@@ -72,6 +72,7 @@ tid_t execute_module(const char *pathname, const char *args, size_t args_len)
   tid_t result = 0;
 
   int fd = initrb->access(pathname);
+  printk("fooooo\n");
   if(fd >= 0){
     size_t size = initrb->size(fd);
     char *elf_image = new char[size];
@@ -112,7 +113,7 @@ void procman_srv()
   Thread *thread;
   char *kmesg;
   size_t len;
-
+  printk("procman!!!\n");
   tid_t tid = execute_module("namer", "namer", 6);
   printk("procman: namer added to threads list (tid=%d)\n", tid);
   
@@ -264,7 +265,7 @@ TProcMan::TProcMan()
   process->pid = task.pid->add(process);
   
   stack = kmalloc(STACK_SIZE);
-  thread = process->thread_create(0, FLAG_TSK_KERN /*| FLAG_TSK_READY*/, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
+  thread = process->thread_create(0, FLAG_TSK_KERN, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
   task.wait = new List<Thread *>(thread);
   thread->me = task.active = new List<Thread *>(thread);
   system->gdt->load_tss(SEL_N(BASE_TSK_SEL), &thread->descr);
@@ -282,21 +283,21 @@ TProcMan::TProcMan()
   printk("kernel: scheduler thread created (tid=%d)\n", thread->tid);
 
   stack = kmalloc(STACK_SIZE);
-  thread = process->thread_create((off_t) &procman_srv, FLAG_TSK_KERN /*| FLAG_TSK_READY*/, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
+  thread = process->thread_create((off_t) &procman_srv, FLAG_TSK_KERN, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
   reg_thread(thread);
   printk("kernel: procman added to threads list (tid=%d)\n", thread->tid);
   
   stack = kmalloc(STACK_SIZE);
-  thread = process->thread_create((off_t) &mm_srv, FLAG_TSK_KERN /* | FLAG_TSK_READY*/, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
+  thread = process->thread_create((off_t) &mm_srv, FLAG_TSK_KERN, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
   reg_thread(thread);
   printk("kernel: mm_srv added to threads list (tid=%d)\n", thread->tid);
   
   stack = kmalloc(STACK_SIZE);
-  thread = process->thread_create((off_t) &grub_modulefs_srv, FLAG_TSK_KERN /*| FLAG_TSK_READY*/, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
+  thread = process->thread_create((off_t) &grub_modulefs_srv, FLAG_TSK_KERN, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
   reg_thread(thread);
 
   stack = kmalloc(STACK_SIZE);
-  thread = process->thread_create((off_t) &vesafb_srv, FLAG_TSK_KERN /*| FLAG_TSK_READY*/, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
+  thread = process->thread_create((off_t) &vesafb_srv, FLAG_TSK_KERN, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
   reg_thread(thread);
 }
 

@@ -241,6 +241,9 @@ res_t receive(message *msg)
     if(!kmsg)
       me->wait(TSTATE_WAIT_ON_RECV);
   } while(!kmsg);
+
+  system->preempt.enable();
+  
   if((s32_t)kmsg == -1) return RES_FAULT;
 
   /*  подготовка сообщения  */
@@ -271,6 +274,7 @@ res_t send(message *msg)
   /* получателя не существует */
   if (!recipient){
     msg->send_size = 0;
+    system->preempt.enable();
     return RES_FAULT;
   }
 
@@ -279,6 +283,7 @@ res_t send(message *msg)
   /* очередь сообщений получателя переполнена */
   if(recipient->messages.unread.count.value() >= MAX_MSG_COUNT){
     msg->send_size = 0;
+    system->preempt.enable();
     return RES_FAULT2;
   }
 
@@ -308,7 +313,7 @@ res_t send(message *msg)
   recipient->start(TSTATE_WAIT_ON_RECV);
 
   sched_yield();
-  //preempt_enable();
+  preempt_enable();
   
   /*
    * Обрабатываем ответ:
@@ -351,6 +356,7 @@ res_t reply(message *msg)
   Thread *sender = THREAD(msg->tid);
 
   if(!sender || (msg->flags & MSG_ASYNC)) {
+    system->preempt.enable();
     msg->send_size = 0;
     return RES_FAULT;
   }
@@ -364,6 +370,7 @@ res_t reply(message *msg)
   }
 
   if(!kmsg) {
+    system->preempt.enable();
     msg->send_size = 0;
     return RES_FAULT;
   }
@@ -373,6 +380,7 @@ res_t reply(message *msg)
     delete entry; /* удалим запись о сообщении из списка полученных сообщений */
     //system->procman->activate(kmsg->thread->me);
     kmsg->thread->start(TSTATE_WAIT_ON_SEND); /* сбросим у отправителя флаг SEND */
+    system->preempt.enable();
     return RES_SUCCESS;
   }
   //printk("reply [%s]->[0x%X]\n", system->procman->current_thread->process->name, send_message->thread /*->process->name*/);
@@ -396,7 +404,7 @@ res_t reply(message *msg)
   delete entry; /* удалим запись о сообщении из списка полученных сообщений */
   //sender->start(WFLAG_SEND); /* сбросим у отправителя флаг SEND */
   system->procman->activate(sender->me);
-
+  system->preempt.enable();
   return RES_SUCCESS;
 }
 
@@ -413,11 +421,13 @@ res_t forward(message *message, tid_t to)
   recipient = THREAD(to);
 
   if (!recipient) {
+    system->preempt.enable();
     message->send_size = 0;
     return RES_FAULT;
   }
 
   if (recipient->messages.unread.count.value() >= MAX_MSG_COUNT) {
+    system->preempt.enable();
     message->send_size = 0;
     return RES_FAULT2;
   }
@@ -429,6 +439,7 @@ res_t forward(message *message, tid_t to)
   sender->send_to = recipient->tid;
   if (recipient->send_to == sender->tid) {
     sender->send_to = 0;
+    system->preempt.enable();
     message->send_size = 0;
     return RES_FAULT3;
   }
@@ -446,6 +457,7 @@ res_t forward(message *message, tid_t to)
   }
 
   if(!kmsg){
+    system->preempt.enable();
     message->send_size = 0;
     return RES_FAULT;
   }
@@ -464,5 +476,6 @@ res_t forward(message *message, tid_t to)
   system->procman->current_thread->messages.read.count.dec();
   recipient->start(TSTATE_WAIT_ON_RECV);	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
 
+  system->preempt.enable();
   return RES_SUCCESS;
 }

@@ -383,7 +383,7 @@ res_t reply(message *msg)
     system->preempt.enable();
     return RES_SUCCESS;
   }
-  //printk("reply [%s]->[0x%X]\n", system->procman->current_thread->process->name, send_message->thread /*->process->name*/);
+  printk("reply [%s]->[%s]\n", system->procman->current_thread->process->name, kmsg->thread->process->name);
   kmsg->thread = me;
 
   if(kmsg->reply_size < msg->send_size)

@@ -72,7 +72,7 @@ tid_t execute_module(const char *pathname, const char *args, size_t args_len)
   tid_t result = 0;
 
   int fd = initrb->access(pathname);
-  printk("fooooo\n");
+
   if(fd >= 0){
     size_t size = initrb->size(fd);
     char *elf_image = new char[size];
@@ -87,7 +87,7 @@ tid_t execute_module(const char *pathname, const char *args, size_t args_len)
 tid_t execute(char *pathname, char *args, size_t args_len, char *envp, size_t envp_len)
 {
   tid_t result = 0;
-#if 0
+#if 1
   if(args)
     printk("procman: executing %s with args [%s]\n", pathname, args);
   else
@@ -131,7 +131,7 @@ void procman_srv()
     msg->flags = 0;
 
     receive(msg);
-    //printk("procman: a0=%d from [%s]\n", msg->arg[0], THREAD(msg->tid)->process->name);
+    printk("procman: a0=%d from [%s]\n", msg->arg[0], THREAD(msg->tid)->process->name);
 
     switch(msg->arg[0]){
     case PROCMAN_CMD_EXEC: {

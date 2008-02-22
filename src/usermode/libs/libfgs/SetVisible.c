@@ -4,7 +4,7 @@
 
 #include <fos/message.h>
 #include <unistd.h>
-#include <fgs/fgs.h>
+#include <gwinsy/gwinsy.h>
 #include "privatetypes.h"
 
 extern fd_t __gui;

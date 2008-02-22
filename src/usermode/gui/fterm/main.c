@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
-#include <fgs/fgs.h>
+#include <gwinsy/gwinsy.h>
 #include <sched.h>
 #include <string.h>
 #include <mutex.h>

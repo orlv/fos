@@ -1,4 +1,4 @@
-#include <fgs/fgs.h>
+#include <gwinsy/gwinsy.h>
 #include <string.h>
 #include "privatetypes.h"
 // ацццццкая функция

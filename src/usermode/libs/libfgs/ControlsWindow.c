@@ -2,7 +2,7 @@
   Copyright (C) 2007 Serge Gridassov
  */
 
-#include <fgs/fgs.h>
+#include <gwinsy/gwinsy.h>
 #include <stdlib.h>
 #include <string.h>
 #include "privatetypes.h"

@@ -6,9 +6,9 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <fgs/fgs.h>
+#include <gwinsy/gwinsy.h>
 #include <fos/fos.h>
-#include <fgs/controls.h>
+#include <gwinsy/controls.h>
 
 
 

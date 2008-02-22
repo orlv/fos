@@ -2,7 +2,7 @@
   Copyright (C) 2007 Serge Gridassov
  */
 
-#include <fgs/fgs.h>
+#include <gwinsy/gwinsy.h>
 #include "privatetypes.h"
 
 void Draw3D(int x, int y, int w, int h, int handle, int style)

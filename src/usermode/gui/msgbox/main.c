@@ -5,8 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <fgs/controls.h>
-#include <fgs/fgs.h>
+#include <gwinsy/controls.h>
+#include <gwinsy/gwinsy.h>
 int hndl;
 int EventHandler(int hwnd, int class, int a0, int a1, int a2, int a3)
 {

@@ -8,7 +8,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include <fgs/fgs.h>
+#include <gwinsy/gwinsy.h>
 
 typedef struct {
   int x;

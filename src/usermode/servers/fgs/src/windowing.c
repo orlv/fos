@@ -55,7 +55,7 @@ void init_windowing()
   locate->native_pixels = 1;
 
   need_refresh = 1;
-  printf("FGS: windowing subsystem started, allocated ~%u Kb of memory\n", ((screen.w * screen.h * screen.bpp) * 2 + sizeof(context_t) * 2) / 1024);
+  printf("GWinSy: windowing subsystem started, allocated ~%u Kb of memory\n", ((screen.w * screen.h * screen.bpp) * 2 + sizeof(context_t) * 2) / 1024);
 
 }
 

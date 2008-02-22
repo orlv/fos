@@ -1,3 +1,8 @@
+/*
+ *         FOS Graphics System
+ * Copyright (c) 2008 Sergey Gridassov
+ */
+
 #include <fos/message.h>
 #include <fos/fos.h>
 #include <stdio.h>

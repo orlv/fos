@@ -89,9 +89,8 @@ void TryHandleDevice(int did, int vid, pci_addr_t *addr) {
 			msg.arg[1] = vid;
 			msg.arg[2] = did;
 			send(&msg);
-			// здесь handle - валидный хендл сервера.
 			close(handle);
-			exit(1);
+			printf("PCI: device configured\n");
 		}
 	}
 }

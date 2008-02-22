@@ -24,7 +24,7 @@ void scan_pci(int bus) {
 	node.slot = 0;
 	node.bus = bus;
 	node.func = 0;
-
+	if(pci_inw(&node, PCI_CONF_DEVICE_OFFSET) == PCI_CONF_INVALID_DEVICE) return;
 	for(int i = 0; i <= PCI_SLOT_ID_MAX; i++) {
 		node.slot = i;
 		node.func = 0;

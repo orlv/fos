@@ -4,6 +4,7 @@
 
 #include <fos/message.h>
 #include <unistd.h>
+#include <fgs/fgs.h>
 #include "privatetypes.h"
 
 extern fd_t __gui;
@@ -21,4 +22,6 @@ void SetVisible(int handle, int visible)
   msg.arg[1] = wh->handle;
   msg.arg[2] = visible;
   send(&msg);
+  if(visible)
+    RefreshWindow(handle);
 }

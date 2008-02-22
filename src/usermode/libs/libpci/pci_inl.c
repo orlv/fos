@@ -4,14 +4,19 @@
  * Переделано в библиотеку.
  */
 #include <sys/pci.h>
-#include <types.h>
-#include <sys/io.h>
+#include <unistd.h>
 #include "private.h"
+
 int pci_inl(pci_addr_t *addr, int reg) {
-	// FIXME: мутексы!
-	u32_t cmd = pci_cmdByItem(addr, reg);
-	if(!cmd)
+	int hndl = pci_open(addr);
+	if(hndl < 0)
 		return -1;
-	outl(cmd, PCI_CONFIG_CMD);
-	return inl(PCI_CONFIG_DAT + (reg & 0x03));
+	lseek(hndl, reg, SEEK_SET);
+	u32_t res;
+	int ret = read(hndl, &res, 4);
+	close(hndl);
+	if(ret < 0)
+		return -1;
+	return res;
+	
 }

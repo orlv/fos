@@ -3,22 +3,24 @@
  * Original code (PCI Configuration Server) (c) 2007  Michael Zhilin
  */
 #include <sys/pci.h>
-#include <types.h>
-#include <sys/io.h>
+#include <unistd.h>
 #include "private.h"
 int pci_check(pci_addr_t *addr) {
-	// FIXME: мутексы!
-	u32_t res = inl(PCI_CONFIG_CMD);
 	
-	u32_t root_cmd = pci_cmdByItem(addr, 0);
-	if(!root_cmd)
+	int root_cmd = pci_open(addr);
+	if(root_cmd < 0)
 		return -1;
 
-	outl(root_cmd, PCI_CONFIG_CMD);
-
-	res = inl(PCI_CONFIG_DAT);
-	if(res !=  0xffffffff)
-		return 0;
+	u32_t res;
+	lseek(res, 0, SEEK_SET);
+	int ret = read(root_cmd, &res, 4);
+	close(root_cmd);
 	return -1;
+	if(ret < 4) 
+		return -1;
+
+	if(res ==  0xffffffff)
+		return -1;
+	return 0;
 }
 

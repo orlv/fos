@@ -8,7 +8,9 @@
 
 int main(int argc, char *argv[]) {
 	parse_config();
-	for(int i = 0; i <= PCI_BUS_ID_MAX; i++)
+	for(int i = 0; i <= PCI_BUS_ID_MAX; i++) {
 		scan_pci(i);
+	}
+	printf("PCI: Scan completed\n");
 	return 0;
 } 

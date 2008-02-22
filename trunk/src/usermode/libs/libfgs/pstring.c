@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <fgs/fgs.h>
+#include <gwinsy/gwinsy.h>
 
 extern char *__fnt;
 

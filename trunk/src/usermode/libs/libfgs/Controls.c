@@ -2,8 +2,8 @@
   Copyright (C) 2007 Serge Gridassov
  */
 
-#include <fgs/fgs.h>
-#include <fgs/controls.h>
+#include <gwinsy/gwinsy.h>
+#include <gwinsy/controls.h>
 #include <stdlib.h>
 #include <string.h>
 #include "privatetypes.h"

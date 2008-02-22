@@ -9,7 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <fgs/fgs.h>
+#include <gwinsy/gwinsy.h>
 #include "shapes.h"
 
 #define KUP 1

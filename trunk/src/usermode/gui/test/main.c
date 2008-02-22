@@ -4,8 +4,8 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <fgs/fgs.h>
-#include <fgs/controls.h>
+#include <gwinsy/gwinsy.h>
+#include <gwinsy/controls.h>
 
 int button[3];
 int hndl;

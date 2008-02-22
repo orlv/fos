@@ -2,7 +2,7 @@
   Copyright (C) 2007 Serge Gridassov
  */
 
-#include <fgs/fgs.h>
+#include <gwinsy/gwinsy.h>
 #include "privatetypes.h"
 #define SetPixel(a, b, c, d) pixel(d, a, b, c)
 

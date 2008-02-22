@@ -226,6 +226,6 @@ void StartEventHandling()
     iterations++;
     sched_yield();
   }
-  printf("FGS: Event handling subsystem started up (%u iterations)\n", iterations);
+  printf("GWinSy: Event handling subsystem started up (%u iterations)\n", iterations);
 }
 

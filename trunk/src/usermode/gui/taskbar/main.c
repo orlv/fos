@@ -6,8 +6,8 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <fgs/fgs.h>
-#include <fgs/controls.h>
+#include <gwinsy/gwinsy.h>
+#include <gwinsy/controls.h>
 #include <fos/fos.h>
 #include <stdlib.h>
 #include <sys/rtc.h>

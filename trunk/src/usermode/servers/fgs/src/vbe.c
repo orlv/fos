@@ -45,7 +45,7 @@ const static struct tmode_t modes[] = {
 int init_video(int width, int height, int bpp, context_t *screen) {
 	for(const struct tmode_t *ptr = modes; ptr->mode; ptr++) {
 		if(ptr->width == width && ptr->height == height && ptr->bpp == bpp) {
-			printf("FGS: Setting vesa mode 0x%x\n", ptr->mode);
+			printf("GWinSy: Setting vesa mode 0x%x\n", ptr->mode);
 			vbe_set_mode(ptr->mode);
 			screen->w = width;
 			screen->h = height;

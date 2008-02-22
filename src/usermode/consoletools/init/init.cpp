@@ -18,28 +18,17 @@ void ParseLine(char *line);
 asmlinkage int main()
 {
 
-  for (int i = 0; i < 15; i++)
-    sched_yield();
-  /*
-  while(!exec("/mnt/modules/stty", NULL));
 
-  printf("Init started! If you see this text - all work fine.\n");
-  */
   setenv("PATH", "/bin:/usr/bin", 0);
   setenv("PWD", "/", 0);
 
   exec("/mnt/modules/romfs", NULL);
 
-  for (int i = 0; i < 8000; i++)
+  int hndl = 0;
+  do {
+    hndl = open("/etc/inittab", 0);
     sched_yield();
-
-//  printf("init: bootstrapped tty & romfs, reading config\n");
-
-  int hndl = open("/etc/inittab", 0);
-  if(!hndl) {
-//	printf("init: Fatal error, not found config file.\n");
-	return 1;
-  }
+  } while(hndl < 0);
 
   int size = lseek(hndl, 0, SEEK_END);
   lseek(hndl, 0, SEEK_SET);
@@ -56,7 +45,7 @@ asmlinkage int main()
     ParseLine(ptr);
   }
 
-//  printf("All started up.\n");
+  printf("INIT: All started up.\n");
   return 0;
 }
 
@@ -76,9 +65,10 @@ void ParseLine(char *line)
       char *tty = new char[strlen(tokens[2]) + 1];
       strcpy(tty, tokens[2]);
       setenv("STDOUT", tty, 0);
-     do {
+      do {
         stdout = fopen(tty, "w");
       } while(!stdout);
+      printf("INIT: booting\n");
     } else if(!strcmp(tokens[1], "open_in")) {
       char *tty = new char[strlen(tokens[2]) + 1];
       strcpy(tty, tokens[2]);
@@ -92,7 +82,7 @@ void ParseLine(char *line)
   }
 
   if(tokens[2][0] != 0)
-    printf("%s\n", tokens[2]);
+    printf("INIT: %s\n", tokens[2]);
   exec(tokens[0], tokens[1]);
 
 }

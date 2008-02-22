@@ -6,7 +6,7 @@ include $(ROOT)/config.mk
 
 OUTPUT		=	test
 OBJECTS		=	main.o
-LDLIBS		=	-\( -lc -lcpp -lfos -lfgs -\)
+LDLIBS		=	-\( -lc -lcpp -lfos -lgwinsy -\)
 TARGETDIR	=	$(INITRDDIR)/usr/bin
 
 include $(SYSTEM_SRC)/mk/trg_bin_std.mk

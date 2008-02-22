@@ -6,7 +6,7 @@
 #include <fos/printk.h>
 #include <fos/drivers/char/tty/tty.h>
 #include <fos/system.h>
-#include <stdarg.h>
+#include <stdio.h>
 
 int printk(const char *fmt, ...)
 {

@@ -3,7 +3,7 @@
     Copyright (C) 2006-2007 Oleg Fedorov
 */
 
-#include <stdarg.h>
+#include <stdio.h>
 
 int sprintf(char *str, const char *fmt, ...)
 {

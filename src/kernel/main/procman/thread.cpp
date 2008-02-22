@@ -97,7 +97,7 @@ void Thread::parse_signals()
   List<signal *> *curr, *n;
 
   list_for_each_safe(curr, n, (&signals)) {
-    printk("[%s] %d %d\n", process->name, curr->item->n, curr->item->data);
+    //printk("[%s] %d %d\n", process->name, curr->item->n, curr->item->data);
     kmessage *message = new kmessage;
     message->size = 0;
     message->arg[0] = curr->item->n;

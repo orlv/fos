@@ -72,18 +72,6 @@ res_t Messenger::put_message(kmessage *message)
 #define MSG_CHK_RECVBUF  2
 #define MSG_CHK_FLAGS    4
 
-#if 0
-static void kill_message(kmessage *message)
-{
-  message->reply_size = 0;
-  message->size = 0;
-  Thread *thread = message->thread;
-  if(!(message->flags & MSG_ASYNC))
-    thread->start(TSTATE_WAIT_ON_SEND);
-  //thread->flags &= ~FLAG_TSK_SEND; /* сбросим у отправителя флаг TSK_SEND */
-}
-#endif
-
 static inline bool check_message(message *message, int flags)
 {
   if(OFFSET(message) < system->procman->current_thread->process->memory->mem_base) {
@@ -234,7 +222,7 @@ res_t receive(message *msg)
 
   system->preempt.disable();
 
-  printk("receive [%s] \n", system->procman->current_thread->process->name);
+  //printk("receive [%s] \n", system->procman->current_thread->process->name);
   
   do {
     kmsg = me->messages.get(sender, msg->flags);
@@ -278,7 +266,7 @@ res_t send(message *msg)
     return RES_FAULT;
   }
 
-  printk("send [%s]->[%s] \n", system->procman->current_thread->process->name, recipient->process->name);
+  //printk("send [%s]->[%s] \n", system->procman->current_thread->process->name, recipient->process->name);
   
   /* очередь сообщений получателя переполнена */
   if(recipient->messages.unread.count.value() >= MAX_MSG_COUNT){
@@ -383,7 +371,7 @@ res_t reply(message *msg)
     system->preempt.enable();
     return RES_SUCCESS;
   }
-  printk("reply [%s]->[%s]\n", system->procman->current_thread->process->name, kmsg->thread->process->name);
+  //printk("reply [%s]->[%s]\n", system->procman->current_thread->process->name, kmsg->thread->process->name);
   kmsg->thread = me;
 
   if(kmsg->reply_size < msg->send_size)
@@ -433,7 +421,7 @@ res_t forward(message *message, tid_t to)
   }
 
   Thread *sender = THREAD(message->tid);
-  printk("forward [%s]->[%s] \n", sender->process->name , recipient->process->name);
+  //printk("forward [%s]->[%s] \n", sender->process->name , recipient->process->name);
 
   /* простое предупреждение взаимоблокировки */
   sender->send_to = recipient->tid;

@@ -1,5 +1,6 @@
 /*
-  (C)  2007 Oleg Fedorov
+  include/mutex.h
+  Copyright (C)  2007 Oleg Fedorov
 */
 
 #ifndef _MUTEX_H

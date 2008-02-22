@@ -72,20 +72,6 @@ struct dirfd {
 #define xfer_databuf_of(ptr, size) ({\
       (struct xfer_databuf *)((char *) ptr + size - sizeof(struct xfer_databuf));})
 
-
-#if 0
-struct dirent {
-  ino_t          d_ino;       /* inode number */
-  off_t          d_off;       /* offset to the next dirent */
-  unsigned short d_reclen;    /* length of this record */
-  unsigned char  d_type;      /* type of file */
-  char           d_name[MAX_NAME_LEN]; /* filename */
-} __attribute__ ((packed));
-
-asmlinkage struct dirent *readdir(DIR *dir);
-#endif
-
-
 typedef struct {
 	int open_mode;
 	int allow_read;
@@ -96,4 +82,5 @@ typedef struct {
 	int buf_ptr;
 	int handle;
 } __fopen_fd;
+
 #endif

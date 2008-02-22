@@ -5,7 +5,7 @@
 include $(ROOT)/config.mk
 
 INSTALLDIR	=	$(LIB)
-OUTPUT		=	libfgs.a
+OUTPUT		=	libgwinsy.a
 OBJECTS		=	GUIInit.o 	CreateWindow.o	\
 			WaitEvent.o 	DestroyWindow.o	\
 			RefreshWindow.o	GuiEnd.o 	\

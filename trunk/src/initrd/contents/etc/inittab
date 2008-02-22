@@ -3,6 +3,6 @@
 /bin/i8042::Starting keyboard/mouse driver
 /bin/pcid::Starting PCI daemon
 /bin/pci_scan::Scanning PCI bus
-/usr/bin/fgs::Starting up GUI
+/usr/bin/gwinsy::Starting up GUI
 /bin/rtc::Starting RTC
 /bin/tmpfs::Starting up tmpfs

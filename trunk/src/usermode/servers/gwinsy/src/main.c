@@ -3,7 +3,6 @@
  * Copyright (c) 2007 Sergey Gridassov
  */
 
-
 #include <stdio.h>
 #include <fos/fos.h>
 #include <sched.h>
@@ -18,6 +17,7 @@
 #include <private/picture.h>
 #include <private/ipc.h>
 #include <string.h>
+
 int need_cursor = 0;
 picture_t *busy, *cursor, *close_button;
 extern context_t *backbuf;
@@ -26,7 +26,7 @@ extern char *font;
 
 int main(int argc, char *argv)
 {
-  printf("FOS Graphics System version " VERSION " started up\n");
+  printf("Gridassov Window System version " VERSION " started up\n");
   srandom(uptime());
   cursor = load_file("/usr/share/cursors/cursor.pct");
   busy = load_file("/usr/share/cursors/busy.pct");

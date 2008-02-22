@@ -17,15 +17,15 @@ OBJECTS= \
 OBJECTS:=$(addprefix src/,$(OBJECTS))
 MAKEFLAGS=-s
 all: $(OBJECTS)
-	echo \ Linking fgs
-	$(LD) $(LDFLAGS) $(LIB)/crt0.o $^ --entry=_start --oformat=elf32-i386  --Ttext=$(USER_MEM_BASE) -o fgs -lc -lcpp -lfos
-	nm fgs | sort > fgs.sym
+	echo \ Linking gwinsy
+	$(LD) $(LDFLAGS) $(LIB)/crt0.o $^ --entry=_start --oformat=elf32-i386  --Ttext=$(USER_MEM_BASE) -o gwinsy -lc -lcpp -lfos
+	nm gwinsy | sort > gwinsy.sym
 install:
-	cp fgs $(INITRDDIR)/usr/bin
+	cp gwinsy $(INITRDDIR)/usr/bin
 
 clean:
-	rm -f fgs $(OBJECTS) fgs.sym
+	rm -f gwinsy $(OBJECTS) gwinsy.sym
 
 uninstall:
-	rm -f $(INITRDDIR)/usr/bin/fgs
+	rm -f $(INITRDDIR)/usr/bin/gwinsy
 

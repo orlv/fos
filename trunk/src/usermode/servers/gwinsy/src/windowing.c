@@ -87,7 +87,7 @@ void Redraw()
 
   refreshing = 1;
   DrawRect(0, 0, screen.w, screen.h, 0x003082, backbuf);
-  PutString(0, 0, "FOS Graphics System version " VERSION " builded at " __DATE__ " " __TIME__ , 0xFFFFFF, backbuf);
+  PutString(0, 0, "Gridassov Window System version " VERSION " builded at " __DATE__ " " __TIME__ , 0xFFFFFF, backbuf);
   PutString(0, 16, "FOS - a world domination project" , 0xFFFFFF, backbuf);
   memset(locate->data, 0, (screen.w * screen.h * screen.bpp));
   if (front != NULL) {

@@ -5,4 +5,4 @@
 include $(ROOT)/config.mk
 include $(SYSTEM_SRC)/mk/subdir.mk
 
-ITEMS = crt0 int16b libc libcpp libfos libfgs libpci
+ITEMS = crt0 int16b libc libcpp libfos libgwinsy libpci

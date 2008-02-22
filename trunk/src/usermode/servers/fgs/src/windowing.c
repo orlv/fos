@@ -34,6 +34,8 @@ context_t *locate;
 extern context_t screen;
 extern picture_t *close_button;
 
+mutex_t winlist_mutex = 0;
+
 
 void init_windowing()
 {
@@ -66,12 +68,17 @@ window_t *GetWindowInfo(int handle)
 {
   if (front == NULL)
     return NULL;
+  while (!mutex_try_lock(winlist_mutex))
+    sched_yield();
   for (node * p = front; p; p = p->next) {
     window_t *win = (window_t *) p->data;
 
-    if (win->handle == handle)
+    if (win->handle == handle) {
+      mutex_unlock(winlist_mutex);
       return win;
+    }
   }
+  mutex_unlock(winlist_mutex);
   return NULL;
 }
 
@@ -81,9 +88,11 @@ void Redraw()
   refreshing = 1;
   DrawRect(0, 0, screen.w, screen.h, 0x003082, backbuf);
   PutString(0, 0, "FOS Graphics System version " VERSION " builded at " __DATE__ " " __TIME__ , 0xFFFFFF, backbuf);
+  PutString(0, 16, "FOS - a world domination project" , 0xFFFFFF, backbuf);
   memset(locate->data, 0, (screen.w * screen.h * screen.bpp));
   if (front != NULL) {
-
+    while (!mutex_try_lock(winlist_mutex))
+      sched_yield();
     for (node * n = front; n; n = n->next) {
       window_t *p = (window_t *) n->data;
 
@@ -107,6 +116,7 @@ void Redraw()
       DrawRect(p->x, p->y, p->w, p->h, p->handle, locate);
       FlushContext(p->context, p->context->w, p->context->h, p->x, p->y, 0, 0, backbuf);
     }
+    mutex_unlock(winlist_mutex);
   }
   FlushContext(backbuf, screen.w, screen.h, 0, 0, 0, 0, &screen);
   need_cursor = 1;
@@ -164,7 +174,10 @@ int CreateWindow(int x, int y, int tid, int w, int h, char *caption, int class)
   win->tid = tid;
   win->visible = -1;
   win->class = class;
+  while (!mutex_try_lock(winlist_mutex))
+    sched_yield();
   insertBack(win);
+  mutex_unlock(winlist_mutex);
   return win->handle;
 }
 
@@ -188,25 +201,33 @@ void SetVisible(int handle, int visible)
 
 void SetFocusTo(int handle)
 {
+  while (!mutex_try_lock(winlist_mutex))
+    sched_yield();
   for (node * n = front; n; n = n->next) {
     window_t *win = (window_t *) n->data;
 
     if (win->handle == handle) {
-      if (win->active)
+      if (win->active) {
+        mutex_unlock(winlist_mutex);
 	return;
+      }
       removeNode(n);
       free(n);
       insertBack(win);
       need_refresh = 1;
+      mutex_unlock(winlist_mutex);
       return;
     }
 
   }
+  mutex_unlock(winlist_mutex);
 
 }
 
 void DestroyWindow(int handle)
 {
+  while (!mutex_try_lock(winlist_mutex))
+    sched_yield();
   for (node * n = front; n; n = n->next) {
     window_t *win = (window_t *) n->data;
 
@@ -234,7 +255,7 @@ void DestroyWindow(int handle)
       break;
      }
    }
-  
+  mutex_unlock(winlist_mutex);
 }
 
 void RefreshWindow(int handle)
@@ -263,12 +284,17 @@ void RefreshWindow(int handle)
 
 window_t *GetActiveWindow()
 {
+  while (!mutex_try_lock(winlist_mutex))
+    sched_yield();
   for (node * n = front; n; n = n->next) {
     window_t *win = (window_t *) n->data;
 
-    if (win->active)
+    if (win->active) {
+      mutex_unlock(winlist_mutex);
       return win;
+    }
   }
+  mutex_unlock(winlist_mutex);
   return NULL;
 }
 

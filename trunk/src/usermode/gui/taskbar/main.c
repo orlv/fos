@@ -160,9 +160,9 @@ asmlinkage int main(int argc, char **argv)
   line(drawing, width - 57, 25, width - 3, 25, 0xFFFFFF);
   line(drawing, width - 3, 4, width - 3, 25, 0xFFFFFF);
   startbutton = CreateButton(hndl, 3, 4, 48, 22, "Menu");
-  clock = CreateStatic(hndl, width - 50, 7, 40, 16, "00:00");
+  clock = CreateStatic(hndl, width - 50, 7, 40, 16, "RTC?");
   ControlsWindowVisible(hndl, 1);
-  thread_create((off_t) clock_thread);
+//  thread_create((off_t) clock_thread);
   ControlsMessageLoop();
   GuiEnd();
   return 0;

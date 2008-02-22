@@ -30,7 +30,7 @@ asmlinkage int main()
 
   exec("/mnt/modules/romfs", NULL);
 
-  for (int i = 0; i < 1000; i++)
+  for (int i = 0; i < 8000; i++)
     sched_yield();
 
 //  printf("init: bootstrapped tty & romfs, reading config\n");

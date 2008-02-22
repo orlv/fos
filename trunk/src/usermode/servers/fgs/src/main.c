@@ -16,6 +16,7 @@
 #include <private/events.h>
 #include <private/pixel.h>
 #include <private/picture.h>
+#include <private/ipc.h>
 #include <string.h>
 int need_cursor = 0;
 picture_t *busy, *cursor, *close_button;
@@ -46,6 +47,7 @@ int main(int argc, char *argv)
   PutString((screen.w - strlen("FGS starting up") * 8) / 2, screen.h / 2 - 16, "FGS starting up", 0xFFFFFF, &screen);
   DrawImage(mousex, mousey, busy, &screen);
   init_windowing();
+  StartIPC();
   StartEventHandling();
   exec("/usr/bin/taskbar", NULL);
   exec("/usr/bin/fterm", NULL);
@@ -60,7 +62,7 @@ int main(int argc, char *argv)
       RedrawCursor();
       need_cursor = 0;
     }
-
+    sched_yield();
   }
   return 0;
 }

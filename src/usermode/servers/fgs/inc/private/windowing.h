@@ -23,7 +23,6 @@ typedef struct window_t {
   unsigned int class;
 } window_t;
 
-extern int _down;
 extern volatile int need_refresh;
 
 void init_windowing();
@@ -42,4 +41,7 @@ void RefreshWindow(int handle);
 window_t *GetActiveWindow();
 void WindowMapped(struct window_t *win);
 int GetWindowTitle(int handle, char *buf);
+#include <mutex.h>
+extern mutex_t winlist_mutex;
+
 #endif

@@ -12,14 +12,14 @@ OBJECTS= \
 	context.o	font.o		\
 	line.o		vbe.o		\
 	loadfile.o	picture.o	\
-	pixel.o		rect.o		
+	pixel.o		rect.o		\
+	ipc.o
 OBJECTS:=$(addprefix src/,$(OBJECTS))
 MAKEFLAGS=-s
 all: $(OBJECTS)
 	echo \ Linking fgs
 	$(LD) $(LDFLAGS) $(LIB)/crt0.o $^ --entry=_start --oformat=elf32-i386  --Ttext=$(USER_MEM_BASE) -o fgs -lc -lcpp -lfos
 	nm fgs | sort > fgs.sym
-	strip fgs -R .comment
 install:
 	cp fgs $(INITRDDIR)/usr/bin
 

@@ -1,10 +1,10 @@
 /bin/stty::
 .:open_tty:/dev/tty
 /bin/i8042::Starting keyboard/mouse driver
-.:open_in:/dev/keyboard
+#.:open_in:/dev/keyboard
 #/bin/pci_scan::Scanning PCI bus
-#/usr/bin/fgs::Starting up GUI
-/bin/shell::Starting up shell
-#/bin/rtc::Starting RTC
-#/bin/tmpfs::Starting up tmpfs
+/usr/bin/fgs::Starting up GUI
+#/bin/shell::Starting up shell
+/bin/rtc::Starting RTC
+/bin/tmpfs::Starting up tmpfs
 #/bin/test2::Testing system

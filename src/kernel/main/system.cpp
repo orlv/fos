@@ -4,7 +4,7 @@
 */
 
 #include <fos/fos.h>
-#include <stdarg.h>
+#include <stdio.h>
 #include <fos/printk.h>
 #include <fos/procman.h>
 

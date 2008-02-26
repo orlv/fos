@@ -1,16 +1,13 @@
 /*
   include/sched.h
-  Copyright (C) 2007 Oleg Fedorov
+  Copyright (C) 2007-2008 Oleg Fedorov
  */
 
 #ifndef _SCHED_H
 #define _SCHED_H
 
 #ifdef iKERNEL
-static inline void sched_yield()
-{
-  __asm__ __volatile__ ("ljmp $0x40, $0");
-}
+void sched_yield();
 #else
 
 #include <fos/syscall.h>

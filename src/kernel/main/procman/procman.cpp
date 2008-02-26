@@ -20,7 +20,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-void sched_srv();
 void grub_modulefs_srv();
 void vesafb_srv();
 void mm_srv();
@@ -271,15 +270,15 @@ TProcMan::TProcMan()
   ltr(BASE_TSK_SEL);
   lldt(0);
   
-  current_thread = thread;
+  //current_thread = thread;
   thread->tid = task.tid->add(thread);
   printk("kernel: multitasking ready (kernel tid=%d)\n", thread->tid);
 
-  stack = kmalloc(STACK_SIZE);
+  /*  stack = kmalloc(STACK_SIZE);
   thread = process->thread_create((off_t) &sched_srv, FLAG_TSK_KERN, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
   system->gdt->load_tss(SEL_N(BASE_TSK_SEL) + 1, &thread->descr);
   thread->tid = task.tid->add(thread);
-  printk("kernel: scheduler thread created (tid=%d)\n", thread->tid);
+  printk("kernel: scheduler thread created (tid=%d)\n", thread->tid);*/
 
   stack = kmalloc(STACK_SIZE);
   thread = process->thread_create((off_t) &procman_srv, FLAG_TSK_KERN, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
@@ -298,6 +297,8 @@ TProcMan::TProcMan()
   stack = kmalloc(STACK_SIZE);
   thread = process->thread_create((off_t) &vesafb_srv, FLAG_TSK_KERN, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
   reg_thread(thread);
+
+  curr = task.active;
 }
 
 tid_t TProcMan::exec(register void *image, const char *name,

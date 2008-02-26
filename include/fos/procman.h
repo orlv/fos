@@ -87,8 +87,9 @@ class TProcMan {
   void scheduler();
   List<Thread *> *do_kill(List<Thread *> *thread);
   res_t kill(register tid_t tid, u16_t flag);
-  u32_t curr_proc;
-  Thread *current_thread;
+  List<Thread *> *curr;
+  List<Thread *> *prev;
+  bool _tss;
 };
 
 #endif /* iKERNEL */

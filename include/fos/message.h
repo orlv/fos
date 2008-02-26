@@ -15,9 +15,9 @@
 #define SIGNAL_ALARM   0
 #define SIGNAL_IRQ     1
 
-#define SYSTID_PROCMAN 2
-#define SYSTID_MM      3
-#define SYSTID_NAMER   6
+#define SYSTID_PROCMAN 1
+#define SYSTID_MM      2
+#define SYSTID_NAMER   5
 
 #define MAX_MSG_COUNT 32
 

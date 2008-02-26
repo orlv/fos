@@ -49,17 +49,17 @@ void exception(const char *str, unsigned int cs,  unsigned int address, unsigned
 	 "Name: [%s]\n"							\
 	 "Errorcode: 0x%X\n"						\
 	 "-------------------------------------------------------------------------------\n", \
-	 str, cs, address, system->procman->current_thread, system->procman->current_thread->process, system->procman->current_thread->process->name, errorcode);
+	 str, cs, address, system->procman->curr->item, system->procman->curr->item->process, system->procman->curr->item->process->name, errorcode);
   
-  if((system->procman->current_thread->flags & FLAG_TSK_KERN) ||
+  if((system->procman->curr->item->flags & FLAG_TSK_KERN) ||
      (address < USER_MEM_BASE)){
     system->panic("fault in kernel task!");
   } else {
     printk("fault in user task! task terminated\n");
     dump_stack(ebp);
-    system->procman->current_thread->flags |= FLAG_TSK_TERM;
+    system->procman->curr->item->flags |= FLAG_TSK_TERM;
     #warning см. сюда
-    //system->procman->current_thread->flags &= ~FLAG_TSK_READY;
+    //system->procman->curr->item->flags &= ~FLAG_TSK_READY;
     while(1) sched_yield();
   }
 }
@@ -208,13 +208,17 @@ IRQ_HANDLER(irq_0)
 
   asm("incb 0xb8000+150\n" "movb $0x5e,0xb8000+151 ");
 
-  if ((curPID() == 1) || (!system->preempt.status())) { /* Если мы в scheduler() */
+  bool _tss = system->procman->_tss;
+  if (!system->preempt.status() ||
+      ((!_tss && (str() != 0x38)) || (_tss && (str() != 0x40)))) {
     system->outportb(0x20, 0x20);
     return;
   }
+
   system->outportb(0x20, 0x20);
-  sched_yield();  /* Передадим управление scheduler() */
+  sched_yield();
 }
+
 
 IRQ_HANDLER(irq_1)  { common_interrupt(1);  }
 

@@ -43,23 +43,23 @@ u32_t uptime();
 
 void syscall_enter()
 {
-  system->procman->current_thread->flags |= FLAG_TSK_SYSCALL;
+  system->procman->curr->item->flags |= FLAG_TSK_SYSCALL;
 }
 
 void syscall_exit()
 {
   //preempt_on();
-  system->procman->current_thread->flags &= ~FLAG_TSK_SYSCALL;
-  if((system->procman->current_thread->flags & FLAG_TSK_TERM) || (system->procman->current_thread->flags & FLAG_TSK_EXIT_THREAD)) {
+  system->procman->curr->item->flags &= ~FLAG_TSK_SYSCALL;
+  if((system->procman->curr->item->flags & FLAG_TSK_TERM) || (system->procman->curr->item->flags & FLAG_TSK_EXIT_THREAD)) {
 #warning см. сюда
-    //system->procman->current_thread->flags &= ~FLAG_TSK_READY;
+    //system->procman->curr->item->flags &= ~FLAG_TSK_READY;
     sched_yield();
   }
 }
 
 SYSCALL_HANDLER(sys_call_handler)
 {
-  //printk("Syscall #%d (%s) arg1=0x%X, arg2=0x%X \n", cmd,  system->procman->current_thread->process->name, arg1, arg2);
+  //printk("Syscall #%d (%s) arg1=0x%X, arg2=0x%X \n", cmd,  system->procman->curr->item->process->name, arg1, arg2);
   syscall_enter(); /* установим флаг нахождения в ядре */
   u32_t result = 0;
   u32_t _uptime;
@@ -106,24 +106,24 @@ SYSCALL_HANDLER(sys_call_handler)
 
   case _FOS_ALARM:
     _uptime = kuptime();
-    if(system->procman->current_thread->alarm.time > _uptime)
-      result = system->procman->current_thread->alarm.time - _uptime;
+    if(system->procman->curr->item->alarm.time > _uptime)
+      result = system->procman->curr->item->alarm.time - _uptime;
     else
       result = 0;
 
     if(arg1)  /* текущее время + arg1 */
-      system->procman->timer.add(system->procman->current_thread, _uptime + arg1);
+      system->procman->timer.add(system->procman->curr->item, _uptime + arg1);
     else
-      system->procman->timer.add(system->procman->current_thread, arg2);
+      system->procman->timer.add(system->procman->curr->item, arg2);
     break;
 
   case _FOS_MYTID:
-    result = system->procman->current_thread->tid;
+    result = system->procman->curr->item->tid;
     break;
 
   case _FOS_GET_PAGE_PHYS_ADDR:
     if(arg1 > USER_MEM_BASE)
-      result = OFFSET(phys_addr_from(PAGE(arg1), system->procman->current_thread->process->
+      result = OFFSET(phys_addr_from(PAGE(arg1), system->procman->curr->item->process->
 				     memory->pager->pagedir));
     else
       result = 0;

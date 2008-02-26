@@ -76,12 +76,6 @@ void Thread::set_tss(register off_t eip,
   system->gdt->set_tss_descriptor((off_t) tss, &descr);
 }
 
-void Thread::run()
-{
-  system->gdt->load_tss(SEL_N(BASE_TSK_SEL), &descr);
-  __asm__ __volatile__("ljmp $0x38, $0");
-}
-
 void Thread::activate()
 {
   system->procman->activate(me);

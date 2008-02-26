@@ -34,10 +34,6 @@ class Thread {
 
   ~Thread();
 
-  void run();
-  //void start(u32_t flag);
-  //  void wait(u32_t flag);
-
   List<Thread *> *me;
 
   class TProcess *process; /* процесс, в рамках которого запущена нить */
@@ -84,11 +80,6 @@ class Thread {
 	       u16_t data_segment=USER_DATA_SEGMENT);
 
   Messenger messages;
-
-  /*  inline void wait_message(){
-    wait(WFLAG_RECV);
-    sched_yield();
-    }*/
 
   struct {
     u32_t time;

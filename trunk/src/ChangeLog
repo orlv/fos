@@ -1,3 +1,9 @@
+Tue Feb 26 13:00:47 2008 [20080226] (kernel version 0.0.48.1)
+Oleg S Fedorov <o.s.fedorov@gmail.com>:
+	- Добавлены списки активных/неактивных процессов
+	- Доработана система сообщений
+	- Планировщик вынесен из сервера в обработчик прерывания
+
 Sat Feb  2 14:46:20 MSK 2008 [20080202]
 Sergey Gridassov <grindars@grindars.org.ru>:
 	- Реализованы функции: vfprintf, fprintf, переделан на printf.

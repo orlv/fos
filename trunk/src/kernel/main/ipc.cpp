@@ -74,13 +74,13 @@ res_t Messenger::put_message(kmessage *message)
 
 static inline bool check_message(message *message, int flags)
 {
-  if(OFFSET(message) < system->procman->current_thread->process->memory->mem_base) {
+  if(OFFSET(message) < system->procman->curr->item->process->memory->mem_base) {
     printk("kernel: message check base failed (0x%X < 0x%X)\n",
-	   OFFSET(message), system->procman->current_thread->process->memory->mem_base);
+	   OFFSET(message), system->procman->curr->item->process->memory->mem_base);
     return 1;
   }
   
-  u32_t *pagedir = system->procman->current_thread->process->memory->pager->pagedir;
+  u32_t *pagedir = system->procman->curr->item->process->memory->pager->pagedir;
   u32_t count;
 
   count = (OFFSET(message)%PAGE_SIZE + sizeof(struct message) + PAGE_SIZE - 1)/PAGE_SIZE;
@@ -217,12 +217,12 @@ res_t receive(message *msg)
     return RES_FAULT;
 
   kmessage *kmsg = 0;
-  Thread *me = system->procman->current_thread;
+  Thread *me = system->procman->curr->item;
   Thread *sender = (msg->tid)?(THREAD(msg->tid)):(0);
 
   system->preempt.disable();
 
-  //printk("receive [%s] \n", system->procman->current_thread->process->name);
+  //printk("receive [%s] \n", system->procman->curr->item->process->name);
   
   do {
     kmsg = me->messages.get(sender, msg->flags);
@@ -266,7 +266,7 @@ res_t send(message *msg)
     return RES_FAULT;
   }
 
-  //printk("send [%s]->[%s] \n", system->procman->current_thread->process->name, recipient->process->name);
+  //printk("send [%s]->[%s] \n", system->procman->curr->item->process->name, recipient->process->name);
   
   /* очередь сообщений получателя переполнена */
   if(recipient->messages.unread.count.value() >= MAX_MSG_COUNT){
@@ -275,7 +275,7 @@ res_t send(message *msg)
     return RES_FAULT2;
   }
 
-  Thread *me = system->procman->current_thread;
+  Thread *me = system->procman->curr->item;
 
   me->send_to = recipient->tid;
   /* взаимоблокировка */
@@ -335,7 +335,7 @@ res_t reply(message *msg)
   if(check_message(msg, MSG_CHK_SENDBUF))
     return RES_FAULT;
 
-  Thread *me = system->procman->current_thread;
+  Thread *me = system->procman->curr->item;
   kmessage *kmsg = 0;
   List<kmessage *> *entry;
   List<kmessage *> *messages = &me->messages.read.list;
@@ -371,7 +371,7 @@ res_t reply(message *msg)
     system->preempt.enable();
     return RES_SUCCESS;
   }
-  //printk("reply [%s]->[%s]\n", system->procman->current_thread->process->name, kmsg->thread->process->name);
+  //printk("reply [%s]->[%s]\n", system->procman->curr->item->process->name, kmsg->thread->process->name);
   kmsg->thread = me;
 
   if(kmsg->reply_size < msg->send_size)
@@ -434,7 +434,7 @@ res_t forward(message *message, tid_t to)
 
   kmessage *kmsg = 0;
   List<kmessage *> *entry;
-  List<kmessage *> *messages = &system->procman->current_thread->messages.read.list;
+  List<kmessage *> *messages = &system->procman->curr->item->messages.read.list;
 
   /* Ищем сообщение в списке полученных */
   list_for_each (entry, messages) {
@@ -461,7 +461,7 @@ res_t forward(message *message, tid_t to)
 
   entry->move_tail(&recipient->messages.unread.list);
   recipient->messages.unread.count.inc();
-  system->procman->current_thread->messages.read.count.dec();
+  system->procman->curr->item->messages.read.count.dec();
   recipient->start(TSTATE_WAIT_ON_RECV);	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
 
   system->preempt.enable();

@@ -270,6 +270,7 @@ void RefreshWindow(int handle)
   if (win->active) {
     while (!mutex_try_lock(winlist_mutex))
       sched_yield();
+    while(refreshing) sched_yield();
     if(refreshing)
       printf("BUG: collision of redrawing, check mutexes!\n");
     refreshing = 1;

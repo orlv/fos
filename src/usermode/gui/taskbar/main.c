@@ -135,7 +135,7 @@ THREAD(clock_thread) {
 			SetControlText(clock, tmp);
 		}
 		oldmin = time.min;
-		alarm(1000);
+		alarm(10000);
 		struct message msg;
 		msg.recv_size = 0;
 		msg.send_size = 0;
@@ -162,7 +162,7 @@ asmlinkage int main(int argc, char **argv)
   startbutton = CreateButton(hndl, 3, 4, 48, 22, "Menu");
   clock = CreateStatic(hndl, width - 50, 7, 40, 16, "RTC?");
   ControlsWindowVisible(hndl, 1);
-//  thread_create((off_t) clock_thread);
+  thread_create((off_t) clock_thread);
   ControlsMessageLoop();
   GuiEnd();
   return 0;

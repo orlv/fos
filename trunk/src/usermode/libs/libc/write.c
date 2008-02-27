@@ -56,7 +56,7 @@ asmlinkage ssize_t write(int fildes, const void *buf, size_t nbyte)
     fd->file_size = msg.arg[1];
 
     offset += msg.arg[0];
-    fd->offset += offset;
+    fd->offset += msg.arg[0];
 
     if((msg.arg[2] == ERR_EOF) || offset >= nbyte)
       return offset;

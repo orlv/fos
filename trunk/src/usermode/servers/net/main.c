@@ -26,7 +26,7 @@ THREAD(poller) {
           arp_handle(dev->packet);
           break;
         case ETHERNET_TYPE_IP:
-//          ip_handle(dev->packet);
+          ip_handle(dev->packet);
           break;
         case 0:
           break;

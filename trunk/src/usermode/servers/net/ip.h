@@ -17,6 +17,6 @@ typedef struct {
 void ip_handle(char *buf);
 #define IP_PROTOCOL_ICMP	1
 
-u16_t ip_checksum(void *buf, int len);
+u16_t ip_checksum(void *buf, int size);
 int ip_send(u32_t to, u8_t protocol, void *data, int datalen, int fragment);
 #endif

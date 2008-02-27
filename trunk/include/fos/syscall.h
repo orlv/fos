@@ -27,8 +27,6 @@
 #define _FOS_MYTID                 10  /* позволяет потоку узнать свой Thread ID */
 #define _FOS_GET_PAGE_PHYS_ADDR    11  /* возвращает физический адрес страницы   */
 
-#define _FOS_CALL_INTERRUPT	12
-
 static inline u32_t sys_call(volatile u32_t cmd, volatile u32_t arg)
 {
   u32_t result;

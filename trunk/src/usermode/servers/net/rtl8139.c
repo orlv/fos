@@ -12,6 +12,8 @@
 #include "nettypes.h"
 #include "stackconfig.h"
 
+#undef CARD_DEBUG
+
 #define TX_FIFO_THRESH	256
 #define RX_FIFO_THRESH	4
 #define RX_BUF_LEN_IDX	0
@@ -102,7 +104,8 @@ int rtl8139_init(net_callbacks_t *callbacks, netdev_t *dev) {
 	outb(0x00, io + CONFIG1);
 	
 	printf("ring %u bytes, ", RX_BUF_LEN + 16 + (TX_BUF_SIZE * NUM_TX_DESC));
-	mydata->rx_ring = kmmap(0, RX_BUF_LEN + 16 + (TX_BUF_SIZE * NUM_TX_DESC), 0, 0);
+	mydata->rx_buf_len = RX_BUF_LEN;
+	mydata->rx_ring = kmmap(0, mydata->rx_buf_len  + 16 + (TX_BUF_SIZE * NUM_TX_DESC) , 0, 0xB9000);
 	mydata->tx_buffer = kmmap(0, ETH_FRAME_LEN, 0, 0);
 
 	int addr_len = read_eeprom(io, 0, 8) == 0x8129 ? 8 : 6;

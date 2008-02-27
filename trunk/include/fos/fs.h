@@ -27,6 +27,8 @@
 
 #define FS_CMD_UNLINK 	10
 
+#define FS_CMD_IOCTL	11
+
 #define BASE_CMD_N 64
 
 #define NO_ERR                0

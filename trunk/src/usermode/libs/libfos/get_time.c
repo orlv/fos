@@ -6,7 +6,7 @@
 #include <unistd.h>
 int get_time(struct time *buf) {
 	int handle = open("/dev/rtc", 0);
-	if(!handle)
+	if(handle < 0)
 		return -1;
 
 	if(read(handle, buf, sizeof(struct time)) < sizeof(struct time)) {

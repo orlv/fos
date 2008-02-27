@@ -57,6 +57,7 @@ size_t RTCRead(void *buf, size_t count) {
 }
 
 int main(int argc, char *argv[]) {
+  printf("RTC started\n");
   resmgr_attach("/dev/rtc");
   struct message msg;
   struct time *buffer = malloc(sizeof(struct time));

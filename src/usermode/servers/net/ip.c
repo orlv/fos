@@ -40,23 +40,60 @@ void ip_handle(char *buf) {
 	}
 } 
 
-u16_t ip_checksum(void *buf, int len) {
-	u16_t sum = 0;
-	u8_t *dataptr, *last_byte;
-	for(dataptr = buf, last_byte = buf + len; dataptr < last_byte; dataptr += 2) {
-		u16_t t = (dataptr[0] << 8) + dataptr[1];
-		sum += t;
-		if(sum < t)
-			sum++;
+u16_t ip_checksum( void *data, int size)
+{
+	u8_t *dptr;
+	size_t n;
+	u16_t word;
+	u32_t sum;
+	int swap= 0;
+
+	sum= 0;
+	dptr= data;
+	n= size;
+
+	swap= ((size_t) dptr & 1);
+	if (swap) {
+		sum= ((sum & 0xFF) << 8) | ((sum & 0xFF00) >> 8);
+		if (n > 0) {
+			((u8_t *) &word)[0]= 0;
+			((u8_t *) &word)[1]= dptr[0];
+			sum+= (u32_t) word;
+			dptr+= 1;
+			n-= 1;
+		}
 	}
-	if(dataptr == last_byte) {
-		u16_t t = (dataptr[0] << 8);
-		sum += t;
-		if(sum < t)
-			sum++;
+
+	while (n >= 8) {
+		sum+= (u32_t) ((u16_t *) dptr)[0]
+		    + (u32_t) ((u16_t *) dptr)[1]
+		    + (u32_t) ((u16_t *) dptr)[2]
+		    + (u32_t) ((u16_t *) dptr)[3];
+		dptr+= 8;
+		n-= 8;
 	}
-	return htons(sum);
+
+	while (n >= 2) {
+		sum+= (u32_t) ((u16_t *) dptr)[0];
+		dptr+= 2;
+		n-= 2;
+	}
+
+	if (n > 0) {
+		((u8_t *) &word)[0]= dptr[0];
+		((u8_t *) &word)[1]= 0;
+		sum+= (u32_t) word;
+	}
+
+	sum= (sum & 0xFFFF) + (sum >> 16);
+	if (sum > 0xFFFF) sum++;
+
+	if (swap) {
+		sum= ((sum & 0xFF) << 8) | ((sum & 0xFF00) >> 8);
+	}
+	return sum;
 }
+
 int ip_send(u32_t to, u8_t protocol, void *data, int datalen, int fragment) {
 	u8_t mac[6];
 	if(arp_get_mac(to, mac) < 0) 
@@ -67,7 +104,7 @@ int ip_send(u32_t to, u8_t protocol, void *data, int datalen, int fragment) {
 		free(buf);
 		return -1;
 	}
-/*	ip_packet *packet = (ip_packet *) (buf + ETHERNET_HDR);
+	ip_packet *packet = (ip_packet *) (buf + ETHERNET_HDR);
 	packet->ihl = sizeof(ip_packet) / 4;
 	packet->version = 4;
 	packet->type_of_service = 0;
@@ -80,9 +117,9 @@ int ip_send(u32_t to, u8_t protocol, void *data, int datalen, int fragment) {
 	packet->to = to;
 	EthernetMyIP(&packet->from);
 	packet->checksum = ip_checksum(packet, sizeof(ip_packet));
-	memcpy(buf + ETHERNET_HDR + sizeof(ip_packet), data, datalen);*/
+	memcpy(buf + ETHERNET_HDR + sizeof(ip_packet), data, datalen);
 	printf("IP sending %u bytes\n", ETHERNET_HDR + sizeof(ip_packet) + datalen);
-	EthernetSent(buf, ETHERNET_HDR);// + sizeof(ip_packet) + datalen);
+	EthernetSent(buf, ETHERNET_HDR + sizeof(ip_packet) + datalen);
 	free(buf);
 	return 0;
 }

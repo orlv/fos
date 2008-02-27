@@ -84,15 +84,14 @@ window_t *GetWindowInfo(int handle)
 
 void Redraw()
 {
-
+  while (!mutex_try_lock(winlist_mutex))
+    sched_yield();
   refreshing = 1;
   DrawRect(0, 0, screen.w, screen.h, 0x003082, backbuf);
-  PutString(0, 0, "Gridassov Window System version " VERSION " builded at " __DATE__ " " __TIME__ , 0xFFFFFF, backbuf);
+  PutString(0, 0, "GWinSy version " VERSION " builded at " __DATE__ " " __TIME__ , 0xFFFFFF, backbuf);
   PutString(0, 16, "FOS - a world domination project" , 0xFFFFFF, backbuf);
   memset(locate->data, 0, (screen.w * screen.h * screen.bpp));
   if (front != NULL) {
-    while (!mutex_try_lock(winlist_mutex))
-      sched_yield();
     for (node * n = front; n; n = n->next) {
       window_t *p = (window_t *) n->data;
 
@@ -116,11 +115,11 @@ void Redraw()
       DrawRect(p->x, p->y, p->w, p->h, p->handle, locate);
       FlushContext(p->context, p->context->w, p->context->h, p->x, p->y, 0, 0, backbuf);
     }
-    mutex_unlock(winlist_mutex);
   }
   FlushContext(backbuf, screen.w, screen.h, 0, 0, 0, 0, &screen);
   need_cursor = 1;
   refreshing = 0;
+  mutex_unlock(winlist_mutex);
 }
 
 void WindowMapped(struct window_t *win)
@@ -271,6 +270,9 @@ void RefreshWindow(int handle)
   if (win->active) {
     while (!mutex_try_lock(winlist_mutex))
       sched_yield();
+    if(refreshing)
+      printf("BUG: collision of redrawing, check mutexes!\n");
+    refreshing = 1;
     if (win->class & WC_NODECORATIONS) {
       FlushContext(win->context, win->context->w, win->context->h, win->x, win->y, 0, 0, &screen);
       FlushContext(win->context, win->context->w, win->context->h, win->x, win->y, 0, 0, backbuf);
@@ -278,6 +280,7 @@ void RefreshWindow(int handle)
       FlushContext(win->context, win->context->w - 6, win->context->h - 24, win->x + 3, win->y + 21, 3, 21, &screen);
       FlushContext(win->context, win->context->w - 6, win->context->h - 24, win->x + 3, win->y + 21, 3, 21, backbuf);
     }
+    refreshing = 0;
     need_cursor = 1;
     mutex_unlock(winlist_mutex);
   } else

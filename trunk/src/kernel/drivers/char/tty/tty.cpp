@@ -119,10 +119,10 @@ void TTY::out_ch(const char ch)
 
 size_t TTY::write(off_t offset, const void *buf, size_t count)
 {
-  mutex.lock();
+  //  mutex.lock();
   for (size_t i = 0; i < count; i++)
     out_ch(((const char *)buf)[i]);
-  mutex.unlock();
+  //  mutex.unlock();
   sync();
   return count;
 }
@@ -134,7 +134,7 @@ size_t TTY::read(off_t offset, void *buf, size_t count)
 
   char ch;
   size_t i, j;
-  mutex.lock();
+  //  mutex.lock();
   for (i=offset, j=0; (i < (offset + count)) && (i < offs) ; i++) {
     ch = buffer[i] & 0xff;
     if(ch) {
@@ -145,7 +145,7 @@ size_t TTY::read(off_t offset, void *buf, size_t count)
       j++;
     }
   }
-  mutex.unlock();
+  //mutex.unlock();
   return j;
 }
 

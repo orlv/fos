@@ -24,7 +24,7 @@ OBJECTS		=	close.o		malloc.o	exit.o		lseek.o		\
 			vsnprintf.o	memmove.o	atol.o		localtime.o	\
 			gettimeofday.o	localtime_r.o	gmtime_r.o	time_table_spd.o \
 			isleap.o	mktime.o	timegm.o	strtol.o	\
-			strtoll.o	strtoull.o	strdup.o	ioctl.o
+			strtoll.o	strtoull.o	strdup.o
 
 include $(SYSTEM_SRC)/mk/trg_lib.mk
 

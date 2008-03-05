@@ -9,7 +9,7 @@
 #include <types.h>
 #include <asm/xchg.h>
 
-typedef volatile u8_t mutex_t;
+typedef volatile int mutex_t;
 
 static inline void mutex_init(mutex_t m)
 {

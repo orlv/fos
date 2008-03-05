@@ -9,6 +9,28 @@
 
 #include <types.h>
 
+#if 1
+static inline unsigned long xchg(volatile void * ptr, unsigned long v)
+{
+  asm volatile("xchgl %0,%1"
+	       :"=r" (v)
+	       :"m" (ptr), "0" (v)
+	       :"memory");
+  return v;
+}
+
+static inline unsigned long _cmpxchg(volatile void *ptr, unsigned long old, unsigned long n)
+{
+  unsigned long prev;
+  asm volatile("cmpxchgl %1,%2"
+	       : "=a"(prev)
+	       : "r"(n), "m"(ptr), "0"(old)
+	       : "memory");
+  return prev;
+}
+
+#else
+
 struct __xchg_dummy { unsigned long a[100]; };
 #define __xg(x) ((struct __xchg_dummy *)(x))
 #define xchg(ptr,v) ((__typeof__(*(ptr)))__xchg((unsigned long)(v),(ptr),sizeof(*(ptr))))
@@ -68,5 +90,6 @@ static inline unsigned long __cmpxchg(volatile void *ptr, unsigned long old, uns
   return old;
 }
 
+#endif
 
 #endif

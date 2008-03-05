@@ -163,27 +163,11 @@ public:
    */
   inline int add_return(int i)
   {
-    int __i;
-#ifdef CONFIG_M386
-    unsigned long flags;
-    if(unlikely(boot_cpu_data.x86==3))
-      goto no_xadd;
-#endif
-    /* Modern 486+ processor */
-    __i = i;
+    int __i = i;
     __asm__ __volatile__("xaddl %0, %1;"
 			 :"=r"(i)
 			 :"m"(__value), "0"(i));
     return i + __i;
-
-#ifdef CONFIG_M386
-  no_xadd: /* Legacy 386 processor */
-    //local_irq_save(flags);
-    __i = this->__value(v);
-    this->set(v, i + __i);
-    //local_irq_restore(flags);
-    return i + __i;
-#endif
   }
 
   inline int sub_return(int i)

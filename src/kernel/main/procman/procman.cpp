@@ -171,7 +171,6 @@ void procman_srv()
 
       /* завершить все потоки в адресном пространстве */
     case PROCMAN_CMD_EXIT:
-      //thread = system->procman->get_thread_by_tid(msg->tid);
       thread = system->procman->task.tid->get(msg->tid);
       if(system->procman->kill(thread->tid, FLAG_TSK_TERM))
 	msg->arg[0] = 1;
@@ -184,7 +183,6 @@ void procman_srv()
       /* завершить только данный поток */
     case PROCMAN_CMD_THREAD_EXIT:
       thread = system->procman->task.tid->get(msg->tid);
-      //thread = system->procman->get_thread_by_tid(msg->tid);
       if(system->procman->kill(thread->tid, FLAG_TSK_EXIT_THREAD))
 	msg->arg[0] = 1;
       else

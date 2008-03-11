@@ -14,12 +14,12 @@ long ftell(FILE *stream) {
 
 	__fopen_fd *fd = stream;
 
-	while(!mutex_try_lock(fd->using_mutex))
+	while(!mutex_try_lock(&fd->using_mutex))
 		sched_yield();
 
 	internal_flush(fd);
 	int ret = lseek(fd->handle, 0, SEEK_CUR);
-	mutex_unlock(fd->using_mutex);
+	mutex_unlock(&fd->using_mutex);
 	return ret;
 
 }

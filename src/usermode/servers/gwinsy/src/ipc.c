@@ -1,8 +1,3 @@
-/*
- *         FOS Graphics System
- * Copyright (c) 2008 Sergey Gridassov
- */
-
 #include <fos/message.h>
 #include <fos/fos.h>
 #include <stdio.h>
@@ -52,7 +47,7 @@ static tid_t ipc_thread;
 
 void PostEvent(int tid, int handle, int class, int a0, int a1, int a2, int a3)
 {
-  while (!mutex_try_lock(q_locked))
+  while (!mutex_try_lock(&q_locked))
     sched_yield();
   struct list_head *entry;
   proc_t *p = &proc_head;
@@ -81,7 +76,7 @@ void PostEvent(int tid, int handle, int class, int a0, int a1, int a2, int a3)
   }
 
   list_add_tail(&ev->list, &p->events.list);
-  mutex_unlock(q_locked);
+  mutex_unlock(&q_locked);
   if(ipc_thread) {
     struct message msg; 
     msg.tid = ipc_thread;
@@ -169,7 +164,7 @@ void EventsThread()
 	reply(&msg);
 	break;
       case WIN_CMD_WAIT_EVENT:{
-	  while (!mutex_try_lock(q_locked))
+	  while (!mutex_try_lock(&q_locked))
 	    sched_yield();
 
 	  struct list_head *entry;
@@ -201,12 +196,12 @@ void EventsThread()
 	    } else
 	      p->waiting = 1;
 	  }
-	  mutex_unlock(q_locked);
+	  mutex_unlock(&q_locked);
 	  break;
 	}
 
       case WIN_CMD_CLEANUP:{
-	  while (!mutex_try_lock(q_locked))
+	  while (!mutex_try_lock(&q_locked))
 	    sched_yield();
 
 	  struct list_head *entry;
@@ -228,7 +223,7 @@ void EventsThread()
 	  msg.send_size = 0;
 	  msg.flags = 0;
 	  reply(&msg);
-	  mutex_unlock(q_locked);
+	  mutex_unlock(&q_locked);
 	  break;
 	}
       case WIN_CMD_SCREEN_INFO:
@@ -269,7 +264,7 @@ void EventsThread()
     struct list_head *entry;
     proc_t *p;
 
-    while (!mutex_try_lock(q_locked))
+    while (!mutex_try_lock(&q_locked))
       sched_yield();
 
     list_for_each(entry, &proc_head.list) {
@@ -287,7 +282,7 @@ void EventsThread()
 	p->waiting = 0;
       }
     }
-    mutex_unlock(q_locked);
+    mutex_unlock(&q_locked);
   }
 }
 

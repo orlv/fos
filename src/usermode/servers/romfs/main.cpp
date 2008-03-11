@@ -30,16 +30,16 @@ handle_t *head = NULL;
 void outdated();
 
 handle_t *resolve_handle(unsigned int hndl, int type) {
-	while(!mutex_try_lock(q_locked))
+	while(!mutex_try_lock(&q_locked))
 		sched_yield();
 	for(handle_t *p = head; p; p = p->next) {
 		if(p->handle == hndl && type == p->type) {
-			mutex_unlock(q_locked);
+			mutex_unlock(&q_locked);
 			return p;
 		}
 	}
 	printf("warning: bogus handle %u\n", hndl);
-	mutex_unlock(q_locked);
+	mutex_unlock(&q_locked);
 	return NULL;
 }
 
@@ -75,9 +75,9 @@ asmlinkage int main(int argc, char *argv[]) {
 				delete hndl;
 				break;
 			} else {
-				while(!mutex_try_lock(q_locked))
-	 				 sched_yield();
-				last_handle ++;
+				while(!mutex_try_lock(&q_locked)) {
+	 				 sched_yield(); }
+     				last_handle ++;
 				hndl->data = data;
 				hndl->touched = uptime();
 				hndl->handle = last_handle;
@@ -85,7 +85,7 @@ asmlinkage int main(int argc, char *argv[]) {
 				hndl->type = HANDLE_FILE;
 				hndl->tid = msg.tid;
 				head = hndl;
-				mutex_unlock(q_locked);
+				mutex_unlock(&q_locked);
 				msg.arg[0] = last_handle;
 				msg.arg[1] = ROMFS_BUF_SIZE;
 				msg.arg[2] = NO_ERR;
@@ -149,10 +149,10 @@ asmlinkage int main(int argc, char *argv[]) {
 		}
 		case FS_CMD_DIRCLOSE:
 		case FS_CMD_CLOSE:
-			while(!mutex_try_lock(q_locked))
+			while(!mutex_try_lock(&q_locked))
 				sched_yield();
 			for(handle_t *p = head, *prev = NULL; p; prev = p, p = p->next) {
-				if(p->handle == msg.arg[1] && p->type == HANDLE_FILE) {
+				if(p->handle == msg.arg[1]) {
 					if(prev) 
 						prev->next = p->next;
 					else
@@ -161,7 +161,7 @@ asmlinkage int main(int argc, char *argv[]) {
 					break;
 				}
 			}
-			mutex_unlock(q_locked);
+			mutex_unlock(&q_locked);
 			break;
 		case FS_CMD_DIROPEN: {
 			handle_t *hndl = new handle_t;
@@ -175,7 +175,7 @@ asmlinkage int main(int argc, char *argv[]) {
 				delete hndl;
 				break;
 			} else {
-				while(!mutex_try_lock(q_locked))
+				while(!mutex_try_lock(&q_locked))
 	 				 sched_yield();
 				last_handle ++;
 				hndl->data = data;
@@ -185,7 +185,7 @@ asmlinkage int main(int argc, char *argv[]) {
 				hndl->type = HANDLE_DIR;
 				hndl->tid = msg.tid;
 				head = hndl;
-				mutex_unlock(q_locked);
+				mutex_unlock(&q_locked);
 				msg.arg[0] = last_handle;
 				msg.arg[1] = rfs->get_ent_count(&hndl->in);
 				msg.arg[2] = NO_ERR;
@@ -228,17 +228,18 @@ asmlinkage int main(int argc, char *argv[]) {
 	return 0;
 	
 }
+
 void outdated() {
 	while(1) {
 		struct message msg;
 		msg.tid = 0;
 		msg.recv_buf = NULL;
 		msg.recv_size = 0;
-		msg.flags = 0;
+		msg.flags = MSG_ASYNC;
 		alarm(20000);	// это в районе минуты на самом деле.
 		receive(&msg);
 		reply(&msg);
-		while(!mutex_try_lock(q_locked))
+ 		while(!mutex_try_lock(&q_locked))
 	 		sched_yield();
 		for(handle_t *ptr = head, *prev = NULL; ptr; prev = ptr, ptr = ptr->next) {
 			if(ptr->touched < uptime() - 20000) {
@@ -250,6 +251,8 @@ void outdated() {
 				delete ptr;
 			}
 		}
-		mutex_unlock(q_locked);
+		mutex_unlock(&q_locked);
 	}
 }
+
+

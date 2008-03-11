@@ -15,12 +15,12 @@ int fseek(FILE *stream, long offset, int whence) {
 
 	__fopen_fd *fd = stream;
 
-	while(!mutex_try_lock(fd->using_mutex))
+	while(!mutex_try_lock(&fd->using_mutex))
 		sched_yield();
 
 	internal_flush(fd);
 	int ret = lseek(fd->handle, offset, whence);
-	mutex_unlock(fd->using_mutex);
+	mutex_unlock(&fd->using_mutex);
 	return ret == -1 ? -1 : 0;
 
 } 

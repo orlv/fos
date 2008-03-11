@@ -6,7 +6,7 @@
 #define _MUTEX_H
 
 #include <types.h>
-#include <asm/xchg.h>
+
 typedef volatile u32_t mutex_t;
 
 static inline u32_t __atom_mutex_set_val(mutex_t *m, volatile u32_t val) {

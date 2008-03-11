@@ -13,15 +13,12 @@
 #include <fos/mm.h>
 #include <fos/printk.h>
 #include <fos/system.h>
-#include <c++/tmutex.h>
 #include <string.h>
 
 HeapMemBlock * volatile heap_free_ptr = NULL;
 HeapMemBlock kmem_block;
 static HeapMemBlock *morecore(register size_t size);
 void free(register void *ptr);
-
-static TMutex heap_mutex;
 
 static void * volatile reserved_block = NULL;
 

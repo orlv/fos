@@ -1,20 +1,18 @@
 /*
   drivers/char/tty/tty.h
-  Copyright (C) 2005-2006 Oleg Fedorov
+  Copyright (C) 2005-2008 Oleg Fedorov
 */
 
 #ifndef _TTY_H
 #define _TTY_H
 
 #include <types.h>
-#include <c++/tmutex.h>
 
 #define TTY_MODE_BLOCK  0
 #define TTY_MODE_CHAR   1
 
 class TTY {
 private:
-  TMutex mutex;
   size_t bufsize;
 
   u8_t textcolor;

@@ -19,7 +19,7 @@ List<kmessage *> *msg_list::get(Thread *sender, u32_t flags)
       return entry;
   }
   /* сообщение не найдено, и не придёт */
-  if(sender && count.value() > MAX_MSG_COUNT)
+  if(sender && count > MAX_MSG_COUNT)
     return (List<kmessage *> *)-1;
       
   /* сообщение не найдено, но можно повторить попытку позже */
@@ -35,7 +35,7 @@ kmessage *Messenger::get(Thread *sender, u32_t flags)
   if((sender) || (flags & MSG_ASYNC)) {
     entry = unread.get(sender, flags);
   } else { /* любое сообщение */
-    entry = (unread.count.value())?(unread.list.next):(0);
+    entry = (unread.count)?(unread.list.next):(0);
   }
 
   if(!entry || ((s32_t)entry == -1)) return (kmessage *)entry; /* возврат ошибки */
@@ -43,24 +43,24 @@ kmessage *Messenger::get(Thread *sender, u32_t flags)
   msg = entry->item;
   if (!(msg->flags & MSG_ASYNC)){ /* перемещаем сообщение в очередь полученных сообщений */
     entry->move_tail(&read.list);
-    read.count.inc();
+    read.count++;
   } else /* убираем сообщение из списков */
     delete entry; 
 
-  unread.count.dec();
+  unread.count--;
   return msg;
 }
 
 res_t Messenger::put_message(kmessage *message)
 {
   system->preempt.disable();
-  if(unread.count.value() >= MAX_MSG_COUNT){
+  if(unread.count >= MAX_MSG_COUNT){
     system->preempt.enable();
     return RES_FAULT2;
   }
 
   unread.list.add_tail(message);
-  unread.count.inc();
+  unread.count++;
 
   thread->start(TSTATE_WAIT_ON_RECV);
 
@@ -206,7 +206,7 @@ kmessage *Messenger::import(message *msg, Thread *sender)
   kmsg->thread = sender;
 
   unread.list.add_tail(kmsg);       /* добавим сообщение процессу-получателю */
-  unread.count.inc();
+  unread.count++;
   
   return kmsg;
 }
@@ -269,7 +269,7 @@ res_t send(message *msg)
   //printk("send [%s]->[%s] \n", system->procman->curr->item->process->name, recipient->process->name);
   
   /* очередь сообщений получателя переполнена */
-  if(recipient->messages.unread.count.value() >= MAX_MSG_COUNT){
+  if(recipient->messages.unread.count >= MAX_MSG_COUNT){
     msg->send_size = 0;
     system->preempt.enable();
     return RES_FAULT2;
@@ -414,7 +414,7 @@ res_t forward(message *message, tid_t to)
     return RES_FAULT;
   }
 
-  if (recipient->messages.unread.count.value() >= MAX_MSG_COUNT) {
+  if (recipient->messages.unread.count >= MAX_MSG_COUNT) {
     system->preempt.enable();
     message->send_size = 0;
     return RES_FAULT2;
@@ -460,8 +460,8 @@ res_t forward(message *message, tid_t to)
   kmsg->thread = sender;
 
   entry->move_tail(&recipient->messages.unread.list);
-  recipient->messages.unread.count.inc();
-  system->procman->curr->item->messages.read.count.dec();
+  recipient->messages.unread.count++;
+  system->procman->curr->item->messages.read.count--;
   recipient->start(TSTATE_WAIT_ON_RECV);	         /* сбросим флаг ожидания получения сообщения (если он там есть) */
 
   system->preempt.enable();

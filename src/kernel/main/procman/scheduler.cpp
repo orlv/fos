@@ -30,7 +30,7 @@ void TProcMan::scheduler()
   system->cli();
   /* если поток только что приостановился в ожидании сообщения,
      и сообщения уже пришли — активируем */
-  if((curr->item->state | TSTATE_WAIT_ON_RECV) && curr->item->signals_cnt.value()){
+  if((curr->item->state | TSTATE_WAIT_ON_RECV) && curr->item->signals_cnt){
     curr->item->start(TSTATE_WAIT_ON_RECV);
   }
   system->sti();
@@ -52,7 +52,7 @@ void TProcMan::scheduler()
   }
 
   /* если пришли сигналы -- отправляем соответствующие сообщения */
-  if(curr->item->signals_cnt.value()){
+  if(curr->item->signals_cnt){
     system->cli();
     curr->item->parse_signals();
     system->sti();

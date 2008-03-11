@@ -35,9 +35,9 @@ class SYSTEM {
   page *phys_page;        /* массив информации о страницах */
   size_t pages_cnt;       /* общее количество страниц в системе */
   Stack<u32_t> *free_page;
-  atomic_t free_pages;    /* количество свободных страниц */
+  volatile size_t free_pages;    /* количество свободных страниц */
   Stack<u32_t> *free_page_DMA16;
-  atomic_t free_pages_DMA16; /* количество "нижних" страниц (лежащих ниже 16 Мб) */
+  volatile size_t free_pages_DMA16; /* количество "нижних" страниц (лежащих ниже 16 Мб) */
 
   inline void cli() { asm("cli"); };
   inline void sti() { asm("sti"); };
@@ -94,7 +94,7 @@ extern SYSTEM *system;
 static inline int page_status(u32_t n)
 {
   if(n < system->pages_cnt)
-    return system->phys_page[n].mapcount.value();
+    return system->phys_page[n].mapcount;
   else
     return -1;
 }
@@ -116,7 +116,7 @@ static inline void kmem_set_log_addr(u32_t n, u32_t kmap_address)
 static inline int alloc_page(u32_t n)
 {
   if(n < system->pages_cnt)
-    return system->phys_page[n].mapcount.inc_return();
+    return ++system->phys_page[n].mapcount;
   else
     return -1;
 }
@@ -124,8 +124,8 @@ static inline int alloc_page(u32_t n)
 static inline int free_page(u32_t n)
 {
   if(n < system->pages_cnt) {
-    if(system->phys_page[n].mapcount.value())
-      return system->phys_page[n].mapcount.dec_return();
+    if(system->phys_page[n].mapcount)
+      return ++system->phys_page[n].mapcount;
     else
       return 0;
   } else

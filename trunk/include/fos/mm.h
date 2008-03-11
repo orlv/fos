@@ -7,7 +7,7 @@
 #define _FOS_MM_H
 
 #include <types.h>
-#include <c++/atomic.h>
+
 #include <c++/list.h>
 
 /*

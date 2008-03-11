@@ -51,7 +51,7 @@ asmlinkage void init()
 
   out_banner();
 
-  printk("Memory size: %d Kb, free %dK (%dK high/%dK low)\n", system->pages_cnt*4, system->free_pages.value()*4 + system->free_pages_DMA16.value()*4, system->free_pages.value()*4, system->free_pages_DMA16.value()*4);
+  printk("Memory size: %d Kb, free %dK (%dK high/%dK low)\n", system->pages_cnt*4, system->free_pages*4 + system->free_pages_DMA16*4, system->free_pages*4, system->free_pages_DMA16*4);
   extern multiboot_info_t *__mbi;
   initrb = new ModuleFS(__mbi);
   system->procman = new TProcMan;

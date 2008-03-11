@@ -7,7 +7,7 @@
 #define _FOS_MESSENGER_H
 
 #include <types.h>
-#include <c++/atomic.h>
+
 #include <c++/list.h>
 #include <fos/message.h>
 
@@ -25,7 +25,7 @@ class kmessage {
 class msg_list {
  public:
   List<kmessage *> list;
-  atomic_t count;
+  volatile size_t count;
   List<kmessage *> *get(Thread *sender, u32_t flags);
 };
 

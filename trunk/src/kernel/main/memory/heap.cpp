@@ -27,7 +27,7 @@ static void * volatile reserved_block = NULL;
 
 size_t volatile heap_free = 0;
 
-atomic_t preempt_count;
+volatile size_t preempt_count;
 
 void *malloc(register size_t size)
 {

@@ -87,13 +87,13 @@ class Thread {
   } alarm;
   
   List<signal *> signals;
-  atomic_t signals_cnt;
+  volatile size_t signals_cnt;
   inline void put_signal(u32_t data, u32_t n){
     signal *sig = new signal;
     sig->data = data;
     sig->n = n;
     signals.add_tail(sig);
-    signals_cnt.inc();
+    signals_cnt++;
     start(TSTATE_WAIT_ON_RECV);
   }
   void parse_signals();

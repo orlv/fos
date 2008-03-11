@@ -9,7 +9,7 @@
 #include <types.h>
 
 #ifdef iKERNEL
-#include <c++/atomic.h>
+
 #endif
 
 #define PAGE_SIZE 0x1000
@@ -20,7 +20,7 @@ asmlinkage off_t getpagephysaddr(off_t pageaddr); /* возвращает физ
 
 #ifdef iKERNEL
 struct page {
-  atomic_t mapcount;          /* общее количество использований страницы */
+  volatile size_t mapcount;          /* общее количество использований страницы */
   volatile u32_t kernel_map;  /* на какой логический адрес в области ядра смонтировано (если смонтировано) */
 };
 

@@ -101,6 +101,6 @@ void Thread::parse_signals()
     messages.put_message(message);
     delete curr->item;
     delete curr;
-    signals_cnt.dec();
+    signals_cnt--;
   }
 }

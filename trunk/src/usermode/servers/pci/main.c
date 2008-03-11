@@ -63,16 +63,16 @@ size_t pci_read(u32_t addr, void *buffer, u32_t size, int reg) {
 }
 
 handle_t *resolve_handle(unsigned int hndl) {
-	while(!mutex_try_lock(q_locked))
+	while(!mutex_try_lock(&q_locked))
 		sched_yield();
 	for(handle_t *p = head; p; p = p->next) {
 		if(p->handle == hndl) {
-			mutex_unlock(q_locked);
+			mutex_unlock(&q_locked);
 			return p;
 		}
 	}
 	printf("warning: bogus handle %u\n", hndl);
-	mutex_unlock(q_locked);
+	mutex_unlock(&q_locked);
 	return NULL;
 }
 
@@ -111,7 +111,7 @@ void outdated() {
 		alarm(30000);	// здесь я поменьше поставил - 30 сек - вполне хватит
 		receive(&msg);
 		reply(&msg);
-		while(!mutex_try_lock(q_locked))
+		while(!mutex_try_lock(&q_locked))
 	 		sched_yield();
 		for(handle_t *ptr = head, *prev = NULL; ptr; prev = ptr, ptr = ptr->next) {
 			if(ptr->touched < uptime() - 30000) {
@@ -123,7 +123,7 @@ void outdated() {
 				free(ptr);
 			}
 		}
-		mutex_unlock(q_locked);
+		mutex_unlock(&q_locked);
 	}
 }
 
@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
 				msg.send_size = 0;
 				break;
 			} else {
-				while(!mutex_try_lock(q_locked))
+				while(!mutex_try_lock(&q_locked))
 	 				 sched_yield();
 				last_handle ++;
 				handle_t *hndl = malloc(sizeof(handle_t));
@@ -160,7 +160,7 @@ int main(int argc, char *argv[]) {
 				hndl->next = head;
 				hndl->tid = msg.tid;
 				head = hndl;
-				mutex_unlock(q_locked);
+				mutex_unlock(&q_locked);
 				msg.arg[0] = last_handle;
 				msg.arg[1] = 256;
 				msg.arg[2] = NO_ERR;
@@ -208,7 +208,7 @@ int main(int argc, char *argv[]) {
 			break;
 		}
 		case FS_CMD_CLOSE:
-			while(!mutex_try_lock(q_locked))
+			while(!mutex_try_lock(&q_locked))
 				sched_yield();
 			for(handle_t *p = head, *prev = NULL; p; prev = p, p = p->next) {
 				if(p->handle == msg.arg[1]) {
@@ -220,7 +220,7 @@ int main(int argc, char *argv[]) {
 					break;
 				}
 			}
-			mutex_unlock(q_locked);
+			mutex_unlock(&q_locked);
 			break;
 		default:
 			printf("pcid: unknown command %u %u %u %u\n", msg.arg[0], msg.arg[1], msg.arg[2], msg.arg[3]);

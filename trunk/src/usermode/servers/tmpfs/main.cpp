@@ -24,16 +24,16 @@ handle_t *head = NULL;
 void outdated();
 
 handle_t *resolve_handle(unsigned int hndl, int type) {
-	while(!mutex_try_lock(q_locked))
+	while(!mutex_try_lock(&q_locked))
 		sched_yield();
 	for(handle_t *p = head; p; p = p->next) {
 		if(p->handle == hndl && type == p->type) {
-			mutex_unlock(q_locked);
+			mutex_unlock(&q_locked);
 			return p;
 		}
 	}
 	printf("warning: bogus handle %u\n", hndl);
-	mutex_unlock(q_locked);
+	mutex_unlock(&q_locked);
 	return NULL;
 }
 
@@ -83,7 +83,7 @@ asmlinkage int main(int argc, char *argv[]) {
 				break;
 			} else {
 				if(!exists) tfs->locate_file(buffer, &hndl->target);
-				while(!mutex_try_lock(q_locked))
+				while(!mutex_try_lock(&q_locked))
 	 				 sched_yield();
 
 				last_handle ++;
@@ -92,7 +92,7 @@ asmlinkage int main(int argc, char *argv[]) {
 				hndl->next = head;
 				hndl->type = HANDLE_FILE;
 				head = hndl;
-				mutex_unlock(q_locked);
+				mutex_unlock(&q_locked);
 				msg.arg[0] = last_handle;
 				msg.arg[1] = TMPFS_BUF_SIZE;
 				msg.arg[2] = NO_ERR;
@@ -176,7 +176,7 @@ asmlinkage int main(int argc, char *argv[]) {
 		}
 		case FS_CMD_DIRCLOSE:
 		case FS_CMD_CLOSE:
-			while(!mutex_try_lock(q_locked))
+			while(!mutex_try_lock(&q_locked))
 				sched_yield();
 			for(handle_t *p = head, *prev = NULL; p; prev = p, p = p->next) {
 				if(p->handle == msg.arg[1] && p->type == HANDLE_FILE) {
@@ -188,13 +188,13 @@ asmlinkage int main(int argc, char *argv[]) {
 					break;
 				}
 			}
-			mutex_unlock(q_locked);
+			mutex_unlock(&q_locked);
 			break;
 
 		case FS_CMD_DIROPEN: {
 			handle_t *hndl = new handle_t;
 			buffer[msg.recv_size] = 0;
-			while(!mutex_try_lock(q_locked))
+			while(!mutex_try_lock(&q_locked))
  				 sched_yield();
 			last_handle ++;
 			tfs->first_file(&hndl->target);
@@ -203,7 +203,7 @@ asmlinkage int main(int argc, char *argv[]) {
 			hndl->next = head;
 			hndl->type = HANDLE_DIR;
 			head = hndl;
-			mutex_unlock(q_locked);
+			mutex_unlock(&q_locked);
 			msg.arg[0] = last_handle;
 			msg.arg[1] = tfs->files_count();
 			msg.arg[2] = NO_ERR;
@@ -259,7 +259,7 @@ void outdated() {
 		alarm(60000);	// это в районе минуты на самом деле.
 		receive(&msg);
 		reply(&msg);
-		while(!mutex_try_lock(q_locked))
+		while(!mutex_try_lock(&q_locked))
 	 		sched_yield();
 		for(handle_t *ptr = head, *prev = NULL; ptr; prev = ptr, ptr = ptr->next) {
 			if(ptr->touched < uptime() - 60000) {
@@ -270,7 +270,7 @@ void outdated() {
 				delete ptr;
 			}
 		}
-		mutex_unlock(q_locked);
+		mutex_unlock(&q_locked);
 	}
 }
 

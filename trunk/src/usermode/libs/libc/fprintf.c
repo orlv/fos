@@ -10,7 +10,7 @@
 
 int fprintf(FILE *stream, const char *fmt, ...)
 {
-  if(stdout == NULL) return 0;
+  if(stream == NULL) return 0;
   va_list args;
   va_start(args, fmt);
   size_t i = vfprintf(stream, fmt, args);

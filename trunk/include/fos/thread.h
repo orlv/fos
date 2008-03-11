@@ -49,11 +49,11 @@ class Thread {
 
   inline void start(u32_t flag){
     if(state) {
-      if(mutex_try_lock(starting)){
+      if(mutex_try_lock(&starting)){
 	state &= ~flag;
 	if(!state)
 	  activate();
-	mutex_unlock(starting);
+	mutex_unlock(&starting);
       }
     }
   }

@@ -10,6 +10,7 @@ int fclose(FILE *fp) {
 	if(!fd)
 		return -1;
 	fflush(fd);
+	close(fd->handle);
 	free(fd->buf);
 	free(fd);
 	return 0;

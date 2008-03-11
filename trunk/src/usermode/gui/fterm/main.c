@@ -58,7 +58,7 @@ int tty_read(char *buf, int max) {
 
 void check_old() {
 	char replybuf[128];
-	while(!mutex_try_lock(key_locked)) sched_yield();
+	while(!mutex_try_lock(&key_locked)) sched_yield();
 	struct message mreply;
 	for(waiting_list *ptr = keyboard, *prev = NULL, *next = NULL; ptr; prev = ptr, ptr = next) {
 		mreply.arg[0] = tty_read(replybuf, ptr->size < 128 ? ptr->size : 128);
@@ -76,7 +76,7 @@ void check_old() {
 		next = ptr->next;
 		free(ptr);
 	}
-	mutex_unlock(key_locked);
+	mutex_unlock(&key_locked);
 }
 
 
@@ -191,7 +191,7 @@ void tty_putc(unsigned char ch) {
 int tty_write(char *buf, int count) {
 	for(int i = 0; i < count; i++, buf++)
 		tty_putc(*buf);
-	need_redraw++;
+	if(need_redraw < 8) need_redraw++;
 	return count;
 }
 
@@ -258,7 +258,7 @@ int main(int argc, char *argv[]) {
 		if(handle > 0)
 			close(handle);
 	} while(handle > 0);
-	do {} while(!gui_ready);
+	do {sched_yield();} while(!gui_ready);
 	resmgr_attach(name);
 	struct message msg;
 	char *buffer = malloc(RECV_BUF_SIZE);
@@ -285,14 +285,14 @@ int main(int argc, char *argv[]) {
 			break;
 
 		case FS_CMD_READ:
-			while(!mutex_try_lock(key_locked)) sched_yield();
+			while(!mutex_try_lock(&key_locked)) sched_yield();
 			if(!havechars) {
 				waiting_list *new = malloc(sizeof(waiting_list));
 				new->next = keyboard;
 				new->tid = msg.tid;
 				new->size = msg.send_size;
 				keyboard = new;
-				mutex_unlock(key_locked);
+				mutex_unlock(&key_locked);
 				break;
 			}
 	
@@ -300,7 +300,7 @@ int main(int argc, char *argv[]) {
 			msg.arg[2] = NO_ERR;
 			msg.send_size = msg.arg[0];
 			msg.send_buf = buffer;
-			mutex_unlock(key_locked);
+			mutex_unlock(&key_locked);
 			reply(&msg);
 			break;
 		case  0x55AA55AA:

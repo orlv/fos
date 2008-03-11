@@ -13,11 +13,11 @@ int fflush(FILE *fp) {
 
 	__fopen_fd *fd = fp;
 
-	while(!mutex_try_lock(fd->using_mutex))
+	while(!mutex_try_lock(&fd->using_mutex))
 		sched_yield();
 
 	internal_flush(fd);
 
-	mutex_unlock(fd->using_mutex);
+	mutex_unlock(&fd->using_mutex);
 	return 0;
 }

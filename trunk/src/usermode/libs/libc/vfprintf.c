@@ -106,7 +106,7 @@ int number(FILE *file, int num, int base, int size, int precision, int type)
 int vfprintf(FILE *file, const char *fmt, va_list args)
 {
 	__fopen_fd *fd = file;
-	while(!mutex_try_lock(fd->using_mutex))
+	while(!mutex_try_lock(&fd->using_mutex))
 		sched_yield();
   int written = 0;
   int len;
@@ -266,6 +266,6 @@ int vfprintf(FILE *file, const char *fmt, va_list args)
       break;
     }
   }
-  mutex_unlock(fd->using_mutex);
+  mutex_unlock(&fd->using_mutex);
   return written;
 }

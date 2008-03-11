@@ -55,7 +55,7 @@ void init_windowing()
   locate->native_pixels = 1;
 
   need_refresh = 1;
-  printf("GWinSy: windowing subsystem started, allocated ~%u Kb of memory\n", ((screen.w * screen.h * screen.bpp) * 2 + sizeof(context_t) * 2) / 1024);
+  printf("FGS: windowing subsystem started, allocated ~%u Kb of memory\n", ((screen.w * screen.h * screen.bpp) * 2 + sizeof(context_t) * 2) / 1024);
 
 }
 
@@ -68,30 +68,31 @@ window_t *GetWindowInfo(int handle)
 {
   if (front == NULL)
     return NULL;
-  while (!mutex_try_lock(winlist_mutex))
+  while (!mutex_try_lock(&winlist_mutex))
     sched_yield();
   for (node * p = front; p; p = p->next) {
     window_t *win = (window_t *) p->data;
 
     if (win->handle == handle) {
-      mutex_unlock(winlist_mutex);
+      mutex_unlock(&winlist_mutex);
       return win;
     }
   }
-  mutex_unlock(winlist_mutex);
+  mutex_unlock(&winlist_mutex);
   return NULL;
 }
 
 void Redraw()
 {
-  while (!mutex_try_lock(winlist_mutex))
-    sched_yield();
+
   refreshing = 1;
   DrawRect(0, 0, screen.w, screen.h, 0x003082, backbuf);
-  PutString(0, 0, "GWinSy version " VERSION " builded at " __DATE__ " " __TIME__ , 0xFFFFFF, backbuf);
+  PutString(0, 0, "FOS Graphics System version " VERSION " builded at " __DATE__ " " __TIME__ , 0xFFFFFF, backbuf);
   PutString(0, 16, "FOS - a world domination project" , 0xFFFFFF, backbuf);
   memset(locate->data, 0, (screen.w * screen.h * screen.bpp));
   if (front != NULL) {
+    while (!mutex_try_lock(&winlist_mutex))
+      sched_yield();
     for (node * n = front; n; n = n->next) {
       window_t *p = (window_t *) n->data;
 
@@ -115,30 +116,28 @@ void Redraw()
       DrawRect(p->x, p->y, p->w, p->h, p->handle, locate);
       FlushContext(p->context, p->context->w, p->context->h, p->x, p->y, 0, 0, backbuf);
     }
+    mutex_unlock(&winlist_mutex);
   }
   FlushContext(backbuf, screen.w, screen.h, 0, 0, 0, 0, &screen);
   need_cursor = 1;
   refreshing = 0;
-  mutex_unlock(winlist_mutex);
 }
 
 void WindowMapped(struct window_t *win)
 {
   DrawRect(0, 0, win->w, win->h, 0xc3c3c3, win->context);
-  if (!(win->class & WC_NODECORATIONS)) {
-    line(1, 1, 1, win->h - 3, 0xffffff, win->context);
-    line(1, 1, win->w - 3, 1, 0xffffff, win->context);
-    line(1, win->h - 2, win->w - 2, win->h - 2, 0x828282, win->context);
-    line(win->w - 2, win->h - 1, win->w - 2, 1, 0x828282, win->context);
-    line(0, win->h - 1, win->w - 1, win->h - 1, 0x000000, win->context);
-    line(win->w - 1, win->h - 1, win->w - 1, 0, 0x000000, win->context);
-    for (node * n = front; n; n = n->next) {
-      window_t *w = (window_t *) n->data;
-      if((w->class & WC_WINDOWSEVENTS) && w->handle != win->handle)
-        PostEvent(w->tid, w->handle, EV_NEWWIN, win->handle, 0, 0, 0);
-    }
+  if (win->class & WC_NODECORATIONS) return;
+  line(1, 1, 1, win->h - 3, 0xffffff, win->context);
+  line(1, 1, win->w - 3, 1, 0xffffff, win->context);
+  line(1, win->h - 2, win->w - 2, win->h - 2, 0x828282, win->context);
+  line(win->w - 2, win->h - 1, win->w - 2, 1, 0x828282, win->context);
+  line(0, win->h - 1, win->w - 1, win->h - 1, 0x000000, win->context);
+  line(win->w - 1, win->h - 1, win->w - 1, 0, 0x000000, win->context);
+  for (node * n = front; n; n = n->next) {
+    window_t *w = (window_t *) n->data;
+    if((w->class & WC_WINDOWSEVENTS) && w->handle != win->handle)
+      PostEvent(w->tid, w->handle, EV_NEWWIN, win->handle, 0, 0, 0);
   }
-  mutex_unlock(winlist_mutex);
 }
 
 int CreateWindow(int x, int y, int tid, int w, int h, char *caption, int class)
@@ -175,10 +174,10 @@ int CreateWindow(int x, int y, int tid, int w, int h, char *caption, int class)
   win->tid = tid;
   win->visible = -1;
   win->class = class;
-  while (!mutex_try_lock(winlist_mutex))
+  while (!mutex_try_lock(&winlist_mutex))
     sched_yield();
   insertBack(win);
-  mutex_unlock(winlist_mutex);
+  mutex_unlock(&winlist_mutex);
   return win->handle;
 }
 
@@ -202,32 +201,32 @@ void SetVisible(int handle, int visible)
 
 void SetFocusTo(int handle)
 {
-  while (!mutex_try_lock(winlist_mutex))
+  while (!mutex_try_lock(&winlist_mutex))
     sched_yield();
   for (node * n = front; n; n = n->next) {
     window_t *win = (window_t *) n->data;
 
     if (win->handle == handle) {
       if (win->active) {
-        mutex_unlock(winlist_mutex);
+        mutex_unlock(&winlist_mutex);
 	return;
       }
       removeNode(n);
       free(n);
       insertBack(win);
       need_refresh = 1;
-      mutex_unlock(winlist_mutex);
+      mutex_unlock(&winlist_mutex);
       return;
     }
 
   }
-  mutex_unlock(winlist_mutex);
+  mutex_unlock(&winlist_mutex);
 
 }
 
 void DestroyWindow(int handle)
 {
-  while (!mutex_try_lock(winlist_mutex))
+  while (!mutex_try_lock(&winlist_mutex))
     sched_yield();
   for (node * n = front; n; n = n->next) {
     window_t *win = (window_t *) n->data;
@@ -256,7 +255,7 @@ void DestroyWindow(int handle)
       break;
      }
    }
-  mutex_unlock(winlist_mutex);
+  mutex_unlock(&winlist_mutex);
 }
 
 void RefreshWindow(int handle)
@@ -268,12 +267,8 @@ void RefreshWindow(int handle)
   if (win->visible == 0 || win->visible == -1)
     return;
   if (win->active) {
-    while (!mutex_try_lock(winlist_mutex))
+    while (refreshing)
       sched_yield();
-    while(refreshing) sched_yield();
-    if(refreshing)
-      printf("BUG: collision of redrawing, check mutexes!\n");
-    refreshing = 1;
     if (win->class & WC_NODECORATIONS) {
       FlushContext(win->context, win->context->w, win->context->h, win->x, win->y, 0, 0, &screen);
       FlushContext(win->context, win->context->w, win->context->h, win->x, win->y, 0, 0, backbuf);
@@ -281,26 +276,25 @@ void RefreshWindow(int handle)
       FlushContext(win->context, win->context->w - 6, win->context->h - 24, win->x + 3, win->y + 21, 3, 21, &screen);
       FlushContext(win->context, win->context->w - 6, win->context->h - 24, win->x + 3, win->y + 21, 3, 21, backbuf);
     }
-    refreshing = 0;
     need_cursor = 1;
-    mutex_unlock(winlist_mutex);
-  } else
-    need_refresh = 1;
+    return;
+  }
+  need_refresh = 1;
 }
 
 window_t *GetActiveWindow()
 {
-  while (!mutex_try_lock(winlist_mutex))
+  while (!mutex_try_lock(&winlist_mutex))
     sched_yield();
   for (node * n = front; n; n = n->next) {
     window_t *win = (window_t *) n->data;
 
     if (win->active) {
-      mutex_unlock(winlist_mutex);
+      mutex_unlock(&winlist_mutex);
       return win;
     }
   }
-  mutex_unlock(winlist_mutex);
+  mutex_unlock(&winlist_mutex);
   return NULL;
 }
 
@@ -310,8 +304,6 @@ volatile int bordery = -1;
 
 void DrawBorder(int reset)
 {
-  while (!mutex_try_lock(winlist_mutex))
-    sched_yield();
   if (reset) {
     FlushContext(backbuf, curr_window->w + 1, curr_window->h + 1, borderx, bordery, borderx, bordery, &screen);
     borderx = -1;
@@ -330,7 +322,6 @@ void DrawBorder(int reset)
   border(curr_window->x_drag, curr_window->y_drag, curr_window->w, curr_window->h, &screen);
   borderx = curr_window->x_drag;
   bordery = curr_window->y_drag;
-  mutex_unlock(winlist_mutex);
 }
 
 int GetWindowTitle(int handle, char *buf) {

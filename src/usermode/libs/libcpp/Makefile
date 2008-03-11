@@ -7,8 +7,7 @@ include $(ROOT)/config.mk
 INSTALLDIR	=	$(LIB)
 OUTPUT		=	libcpp.a
 
-OBJECTS		=	tmutex.o	\
-			libcpp.o
+OBJECTS		=	libcpp.o
 
 include $(SYSTEM_SRC)/mk/trg_lib.mk
 

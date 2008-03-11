@@ -82,8 +82,7 @@ OBJECTS +=	klibc/close.o			\
 		klibc/fstat.o			\
 		klibc/strdup.o
 
-OBJECTS +=	klibcpp/purestub.o		\
-		klibcpp/tmutex.o
+OBJECTS +=	klibcpp/purestub.o
 
 OBJECTS +=	klibfos/intattach.o		\
 		klibfos/resmgrattach.o

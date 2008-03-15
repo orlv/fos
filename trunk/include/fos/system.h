@@ -8,7 +8,7 @@
 
 #include <types.h>
 #include <multiboot.h>
-#include <fos/gdt.h>
+//#include <fos/gdt.h>
 #include <fos/idt.h>
 #include <fos/procman.h>
 #include <fos/drivers/pic.h>

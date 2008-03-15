@@ -55,7 +55,6 @@ OBJECTS =	main/boot/setup.o		\
 		main/memory/heap.o		\
 		main/memory/memory.o		\
 		main/memory/pager.o		\
-		main/gdt.o			\
 		main/idt.o			\
 		main/syscall.o  		\
 		main/main.o			\
@@ -86,6 +85,9 @@ OBJECTS +=	klibcpp/purestub.o
 
 OBJECTS +=	klibfos/intattach.o		\
 		klibfos/resmgrattach.o
+
+OBJECTS +=	arch/i386/gdt.o			\
+		arch/i386/proc.o
 
 #-----------------------------------------------------------------------------#
 

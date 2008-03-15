@@ -62,7 +62,9 @@ void TProcMan::scheduler()
    * Переключимся на выбранный процесс
    */
   if(curr != prev)
-    if(_tss) {
+    switch_context(&prev->item->context, &curr->item->context);
+
+  /*if(_tss) {
       _tss = 0;
       system->gdt->load_tss(SEL_N(BASE_TSK_SEL), &curr->item->descr);
       __asm__ __volatile__("ljmp $0x38, $0");
@@ -70,6 +72,7 @@ void TProcMan::scheduler()
       _tss = 1;
       system->gdt->load_tss(SEL_N(BASE_TSK_SEL) + 1, &curr->item->descr);
       __asm__ __volatile__("ljmp $0x40, $0");
-    }
+      }*/
+  
 }
 

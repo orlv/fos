@@ -7,8 +7,9 @@
 #define _FOS_THREAD_H
 
 #include <types.h>
-#include <fos/tss.h>
-#include <fos/gdt.h>
+#include <fos/arch/context.h>
+//#include <fos/tss.h>
+//#include <fos/gdt.h>
 #include <fos/mm.h>
 #include <fos/messenger.h>
 #include <c++/list.h>
@@ -20,8 +21,8 @@
 #define TSTATE_WAIT_ON_RECV  0x02 /* ожидает при получении сообщения */
 
 class Thread {
- private:
-  off_t stack_pl0;
+  //private:
+  
 
  public:
   Thread(class TProcess *process,
@@ -37,10 +38,11 @@ class Thread {
   List<Thread *> *me;
 
   class TProcess *process; /* процесс, в рамках которого запущена нить */
-  struct TSS *tss;
+  //struct TSS *tss;
+  context_t context;
 
   tid_t tid;
-  gdt_entry descr;
+  //gdt_entry descr;
 
   u32_t state; /* состояние выполнения потока */
   mutex_t starting; /* захватываем перед изменением состояния */
@@ -73,12 +75,12 @@ class Thread {
   
   u32_t flags;
   tid_t send_to; /* при отправке сообщения, здесь указывается адресат */
-  void set_tss(register off_t eip,
+  /*  void set_tss(register off_t eip,
 	       register void *kernel_stack,
 	       register void *user_stack,
 	       u16_t code_segment=USER_CODE_SEGMENT,
 	       u16_t data_segment=USER_DATA_SEGMENT);
-
+  */
   Messenger messages;
 
   struct {

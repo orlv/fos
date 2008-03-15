@@ -4,7 +4,6 @@
 
   (Sat Jan 12 20:08:59 2008) дополнен дополнительным конструктором.
 */
-
 #ifndef _CPP_LIST_H
 #define _CPP_LIST_H
 

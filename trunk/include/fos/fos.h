@@ -13,21 +13,6 @@
 #include <fos/system.h>
 #endif
 
-#define BASE_TSK_SEL 0x38
-#define SEL_N(SEL) ((SEL)/8)
-
-static inline u16_t str()
-{
-  u16_t tr;
-  __asm__ __volatile__ ("str %0":"=a" (tr));
-  return tr;
-}
-
-static inline u16_t curPID()
-{
-  return (str() - BASE_TSK_SEL) / 0x08;
-}
-
 static inline u32_t load_cr3()
 {
   u32_t cr3;

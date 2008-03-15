@@ -1,1 +1,1 @@
-../../src/kernel/arch/i386/include
+../../src/kernel/arch/i386-softmt/include

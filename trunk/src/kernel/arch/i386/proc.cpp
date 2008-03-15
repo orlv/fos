@@ -5,6 +5,7 @@
 #include "include/context.h"
 #include <fos/system.h>
 #include <fos/fos.h>
+#include <fos/mmu.h>
 
 static bool active_tss_descriptor = 0;
 
@@ -38,7 +39,7 @@ void setup_context(context_t *context,
 {
   context->tss = (struct TSS *)kmalloc(sizeof(TSS));
 
-  context->tss->cr3 = (u32_t)pagedir;
+  context->tss->cr3 = (u32_t)kmem_phys_addr(PAGE((u32_t)pagedir));
   context->tss->eip = eip;
 
   context->tss->eflags = X86_EFLAGS_IOPL|X86_EFLAGS_IF|X86_EFLAGS;
@@ -60,5 +61,5 @@ void setup_context(context_t *context,
 
 int sched_ready()
 {
-  return !((!active_tss_descriptor && (str() != 0x38)) || (active_tss_descriptor && (str() != 0x40)));
+  return (!active_tss_descriptor && (str() == 0x38)) || (active_tss_descriptor && (str() == 0x40));
 }

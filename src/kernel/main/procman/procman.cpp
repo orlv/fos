@@ -264,19 +264,11 @@ TProcMan::TProcMan()
   thread = process->thread_create(0, FLAG_TSK_KERN, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
   task.wait = new List<Thread *>(thread);
   thread->me = task.active = new List<Thread *>(thread);
-  system->gdt->load_tss(SEL_N(BASE_TSK_SEL), &thread->descr);
-  ltr(BASE_TSK_SEL);
-  lldt(0);
+
+  set_initial_task(&thread->context);
   
-  //current_thread = thread;
   thread->tid = task.tid->add(thread);
   printk("kernel: multitasking ready (kernel tid=%d)\n", thread->tid);
-
-  /*  stack = kmalloc(STACK_SIZE);
-  thread = process->thread_create((off_t) &sched_srv, FLAG_TSK_KERN, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
-  system->gdt->load_tss(SEL_N(BASE_TSK_SEL) + 1, &thread->descr);
-  thread->tid = task.tid->add(thread);
-  printk("kernel: scheduler thread created (tid=%d)\n", thread->tid);*/
 
   stack = kmalloc(STACK_SIZE);
   thread = process->thread_create((off_t) &procman_srv, FLAG_TSK_KERN, stack, stack, KERNEL_CODE_SEGMENT, KERNEL_DATA_SEGMENT);
@@ -321,16 +313,16 @@ tid_t TProcMan::exec(register void *image, const char *name,
   if(args) {
     char *args_buf = (char *) kmalloc(args_len);
     memcpy(args_buf, args, args_len);
-    thread->tss->eax = (u32_t)process->memory->mmap(0, args_len, 0, (off_t)args_buf, system->kmem);
-    thread->tss->ebx = args_len;
+    thread->context.tss->eax = (u32_t)process->memory->mmap(0, args_len, 0, (off_t)args_buf, system->kmem);
+    thread->context.tss->ebx = args_len;
     kfree(args_buf, args_len);
   }
 
   if(envp) {
     char *envp_buf = (char *) kmalloc(envp_len);
     memcpy(envp_buf, envp, envp_len);
-    thread->tss->ecx = (u32_t)process->memory->mmap(0, envp_len, 0, (off_t)envp_buf, system->kmem);
-    thread->tss->edx = envp_len;
+    thread->context.tss->ecx = (u32_t)process->memory->mmap(0, envp_len, 0, (off_t)envp_buf, system->kmem);
+    thread->context.tss->edx = envp_len;
     kfree(envp_buf, envp_len);
   }
 

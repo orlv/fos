@@ -89,7 +89,7 @@ class TProcMan {
   res_t kill(register tid_t tid, u16_t flag);
   List<Thread *> *curr;
   List<Thread *> *prev;
-  bool _tss;
+  //bool _tss;
 };
 
 #endif /* iKERNEL */

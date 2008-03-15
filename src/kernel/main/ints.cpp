@@ -208,9 +208,9 @@ IRQ_HANDLER(irq_0)
 
 //  asm("incb 0xb8000+150\n" "movb $0x5e,0xb8000+151 ");
 
-  bool _tss = system->procman->_tss;
-  if (!system->preempt.status() ||
-      ((!_tss && (str() != 0x38)) || (_tss && (str() != 0x40)))) {
+  //bool _tss = system->procman->_tss;
+  if (!system->preempt.status() || !sched_ready()) {
+      //((!_tss && (str() != 0x38)) || (_tss && (str() != 0x40)))) {
     system->outportb(0x20, 0x20);
     return;
   }
@@ -218,7 +218,6 @@ IRQ_HANDLER(irq_0)
   system->outportb(0x20, 0x20);
   sched_yield();
 }
-
 
 IRQ_HANDLER(irq_1)  { common_interrupt(1);  }
 

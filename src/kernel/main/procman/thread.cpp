@@ -13,7 +13,8 @@ Thread::Thread(class TProcess *process, off_t eip, u16_t flags, void * kernel_st
 {
   
   this->process = process;
-  set_tss(eip, kernel_stack, user_stack, code_segment, data_segment);
+  setup_context(&context, process->memory->pager->pagedir, eip, kernel_stack, user_stack, code_segment, data_segment);
+  //set_tss(eip, kernel_stack, user_stack, code_segment, data_segment);
   this->flags = flags;
 }
 
@@ -48,6 +49,7 @@ Thread::~Thread()
 #endif
 }
 
+#if 0
 void Thread::set_tss(register off_t eip,
 		     register void *kernel_stack,
 		     register void *user_stack,
@@ -75,6 +77,7 @@ void Thread::set_tss(register off_t eip,
   /* создадим селектор TSS */
   system->gdt->set_tss_descriptor((off_t) tss, &descr);
 }
+#endif
 
 void Thread::activate()
 {

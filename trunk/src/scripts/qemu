@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 TIMER=`cat /proc/sys/dev/rtc/max-user-freq`
 

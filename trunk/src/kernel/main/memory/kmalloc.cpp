@@ -13,7 +13,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <fos/drivers/char/tty/tty.h>
+#include <fos/drivers/tty/tty.h>
 
 void put_page(u32_t page)
 {

@@ -4,15 +4,15 @@
  */
 
 #include <multiboot.h>
-#include <fos/drivers/char/tty/tty.h>
+#include <fos/drivers/tty/tty.h>
 #include <fos/mm.h>
 #include <string.h>
 #include <fos/fos.h>
 #include <fos/printk.h>
-#include <fos/drivers/char/timer/timer.h>
+#include <fos/drivers/timer/timer.h>
 #include <fos/traps.h>
 #include <stdarg.h>
-#include <fos/drivers/fs/modulefs/modulefs.h>
+#include <fos/drivers/modulefs/modulefs.h>
 #include <fos/fs.h>
 
 TTY *stdout;

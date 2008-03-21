@@ -4,7 +4,7 @@
 */
 
 #include <fos/printk.h>
-#include <fos/drivers/char/tty/tty.h>
+#include <fos/drivers/tty/tty.h>
 #include <fos/system.h>
 #include <stdio.h>
 

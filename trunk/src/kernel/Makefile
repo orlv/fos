@@ -62,12 +62,10 @@ OBJECTS =	main/boot/setup.o		\
 		main/version.o
 
 OBJECTS +=	drivers/vesafb.o		\
-		drivers/char/tty/tty.o		\
-		drivers/char/timer/timer.o	\
+		drivers/tty/tty.o		\
+		drivers/timer/timer.o		\
 		drivers/pic.o			\
-		drivers/fs/modulefs/modulefs.o
-
-#		drivers/char/cmos/cmos.o	
+		drivers/modulefs/modulefs.o
 
 OBJECTS +=	klibc/close.o			\
 		klibc/lseek.o			\

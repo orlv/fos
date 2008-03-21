@@ -1,6 +1,6 @@
 /*
   kernel/main/procman/procman.cpp
-  Copyright (C) 2005-2007 Oleg Fedorov
+  Copyright (C) 2005-2008 Oleg Fedorov
 */
 
 #include <fos/mm.h>
@@ -11,8 +11,8 @@
 #include <fos/limits.h>
 #include <string.h>
 
-#include <fos/drivers/fs/modulefs/modulefs.h>
-#include <fos/drivers/char/tty/tty.h>
+#include <fos/drivers/modulefs/modulefs.h>
+#include <fos/drivers/tty/tty.h>
 #include <fos/fs.h>
 #include <sys/elf32.h>
 

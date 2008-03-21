@@ -8,7 +8,7 @@
 #include <fos/fos.h>
 #include <fos/mm.h>
 #include <fos/procman.h>
-#include <fos/drivers/char/timer/timer.h>
+#include <fos/drivers/timer/timer.h>
 
 asmlinkage void sys_call_handler();
 

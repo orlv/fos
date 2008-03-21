@@ -7,7 +7,6 @@
 #include <fos/fos.h>
 #include <fos/syscall.h>
 #include <fos/pager.h>
-#include <fos/drivers/char/timer/timer.h>
 #include <string.h>
 
 List<kmessage *> *msg_list::get(Thread *sender, u32_t flags)

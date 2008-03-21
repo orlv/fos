@@ -7,7 +7,7 @@
 #include <fos/fos.h>
 #include <fos/syscall.h>
 #include <fos/pager.h>
-#include <fos/drivers/char/timer/timer.h>
+#include <fos/drivers/timer/timer.h>
 #include <fos/ipc.h>
 #include <string.h>
 

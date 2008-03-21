@@ -36,7 +36,7 @@
 #define	EDOM		33	/* Math argument out of domain of func */
 #define	ERANGE		34	/* Math result not representable */
 #define ENAMETOOLONG	35	/* File name too long */
-
+#define EILSEQ		36	/* An invalid multibyte sequence has been encountered in the input.*/
 extern int errno;
 
 #endif

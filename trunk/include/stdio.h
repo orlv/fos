@@ -37,12 +37,16 @@ userlinkage int vfprintf(FILE *file, const char *fmt, va_list args);
 userlinkage int sprintf(char *str, const char *fmt, ...);
 userlinkage int vsnprintf(char *buf, size_t size, const char *fmt, va_list args);
 
-  
+userlinkage int vsscanf(const char* str, const char* format, va_list arg_ptr);
+userlinkage int sscanf(const char *str, const char *format, ...);
+
 #define getc(a) fgetc(a)
 
 #ifndef iKERNEL
 extern FILE *stdin, *stdout, *stderr; 
 #define getchar() fgetc(stdin)
 #endif
+
+#define EOF (-1)
 
 #endif

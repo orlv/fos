@@ -82,7 +82,8 @@ OBJECTS +=	klibc/close.o			\
 OBJECTS +=	klibcpp/purestub.o
 
 OBJECTS +=	klibfos/intattach.o		\
-		klibfos/resmgrattach.o
+		klibfos/resmgrattach.o		\
+		klibfos/nsi.o
 
 OBJECTS +=	arch/i386/gdt.o		\
 		arch/i386/proc.o

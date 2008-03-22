@@ -46,6 +46,7 @@ asmlinkage int main()
   }
 
   printf("INIT: All started up.\n");
+
   return 0;
 }
 
@@ -84,6 +85,5 @@ void ParseLine(char *line)
   if(tokens[2][0] != 0)
     printf("INIT: %s\n", tokens[2]);
   exec(tokens[0], tokens[1]);
-
 }
 

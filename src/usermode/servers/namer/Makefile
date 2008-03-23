@@ -5,7 +5,7 @@
 include $(ROOT)/config.mk
 
 OUTPUT		=	namer
-OBJECTS		=	namer.o
+OBJECTS		=	main.o namer.o
 LDLIBS		=	-\( -lc -lcpp -lfos -\)
 TARGETDIR	=	$(INSTALLDIR)
 

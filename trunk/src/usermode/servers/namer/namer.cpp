@@ -34,7 +34,6 @@ tree::tree()
   root = new branch(".");
 }
 
-#if 1
 static inline size_t p_len(const char *p)
 {
   size_t i = 0;
@@ -168,4 +167,4 @@ branch *tree::add(char *name, void *data)
   object->data = data;
   return object;
 }
-#endif
+

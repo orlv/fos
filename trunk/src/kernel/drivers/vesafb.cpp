@@ -16,7 +16,7 @@
 
 #define INJ_ADDRESS 0x500
 
-#define VBESRV_CMD_SET_MODE (BASE_CMD_N + 0)
+#define VBESRV_CMD_SET_MODE (BASE_METHOD_N + 0)
 
 __attribute__((regparm(1))) vbe_mode_info_block * (*vbe_set_video_mode) (u16_t mode);
 

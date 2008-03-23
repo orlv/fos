@@ -28,40 +28,55 @@ obj->forward(msg);
 #include <types.h>
 #include <c++/list.h>
 #include <fos/fs.h>
+#include <string.h>
 
 class nsi_object {
  public:
   char *name;
-  u32_t methods[MAX_METHODS_CNT];
+  void (*method [MAX_METHODS_CNT]) (struct message *msg);
 
-  inline bool add(u32_t method, u32_t function){
-    if(method < MAX_METHODS_CNT){
-      methods[method] = function;
+  nsi_object() { }
+  
+  nsi_object(char *name) {
+    if(name) {
+      this->name = new char[strlen(name)];
+      strcpy(this->name, name);
+    }
+  }
+  
+  inline bool add(u32_t n,   void (*method) (struct message *msg)){
+    if(n < MAX_METHODS_CNT){
+      this->method[n] = method;
       return 0;
     }
     return 1;
   }
-  inline void remove(u32_t method){
-    if(method < MAX_METHODS_CNT)
-      methods[method] = 0;
+  inline void remove(u32_t n){
+    if(n < MAX_METHODS_CNT)
+      method[n] = 0;
   }
-  inline void call(u32_t method){
-    
+  inline void call(u32_t n, message *msg){
+    if(n < MAX_METHODS_CNT && method[n])
+      method[n](msg);
   }
 };
 
-#if 0
 class nsi_t {
  private:
   List <nsi_object *> *objects;
   nsi_object * find(char *name);
+  message *msg;
 
  public:
+  nsi_object root;
+  
   nsi_t(char *bindpath);
 
   nsi_object * add(char *name);
   void remove(char *name);
+  void wait_message();
+  void wait_message(u32_t timeout);
 };
-#endif
+
 
 #endif

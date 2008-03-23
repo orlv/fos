@@ -21,7 +21,7 @@
   будет открыт не тот файл)
 */
 
-#include <fos/fs.h>
+//#include <fos/fs.h>
 #include <fos/fos.h>
 #include <fos/message.h>
 #include <fos/namer.h>
@@ -29,6 +29,12 @@
 #include <stdio.h>
 #include "namer.h"
 
+tree::tree()
+{
+  root = new branch(".");
+}
+
+#if 1
 static inline size_t p_len(const char *p)
 {
   size_t i = 0;
@@ -38,6 +44,7 @@ static inline size_t p_len(const char *p)
   return i;
 }
 
+/* режет строку пути на список из элементов пути */
 List < char *> *path_strip(const char *path)
 {
   char *name;
@@ -66,108 +73,24 @@ List < char *> *path_strip(const char *path)
   return lpath;
 }
 
-Tobject::Tobject(const char *name)
-{
-  set_name(name);
-}
-
-Tobject::Tobject(const char *name, sid_t sid)
-{
-  this->sid = sid;
-  set_name(name);
-}
-
-Tobject::~Tobject()
-{
-  List < Tobject * >*entry, *n;
-  delete name;
-
-  list_for_each_safe(entry, n, sub_objects) {
-    delete entry->item;
-    delete entry;
-  }
-
-  delete sub_objects;
-}
-
-void Tobject::set_name(const char *name)
-{
-  delete this->name;
-  this->name = new char[strlen(name) + 1];
-
-  strcpy(this->name, name);
-}
-
-Tobject *Tobject::add_sub(const char *name, sid_t sid)
-{
-  Tobject *object = new Tobject(name, sid);
-
-  if (sub_objects) {
-    sub_objects->add_tail(object);
-  } else {
-    sub_objects = new List < Tobject * >(object);
-  }
-  return object;
-}
-
-Tobject *Tobject::add_sub(const char *name)
-{
-  Tobject *object = new Tobject(name);
-
-  if (sub_objects) {
-    sub_objects->add_tail(object);
-  } else {
-    sub_objects = new List < Tobject * >(object);
-  }
-  return object;
-}
-
-Tobject *Tobject::access(const char *name)
-{
-  if (!sub_objects)
-    return 0;
-
-  List < Tobject * >*entry = sub_objects;
-  Tobject *object;
-
-  /* Пытаемся найти объект */
-  do {
-    object = entry->item;
-    if (!strcmp(object->name, name)) {
-      return object;
-    }
-    entry = entry->next;
-  } while (entry != sub_objects);
-
-  return 0;
-}
-
-Namer::Namer()
-{
-  rootdir = new Tobject(".");
-}
-
-/* режет строку пути на список из элементов пути */
-List < char *> *path_strip(const char *path);
-
-Tobject *Namer::resolve(char *name)
+branch *tree::find_branch_last_match(char *name)
 {
   if (strlen(name) == 1 && (strcmp(name, ".") || strcmp(name, "/"))) {
-    return rootdir;
+    return root;
   }
 
   List < char *> *path = path_strip(name);
   List < char *> *entry = path;
-  Tobject *object = rootdir;
-  Tobject *obj = object;
+  branch *object = root;
+  branch *obj = object;
 
   List < char *> *e = path;
 
   /* отыщем сервер */
   do {
-    if (!(object = object->access(entry->item)))
+    if (!(object = object->find(entry->item)))
       break;
-    if (object->sid) {
+    if (object->data) {
       obj = object;
       e = entry;
     }
@@ -178,7 +101,7 @@ Tobject *Namer::resolve(char *name)
 
   /* создадим строку с окончанием пути (необходимо передать
      её конечному серверу) */
-  if (obj->sid != rootdir->sid) {
+  if (obj->data != root->data) {
     e = e->next;
     if (e == path)
       strcat(name, ".");
@@ -210,25 +133,25 @@ Tobject *Namer::resolve(char *name)
   добавляет запись об последнем объекте пути
   если промежуточных элементов не существует - они создаются
  */
-Tobject *Namer::add(const char *name, sid_t sid)
+branch *tree::add(char *name, void *data)
 {
   if (strlen(name) == 1 && (strcmp(name, ".") || strcmp(name, "/"))) {
-    rootdir->sid = sid;
-    return rootdir;
+    root->data = data;
+    return root;
   }
 
   List < char *> *path = path_strip(name);
   List < char *> *entry = path;
   char *n;
 
-  Tobject *object = rootdir;
-  Tobject *obj;
+  branch *object = root;
+  branch *obj;
 
   do {
     n = entry->item;
-    if (!(obj = object->access(n))) {
-      obj = object->add_sub(n);
-    }
+    if (!(obj = object->find(n)))
+      obj = object->add(n);
+
     object = obj;
 
     delete n;
@@ -236,12 +159,13 @@ Tobject *Namer::add(const char *name, sid_t sid)
     entry = entry->next;
   } while (entry != path);
 
-  List < char *> *e;
+  List <char *> *e;
   list_for_each_safe(entry, e, path) {
     delete entry;
   }
   delete path;
 
-  object->sid = sid;
+  object->data = data;
   return object;
 }
+#endif

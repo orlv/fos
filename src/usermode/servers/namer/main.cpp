@@ -31,12 +31,10 @@
 
 asmlinkage int main()
 {
-  Namer *namer = new Namer;
-  Tobject *obj;
+  tree *namer = new tree;
+  branch *obj;
   message *msg = new message;
   char *pathname = new char[MAX_PATH_LEN];
-
-  //char *path_tail = new char[MAX_PATH_LEN];
 
   while (1) {
     msg->recv_size = MAX_PATH_LEN;
@@ -47,13 +45,8 @@ asmlinkage int main()
     switch (msg->arg[0]) {
     case NAMER_CMD_ADD:
       //printf("namer: adding [%s]\n", pathname);
-      obj = namer->add(pathname, msg->tid);
-
-      if (obj)
-	msg->arg[0] = RES_SUCCESS;
-      else
-	msg->arg[0] = RES_FAULT;
-
+      obj = namer->add(pathname, (void *)msg->tid);
+      msg->arg[0] = RES_SUCCESS;
       msg->send_size = 0;
       reply(msg);
       break;
@@ -62,14 +55,13 @@ asmlinkage int main()
     case FS_CMD_ACCESS:
     case FS_CMD_DIROPEN:
       //printf("namer: requested access to [%s]\n", pathname);
-      obj = namer->resolve(pathname);
+      obj = namer->find_branch_last_match(pathname);
       //printf("[0x%X]", obj);
-      if (obj->sid) {
-	//strcpy(pathname, path_tail);
+      if(obj->data) {
 	//printf("namer: access granted [%s]\n", pathname);
 	msg->send_size = strlen(pathname);
 	msg->send_buf = pathname;
-	if (forward(msg, obj->sid) != RES_SUCCESS) {
+	if (forward(msg, (tid_t)obj->data) != RES_SUCCESS) {
 	  msg->arg[0] = 0;
 	  msg->arg[2] = ERR_NO_SUCH_FILE;
 	  reply(msg);
@@ -81,16 +73,14 @@ asmlinkage int main()
 	msg->arg[2] = ERR_NO_SUCH_FILE;
 	reply(msg);
       }
-      //memset(path_tail, 0, MAX_PATH_LEN);
       break;
 
     case FS_CMD_STAT:
-      obj = namer->resolve(pathname);
-      if (obj->sid) {
-	//strcpy(pathname, path_tail);
+      obj = namer->find_branch_last_match(pathname);
+      if (obj->data) {
 	msg->send_size = strlen(pathname);
 	msg->send_buf = pathname;
-	if (forward(msg, obj->sid) != RES_SUCCESS) {
+	if (forward(msg, (tid_t)obj->data) != RES_SUCCESS) {
 	  msg->arg[0] = 0;
 	  msg->arg[2] = ERR_NO_SUCH_FILE;
 	  reply(msg);
@@ -101,25 +91,24 @@ asmlinkage int main()
 	msg->arg[2] = ERR_NO_SUCH_FILE;
 	reply(msg);
       }
-      //memset(path_tail, 0, MAX_PATH_LEN);
       break;
 
     case NAMER_CMD_RESOLVE:{
-	//printf("namer: resolving [%s]\n", pathname);
-	obj = namer->resolve(pathname);
-	if (obj->sid) {
-	  msg->send_size = msg->arg[0] = strlen(pathname);
-	  msg->send_buf = pathname;
-	  msg->arg[1] = obj->sid;
-	  msg->arg[2] = NO_ERR;
-	} else {
-	  msg->send_size = 0;
-	  msg->arg[1] = 0;
-	  msg->arg[2] = ERR_NO_SUCH_FILE;
-	}
-	reply(msg);
-	break;
+      //printf("namer: resolving [%s]\n", pathname);
+      obj = namer->find_branch_last_match(pathname);
+      if (obj->data) {
+	msg->send_size = msg->arg[0] = strlen(pathname);
+	msg->send_buf = pathname;
+	msg->arg[1] = (tid_t)obj->data;
+	msg->arg[2] = NO_ERR;
+      } else {
+	msg->send_size = 0;
+	msg->arg[1] = 0;
+	msg->arg[2] = ERR_NO_SUCH_FILE;
       }
+      reply(msg);
+      break;
+    }
 
     default:
       msg->send_size = 0;

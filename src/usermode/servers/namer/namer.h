@@ -12,34 +12,46 @@
 #include <types.h>
 #include <c++/list.h>
 
-class Tobject {
-public:
-  Tobject(const char *name, sid_t sid);
-   Tobject(const char *name);
-  ~Tobject();
+#if 0
+server srv = new server("mntpoint");
+object obj = srv->add("test.txt");
+obj->add_metod(READ, &read);
+/* ..... */
+obj = srv->resolve("test.txt");
+obj->call(READ, args);
 
-  sid_t sid;
+
+namer namer = new namer();
+object obj = namer->add("/dev/srv", tid);
+/* ..... */
+obj = namer->resolve("/dev/srv");
+obj->forward(msg);
+#endif
+
+
+
+class branch {
+ public:
   char *name;
-   List < Tobject * >*sub_objects;	/* объект может содержать в себе другие объекты */
+  void *data;
+  List <branch *> *sub;
 
-  void set_name(const char *name);	/* меняет имя объекта */
-
-  Tobject *add_sub(const char *name, sid_t sid);
-  Tobject *add_sub(const char *name);
-
-  Tobject *access(const char *name);
+  branch(char *name);
+  ~branch();
+  branch * add(char *name);
+  branch * find(char *name);
 };
 
-class Namer {
-public:
-  Tobject * rootdir;
-  Namer();
+class tree {
+ public:
+  branch *root;
+  tree();
 
-  Tobject *resolve(char *name);
-  Tobject *add(const char *name, sid_t sid);
+  branch* add(char *name, void *data);
+  void remove(char *name);
 
-  //res_t remove(const char *name);
-  //obj_info_t *list(off_t offset);  
+  branch * find_branch(char *name);
+  branch * find_branch_last_match(char *name);
 };
 
 #endif

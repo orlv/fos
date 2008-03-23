@@ -9,8 +9,8 @@
 #include <types.h>
 
 #define NAMER_CMD_ACCESS  FS_CMD_ACCESS
-#define NAMER_CMD_ADD     (BASE_CMD_N + 0)
-#define NAMER_CMD_REM     (BASE_CMD_N + 1)
-#define NAMER_CMD_RESOLVE (BASE_CMD_N + 2)
+#define NAMER_CMD_ADD     (BASE_METHOD_N + 0)
+#define NAMER_CMD_REM     (BASE_METHOD_N + 1)
+#define NAMER_CMD_RESOLVE (BASE_METHOD_N + 2)
 
 #endif

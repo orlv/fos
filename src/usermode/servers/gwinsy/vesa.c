@@ -119,7 +119,7 @@ int vesa_init(int width, int height, int bpp, context_t **screen, jump_table_t *
 }
 
 /* брр, гадость какая */
-#define VBESRV_CMD_SET_MODE (BASE_CMD_N + 0)
+#define VBESRV_CMD_SET_MODE (BASE_METHOD_N + 0)
 
 static int vbe_set_mode(u16_t mode, struct vbe_mode_info_block *vbe)
 {

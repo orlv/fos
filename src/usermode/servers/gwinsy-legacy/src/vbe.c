@@ -15,7 +15,7 @@
 #include <private/universalbpp.h>
 #include <private/pixel.h>
 
-#define VBESRV_CMD_SET_MODE (BASE_CMD_N + 0)
+#define VBESRV_CMD_SET_MODE (BASE_METHOD_N + 0)
 
 struct vbe_mode_info_block *vbe;
 mode_callbacks *calltable;

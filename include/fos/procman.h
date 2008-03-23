@@ -9,17 +9,17 @@
 #include <types.h>
 #include <fos/fs.h>
 
-#define PROCMAN_CMD_EXEC             (BASE_CMD_N + 0)
-#define PROCMAN_CMD_KILL             (BASE_CMD_N + 1)
-#define PROCMAN_CMD_EXIT             (BASE_CMD_N + 2)
-#define PROCMAN_CMD_THREAD_EXIT      (BASE_CMD_N + 3)
-#define PROCMAN_CMD_CREATE_THREAD    (BASE_CMD_N + 4)
-#define PROCMAN_CMD_INTERRUPT_ATTACH (BASE_CMD_N + 5)
-#define PROCMAN_CMD_INTERRUPT_DETACH (BASE_CMD_N + 6)
-#define PROCMAN_CMD_DMESG            (BASE_CMD_N + 7)
+#define PROCMAN_CMD_EXEC             (BASE_METHOD_N + 0)
+#define PROCMAN_CMD_KILL             (BASE_METHOD_N + 1)
+#define PROCMAN_CMD_EXIT             (BASE_METHOD_N + 2)
+#define PROCMAN_CMD_THREAD_EXIT      (BASE_METHOD_N + 3)
+#define PROCMAN_CMD_CREATE_THREAD    (BASE_METHOD_N + 4)
+#define PROCMAN_CMD_INTERRUPT_ATTACH (BASE_METHOD_N + 5)
+#define PROCMAN_CMD_INTERRUPT_DETACH (BASE_METHOD_N + 6)
+#define PROCMAN_CMD_DMESG            (BASE_METHOD_N + 7)
 
-#define MM_CMD_MMAP          (BASE_CMD_N + 0)
-#define MM_CMD_MUNMAP        (BASE_CMD_N + 1)
+#define MM_CMD_MMAP          (BASE_METHOD_N + 0)
+#define MM_CMD_MUNMAP        (BASE_METHOD_N + 1)
 
 #ifdef iKERNEL
 

@@ -12,24 +12,6 @@
 #include <types.h>
 #include <c++/list.h>
 
-#if 0
-server srv = new server("mntpoint");
-object obj = srv->add("test.txt");
-obj->add_metod(READ, &read);
-/* ..... */
-obj = srv->resolve("test.txt");
-obj->call(READ, args);
-
-
-namer namer = new namer();
-object obj = namer->add("/dev/srv", tid);
-/* ..... */
-obj = namer->resolve("/dev/srv");
-obj->forward(msg);
-#endif
-
-
-
 class branch {
  public:
   char *name;

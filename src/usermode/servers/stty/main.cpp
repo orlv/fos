@@ -14,19 +14,21 @@
 
 static char *buffer;
 
-void access(struct message *msg)
+int access(struct message *msg)
 {
   msg->arg[0] = 1;
   msg->arg[1] = RECV_BUF_SIZE;
   msg->arg[2] = NO_ERR;
   msg->send_size = 0;
+  return 1;
 }
 
-void write(struct message *msg)
+int write(struct message *msg)
 {
   msg->arg[0] = tty_write(0, buffer, msg->recv_size);
   msg->arg[2] = NO_ERR;
   msg->send_size = 0;
+  return 1;
 }
 
 asmlinkage int main()

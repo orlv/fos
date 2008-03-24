@@ -37,7 +37,7 @@ asmlinkage ssize_t write(int fildes, const void *buf, size_t nbyte)
     if(do_send(&msg) != RES_SUCCESS) /* получатель не найден! */
       return -1;
 
-    if(msg.arg[2] == ERR_UNKNOWN_CMD)
+    if(msg.arg[2] == ERR_UNKNOWN_METHOD)
       return -2;
 
     if(msg.arg[2] == ERR_TIMEOUT) {

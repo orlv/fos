@@ -13,46 +13,44 @@ nsi_t::nsi_t(char *bindpath)
   msg = new message;
 }
 
-nsi_object * nsi_t::find(char *name)
+bool nsi_t::add(u32_t n, void (*method) (struct message *msg))
 {
-  if(!name)
-    return &root;
-
-  List <nsi_object *> *curr;
-  list_for_each(curr, objects){
-    if(!strcmp(name, curr->item->name))
-      return curr->item;
-  }
-  return 0;
-}
-
-nsi_object * nsi_t::add(char *name)
-{
-  if(find(name))
+  if(n < MAX_METHODS_CNT){
+    this->method[n] = method;
     return 0;
-
-  return objects->add_tail(new nsi_object(name))->item;
+  }
+  return 1;
 }
 
-void nsi_t::remove(char *name)
+void nsi_t::remove(u32_t n)
 {
-  if(name) {
-    List <nsi_object *> *curr, *n;
-    list_for_each_safe(curr, n, objects){
-      if(!strcmp(name, curr->item->name)){
-	delete curr->item;
-	delete curr;
-      }
-    }
-  }
+  if(n < MAX_METHODS_CNT)
+    method[n] = 0;
 }
 
 void nsi_t::wait_message()
 {
-  receive(msg);
-  if(msg->arg[0] < MAX_METHODS_CNT) {
+  /* сбрасываем параметры сообщения на стандартные */
+  msg->send_buf = std.send_buf;
+  msg->send_size = std.send_size;
+  msg->recv_buf = std.recv_buf;
+  msg->recv_size = std.recv_size;
+  msg->pid = std.pid;
+  msg->tid = std.tid;
+  msg->flags = std.flags;
 
+  /* получаем сообщение */
+  receive(msg);
+
+  /* если метод определён — вызываем его, иначе возвращаем ошибку */
+  if((msg->arg[0] < MAX_METHODS_CNT) && method[msg->arg[0]]) {
+    method[msg->arg[0]](msg);
+  } else {
+    msg->arg[0] = 0;
+    msg->arg[2] = ERR_UNKNOWN_METHOD;
   }
+
+  reply(msg);
 }
 
 //void nsi_t::wait_message(u32_t timeout);

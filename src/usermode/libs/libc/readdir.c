@@ -21,7 +21,7 @@ struct dirent *readdir(DIR *dir) {
   msg.recv_buf = &fd->ent;
   if(do_send(&msg) != RES_SUCCESS)
     return NULL;
-  if(msg.arg[2] == ERR_UNKNOWN_CMD || msg.arg[2] == ERR_EOF)
+  if(msg.arg[2] == ERR_UNKNOWN_METHOD || msg.arg[2] == ERR_EOF)
     return NULL;
   fd->ent.d_off = fd->offset;
   fd->offset ++;

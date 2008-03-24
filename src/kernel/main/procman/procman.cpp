@@ -193,9 +193,9 @@ void procman_srv()
 
     case PROCMAN_CMD_CREATE_THREAD:
       thread = system->procman->task.tid->get(msg->tid);
-      //thread = system->procman->get_thread_by_tid(msg->tid);
       thread = thread->process->thread_create(msg->arg[1], 0/*FLAG_TSK_READY*/, kmalloc(PAGE_SIZE), thread->process->memory->mmap(0, PAGE_SIZE, 0, 0, 0));
       msg->arg[0] = system->procman->reg_thread(thread);
+      thread->context->tss->eax = msg->arg[2];
       msg->send_size = 0;
       reply(msg);
       break;

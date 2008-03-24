@@ -21,6 +21,9 @@ class nsi_t {
   
  public:
   nsi_t(char *bindpath);
+  nsi_t(){
+    msg = new message;
+  }
 
   bool add(u32_t n, int (*method) (struct message *msg));
   void remove(u32_t n);

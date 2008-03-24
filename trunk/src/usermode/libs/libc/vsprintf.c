@@ -5,6 +5,8 @@
  */
 
 #include <stdarg.h>
+#include <stdio.h>
+
 int vsprintf(char *str, const char *format, va_list ap) {
 	int size = 0xFFFFFFFF - (int) str;
 	return vsnprintf(str, size, format, ap);

@@ -13,7 +13,7 @@ static u8_t *font;
 
 void print(const char *str, int x, int y, u32_t color, context_t *context) {
   if(font == NULL) 
-    font = load_file("/usr/share/fonts/8x16.psf");
+    font = (u8_t *)load_file("/usr/share/fonts/8x16.psf");
   
   for (; *str; str++) {
     for (int i = 0; i < 16; i++)

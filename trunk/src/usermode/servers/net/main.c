@@ -19,7 +19,7 @@ volatile netdev_t *dev = NULL;
 THREAD(poller) {
   while(1) {
     if(dev) {
-      if(dev->device_poll((dev_t *)dev, 1)) {
+      if(dev->device_poll((netdev_t *)dev, 1)) {
         u16_t type = EthernetType(dev->packet);
         switch(type) {
         case ETHERNET_TYPE_ARP:
@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
           dev->ip =      ETHERNET_FORMAT_IP(192,168,1,8);
           dev->mask =    ETHERNET_FORMAT_IP(255,255,255,0);
           dev->gateway = ETHERNET_FORMAT_IP(192,168,1,1);
-          thread_create((off_t)poller);
+          thread_create((off_t)poller, 0);
           net_testing();
        }
       }

@@ -4,6 +4,6 @@
 #define CONFIG_VESA 1
 
 
-#define CONFIG_SPLASH 1
+#define CONFIG_SPLASH 0
 #endif
 

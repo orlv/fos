@@ -155,7 +155,7 @@ asmlinkage int main(int argc, char **argv)
   winhandle = CreateWindow(0, 0, 192 + 16 + 40 + 8, 352 + 16, "Tetris - use arrows", WC_WINDOW, &tmp);
   SetVisible(winhandle, 1);
   RefreshWindow(winhandle);
-  int game = thread_create((off_t) game_thread);
+  int game = thread_create((off_t) game_thread, 0);
 
   int class, handle, a0, a1, a2, a3;
 

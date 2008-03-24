@@ -25,8 +25,8 @@ void Blit16(context_t *from, context_t *to, int x, int y, int w, int h, int src_
   int y_limit = h + y;
   w *= 2;
   for (; y < y_limit; y++, src_y++) {
-    u16_t *trg = to->data + y * to->w + x;
-    u16_t *src = from->data + src_y * from->w + src_x;
+    u16_t *trg = (u16_t *)to->data + y * to->w + x;
+    u16_t *src = (u16_t *)from->data + src_y * from->w + src_x;
     memcpy(trg, src, w);
   }
 }
@@ -73,7 +73,7 @@ void Rect16(int x, int y, int w, int h, u32_t RGB, context_t * context)
   }
 }
 
-struct {
+static struct {
 	int width;
 	int height;
 	int bpp;
@@ -100,13 +100,13 @@ struct {
 static int vbe_set_mode(u16_t mode, struct vbe_mode_info_block *vbe);
 
 int vesa_init(int width, int height, int bpp, context_t **screen, jump_table_t **jmptbl) {
-	for(int i = 0; i < sizeof(modes) / sizeof(modes[0]); i++) {
+	for(unsigned int i = 0; i < sizeof(modes) / sizeof(modes[0]); i++) {
 		if(modes[i].width == width && modes[i].height == height && modes[i].bpp == bpp) {
 			struct vbe_mode_info_block vbe;
 			if(vbe_set_mode(modes[i].mode, &vbe) == -1)
 				return -1;
 		
-			*screen = malloc(sizeof(context_t));
+			*screen = new context_t;
 			(*screen)->w = width;
 			(*screen)->h = height;
 			(*screen)->bpp = bpp;

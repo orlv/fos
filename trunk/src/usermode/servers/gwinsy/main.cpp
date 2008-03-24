@@ -7,6 +7,7 @@
 #include "context.h"
 #include "video.h"
 #include "splash.h"
+#include "windows.h"
 
 context_t *screen = NULL;
 jump_table_t *jmptbl;
@@ -25,6 +26,14 @@ int main(int argc, char *argv[]) {
 
 	startup_splash();
 
+	windows_init();
+
+	ProcessRedraw();
 	return 0;
+}
+
+void assert_failed(const char *expression, const char *file, int line) {
+	printf("gwinsy: assert failed! %s at %s:%d\n", expression, file, line);
+	exit(1);
 }
 

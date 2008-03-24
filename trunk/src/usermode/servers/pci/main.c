@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
 	resmgr_attach("/dev/pci");
 	char *buffer = malloc(256);
 	struct message msg;
-	thread_create((off_t) outdated);
+	thread_create((off_t) outdated, 0);
 	while(1) {
 		msg.tid = 0;
 		msg.recv_buf = buffer;

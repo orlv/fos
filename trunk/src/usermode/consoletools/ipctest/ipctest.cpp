@@ -39,7 +39,7 @@ asmlinkage int main(int argc, char **argv)
 {
   printf("ipctest \n");
   struct message msg;
-  tid_t tid = thread_create((off_t) & thread);
+  tid_t tid = thread_create((off_t) & thread, NULL);
 
   printf("ipctest: tid = 0x%X\n", tid);
   while (!foo) ;

@@ -10,7 +10,7 @@
 
 int vesa_init(int width, int height, int bpp, context_t **screen, jump_table_t **jmptbl);
 
-struct {
+static const struct {
 	const char *driver;
 	int (*init)(int width, int height, int bpp, context_t **screen, jump_table_t **jmptbl);
 } drivers[] = {
@@ -20,7 +20,7 @@ struct {
 };
 
 int video_init(const char *driver, int width, int height, int bpp, context_t **screen, jump_table_t **jmptbl) {
-	for(int i = 0; i < sizeof(drivers) / sizeof(drivers[0]); i++)
+	for(unsigned int i = 0; i < sizeof(drivers) / sizeof(drivers[0]); i++)
 		if(!strcmp(driver, drivers[i].driver)) 
 			return (drivers[i].init)(width, height, bpp, screen, jmptbl);
 	

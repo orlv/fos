@@ -45,8 +45,8 @@ int main(int argc, char *argv[])
   struct message msg;
   char *buffer = malloc(KB_CHARS_BUFF_SIZE);
 
-  thread_create((off_t) & MouseHandlerThread);
-  thread_create((off_t) & thread_handler);
+  thread_create((off_t) & MouseHandlerThread, 0);
+  thread_create((off_t) & thread_handler, 0);
   resmgr_attach("/dev/keyboard");
   while (1) {
     msg.tid = 0;

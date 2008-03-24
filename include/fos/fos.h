@@ -50,7 +50,7 @@ asmlinkage tid_t exece(const char * filename, const char * args, const char * en
   void thread (u32_t arg) {						\
     exit (_ ## thread(arg));						\
   }									\
-  int _ ## thread()
+  int _ ## thread(u32_t arg)
 
 #endif
 

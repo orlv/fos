@@ -162,7 +162,7 @@ asmlinkage int main(int argc, char **argv)
   startbutton = CreateButton(hndl, 3, 4, 48, 22, "Menu");
   clock = CreateStatic(hndl, width - 50, 7, 40, 16, "RTC?");
   ControlsWindowVisible(hndl, 1);
-  thread_create((off_t) clock_thread);
+  thread_create((off_t) clock_thread, 0);
   ControlsMessageLoop();
   GuiEnd();
   return 0;

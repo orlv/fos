@@ -246,8 +246,8 @@ void StartChild(char *point, char *child) {
 }
 
 int main(int argc, char *argv[]) {
-	thread_create((off_t) gui_thread);
-	thread_create((off_t) redraw);
+	thread_create((off_t) gui_thread, 0);
+	thread_create((off_t) redraw, 0);
 	srandom(uptime());
 	char *name = malloc(32);
 	mainthread = my_tid();

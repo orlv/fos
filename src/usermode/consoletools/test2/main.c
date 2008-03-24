@@ -14,7 +14,7 @@ void thread_b() {
 
 asmlinkage int main(int argc, char **argv)
 {
-	thread_create((off_t)thread_b);
+	thread_create((off_t)thread_b, 0);
 	printf("THREAD A: sleeping\n");
 	for(int i = 0; i < 800; i++) sched_yield();
 	printf("THREAD A: locking mutex\n");

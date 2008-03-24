@@ -33,7 +33,7 @@
 #define ERR_EOF               1
 #define ERR_LOCALBUF_OVERFULL 2
 #define ERR_NO_SUCH_FILE      3
-#define ERR_UNKNOWN_CMD       4
+#define ERR_UNKNOWN_METHOD       4
 #define ERR_ACCESS_DENIED     5
 #define ERR_TIMEOUT           6
 

@@ -241,7 +241,7 @@ asmlinkage int main(int argc, char *argv[]) {
 		default:
 			printf("tmpfs: unknown command %u %u %u %u\n", msg.arg[0], msg.arg[1], msg.arg[2], msg.arg[3]);
 			msg.arg[0] = 0;
-			msg.arg[2] = ERR_UNKNOWN_CMD;
+			msg.arg[2] = ERR_UNKNOWN_METHOD;
 			msg.send_size = 0;
 		}
 		reply(&msg);

@@ -83,7 +83,7 @@ void vesafb_srv()
 
     default:
       msg.arg[0] = 0;
-      msg.arg[2] = ERR_UNKNOWN_CMD;
+      msg.arg[2] = ERR_UNKNOWN_METHOD;
       msg.send_size = 0;
     }
     reply(&msg);

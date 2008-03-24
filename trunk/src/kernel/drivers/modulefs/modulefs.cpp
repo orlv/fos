@@ -12,106 +12,119 @@
 #include <sys/stat.h>
 #include <string.h>
 
+#include <fos/nsi.h>
+
 #define MODULEFS_BUFF_SIZE 0x2000
+
+static char *buffer;
+extern ModuleFS *initrb;
+static struct stat *statbuf;
+static struct dirent *dent;
+
+void access(struct message *msg)
+{
+  buffer[msg->recv_size] = 0;
+  //printk("modulefs: access to [%s]\n", buffer);
+  msg->arg[0] = initrb->access(buffer) + 1;
+  msg->arg[1] = MODULEFS_BUFF_SIZE;
+  msg->arg[2] = NO_ERR;
+  if(msg->arg[0])
+    msg->arg[3] = initrb->size(msg->arg[0] - 1);
+  //printk("[a0=%d]", msg->arg[0]);
+  msg->send_size = 0;
+}
+
+void read(struct message *msg)
+{
+  //printk("modulefs: reading %d, offset=%d, bytes=%d\n", msg->arg[1]-1, msg->arg[2], msg->send_size);
+  size_t size = msg->send_size;
+  if(size > MODULEFS_BUFF_SIZE)
+    size = MODULEFS_BUFF_SIZE;
+  msg->arg[0] = initrb->read(msg->arg[1] - 1, msg->arg[2], buffer, size);
+  if(msg->arg[0] < size)
+    msg->arg[2] = ERR_EOF;
+  else
+    msg->arg[2] = NO_ERR;
+  msg->arg[1] = initrb->size(msg->arg[1]) - 1;
+  msg->send_size = msg->arg[0];
+  msg->send_buf = buffer;
+}
+
+void stat(struct message *msg)
+{
+  buffer[msg->recv_size] = 0;
+  //printk("modulefs: stat of [%s]\n", buffer);
+  msg->arg[0] = msg->arg[1] = initrb->access(buffer) + 1;
+  if(!msg->arg[0]) {
+    msg->send_size = 0;
+  }
+}
+
+void fstat(struct message *msg)
+{
+  //printk("modulefs: fstat(%d)\n", msg->arg[1]);
+  initrb->stat(statbuf, msg->arg[1]-1);
+  msg->arg[1] = MODULEFS_BUFF_SIZE;
+  msg->arg[2] = NO_ERR;
+  msg->send_size = sizeof(struct stat);
+  msg->send_buf = statbuf;
+}
+
+void diropen(struct message *msg)
+{
+  buffer[msg->recv_size] = 0;
+  if(strcmp(buffer, "/") && strcmp(buffer, ".") && strcmp(buffer, "/.")) {
+    msg->arg[0] = 0;
+    msg->arg[1] = 0;
+    msg->arg[2] = ERR_NO_SUCH_FILE;
+    msg->send_size = 0;
+  } else {
+    msg->arg[0] = 1;
+    msg->arg[1] = initrb->count();
+    msg->arg[2] = NO_ERR;
+    msg->send_size = 0;
+  }
+}
+
+void dirread(struct message *msg)
+{
+  if(initrb->get_name(buffer, MODULEFS_BUFF_SIZE, msg->arg[2]) < 0) {
+    msg->arg[2] = ERR_EOF;
+    msg->send_size = 0;
+  } else {
+    dent->d_ino = msg->arg[2];
+    dent->d_reclen = strlen(buffer);
+    strcpy(dent->d_name, buffer);
+    msg->send_size = sizeof(struct dirent);
+    msg->send_buf = dent;
+    msg->arg[2] = NO_ERR;
+  }
+}
 
 void grub_modulefs_srv()
 {
-  struct message msg;
-  char *buffer = new char[MODULEFS_BUFF_SIZE];
-  extern ModuleFS *initrb;
   printk("modulefs: waiting for namer..\n");
-  while(resmgr_attach("/mnt/modules") != RES_SUCCESS);
+  nsi_t *interface = new nsi_t("/mnt/modules");
   printk("modulefs: started\n");
-  struct stat *statbuf = new struct stat;
-  size_t size;
-  struct dirent *dent = new struct dirent;
+  buffer = new char[MODULEFS_BUFF_SIZE];
+  statbuf = new struct stat;
+  dent = new struct dirent;
+
+  interface->std.recv_buf = buffer;
+  interface->std.recv_size = MODULEFS_BUFF_SIZE;
+
+  interface->add(FS_CMD_ACCESS, &access);
+  interface->add(FS_CMD_READ, &read);
+  interface->add(FS_CMD_STAT, &stat);
+  interface->add(FS_CMD_FSTAT, &fstat);
+  interface->add(FS_CMD_DIROPEN, &diropen);
+  interface->add(FS_CMD_DIRREAD, &dirread);
+  
   while (1) {
-    msg.tid = 0;
-    msg.flags = 0;
-    msg.recv_buf  = buffer;
-    msg.recv_size = MODULEFS_BUFF_SIZE;
-    receive(&msg);
-
-    switch(msg.arg[0]){
-    case FS_CMD_ACCESS:
-      buffer[msg.recv_size] = 0;
-      //printk("modulefs: access to [%s]\n", buffer);
-      msg.arg[0] = initrb->access(buffer) + 1;
-      msg.arg[1] = MODULEFS_BUFF_SIZE;
-      msg.arg[2] = NO_ERR;
-      if(msg.arg[0])
-        msg.arg[3] = initrb->size(msg.arg[0] - 1);
-      //printk("[a0=%d]", msg.arg[0]);
-      msg.send_size = 0;
-      break;
-
-    case FS_CMD_READ:
-      //printk("modulefs: reading %d, offset=%d, bytes=%d\n", msg.arg[1]-1, msg.arg[2], msg.send_size);
-      size = msg.send_size;
-      if(size > MODULEFS_BUFF_SIZE)
-	size = MODULEFS_BUFF_SIZE;
-      msg.arg[0] = initrb->read(msg.arg[1] - 1, msg.arg[2], buffer, size);
-      if(msg.arg[0] < size)
-	msg.arg[2] = ERR_EOF;
-      else
-	msg.arg[2] = NO_ERR;
-      msg.arg[1] = initrb->size(msg.arg[1]) - 1;
-      msg.send_size = msg.arg[0];
-      msg.send_buf = buffer;
-      break;
-
-    case FS_CMD_STAT:
-      buffer[msg.recv_size] = 0;
-      //printk("modulefs: stat of [%s]\n", buffer);
-      msg.arg[0] = msg.arg[1] = initrb->access(buffer) + 1;
-      if(!msg.arg[0]) {
-	msg.send_size = 0;
-	break;
-      }
-
-    case FS_CMD_FSTAT:
-      //printk("modulefs: fstat(%d)\n", msg.arg[1]);
-      initrb->stat(statbuf, msg.arg[1]-1);
-      msg.arg[1] = MODULEFS_BUFF_SIZE;
-      msg.arg[2] = NO_ERR;
-      msg.send_size = sizeof(struct stat);
-      msg.send_buf = statbuf;
-      break;
-    case FS_CMD_DIROPEN:
-      buffer[msg.recv_size] = 0;
-      if(strcmp(buffer, "/") && strcmp(buffer, ".") && strcmp(buffer, "/.")) {
-        msg.arg[0] = 0;
-        msg.arg[1] = 0;
-        msg.arg[2] = ERR_NO_SUCH_FILE;
-        msg.send_size = 0;
-        break;
-      }
-      msg.arg[0] = 1;
-      msg.arg[1] = initrb->count();
-      msg.arg[2] = NO_ERR;
-      msg.send_size = 0;
-      break;
-    case FS_CMD_DIRREAD:
-      if(initrb->get_name(buffer, MODULEFS_BUFF_SIZE, msg.arg[2]) < 0) {
-        msg.arg[2] = ERR_EOF;
-        msg.send_size = 0;
-        break;
-     }
-     dent->d_ino = msg.arg[2];
-     dent->d_reclen = strlen(buffer);
-     strcpy(dent->d_name, buffer);
-     msg.send_size = sizeof(struct dirent);
-     msg.send_buf = dent;
-     msg.arg[2] = NO_ERR;
-     break;	
-    default:
-      msg.arg[0] = 0;
-      msg.arg[2] = ERR_UNKNOWN_CMD;
-      msg.send_size = 0;
-    }
-    reply(&msg);
-  }
+    interface->wait_message();
+  };
 }
+
 static const char *__get_name(const char *str)
 {
   const char *ptr;
@@ -195,31 +208,6 @@ size_t ModuleFS::read(u32_t n, off_t offset, void *buf, size_t count)
 
   return count;
 }
-
-#if 0
-obj_info_t *ModuleFS::list(off_t offset)
-{
-  if (offset >= mbi->mods_count)	/* переполнение */
-    return 0;
-
-  u32_t i = offset;
-  obj_info_t *dirent = new obj_info_t;
-  dirent->info.type = FTypeObject;
-  dirent->info.uid = 0;
-  dirent->info.gid = 0;
-  dirent->info.mode = 0777;
-  dirent->info.size =
-      ((module_t *) mbi->mods_addr)[i].mod_end -
-      ((module_t *) mbi->mods_addr)[i].mod_start;
-  dirent->info.atime = 0;
-  dirent->info.mtime = 0;
-
-  const char *name =
-      __get_name((const char *)((module_t *) mbi->mods_addr)[i].string);
-  strcpy(dirent->name, name);
-  return dirent;
-}
-#endif
 
 ModuleFSFile::ModuleFSFile(u32_t n, ModuleFS * parentdir)
 {

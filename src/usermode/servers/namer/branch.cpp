@@ -7,8 +7,7 @@
 
 branch::branch(char *name)
 {
-  this->name = new char[strlen(name) + 1];
-  strcpy(this->name, name);
+  this->name = strdup(name);
 }
 
 branch::~branch()

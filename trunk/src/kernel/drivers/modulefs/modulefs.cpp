@@ -21,7 +21,7 @@ extern ModuleFS *initrb;
 static struct stat *statbuf;
 static struct dirent *dent;
 
-void access(struct message *msg)
+int access(struct message *msg)
 {
   buffer[msg->recv_size] = 0;
   //printk("modulefs: access to [%s]\n", buffer);
@@ -32,9 +32,10 @@ void access(struct message *msg)
     msg->arg[3] = initrb->size(msg->arg[0] - 1);
   //printk("[a0=%d]", msg->arg[0]);
   msg->send_size = 0;
+  return 1;
 }
 
-void read(struct message *msg)
+int read(struct message *msg)
 {
   //printk("modulefs: reading %d, offset=%d, bytes=%d\n", msg->arg[1]-1, msg->arg[2], msg->send_size);
   size_t size = msg->send_size;
@@ -48,9 +49,10 @@ void read(struct message *msg)
   msg->arg[1] = initrb->size(msg->arg[1]) - 1;
   msg->send_size = msg->arg[0];
   msg->send_buf = buffer;
+  return 1;
 }
 
-void stat(struct message *msg)
+int stat(struct message *msg)
 {
   buffer[msg->recv_size] = 0;
   //printk("modulefs: stat of [%s]\n", buffer);
@@ -58,9 +60,10 @@ void stat(struct message *msg)
   if(!msg->arg[0]) {
     msg->send_size = 0;
   }
+  return 1;
 }
 
-void fstat(struct message *msg)
+int fstat(struct message *msg)
 {
   //printk("modulefs: fstat(%d)\n", msg->arg[1]);
   initrb->stat(statbuf, msg->arg[1]-1);
@@ -68,9 +71,10 @@ void fstat(struct message *msg)
   msg->arg[2] = NO_ERR;
   msg->send_size = sizeof(struct stat);
   msg->send_buf = statbuf;
+  return 1;
 }
 
-void diropen(struct message *msg)
+int diropen(struct message *msg)
 {
   buffer[msg->recv_size] = 0;
   if(strcmp(buffer, "/") && strcmp(buffer, ".") && strcmp(buffer, "/.")) {
@@ -84,9 +88,10 @@ void diropen(struct message *msg)
     msg->arg[2] = NO_ERR;
     msg->send_size = 0;
   }
+  return 1;
 }
 
-void dirread(struct message *msg)
+int dirread(struct message *msg)
 {
   if(initrb->get_name(buffer, MODULEFS_BUFF_SIZE, msg->arg[2]) < 0) {
     msg->arg[2] = ERR_EOF;
@@ -99,6 +104,7 @@ void dirread(struct message *msg)
     msg->send_buf = dent;
     msg->arg[2] = NO_ERR;
   }
+  return 1;
 }
 
 void grub_modulefs_srv()

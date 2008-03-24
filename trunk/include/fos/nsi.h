@@ -22,7 +22,7 @@ class nsi_t {
  public:
   nsi_t(char *bindpath);
 
-  bool add(u32_t n, void (*method) (struct message *msg));
+  bool add(u32_t n, int (*method) (struct message *msg));
   void remove(u32_t n);
   void wait_message();
   void wait_message(u32_t timeout);

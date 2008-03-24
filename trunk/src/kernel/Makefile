@@ -19,12 +19,14 @@ ASFLAGS		= -DiKERNEL $(DEBUG) -Wall -nostdlib -nostdinc -I$(INCLUDE)
 CFLAGS		= -DiKERNEL $(DEBUG) -Wall -O2 -I$(INCLUDE) -nostdinc -ffreestanding -fno-stack-protector --std=gnu99
 CXXFLAGS	= -DiKERNEL $(DEBUG) -Wall -O2 -I$(INCLUDE) -nostdinc -nostdinc++ -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-builtin -fno-stack-protector -mregparm=3
 LDFLAGS		= -nostdlib -static
+
 ifeq ($(shell uname -m), x86_64)
 ASFLAGS+=-m32
 CFLAGS+=-m32
 CXXFLAGS+=-m32
 LDFLAGS+=-melf_i386
 endif
+
 .s.o:
 	@$(ECHO) "Compiling $<"
 	@$(AS) $(ASFLAGS) -c -o $*.o $<

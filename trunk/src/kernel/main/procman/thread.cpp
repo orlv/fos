@@ -14,7 +14,6 @@ Thread::Thread(class TProcess *process, off_t eip, u16_t flags, void * kernel_st
   
   this->process = process;
   setup_context(&context, process->memory->pager->pagedir, eip, kernel_stack, user_stack, code_segment, data_segment);
-  //set_tss(eip, kernel_stack, user_stack, code_segment, data_segment);
   this->flags = flags;
 }
 
@@ -48,36 +47,6 @@ Thread::~Thread()
   kfree((void *)tss, sizeof(TSS));
 #endif
 }
-
-#if 0
-void Thread::set_tss(register off_t eip,
-		     register void *kernel_stack,
-		     register void *user_stack,
-		     u16_t code_segment,
-		     u16_t data_segment)
-{
-  tss = (struct TSS *)kmalloc(sizeof(TSS));
-
-  tss->cr3 = (u32_t)kmem_phys_addr(PAGE((u32_t)process->memory->pager->pagedir));
-  tss->eip = eip;
-
-  tss->eflags = X86_EFLAGS_IOPL|X86_EFLAGS_IF|X86_EFLAGS;
-
-  stack_pl0 = (off_t) kernel_stack;
-  tss->esp0 = (off_t) kernel_stack + STACK_SIZE - 4;
-  tss->esp = tss->ebp = (off_t) user_stack + STACK_SIZE - 4;
-  tss->cs = (u16_t) code_segment;
-  tss->es = (u16_t) data_segment;
-  tss->ss = (u16_t) data_segment;
-  tss->ds = (u16_t) data_segment;
-  tss->ss0 = KERNEL_DATA_SEGMENT;
-  
-  tss->io_bitmap_base = 0xffff;
-
-  /* создадим селектор TSS */
-  system->gdt->set_tss_descriptor((off_t) tss, &descr);
-}
-#endif
 
 void Thread::activate()
 {

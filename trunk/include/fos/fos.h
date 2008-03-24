@@ -46,15 +46,15 @@ asmlinkage tid_t exece(const char * filename, const char * args, const char * en
 
 #ifndef iKERNEL
 
-#define THREAD(thread) int _ ## thread();				\
-  void thread () {							\
-    exit (_ ## thread());						\
+#define THREAD(thread) int _ ## thread(u32_t arg);			\
+  void thread (u32_t arg) {						\
+    exit (_ ## thread(arg));						\
   }									\
   int _ ## thread()
 
 #endif
 
-asmlinkage tid_t thread_create(off_t eip);
+asmlinkage tid_t thread_create(off_t eip, u32_t arg);
 
 asmlinkage res_t interrupt_attach(u8_t n);
 asmlinkage res_t interrupt_detach(u8_t n);

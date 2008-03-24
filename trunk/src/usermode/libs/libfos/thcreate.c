@@ -5,11 +5,12 @@
 #include <fos/message.h>
 #include <fos/procman.h>
 
-asmlinkage tid_t thread_create(off_t eip)
+asmlinkage tid_t thread_create(off_t eip, u32_t arg)
 {
   struct message msg;
   msg.arg[0] = PROCMAN_CMD_CREATE_THREAD;
   msg.arg[1] = eip;
+  msg.arg[2] = arg;
   msg.send_size = 0;
   msg.recv_size = 0;
   msg.flags = 0;

@@ -17,7 +17,7 @@
 class nsi_t {
  private:
   message *msg;
-  void (*method [MAX_METHODS_CNT]) (struct message *msg);
+  int (*method [MAX_METHODS_CNT]) (struct message *msg);
   
  public:
   nsi_t(char *bindpath);

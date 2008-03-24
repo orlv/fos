@@ -14,7 +14,7 @@ nsi_t::nsi_t(char *bindpath)
   msg = new message;
 }
 
-bool nsi_t::add(u32_t n, void (*method) (struct message *msg))
+bool nsi_t::add(u32_t n, int (*method) (struct message *msg))
 {
   if(n < MAX_METHODS_CNT){
     this->method[n] = method;

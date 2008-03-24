@@ -57,8 +57,6 @@ asmlinkage void init()
   system->procman = new TProcMan;
 
   SysTimer = new Timer;
-//  extern multiboot_info_t *__mbi;
-//  initrb = new ModuleFS(__mbi);
   
   printk("Kernel: start task switching\n");
  

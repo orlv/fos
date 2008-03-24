@@ -21,6 +21,7 @@ OBJECTS		=	message.o		\
 			alarm.o			\
 			alarm2.o		\
 			mytid.o			\
-			get_time.o
+			get_time.o		\
+			nsi.o
 
 include $(SYSTEM_SRC)/mk/trg_lib.mk

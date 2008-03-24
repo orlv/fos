@@ -12,6 +12,8 @@ typedef struct {
 	u32_t width;
 	u32_t height;
 	u32_t keycolor;
+	u32_t hot_x;
+	u32_t hot_y;
 	u32_t data[];
 } __attribute__((__packed__)) picture_t;
 

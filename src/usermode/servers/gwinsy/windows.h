@@ -4,6 +4,8 @@
 
 #ifndef WINDOWS_H
 #define WINDOWS_H
+#include "context.h"
+
 #define REDRAW_FULL	0
 #define REDRAW_PARTIAL	1
 #define REDRAW_CURSOR	2
@@ -11,4 +13,6 @@
 int windows_init();
 int RequestRedraw(int RedrawType, int window) ;
 void ProcessRedraw();
+extern context_t *backbuf;
+
 #endif

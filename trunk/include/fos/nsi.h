@@ -39,8 +39,7 @@ class nsi_object {
   
   nsi_object(char *name) {
     if(name) {
-      this->name = new char[strlen(name)];
-      strcpy(this->name, name);
+      this->name = strdup(name);
     }
   }
   

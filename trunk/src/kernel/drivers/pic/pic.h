@@ -1,5 +1,5 @@
 /*
-  drivers/pic.h
+  drivers/pic/pic.h
   Copiright (C) 2007 Oleg Fedorov
 */
 

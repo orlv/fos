@@ -13,18 +13,19 @@
 #define MAX_NAME_LEN 256
 #define FS_CMD_LEN   1024
 
-#define FS_CMD_ACCESS   0
-#define FS_CMD_READ     1
-#define FS_CMD_WRITE    2
-#define FS_CMD_LIST     3
-#define FS_CMD_STAT     4
-#define FS_CMD_FSTAT    5
-#define FS_CMD_CLOSE    6
-#define FS_CMD_DIROPEN	7
-#define FS_CMD_DIRCLOSE	8
-#define FS_CMD_DIRREAD	9
-#define FS_CMD_UNLINK 	10
-#define FS_CMD_IOCTL	11
+#define FS_CMD_DEFAULT  0
+#define FS_CMD_ACCESS   1
+#define FS_CMD_READ     2
+#define FS_CMD_WRITE    3
+#define FS_CMD_LIST     4
+#define FS_CMD_STAT     5
+#define FS_CMD_FSTAT    6
+#define FS_CMD_CLOSE    7
+#define FS_CMD_DIROPEN	8
+#define FS_CMD_DIRCLOSE	9
+#define FS_CMD_DIRREAD	10
+#define FS_CMD_UNLINK 	11
+#define FS_CMD_IOCTL	12
 
 #define BASE_METHOD_N   32 /* количество общесистемных методов */
 #define MAX_METHODS_CNT (BASE_METHOD_N + 32)
@@ -33,7 +34,7 @@
 #define ERR_EOF               1
 #define ERR_LOCALBUF_OVERFULL 2
 #define ERR_NO_SUCH_FILE      3
-#define ERR_UNKNOWN_METHOD       4
+#define ERR_UNKNOWN_METHOD    4
 #define ERR_ACCESS_DENIED     5
 #define ERR_TIMEOUT           6
 

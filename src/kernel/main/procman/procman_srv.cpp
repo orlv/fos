@@ -13,10 +13,13 @@
 #include <sys/elf32.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <fos/nsi.h>
 
 #define FOS_MAX_ELF_SECTION_SIZE 0x2000000 
 
-int check_ELF_image(register void *image, register size_t image_size)
+static char *buffer;
+
+static int check_ELF_image(register void *image, register size_t image_size)
 {
   Elf32_Phdr *p;
   Elf32_Ehdr *h = (Elf32_Ehdr *) image; /* образ ELF */
@@ -53,7 +56,7 @@ int check_ELF_image(register void *image, register size_t image_size)
   return 0;
 }
 
-tid_t execute_module(const char *pathname, const char *args, size_t args_len)
+static tid_t execute_module(const char *pathname, const char *args, size_t args_len)
 {
   printk("procman: executing module %s\n", pathname);
 
@@ -73,7 +76,7 @@ tid_t execute_module(const char *pathname, const char *args, size_t args_len)
   return result;
 }
 
-tid_t execute(char *pathname, char *args, size_t args_len, char *envp, size_t envp_len)
+static tid_t execute(char *pathname, char *args, size_t args_len, char *envp, size_t envp_len)
 {
   tid_t result = 0;
 #if 0
@@ -97,135 +100,136 @@ tid_t execute(char *pathname, char *args, size_t args_len, char *envp, size_t en
   return result;
 }
 
+
+static int procman_exec(struct message *msg)
+{
+  char *path = 0;
+  size_t pathlen = 0;
+  char *args = 0;
+  char *envp = 0;
+  if(((pathlen = strnlen(buffer, MAX_PATH_LEN) + 1) < MAX_PATH_LEN) && /* размер пути не превышает допустимый */
+     ((pathlen + msg->arg[1] + msg->arg[2]) == msg->recv_size) && /* заявленный размер данных соответствует полученному */
+     (msg->arg[1] <= ARG_MAX) && /* размер аргументов не больше максимально допустимого */
+     (msg->arg[2] <= ENVP_MAX)) { /* ошибка: размер переменных окружения больше максимально допустимого */ 
+
+    path = buffer;
+    if(msg->arg[1])
+      args = &buffer[pathlen];
+    
+    if(msg->arg[2])
+      envp = &buffer[pathlen + msg->arg[1]];
+
+    msg->arg[0] = execute(path, args, msg->arg[1], envp, msg->arg[2]);
+  } else
+    msg->arg[0] = 0;
+      
+  msg->send_size = 0;
+  return 1;
+}
+
+static int procman_kill(struct message *msg)
+{
+  if(system->procman->kill(msg->arg[1], FLAG_TSK_TERM))
+    msg->arg[0] = 1;
+  else
+    msg->arg[0] = 0;
+  msg->send_size = 0;
+  return 1;
+}
+
+/* завершить все потоки в адресном пространстве */
+static int procman_exit(struct message *msg)
+{
+  Thread *thread = system->procman->task.tid->get(msg->tid);
+  if(system->procman->kill(thread->tid, FLAG_TSK_TERM))
+    msg->arg[0] = 1;
+  else
+    msg->arg[0] = 0;
+  msg->send_size = 0;
+  return 1;
+}
+
+/* завершить только данный поток */
+static int procman_thread_exit(struct message *msg)
+{
+  Thread *thread = system->procman->task.tid->get(msg->tid);
+  if(system->procman->kill(thread->tid, FLAG_TSK_EXIT_THREAD))
+    msg->arg[0] = 1;
+  else
+    msg->arg[0] = 0;
+  msg->send_size = 0;
+  return 1;
+}
+
+static int procman_create_thread(struct message *msg)
+{
+  Thread *thread = system->procman->task.tid->get(msg->tid);
+  thread = thread->process->thread_create(msg->arg[1], 0/*FLAG_TSK_READY*/, kmalloc(PAGE_SIZE), thread->process->memory->mmap(0, PAGE_SIZE, 0, 0, 0));
+  msg->arg[0] = system->procman->reg_thread(thread);
+  thread->context.tss->eax = msg->arg[2];
+  msg->send_size = 0;
+  return 1;
+}
+
+static int procman_interrupt_attach(struct message *msg)
+{
+  Thread *thread = system->procman->task.tid->get(msg->tid);
+  msg->arg[0] = system->interrupt_attach(thread, msg->arg[1]);
+  msg->send_size = 0;
+  return 1;
+}
+
+static int procman_interrupt_detach(struct message *msg)
+{
+  Thread *thread = system->procman->task.tid->get(msg->tid);
+  msg->arg[0] = system->interrupt_detach(thread, msg->arg[1]);
+  return 1;
+}
+
+static int procman_dmesg(struct message *msg)
+{
+  char *kmesg = new char[2000];
+  extern TTY *stdout;
+  size_t len = stdout->read(0, kmesg, 2000);
+  msg->send_buf = kmesg;
+  msg->send_size = len;
+  reply(msg);
+  delete kmesg;
+  return 0;
+}
+
+static int procman_access(struct message *msg)
+{
+  msg->arg[0] = 1;
+  msg->send_size = 0;
+  return 1;
+}
+
 void procman_srv()
 {
-  Thread *thread;
-  char *kmesg;
-  size_t len;
   tid_t tid = execute_module("namer", "namer", 6);
   printk("procman: namer added to threads list (tid=%d)\n", tid);
   
-  struct message *msg = new message;
-  char *data = new char[MAX_PATH_LEN + ARG_MAX + ENVP_MAX + 1];
-  data[MAX_PATH_LEN + ARG_MAX + ENVP_MAX] = 0;
+  buffer = new char[MAX_PATH_LEN + ARG_MAX + ENVP_MAX + 1];
+  buffer[MAX_PATH_LEN + ARG_MAX + ENVP_MAX] = 0;
 
   execute_module("init", "init", 5);
 
+  nsi_t *interface = new nsi_t();
+  interface->std.recv_buf = buffer;
+  interface->std.recv_size = MAX_PATH_LEN + ARG_MAX + ENVP_MAX;
+
+  interface->add(PROCMAN_CMD_EXEC, &procman_exec);
+  interface->add(PROCMAN_CMD_KILL, &procman_kill);
+  interface->add(PROCMAN_CMD_EXIT, &procman_exit);
+  interface->add(PROCMAN_CMD_THREAD_EXIT, &procman_thread_exit);
+  interface->add(PROCMAN_CMD_CREATE_THREAD, &procman_create_thread);
+  interface->add(PROCMAN_CMD_INTERRUPT_ATTACH, &procman_interrupt_attach);
+  interface->add(PROCMAN_CMD_INTERRUPT_DETACH, &procman_interrupt_detach);
+  interface->add(PROCMAN_CMD_DMESG, &procman_dmesg);
+  interface->add(FS_CMD_ACCESS, &procman_access);
+
   while (1) {
-  //  asm("incb 0xb8000+154\n" "movb $0x2f,0xb8000+155 ");
-    msg->recv_size = MAX_PATH_LEN + ARG_MAX + ENVP_MAX;
-    msg->recv_buf = data;
-    msg->tid = 0;
-    msg->flags = 0;
-
-    receive(msg);
-    //printk("procman: a0=%d from [%s]\n", msg->arg[0], THREAD(msg->tid)->process->name);
-
-    switch(msg->arg[0]){
-    case PROCMAN_CMD_EXEC: {
-      char *path = 0;
-      size_t pathlen = 0;
-      char *args = 0;
-      char *envp = 0;
-      if(((pathlen = strnlen(data, MAX_PATH_LEN) + 1) < MAX_PATH_LEN) && /* размер пути не превышает допустимый */
-	 ((pathlen + msg->arg[1] + msg->arg[2]) == msg->recv_size) && /* заявленный размер данных соответствует полученному */
-	 (msg->arg[1] <= ARG_MAX) && /* размер аргументов не больше максимально допустимого */
-	 (msg->arg[2] <= ENVP_MAX)) { /* ошибка: размер переменных окружения больше максимально допустимого */ 
-
-	path = data;
-	if(msg->arg[1])
-	  args = &data[pathlen];
-
-	if(msg->arg[2]) {
-	  envp = &data[pathlen + msg->arg[1]];
-	}
-
-	msg->arg[0] = execute(path, args, msg->arg[1], envp, msg->arg[2]);
-      } else {
-	msg->arg[0] = 0;
-      }
-      
-      msg->send_size = 0;
-      reply(msg);
-      break;
-    }
-      
-    case PROCMAN_CMD_KILL:
-      if(system->procman->kill(msg->arg[1], FLAG_TSK_TERM))
-	msg->arg[0] = 1;
-      else
-	msg->arg[0] = 0;
-      msg->send_size = 0;
-      reply(msg);
-      break;
-
-      /* завершить все потоки в адресном пространстве */
-    case PROCMAN_CMD_EXIT:
-      thread = system->procman->task.tid->get(msg->tid);
-      if(system->procman->kill(thread->tid, FLAG_TSK_TERM))
-	msg->arg[0] = 1;
-      else
-	msg->arg[0] = 0;
-      msg->send_size = 0;
-      reply(msg);
-      break;
-
-      /* завершить только данный поток */
-    case PROCMAN_CMD_THREAD_EXIT:
-      thread = system->procman->task.tid->get(msg->tid);
-      if(system->procman->kill(thread->tid, FLAG_TSK_EXIT_THREAD))
-	msg->arg[0] = 1;
-      else
-	msg->arg[0] = 0;
-      msg->send_size = 0;
-      reply(msg);
-      break;
-
-    case PROCMAN_CMD_CREATE_THREAD:
-      thread = system->procman->task.tid->get(msg->tid);
-      thread = thread->process->thread_create(msg->arg[1], 0/*FLAG_TSK_READY*/, kmalloc(PAGE_SIZE), thread->process->memory->mmap(0, PAGE_SIZE, 0, 0, 0));
-      msg->arg[0] = system->procman->reg_thread(thread);
-      thread->context.tss->eax = msg->arg[2];
-      msg->send_size = 0;
-      reply(msg);
-      break;
-
-    case PROCMAN_CMD_INTERRUPT_ATTACH:
-      thread = system->procman->task.tid->get(msg->tid);
-      //thread = system->procman->get_thread_by_tid(msg->tid);
-      msg->arg[0] = system->interrupt_attach(thread, msg->arg[1]);
-      msg->send_size = 0;
-      reply(msg);
-      break;
-
-    case PROCMAN_CMD_INTERRUPT_DETACH:
-      thread = system->procman->task.tid->get(msg->tid);
-      //thread = system->procman->get_thread_by_tid(msg->tid);
-      msg->arg[0] = system->interrupt_detach(thread, msg->arg[1]);
-      msg->send_size = 0;
-      reply(msg);
-      break;
-
-    case PROCMAN_CMD_DMESG:
-      kmesg = new char[2000];
-      extern TTY *stdout;
-      len = stdout->read(0, kmesg, 2000);
-      msg->send_buf = kmesg;
-      msg->send_size = len;
-      reply(msg);
-      delete kmesg;
-      break;
-
-    case FS_CMD_ACCESS:
-      msg->arg[0] = 1;
-      msg->send_size = 0;
-      reply(msg);
-      break;
-      
-    default:
-      msg->arg[0] = RES_FAULT;
-      msg->send_size = 0;
-      reply(msg);
-    }
-  }
+    interface->wait_message();
+  };
 }

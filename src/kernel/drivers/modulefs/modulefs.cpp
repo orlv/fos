@@ -11,7 +11,6 @@
 #include <fos/fos.h>
 #include <sys/stat.h>
 #include <string.h>
-
 #include <fos/nsi.h>
 
 #define MODULEFS_BUFF_SIZE 0x2000

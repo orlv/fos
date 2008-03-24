@@ -10,8 +10,6 @@
 #include <fos/page.h>
 #include <fos/system.h>
 
-#define PAGE_SIZE 0x1000
-
 #define MMU_PAGE_PRESENT         1
 #define MMU_PAGE_WRITE_ACCESS    2
 #define MMU_PAGE_USER_ACCESSABLE 4

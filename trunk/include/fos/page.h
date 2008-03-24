@@ -8,10 +8,6 @@
 
 #include <types.h>
 
-#ifdef iKERNEL
-
-#endif
-
 #define PAGE_SIZE 0x1000
 
 asmlinkage off_t getpagephysaddr(off_t pageaddr); /* возвращает физический адрес страницы */

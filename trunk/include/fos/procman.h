@@ -21,20 +21,15 @@
 #define MM_CMD_MMAP          (BASE_METHOD_N + 0)
 #define MM_CMD_MUNMAP        (BASE_METHOD_N + 1)
 
-//#define MEM_FLAG_LOWPAGE 1
-
 #ifdef iKERNEL
 
 #include <fos/process.h>
 #include <c++/list.h>
 #include <c++/index.h>
 
-//#define FLAG_TSK_READY        0x01
 #define FLAG_TSK_KERN         0x02
 #define FLAG_TSK_TERM         0x04 /* завершить все потоки в данном адресном пространстве */
 #define FLAG_TSK_EXIT_THREAD  0x08 /* завершить только один поток */
-//#define FLAG_TSK_SEND         0x10
-//#define FLAG_TSK_RECV         0x20
 #define FLAG_TSK_SYSCALL      0x40 /* поток выполняет системный вызов */
 
 class TProcMan {

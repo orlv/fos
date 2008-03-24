@@ -12,8 +12,6 @@
 
 asmlinkage off_t getpagephysaddr(off_t pageaddr); /* возвращает физический адрес страницы */
 
-//#define MEM_FLAG_LOWPAGE 1
-
 #ifdef iKERNEL
 struct page {
   volatile size_t mapcount;          /* общее количество использований страницы */

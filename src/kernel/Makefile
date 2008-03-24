@@ -48,6 +48,7 @@ endif
 OBJECTS =	main/boot/setup.o		\
 		main/system.o			\
 		main/procman/procman.o		\
+		main/procman/procman_srv.o	\
 		main/procman/scheduler.o	\
 		main/procman/process.o		\
 		main/procman/thread.o		\

@@ -48,8 +48,11 @@ void nsi_t::wait_message()
     if(!method[msg->arg[0]](msg))
       return;
   } else {
-    msg->arg[0] = 0;
-    msg->arg[2] = ERR_UNKNOWN_METHOD;
+    if(!method[0]){
+      msg->arg[0] = 0;
+      msg->arg[2] = ERR_UNKNOWN_METHOD;
+    } else
+      method[0](msg);
   }
 
   reply(msg);

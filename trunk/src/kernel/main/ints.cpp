@@ -39,7 +39,7 @@ void exception(const char *str, unsigned int cs,  unsigned int address, unsigned
 	 "Errorcode: 0x%X",
 	 str, cs, address, errorcode);
 
-  system->panic("fault in kernel task!");
+  system->panic("fault in kernel mode!");
 #endif
 
   printk("\n-------------------------------------------------------------------------------\n" \
@@ -48,18 +48,17 @@ void exception(const char *str, unsigned int cs,  unsigned int address, unsigned
 	 "Thread: 0x%X, Process: 0x%X \n"				\
 	 "Name: [%s]\n"							\
 	 "Errorcode: 0x%X\n"						\
-	 "-------------------------------------------------------------------------------\n", \
+	 "-------------------------------------------------------------------------------", \
 	 str, cs, address, system->procman->curr->item, system->procman->curr->item->process, system->procman->curr->item->process->name, errorcode);
   
   if((system->procman->curr->item->flags & FLAG_TSK_KERN) ||
      (address < USER_MEM_BASE)){
-    system->panic("fault in kernel task!");
+    system->panic("fault in kernel mode!");
   } else {
-    printk("fault in user task! task terminated\n");
+    printk("\nfault in user task! task terminated\n");
     dump_stack(ebp);
     system->procman->curr->item->flags |= FLAG_TSK_TERM;
-    #warning см. сюда
-    //system->procman->curr->item->flags &= ~FLAG_TSK_READY;
+    system->procman->curr->item->deactivate();
     while(1) sched_yield();
   }
 }

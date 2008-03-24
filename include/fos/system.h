@@ -11,7 +11,7 @@
 //#include <fos/gdt.h>
 #include <fos/idt.h>
 #include <fos/procman.h>
-#include <fos/drivers/pic.h>
+#include <fos/drivers/pic/pic.h>
 #include <fos/mm.h>
 #include <fos/page.h>
 #include <c++/stack.h>

@@ -9,7 +9,8 @@
 
 nsi_t::nsi_t(char *bindpath)
 {
-  while(resmgr_attach(bindpath) != RES_SUCCESS);
+  if(bindpath)
+    while(resmgr_attach(bindpath) != RES_SUCCESS);
   msg = new message;
 }
 
@@ -44,7 +45,8 @@ void nsi_t::wait_message()
 
   /* если метод определён — вызываем его, иначе возвращаем ошибку */
   if((msg->arg[0] < MAX_METHODS_CNT) && method[msg->arg[0]]) {
-    method[msg->arg[0]](msg);
+    if(!method[msg->arg[0]](msg))
+      return;
   } else {
     msg->arg[0] = 0;
     msg->arg[2] = ERR_UNKNOWN_METHOD;

@@ -21,6 +21,8 @@
 #define MM_CMD_MMAP          (BASE_METHOD_N + 0)
 #define MM_CMD_MUNMAP        (BASE_METHOD_N + 1)
 
+//#define MEM_FLAG_LOWPAGE 1
+
 #ifdef iKERNEL
 
 #include <fos/process.h>
@@ -74,7 +76,8 @@ class TProcMan {
   void unreg_thread(register List<Thread *> *thread);
 
   inline void activate(List<Thread *> *thread) {
-    thread->move(task.active);
+    if(!(thread->item->flags & FLAG_TSK_TERM))
+      thread->move(task.active);
   }
   
   inline void stop(List<Thread *> *thread) {
@@ -89,11 +92,7 @@ class TProcMan {
   res_t kill(register tid_t tid, u16_t flag);
   List<Thread *> *curr;
   List<Thread *> *prev;
-  //bool _tss;
 };
 
 #endif /* iKERNEL */
-
-#define MEM_FLAG_LOWPAGE 1
-
 #endif

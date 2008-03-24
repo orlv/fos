@@ -8,8 +8,8 @@ include .config
 
 OUTPUT		=	gwinsy
 
-OBJECTS		=	main.o		video.o	vesa.o	splash.o	util.o	\
-			picture.o	font.o windows.o
+OBJECTS		=	main.o		video.o	vesa.o		util.o	\
+			picture.o	font.o windows.o	cursor.o
 
 LDLIBS		=	-\( -lc -lcpp -lfos -\)
 
@@ -17,11 +17,11 @@ TARGETDIR	=	$(INITRDDIR)/usr/bin
 
 include $(SYSTEM_SRC)/mk/trg_bin_std.mk
 
-main.o: video.h context.h splash.h windows.h
+main.o: video.h context.h windows.h cursor.h
 video.o: video.h config.h context.h
 vesa.o: config.h context.h
-splash.o: config.h context.h picture.h util.h video.h font.h
 util.o: util.h
 picture.o: picture.h context.h video.h
 font.o: context.h font.h video.h util.h
-windows.o: windows.h context.h video.h assert.h
+windows.o: windows.h context.h video.h assert.h cursor.h
+cursor.o: context.h video.h assert.h cursor.h windows.h util.h

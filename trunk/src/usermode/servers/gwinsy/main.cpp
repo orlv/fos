@@ -6,9 +6,9 @@
 #include <stdlib.h>
 #include "context.h"
 #include "video.h"
-#include "splash.h"
-#include "windows.h"
 
+#include "windows.h"
+#include "cursor.h"
 context_t *screen = NULL;
 jump_table_t *jmptbl;
 
@@ -24,7 +24,8 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	startup_splash();
+
+	cursor_init();
 
 	windows_init();
 

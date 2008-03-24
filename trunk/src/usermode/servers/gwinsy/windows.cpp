@@ -14,10 +14,11 @@
 #include "context.h"
 #include "video.h"
 #include "assert.h"
+#include "cursor.h"
 
 #define REDRAW_REQUEST	(BASE_METHOD_N + 0)
 
-static context_t *backbuf, *locate;
+context_t *backbuf, *locate;
 tid_t redraw_thread;
 
 int windows_init() {
@@ -59,10 +60,6 @@ static void FullRedraw() {
 	Blit(backbuf, screen, 0, 0, backbuf->w, backbuf->h, 0, 0);
 }
 
-static void CursorRedraw() {
-
-}
-
 static void PartialRedraw(int hndl) {
 
 }
@@ -75,14 +72,14 @@ static int ProcessRedrawRequest(struct message *msg) {
 	switch(msg->arg[1]) {
 		case REDRAW_FULL:
 			FullRedraw();
-			CursorRedraw();
+			cursor_sync();
 			break;
 		case REDRAW_PARTIAL:
 			PartialRedraw(msg->arg[2]);
-			CursorRedraw();	
+			cursor_sync();
 			break;
 		case REDRAW_CURSOR:
-			CursorRedraw();
+			cursor_sync();
 			break;
 	}
 	return 0;

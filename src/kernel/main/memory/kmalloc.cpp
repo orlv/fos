@@ -42,7 +42,7 @@ void put_page_DMA16(u32_t page)
 {
   if(!free_page(page)){ /* если эта страница больше никем не используется */
     system->free_page_DMA16->push(page);
-    system->free_pages_DMA16--;
+    system->free_pages_DMA16++;
   }
 }
 
@@ -117,21 +117,19 @@ void init_memory()
 
   /* Создаем пул свободных нижних (<16 Мб) страниц */
   system->free_page_DMA16 = new Stack<u32_t>(PAGE(DMA16_MEM_SIZE)-PAGE(freemem_start_DMA16));
-  for(u32_t i = PAGE(freemem_start_DMA16); (i < PAGE(heap_start)) && (i < PAGE(DMA16_MEM_SIZE)); i++){
+  for(size_t i = PAGE(freemem_start_DMA16); (i < PAGE(heap_start)) && (i < PAGE(DMA16_MEM_SIZE)); i++){
     put_page_DMA16(i);
   }
-
   /* -- Setup console -- */
   TTY *tty1 = new TTY(80, 25);
   tty1->set_text_color(WHITE);
   extern TTY *stdout;
   stdout = tty1;
 
-  //printk("heap size = 0x%X (0x%X)\n", heap_size, heap_size / sizeof(HeapMemBlock));
-  
   /*
     Заполним пул свободных страниц страницами, лежащими ниже KERNEL_MEM_LIMIT
-    Пул будет пуст, если нет свободной памяти выше 16 Мб -- запросы get_page() будут отдавать страницы из пула free_lowpage
+    Пул будет пуст, если нет свободной памяти выше 16 Мб -- запросы get_page()
+    будут отдавать страницы из пула free_lowpage
   */
   if(freemem_start){
     system->free_page = new Stack<u32_t>(PAGE(freemem_end)-PAGE(freemem_start));
@@ -141,10 +139,12 @@ void init_memory()
   }
 
   system->kmem = new VMM(0, KERNEL_MEM_LIMIT);
-  system->kmem->pager = new Pager(get_page() * PAGE_SIZE, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS); /* каталог страниц ядра */
+  /* каталог страниц ядра: */
+  system->kmem->pager = new Pager(get_page() * PAGE_SIZE, MMU_PAGE_PRESENT|MMU_PAGE_WRITE_ACCESS);
   kmem_set_log_addr(PAGE(OFFSET(system->kmem->pager->pagedir)), PAGE(OFFSET(system->kmem->pager->pagedir)));
 
-  /* Создадим таблицы страниц для всей памяти, входящей в KERNEL_MEM_LIMIT (32 каталога для 128 мегабайт) */
+  /* Создадим таблицы страниц для всей памяти, входящей в KERNEL_MEM_LIMIT
+     (32 каталога для 128 мегабайт) */
   for(u32_t i=0; i < KERNEL_MEM_LIMIT/(PAGE_SIZE*1024); i++){
     system->kmem->pager->pagedir[i] = (get_page()*PAGE_SIZE) | 3;
     kmem_set_log_addr(PAGE(system->kmem->pager->pagedir[i]), PAGE(system->kmem->pager->pagedir[i]));
@@ -152,21 +152,15 @@ void init_memory()
 
   for(u32_t i=0; i < KERNEL_MEM_LIMIT/(PAGE_SIZE*1024); i++){
     system->kmem->mmap(system->kmem->pager->pagedir[i] & 0xfffff000, PAGE_SIZE, MAP_FIXED, system->kmem->pager->pagedir[i] & 0xfffff000, 0);
-    //if(i==2) while(1);
-    //mmap(ADDRESS(system->kmem->pager->pagedir[i] & 0xfffff000), ADDRESS(system->kmem->pager->pagedir[i] & 0xfffff000), PAGE_SIZE);
   }
 
   system->kmem->mmap(OFFSET(system->kmem->pager->pagedir), PAGE_SIZE, MAP_FIXED, OFFSET(system->kmem->pager->pagedir), 0);
-    //mmap(system->kmem->pager->pagedir, system->kmem->pager->pagedir, PAGE_SIZE);
 
   /* Смонтируем память от нуля до начала свободной памяти как есть */
   system->kmem->mmap(0, freemem_start_DMA16, MAP_FIXED, 0, 0);
-    //mmap(0, 0, low_freemem_start);
-  //while(1);  
 
   /* Смонтируем heap */
   system->kmem->mmap(heap_start, heap_size, MAP_FIXED, heap_start, 0);
-    //mmap(ADDRESS(heap_start), ADDRESS(heap_start), heap_size);
 
   /* Дополним пул свободных страниц оставшимися свободными страницами (если они остались, конечно) */
   for(u32_t i = PAGE(KERNEL_MEM_LIMIT); i < system->pages_cnt; i++){
@@ -176,8 +170,6 @@ void init_memory()
 
   enable_paging(system->kmem->pager->pagedir);
   heap_create_reserved_block();
-  //printk("fooo");
-  //while(1);
 }
 
 void *kmalloc(register size_t size)

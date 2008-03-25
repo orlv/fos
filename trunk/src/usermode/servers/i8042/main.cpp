@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
   keyboard_ps2_init();
   mouse_ps2_init();
 
-  buffer = malloc(KB_CHARS_BUFF_SIZE);
+  buffer = (char *) malloc(KB_CHARS_BUFF_SIZE);
 
   thread_create((off_t) & MouseHandlerThread, 0);
   thread_create((off_t) & thread_handler, 0);

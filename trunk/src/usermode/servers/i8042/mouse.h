@@ -6,8 +6,9 @@
 #define MOUSE_BTN_RIGHT		02
 #define MOUSE_BTN_MIDDLE	04
 
-void mouse_ps2_init();
-void mouse_ps2_interrupt();
-void MouseHandlerThread();
-void mouse_receive_byte(unsigned char byte);
+userlinkage void mouse_ps2_init();
+userlinkage void mouse_ps2_interrupt();
+userlinkage void MouseHandlerThread();
+userlinkage void mouse_receive_byte(unsigned char byte);
+
 #endif

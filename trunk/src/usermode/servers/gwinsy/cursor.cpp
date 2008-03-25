@@ -42,6 +42,7 @@ void cursor_move(int x, int y) {
 }
 
 void cursor_sync() {
+	Blit(backbuf, screen, old_x - current->hot_x, old_y - current->hot_y, current->pict->width, current->pict->height, old_x - current->hot_x, old_y - current->hot_y);
 	draw_picture(current->pict, cur_x - current->hot_x, cur_y - current->hot_y, screen);
 }
 

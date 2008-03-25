@@ -1,13 +1,12 @@
 /*
     fos/mm.h
-    Copyright (C) 2005-2006 Oleg Fedorov
+    Copyright (C) 2005-2008 Oleg Fedorov
 */
 
 #ifndef _FOS_MM_H
 #define _FOS_MM_H
 
 #include <types.h>
-#include <c++/list.h>
 
 /*
 ——————————————————————————————————————————————————————————————————————————————+
@@ -83,11 +82,6 @@ static inline void * ADDRESS(u32_t offset)
   return (void *) offset;
 }
 
-struct memblock {
-  offs_t vptr; /* на какой адрес в памяти процесса смонтировано */
-  size_t size; /* размер блока */
-};
-
 void * realloc(register void *ptr, register size_t size);
 void * heap_create_reserved_block();
 
@@ -96,35 +90,8 @@ void * heap_create_reserved_block();
 #define MAP_DMA16       0x40              /* allocate memory from DMA16 area or return error */
 
 #ifdef iKERNEL
-
-class VMM {
- private:
-  List<memblock *> * volatile FreeMem;
-  off_t alloc_free_area(register size_t &lenght);
-  off_t cut_free_area(register off_t start, register size_t &lenght);
-
- public:
-  VMM(offs_t base, size_t size);
-  ~VMM();
-
-  off_t mem_base;
-  size_t mem_size;
-  class Pager *pager;
-
-  void *find_free_area(register size_t lenght);
-  /* если start=0 -- ищем с find_free_area() память и мапим */
-  void *mmap(register off_t start, register size_t lenght, register int flags, off_t from_start, VMM *vm_from);
-
-  /* отсоединить страницы от данного адресного пространства
-     (если станицы смонтированы также в другом месте - они там останутся) */
-  int munmap(register off_t start, register size_t lenght);
-};
-
 void * kmalloc(register size_t size);
 void  kfree(register void *ptr, register size_t size);
-
-void init_memory();
-
 #endif
 
 #endif

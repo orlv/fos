@@ -20,6 +20,8 @@ Timer *SysTimer;
 SYSTEM *system;
 ModuleFS *initrb; /* Модули, загруженные GRUB */
 
+void init_memory();
+
 void out_banner()
 {
   extern const char *version;

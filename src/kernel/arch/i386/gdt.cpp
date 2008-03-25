@@ -1,5 +1,5 @@
 /*
- * kernel/main/gdt.cpp
+ * kernel/arch/i386/gdt.cpp
  * Copyright (C) 2005-2007 Oleg Fedorov
  */
 
@@ -14,20 +14,21 @@ GDT::GDT()
   gdt = (gdt_entry *) kmalloc(GDT_SIZE);
   gdtr.base =  (gdt_entry *) (u32_t)gdt;
 
-  /* null descriptor */
+  /* Нулевой дескриптор */
   clear_descriptor(0);
-  /* (0x08) Kernel 0-4 Гб код   */
+
+  /* (селектор 0x08)  0-4 Гб  Код ядра                */
   set_segment_descriptor(1, 0, 0xffffffff, 1, 0, 0, 1, 0);
-  /* (0x10) Kernel 0-4 Гб данные   */
+  /* (селектор 0x10)  0-4 Гб  Данные ядра             */
   set_segment_descriptor(2, 0, 0xffffffff, 0, 1, 0, 1, 0);
-  /* (0x1b) User 0-4 Гб код      */
+  /* (селектор 0x1b)  0-4 Гб  Пользовательский код    */
   set_segment_descriptor(3, 0, 0xffffffff, 1, 0, 3, 1, 0);
-  /* (0x23) User 0-4 Гб данные   */
+  /* (селектор 0x23)  0-4 Гб  Пользовательские данные */
   set_segment_descriptor(4, 0, 0xffffffff, 0, 1, 3, 1, 0);
 
-  /* 0x28 */
+  /* (селектор 0x28) 16-битный код (для обращения к сервисам BIOS) */
   set_segment_descriptor(5, 0, 0xffff, 1, 1, 0, 0, 0);
-  /* 0x30 */
+  /* (селектор 0x30) 16-битные данные */
   set_segment_descriptor(6, 0, 0xffff, 0, 1, 0, 0, 0);
 
   lgdt(gdtr);
@@ -61,7 +62,7 @@ void GDT::set_segment_descriptor(num_t n,
   d->bytes[5] |= executable << 3;
   d->bytes[5] |= conforming << 2;
   d->bytes[5] |= writable  << 1;
-  d->bytes[5] |= 0x80 | 0x10; // present application descriptor
+  d->bytes[5] |= 0x80 | 0x10;
 
   d->bytes[6] |= (gran4k << 3 | op32bit << 2 ) << 4;
 }

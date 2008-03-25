@@ -40,11 +40,6 @@
 ——————————————————————————————————————————————————————————————————————————————+  		  
 */
 
-/* размер gdt - 64 килобайта */
-#define GDT_DESCR 8192
-
-#define IDT_DESCR 256
-
 #define KERNEL_CODE_SEGMENT 0x08
 #define KERNEL_DATA_SEGMENT 0x10
 #define USER_CODE_SEGMENT   0x1b

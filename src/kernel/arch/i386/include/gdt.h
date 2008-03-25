@@ -1,5 +1,5 @@
 /*
-    fos/gdt.h
+    fos/arch/i386/include/gdt.h
     Copyright (C) 2006-2007 Oleg Fedorov
 */
 
@@ -8,6 +8,7 @@
 
 #include <types.h>
 
+/* размер gdt - 64 килобайта */
 #define GDT_SIZE 8192*8-1
 
 struct gdt_entry{

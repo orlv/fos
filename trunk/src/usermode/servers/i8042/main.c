@@ -39,15 +39,16 @@ void thread_handler()
   }
 }
 
-int access(struct message *msg)
+int fs_access(struct message *msg)
 {
   msg->arg[0] = 1;
   msg->arg[1] = KB_CHARS_BUFF_SIZE;
   msg->arg[2] = NO_ERR;
   msg->send_size = 0;
+  return 1;
 }
 
-int write(struct message *msg)
+int fs_write(struct message *msg)
 {
   msg->arg[0] = kb_write(0, buffer, msg->recv_size);
   msg->send_size = 0;
@@ -55,9 +56,10 @@ int write(struct message *msg)
     msg->arg[2] = ERR_EOF;
   else
     msg->arg[2] = NO_ERR;
+  return 1;
 }
 
-int read(struct message *msg)
+int fs_read(struct message *msg)
 {
   msg->arg[0] = kb_read(0, buffer, msg->send_size);
   if (msg->arg[0] < msg->send_size) {
@@ -65,8 +67,9 @@ int read(struct message *msg)
     msg->arg[2] = ERR_EOF;
   } else
     msg->arg[2] = NO_ERR;
-
+  
   msg->send_buf = buffer;
+  return 1;
 }
 
 int main(int argc, char *argv[])
@@ -78,19 +81,19 @@ int main(int argc, char *argv[])
 
   thread_create((off_t) & MouseHandlerThread, 0);
   thread_create((off_t) & thread_handler, 0);
-  nsi_t *interface = new nsi_t("/dev/keyboard");
+  fos_nsi *interface = nsi_init("/dev/keyboard");
 
   /* стандартные параметры */
   interface->std.recv_buf = buffer;
   interface->std.recv_size = KB_CHARS_BUFF_SIZE;
 
   /* объявим интерфейсы */
-  interface->add(FS_CMD_ACCESS, &access);
-  interface->add(FS_CMD_WRITE, &write);
-  interface->add(FS_CMD_READ, &read);
+  nsi_add_method(interface, FS_CMD_ACCESS, &fs_access);
+  nsi_add_method(interface, FS_CMD_WRITE, &fs_write);
+  nsi_add_method(interface, FS_CMD_READ, &fs_read);
 
   /* обрабатываем поступающие сообщения */
   while (1) {
-    interface->wait_message();
+    nsi_wait_message(interface);
   };
 }

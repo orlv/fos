@@ -26,7 +26,8 @@ version:
 	rm -f kernel/main/version.o
 	$(ECHO) " "
 	$(RED) $(ECHO) "FOS `cat kernel/VERSION` (`cat VERSION`)" ; $(GREY)
-	$(ECHO) "Copyright (C) 2004-2008 Oleg Fedorov & Co."
+	$(ECHO) "Copyright (C) 2004-2008 Oleg Fedorov"
+	$(ECHO) "Copyright (C) 2007-2008 Serge Gridassov"
 	$(ECHO) " "
 	$(ECHO) "/* " > $(INCLUDE)/fos/version.h
 	$(ECHO) "include/fos/version.h" >> $(INCLUDE)/fos/version.h

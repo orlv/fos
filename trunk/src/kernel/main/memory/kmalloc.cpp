@@ -8,6 +8,7 @@
 #include <fos/printk.h>
 #include <fos/system.h>
 #include <fos/pager.h>
+#include "heap.h"
 #include <c++/stack.h>
 #include <multiboot.h>
 #include <string.h>

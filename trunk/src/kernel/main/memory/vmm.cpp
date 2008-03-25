@@ -3,9 +3,10 @@
   Copyright (C) 2007 Oleg Fedorov
 */
 
+#include <fos/vmm.h>
 #include <fos/mm.h>
 #include <fos/printk.h>
-#include <fos/process.h>
+//#include <fos/process.h>
 #include <fos/system.h>
 #include <fos/pager.h>
 

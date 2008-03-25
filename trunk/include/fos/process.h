@@ -8,6 +8,7 @@
 
 #include <types.h>
 #include <fos/thread.h>
+#include <fos/vmm.h>
 
 class TProcess {
  public:

@@ -56,7 +56,8 @@ OBJECTS =	main/boot/setup.o		\
 		main/memory/mmu.o		\
 		main/memory/kmalloc.o		\
 		main/memory/heap.o		\
-		main/memory/memory.o		\
+		main/memory/vmm.o		\
+		main/memory/mm_srv.o		\
 		main/memory/pager.o		\
 		main/idt.o			\
 		main/syscall.o  		\

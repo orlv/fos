@@ -8,12 +8,6 @@ Oleg S. Fedorov (St.Peterburg, Russia)
 	About:
 		Main idea and coding [2004-2008]
 
-Michael Zhilin
-	Contacts:
-		mizh@bk.ru
-	Some Fix's (10.2006), FreeBSD building fix (08.2007)
-	PCI server (09.2007)
-
 Serge Gridassov (Moscow, Russia)
 	Contacts:
 		grindars@grindars.org.ru
@@ -22,6 +16,12 @@ Serge Gridassov (Moscow, Russia)
 
 	Keyboard&Mouse drivers, PGS server (10.2007)
 	ROMFS filesystem (2007) and more, more, more... (See ChangeLog)
+		
+Michael Zhilin
+	Contacts:
+		mizh@bk.ru
+	Some Fix's (10.2006), FreeBSD building fix (08.2007)
+	PCI server (09.2007)
 	
 Special Tnx:
 	Vladimir Sadovnikov (St.Peterburg, Russia)

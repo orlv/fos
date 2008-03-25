@@ -6,9 +6,10 @@
 #include <stdlib.h>
 #include "context.h"
 #include "video.h"
-
+#include "input.h"
 #include "windows.h"
 #include "cursor.h"
+
 context_t *screen = NULL;
 jump_table_t *jmptbl;
 
@@ -28,6 +29,8 @@ int main(int argc, char *argv[]) {
 	cursor_init();
 
 	windows_init();
+
+	input_init();
 
 	ProcessRedraw();
 	return 0;

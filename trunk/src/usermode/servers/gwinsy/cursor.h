@@ -11,4 +11,5 @@ void cursor_init(void);
 void cursor_move(int x, int y);
 void cursor_sync();
 int cursor_select(unsigned int type);
+void cursor_shift(int dx, int dy);
 #endif

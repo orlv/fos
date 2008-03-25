@@ -1,14 +1,15 @@
 /*
-    fos/mm.h
-    Copyright (C) 2005-2006 Oleg Fedorov
+    kernel/main/memory/heap.h
+    Copyright (C) 2005-2007 Oleg Fedorov
 */
 
-#ifndef _FOS_HEAP_H
-#define _FOS_HEAP_H
+#ifndef _MEMORY_HEAP_H
+#define _MEMORY_HEAP_H
 
 #include <types.h>
+#include <fos/page.h>
 
-#define HEAP_RESERVED_BLOCK_SIZE 0x1000
+#define HEAP_RESERVED_BLOCK_SIZE PAGE_SIZE
 
 struct HeapMemBlock{
   union {

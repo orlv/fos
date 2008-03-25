@@ -1,5 +1,5 @@
 /*
-    fos/tss.h
+    fos/arch/i386/include/tss.h
     Copyright (C) 2005 Oleg Fedorov
 */
 

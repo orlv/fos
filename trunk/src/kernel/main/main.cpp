@@ -29,7 +29,8 @@ void out_banner()
 
   printk(" FOS %s (%s) \n"						\
 	 "-------------------------------------------------------------------------------\n" \
-	 " Copyright (C) 2004-2008 Oleg Fedorov & Co.                http://fos.osdev.ru/\n" \
+	 " Copyright (C) 2004-2008 Oleg Fedorov                      http://fos.osdev.ru/\n" \
+	 " Copyright (C) 2007-2008 Serge Gridassov                                       \n" \                    
 	 "-------------------------------------------------------------------------------\n",
 	 version, build);
 }

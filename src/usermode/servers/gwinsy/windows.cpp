@@ -51,6 +51,7 @@ int windows_init() {
 
 	RequestRedraw(REDRAW_FULL, 0);
 
+	return 0;
 }
 
 static void FullRedraw() {
@@ -68,7 +69,6 @@ static int ProcessRedrawRequest(struct message *msg) {
 	msg->arg[2] = NO_ERR;
 	msg->send_size = 0;
 	reply(msg);
-	printf("Redraw requested\n");
 	switch(msg->arg[1]) {
 		case REDRAW_FULL:
 			FullRedraw();

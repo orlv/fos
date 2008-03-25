@@ -56,3 +56,22 @@ void cursor_init(void) {
 	cursor_move(screen->w / 2, screen->h / 2);
 	cursor_select(CURSOR_POINTER);
 }
+
+void cursor_shift(int dx, int dy) {
+	old_x = cur_x;
+	old_y = cur_y;
+	cur_x+= dx;
+	cur_y+= dy;
+	
+	if(cur_x < 0)
+		cur_x = 0;
+
+	if(cur_y < 0)
+		cur_y = 0;
+
+	if(cur_x > screen->w)
+		cur_x = screen->w;
+
+	if(cur_y > screen->h)
+		cur_y = screen->h;
+}

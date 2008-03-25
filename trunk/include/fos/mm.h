@@ -7,43 +7,38 @@
 #define _FOS_MM_H
 
 #include <types.h>
-
 #include <c++/list.h>
 
 /*
-  Карта памяти:
-
-               / ------------------------------ 0
-               |     BIOS, etc
-               | ------------------------------ KERNEL_MEM_BASE (1Mb)
-               |     Kernel
-               |     Modules
-               | ------------------------------ freemem_start_DMA16
-               |
-Разделяемая    |     Free Memory  
-память,        /  
-присутствует  <  ------------------------------ 16Mb (DMA16)
-в каждом       \ 
-адресном       |    Kernel Heap
-пространстве   |
-               | ------------------------------ freemem_start
-               |
-               |    Free Memory
-               | 
-               | ------------------------------
-               |     Kernel Pagetables (32 при KERNEL_MEM_LIMIT = 128 Мб)
-               \ ------------------------------ KERNEL_MEM_LIMIT | USER_MEM_BASE
-
-
-		  
-                     User Memory
-
-
-		     
-                  ----------------------------- SYSTEM_MEM_TOP | PROCESS_MEM_LIMIT
-
- */
-
+——————————————————————————————————————————————————————————————————————————————+
+                               Карта памяти (i386)                            |
+—————————————————+——————————————————————————————+—————————————————————————————+
+                 |         Содержимое           |  Адрес начала блока памяти  |
+—————————————————+——————————————————————————————+—————————————————————————————+
+ Разделяемая     |  BIOS, etc                   | 0                           |
+ память.         +——————————————————————————————+—————————————————————————————+
+ Присутствует    |  Kernel                      | KERNEL_MEM_BASE (=1Mb)      |
+ в каждом        +——————————————————————————————+                             |
+ адресном        |  Modules                     |                             |
+ пространстве    +——————————————————————————————+—————————————————————————————+
+                 |  Free Memory                 | freemem_start_DMA16         |
+                 +——————————————————————————————+—————————————————————————————+
+                 |  Kernel Heap                 | 16Mb (DMA16)                |
+                 +——————————————————————————————+—————————————————————————————+
+                 |  Free Kernel Memory          | freemem_start               |
+                 +——————————————————————————————+—————————————————————————————+
+                 |  Kernel Pagetables           | KERNEL_MEM_LIMIT -          |
+		 | (32 таблицы при              | (KERNEL_MEM_LIMIT/PAGE_SIZE)|
+		 |   KERNEL_MEM_LIMIT = 128 Мб) |                             |
+—————————————————+——————————————————————————————|—————————————————————————————+
+                 |  User Memory                 | KERNEL_MEM_LIMIT            | 
+                 |                              | или USER_MEM_BASE 	      |	  
+—————————————————+——————————————————————————————+—————————————————————————————+
+                                                  SYSTEM_MEM_TOP              |
+						  или PROCESS_MEM_LIMIT       |
+						  (0xfffffff+1)               |
+——————————————————————————————————————————————————————————————————————————————+  		  
+*/
 
 /* размер gdt - 64 килобайта */
 #define GDT_DESCR 8192
@@ -73,11 +68,7 @@
 #define KERNEL_MIN_HEAP_SIZE  0x0050000 /* 64 Кб  */
 #define DMA16_MEM_SIZE           0x1000000 /* 16 Мб  */
 
-
 #define HEAP_RESERVED_BLOCK_SIZE 0x1000
-
-//#define USER_PAGETABLE_DATA_SIZE (((SYSTEM_PAGES_MAX-(KERNEL_MEM_LIMIT/PAGE_SIZE))/1024)*4096) /* 3,875 Mb */
-//#define USER_PAGETABLE_DATA (KERNEL_MEM_LIMIT-USER_PAGETABLE_DATA_SIZE)
 
 struct HeapMemBlock{
   union {
@@ -117,34 +108,18 @@ struct memblock {
 void * realloc(register void *ptr, register size_t size);
 void * heap_create_reserved_block();
 
-
-/* Protection bits */
-//#define PROT_READ  0x1 /* page can be read */
-//#define PROT_WRITE 0x2 /* page can be written */
-//#define PROT_EXEC  0x4 /* page can be executed */
-//#define PROT_SEM   0x8 /* page may be used for atomic ops */
-//#define PROT_NONE  0x0 /* page can not be accessed */
-
 /* Mapping flags */
-//#define MAP_SHARED      0x01            /* Share changes */
-//#define MAP_PRIVATE     0x02            /* Changes are private */
-//#define MAP_TYPE        0x0f            /* Mask for type of mapping */
 #define MAP_FIXED       0x10            /* Interpret addr exactly */
-//#define MAP_ANONYMOUS   0x20            /* don't use a file */
 #define MAP_DMA16       0x40              /* allocate memory from DMA16 area or return error */
 
 #ifdef iKERNEL
 
 class VMM {
  private:
-  //List<memblock *> * volatile UsedMem;
   List<memblock *> * volatile FreeMem;
-  //u16_t flags;
-
-  //void *mem_alloc(register u32_t *phys_pages, register size_t pages_cnt);
-  //  void *do_mmap(register u32_t *phys_pages, register void *log_address, register size_t pages_cnt);
   off_t alloc_free_area(register size_t &lenght);
   off_t cut_free_area(register off_t start, register size_t &lenght);
+
  public:
   VMM(offs_t base, size_t size);
   ~VMM();
@@ -166,6 +141,7 @@ void * kmalloc(register size_t size);
 void  kfree(register void *ptr, register size_t size);
 
 void init_memory();
+
 #endif
 
 #endif

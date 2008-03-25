@@ -42,6 +42,8 @@ class nsi_t {
 };
 #endif
 
+/* Вариант NSI для использования в программах на Си: */
+
 struct fos_nsi {
   struct message *msg;
   int (*method [MAX_METHODS_CNT]) (struct message *msg);

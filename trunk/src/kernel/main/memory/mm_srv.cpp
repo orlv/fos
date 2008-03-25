@@ -1,6 +1,8 @@
 /*
   kernel/main/memory/mm_srv.cpp
   Copyright (C) 2007 Oleg Fedorov
+
+  *(Tue Mar 25 12:21:50 2008) переделан на использование NSI
 */
 
 #include <fos/mm.h>

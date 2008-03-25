@@ -13,6 +13,7 @@
 #include <fos/mm.h>
 #include <fos/printk.h>
 #include <fos/system.h>
+#include "heap.h"
 #include <string.h>
 
 HeapMemBlock * volatile heap_free_ptr = NULL;

@@ -68,18 +68,6 @@
 #define KERNEL_MIN_HEAP_SIZE  0x0050000 /* 64 Кб  */
 #define DMA16_MEM_SIZE           0x1000000 /* 16 Мб  */
 
-#define HEAP_RESERVED_BLOCK_SIZE 0x1000
-
-struct HeapMemBlock{
-  union {
-    struct{
-      struct HeapMemBlock *next;
-      size_t  size;
-    };
-    u8_t align[16];
-  };
-};
-
 struct memstack {
   memstack *next;
   u32_t n;

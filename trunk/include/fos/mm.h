@@ -92,6 +92,12 @@ void * heap_create_reserved_block();
 #ifdef iKERNEL
 void * kmalloc(register size_t size);
 void  kfree(register void *ptr, register size_t size);
+
+void put_page_DMA16(u32_t page);
+u32_t get_page_DMA16();
+void put_page(u32_t page);
+u32_t get_page();
+
 #endif
 
 #endif

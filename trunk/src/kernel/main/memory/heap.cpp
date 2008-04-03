@@ -16,16 +16,15 @@
 #include "heap.h"
 #include <string.h>
 
-HeapMemBlock * volatile heap_free_ptr = NULL;
-HeapMemBlock kmem_block;
+#define MINALLOC PAGE_SIZE	/* миним. число единиц памяти для запроса */
+
+static HeapMemBlock * volatile heap_free_ptr = NULL;
+static HeapMemBlock kmem_block;
 static HeapMemBlock *morecore(register size_t size);
-void free(register void *ptr);
-
 static void * volatile reserved_block = NULL;
+static size_t volatile heap_free = 0;
 
-size_t volatile heap_free = 0;
-
-volatile size_t preempt_count;
+void free(register void *ptr);
 
 void *malloc(register size_t size)
 {
@@ -84,8 +83,6 @@ void * heap_create_reserved_block()
     //}
   return reserved_block;
 }
-
-#define MINALLOC PAGE_SIZE	/* миним. число единиц памяти для запроса */
 
 /* morecore: запрашивает у системы дополнительную память */
 static HeapMemBlock *morecore(register size_t size)
@@ -164,6 +161,18 @@ void *realloc(register void *ptr, register size_t size)
   free(ptr);
 
   return (void *)dst;
+}
+
+void init_heap(off_t heap_start, size_t heap_size)
+{
+  HeapMemBlock *heap = (HeapMemBlock *) heap_start;
+  heap->next = 0;
+  heap->size = heap_size / sizeof(HeapMemBlock);
+
+  kmem_block.next = heap_free_ptr = &kmem_block;
+  kmem_block.size = 0;
+  
+  free((void *)(heap+1));
 }
 
 void *operator  new(unsigned int size)

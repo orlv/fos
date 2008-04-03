@@ -48,24 +48,11 @@ void init_memory()
   }
 
   /* ----------------- */
+
   preempt_reset();
-  
-  /* --  Хип ядра  -- */
-  init_heap(heap_start, heap_size);
-  /*  HeapMemBlock *kheap;
 
-  kheap = (HeapMemBlock *) heap_start;
-  kheap->next = 0;
-  kheap->size = heap_size / sizeof(HeapMemBlock);
+  init_heap(heap_start, heap_size); /* Хип ядра */
 
-  extern HeapMemBlock *heap_free_ptr;
-  extern HeapMemBlock kmem_block;
-
-  kmem_block.next = heap_free_ptr = &kmem_block;
-  kmem_block.size = 0;
-  
-  free((void *)(kheap+1));
-  */
   /* ------------  Тут уже можно использовать оператор new  ------------ */
   system = new SYSTEM(__mbi);
   system->pages_cnt = pages_cnt;

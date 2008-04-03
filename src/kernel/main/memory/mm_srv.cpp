@@ -14,7 +14,10 @@
 
 int mm_mmap(struct message *msg)
 {
-  //printk("mm: mapping 0x%X bytes of memory to 0x%X, tid=%d\n", msg->arg[2], msg->arg[1], msg->tid);
+  /*printk("mm: mapping 0x%X bytes of memory to 0x%X, tid=%d\n",
+	 msg->arg[2],
+	 msg->arg[1],
+	 msg->tid);*/
   msg->arg[0] = (u32_t) THREAD(msg->tid)->process->memory->mmap(msg->arg[1] & ~0xfff,
 								msg->arg[2],
 								msg->arg[1] & 0xfff,

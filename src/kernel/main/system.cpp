@@ -8,6 +8,8 @@
 #include <fos/printk.h>
 #include <fos/procman.h>
 
+volatile size_t preempt_count;
+
 SYSTEM::SYSTEM(register multiboot_info_t * mbi)
 {
   this->mbi = mbi;

@@ -12,7 +12,7 @@
 
 asmlinkage off_t getpagephysaddr(off_t pageaddr); /* возвращает физический адрес страницы */
 
-#ifdef iKERNEL
+#ifdef __KERNEL__
 struct page {
   volatile size_t mapcount;          /* общее количество использований страницы */
   volatile u32_t kernel_map;  /* на какой логический адрес в области ядра смонтировано (если смонтировано) */

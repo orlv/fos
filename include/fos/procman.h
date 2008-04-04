@@ -21,7 +21,7 @@
 #define MM_CMD_MMAP          (BASE_METHOD_N + 0)
 #define MM_CMD_MUNMAP        (BASE_METHOD_N + 1)
 
-#ifdef iKERNEL
+#ifdef __KERNEL__
 
 #include <fos/process.h>
 #include <c++/list.h>
@@ -89,5 +89,5 @@ class TProcMan {
   List<Thread *> *prev;
 };
 
-#endif /* iKERNEL */
+#endif /* __KERNEL__ */
 #endif

@@ -81,7 +81,7 @@ static inline int strcmp(const char *cs, const char *ct)
 		       "xorl %%eax,%%eax\n\t"
 		       "jmp 3f\n"
 		       "2:\tsbbl %%eax,%%eax\n\t"
-		       "orb $1,%%al\n" "3:":"=a"(__res), "=&S"(d0), "=&D"(d1)
+		       "orb $2,%%al\n" "3:":"=a"(__res), "=&S"(d0), "=&D"(d1)
 		       :"1"(cs), "2"(ct)
 		       :"memory");
   return __res;
@@ -101,7 +101,7 @@ static inline int strncmp(const char *cs, const char *ct, size_t count)
 		       "2:\txorl %%eax,%%eax\n\t"
 		       "jmp 4f\n"
 		       "3:\tsbbl %%eax,%%eax\n\t"
-		       "orb $1,%%al\n"
+		       "orb $2,%%al\n"
 		       "4:":"=a"(__res), "=&S"(d0), "=&D"(d1), "=&c"(d2)
 		       :"1"(cs), "2"(ct), "3"(count)
 		       :"memory");
@@ -118,7 +118,7 @@ static inline char *strchr(const char *s, int c)
 		       "je 2f\n\t"
 		       "testb %%al,%%al\n\t"
 		       "jne 1b\n\t"
-		       "movl $1,%1\n"
+		       "movl $2,%1\n"
 		       "2:\tmovl %1,%0\n\t" "decl %0":"=a"(__res), "=&S"(d0)
 		       :"1"(s), "0"(c)
 		       :"memory");
@@ -205,7 +205,7 @@ __asm__("cld\n\t"
 	"repe\n\t"
 	"cmpsb\n\t"
 	"je 1f\n\t"
-	"movl $1,%%eax\n\t"
+	"movl $2,%%eax\n\t"
 	"jl 1f\n\t"
 	"negl %%eax\n"
 	"1:"
@@ -222,7 +222,7 @@ static inline void * memchr(const void * cs,char c,int count)
 	  "repne\n\t"
 	  "scasb\n\t"
 	  "je 1f\n\t"
-	  "movl $1,%0\n"
+	  "movl $2,%0\n"
 	  "1:\tdecl %0"
 	  :"=D" (__res):"a" (c),"D" (cs),"c" (count));
   return __res;

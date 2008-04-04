@@ -42,7 +42,7 @@ userlinkage int sscanf(const char *str, const char *format, ...);
 
 #define getc(a) fgetc(a)
 
-#ifndef iKERNEL
+#ifndef __KERNEL__
 extern FILE *stdin, *stdout, *stderr; 
 #define getchar() fgetc(stdin)
 #endif

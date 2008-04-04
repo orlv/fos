@@ -23,7 +23,7 @@
 
 #define clear_page(page) memset((void *)(page*PAGE_SIZE), 0, PAGE_SIZE)
 
-#ifdef iKERNEL
+#ifdef __KERNEL__
 static inline u32_t * pagetable_addr(register u32_t n, register u32_t *pagedir)
 {
   return (u32_t *)((pagedir)[n/1024] & 0xfffff000);

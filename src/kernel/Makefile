@@ -72,25 +72,25 @@ OBJECTS +=	drivers/vesa/vesafb.o		\
 		drivers/pic/pic.o		\
 		drivers/modulefs/modulefs.o
 
-OBJECTS +=	klibc/close.o			\
-		klibc/lseek.o			\
-		klibc/open.o			\
-		klibc/read.o			\
-		klibc/write.o			\
-		klibc/sprintf.o			\
-		klibc/vsprintf.o		\
-		klibc/printk.o			\
-		klibc/stat.o			\
-		klibc/fstat.o			\
-		klibc/strdup.o
+OBJECTS +=	libs/libc/close.o		\
+		libs/libc/lseek.o		\
+		libs/libc/open.o		\
+		libs/libc/read.o		\
+		libs/libc/write.o		\
+		libs/libc/sprintf.o		\
+		libs/libc/vsprintf.o		\
+		libs/libc/printk.o		\
+		libs/libc/stat.o		\
+		libs/libc/fstat.o		\
+		libs/libc/strdup.o
 
-OBJECTS +=	klibcpp/purestub.o
+OBJECTS +=	libs/libcpp/purestub.o
 
-OBJECTS +=	klibfos/intattach.o		\
-		klibfos/resmgrattach.o		\
-		klibfos/nsi.o
+OBJECTS +=	libs/libfos/intattach.o		\
+		libs/libfos/resmgrattach.o	\
+		libs/libfos/nsi.o
 
-OBJECTS +=	arch/i386/gdt.o		\
+OBJECTS +=	arch/i386/gdt.o			\
 		arch/i386/proc.o
 
 #-----------------------------------------------------------------------------#

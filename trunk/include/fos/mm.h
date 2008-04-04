@@ -89,7 +89,7 @@ void * heap_create_reserved_block();
 #define MAP_FIXED       0x10            /* Interpret addr exactly */
 #define MAP_DMA16       0x40              /* allocate memory from DMA16 area or return error */
 
-#ifdef iKERNEL
+#ifdef __KERNEL__
 void * kmalloc(register size_t size);
 void  kfree(register void *ptr, register size_t size);
 

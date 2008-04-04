@@ -36,7 +36,7 @@ typedef signed long s32_t;
 #define asmlinkage
 #endif
 
-#ifdef iKERNEL
+#ifdef __KERNEL__
 #define userlinkage
 #define kregister register
 #else

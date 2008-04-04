@@ -6,7 +6,7 @@
 #ifndef _SCHED_H
 #define _SCHED_H
 
-#ifdef iKERNEL
+#ifdef __KERNEL__
 void sched_yield();
 #else
 

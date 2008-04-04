@@ -9,7 +9,7 @@
 #include <types.h>
 #include <fos/syscall.h>
 
-#ifdef iKERNEL
+#ifdef __KERNEL__
 #include <fos/system.h>
 #endif
 
@@ -44,7 +44,7 @@ asmlinkage u32_t kill(tid_t tid);
 asmlinkage tid_t exec(const char * filename, const char * args);
 asmlinkage tid_t exece(const char * filename, const char * args, const char * envp);
 
-#ifndef iKERNEL
+#ifndef __KERNEL__
 
 #define THREAD(thread) int _ ## thread(u32_t arg);			\
   void thread (u32_t arg) {						\

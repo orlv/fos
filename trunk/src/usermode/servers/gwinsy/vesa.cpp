@@ -12,6 +12,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <sys/mman.h>
+#include <stdio.h>
 
 #include "context.h"
 #include "vbe.h"
@@ -20,7 +21,7 @@
 #define GREEN16(x, bits)	((x >> (8 + 8 - bits)) & ((1 << bits) - 1))
 #define BLUE16(x, bits)	((x >> (8 - bits)) & ((1 << bits) - 1))
 
-void Blit16(context_t *from, context_t *to, int x, int y, int w, int h, int src_x, int src_y)
+static void Blit16(context_t *from, context_t *to, int x, int y, int w, int h, int src_x, int src_y)
 {
   int y_limit = h + y;
   w *= 2;
@@ -31,7 +32,7 @@ void Blit16(context_t *from, context_t *to, int x, int y, int w, int h, int src_
   }
 }
 
-void SetPixel16(int x, int y, u32_t RGB, context_t * context)
+static void SetPixel16(int x, int y, u32_t RGB, context_t * context)
 {
   if (x < 0 || y < 0 || x >= context->w || y >= context->h)
     return;
@@ -43,7 +44,7 @@ void SetPixel16(int x, int y, u32_t RGB, context_t * context)
     ptr[x + y * context->w] = RED16(RGB, 5) << 11 | GREEN16(RGB, 6) << 5 | BLUE16(RGB, 5);
 }
 
-u32_t GetPixel16(int x, int y, context_t * context)
+static u32_t GetPixel16(int x, int y, context_t * context)
 {
   unsigned short *ptr = (unsigned short *)context->data;
 
@@ -54,7 +55,7 @@ u32_t GetPixel16(int x, int y, context_t * context)
     return (((color >> 11) & 0x1f) << (16 + 3)) | (((color >> 5) & 0x3f) << (8 + 2)) | ((color & 0x1f) << 3);
 }
 
-void Rect16(int x, int y, int w, int h, u32_t RGB, context_t * context)
+static void Rect16(int x, int y, int w, int h, u32_t RGB, context_t * context)
 {
   u16_t modecolor = 0;
 
@@ -66,7 +67,7 @@ void Rect16(int x, int y, int w, int h, u32_t RGB, context_t * context)
   int y_limit = h + y;
 
   for (; y < y_limit; y++) {
-    unsigned short *dot = (unsigned short *)context->data + y * context->w + x;	// * context->w
+    u16_t *dot = (u16_t  *)context->data + y * context->w + x;	// * context->w
 
     for (int xx = 0; xx < w; xx++)
       *(dot++) = modecolor;

@@ -125,6 +125,7 @@ void * realloc(void *ptr, size_t size)
       minsize = oldsize;
     else
       minsize = size;    
+
     memcpy(dst, ptr, minsize);
 
     free(ptr);

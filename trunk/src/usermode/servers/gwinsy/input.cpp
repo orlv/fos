@@ -28,8 +28,10 @@ void mouse_thread() {
 
 	while(1) {
 		read(hndl, &pos, sizeof(mouse_pos));
-		cursor_shift(pos.dx, pos.dy);
-		RequestRedraw(REDRAW_CURSOR, 0);
+		if(pos.dx || pos.dy) {
+			cursor_shift(pos.dx, pos.dy);
+			RequestRedraw(REDRAW_CURSOR, 0);
+		}
 	}
 
 }

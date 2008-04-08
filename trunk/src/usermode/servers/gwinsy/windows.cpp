@@ -89,7 +89,7 @@ int windows_init() {
 	locate->w = screen->w;
 	locate->h = screen->h;
 	locate->bpp = screen->bpp;
-	backbuf->native_pixels = 1;
+	locate->native_pixels = 1;
 	locate->data = kmmap(0, screen_bytes, 0, 0);
 
 	assert(locate->data != NULL);
@@ -102,7 +102,7 @@ int windows_init() {
 }
 
 static void FullRedraw() {
-	Rect(0, 0, backbuf->w, backbuf->h, 0x4d6aff, backbuf);
+	Rect(0, 0, backbuf->w, backbuf->h, 0x00EEEEEE, backbuf);
 
 
 	Blit(backbuf, screen, 0, 0, backbuf->w, backbuf->h, 0, 0);
@@ -157,3 +157,70 @@ int RequestRedraw(int RedrawType, int window) {
 		ProcessRedrawRequest(&msg);
 	return msg.arg[2];
 }
+
+unsigned int last_handle = 0;
+
+unsigned int window_create(int x, int y, unsigned int w, unsigned int h, const char *title,  unsigned int parent, tid_t tid) {
+	window_t *parent_data = NULL;
+	if(parent) {
+		List <window_t *> *parent_item = lookup(parent);
+		if(!parent_item)
+			return 0;
+		
+		parent_data = parent_item->item;
+	}
+
+	while(!mutex_try_lock(&m_lookup))
+		sched_yield();
+
+	while(!mutex_try_lock(&m_winlist))
+		sched_yield();
+
+	context_t *context = new context_t;
+
+	assert(context != NULL);
+
+	context->w = w;
+	context->h = h;
+	context->bpp = screen->bpp;
+	context->native_pixels = 0;
+	context->data = kmmap(0, w * h * screen->bpp, 0, 0);
+	
+	assert(context->data != NULL);
+
+	window_t *win = new window_t;
+
+	assert(win != NULL);
+
+	win->x = x;
+	win->y = y;
+	win->w = w;
+	win->h = h;
+	win->handle = ++last_handle;
+	win->context = context;
+	win->tid = tid;
+	win->visible = false;
+	win->title = strdup(title);
+	win->focused = false;
+	win->childs = new List<window_t *>();
+	
+	lookup_t * lookup = new lookup_t;
+
+	assert(lookup != NULL);
+
+	if(parent_data) 
+		lookup->win = parent_data->childs->add(win);
+	else
+		lookup->win = winlist->add(win);
+
+	assert(lookup->win != NULL);
+
+	lookup->hndl = win->handle;
+
+	assert(lookup_list->add(lookup) != NULL);
+
+	mutex_unlock(&m_winlist);
+	mutex_unlock(&m_lookup);
+	return win->handle;
+} 
+

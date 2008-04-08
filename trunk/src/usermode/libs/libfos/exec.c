@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
+
 static tid_t exece(const char * filename, const char * args, const char **envp);
 static tid_t execscript(const char *filename, const char *args) {
   int hndl = open(filename, 0);
@@ -108,6 +109,6 @@ tid_t exec(const char * filename, const char * args)
 {
   int script = execscript(filename, args);
   if(script > 0) return script;
+
   return exece(filename, args, (const char **)environ);
-//	return exece(filename, args, NULL);
 }

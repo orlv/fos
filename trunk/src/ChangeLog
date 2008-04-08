@@ -1,3 +1,9 @@
+Tue Apr  8 18:00:03 MSD 2008
+Sergey Gridassov <grindars@grindars.org.ru>:
+	- Продолжено переписывание граф. сервера
+	- Исправлен переодически появляющийся баг в переменных среды
+		(глюк strchr)
+
 Mon Mar 24 15:54:16 2008 [20080324] (kernel version 0.0.49.1)
 Oleg S Fedorov <o.s.fedorov@gmail.com>:
 	- Добавлена обёртка NSI для более удобного создания серверов

@@ -9,6 +9,7 @@
 #include "windows.h"
 #include "picture.h"
 #include "util.h"
+#include "ipc.h"
 
 typedef struct {
 	picture_t *pict;
@@ -75,4 +76,9 @@ void cursor_shift(int dx, int dy) {
 
 	if(cur_y > screen->h)
 		cur_y = screen->h;
+
+	dx = cur_x - old_x;	// смысл в том, чтобы в событии
+	dy = cur_y - old_y;	// d[xy] не выходили за экран
+
+	PostEvent(0, 0, EV_GLOBAL, EVG_MMOVE, cur_x, cur_y, dx, dy);
 }

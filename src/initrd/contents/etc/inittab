@@ -1,9 +1,8 @@
-/bin/tty::
+/bin/stty::
 .:open_tty:/dev/tty
 /bin/i8042::Starting keyboard/mouse driver
 /bin/pcid::Starting PCI daemon
 /bin/pci_scan::Scanning PCI bus
-#/usr/bin/gwinsy:vesa 800 600 16:Starting up GUI
+/usr/bin/gwinsy:vesa 800 600 16:Starting up GUI
 /bin/rtc::Starting RTC
 /bin/tmpfs::Starting up tmpfs
-/bin/shell::Starting shell

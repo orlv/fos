@@ -9,6 +9,7 @@
 #include <string.h>
 #include <time.h>
 #include <fcntl.h>
+
 char **__ARGV = 0;
 int __ARGC = 0;
 char **environ;
@@ -73,7 +74,9 @@ void _startup(int envp_size, char *envp, int args_size, char *args)
   }else 
    environ = NULL;
 
+
   char *point = getenv("STDOUT");
+
   if(point)
     stdout = fopen(point, "w");
   else
@@ -90,5 +93,6 @@ void _startup(int envp_size, char *envp, int args_size, char *args)
     stderr = fopen(point, "w");
   else
     stderr = NULL;
+
   exit(main(argc, argv));
 }

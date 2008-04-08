@@ -65,15 +65,16 @@ void ParseLine(char *line)
     if(!strcmp(tokens[1], "open_tty")) {
       char *tty = new char[strlen(tokens[2]) + 1];
       strcpy(tty, tokens[2]);
-      setenv("STDOUT", tty, 0);
+      setenv("STDOUT", tty, 1);
+      setenv("STDERR", tty, 1);
       do {
         stdout = fopen(tty, "w");
       } while(!stdout);
-      printf("INIT: booting\n");
+      printf("INIT: bootin\n");
     } else if(!strcmp(tokens[1], "open_in")) {
       char *tty = new char[strlen(tokens[2]) + 1];
       strcpy(tty, tokens[2]);
-      setenv("STDIN", tty, 0);
+      setenv("STDIN", tty, 1);
      do {
         stdin = fopen(tty, "w");
       } while(!stdin);

@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+
 static char **last_environ = NULL;
 int __add_to_environ(const char *name, const char *value, const char *combined, int replace) {
 	register char **ep;

@@ -2,6 +2,11 @@
  * Copyright (C) 2008 Sergey Gridassov
  */
 
+/*! \file windows.cpp
+ *  \brief Оконная подсистема
+ */
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <fos/fos.h>
@@ -9,19 +14,83 @@
 #include <fos/message.h>
 #include <sys/mman.h>
 #include <fos/nsi.h>
+#include <c++/list.h>
 #include <stdio.h>
+#include <mutex.h>
 #include "windows.h"
 #include "context.h"
 #include "video.h"
 #include "assert.h"
 #include "cursor.h"
 
+
+/// Номер сообщения, используемого для уведомлений о необходимости перерисовки
 #define REDRAW_REQUEST	(BASE_METHOD_N + 0)
 
-context_t *backbuf, *locate;
-tid_t redraw_thread;
+static context_t *backbuf;	//!< Задний буфер
+static context_t *locate;	//!< Z-буфер
+static tid_t redraw_thread;	//!< Нить перерисовки
+
+/**
+ * Структура, описывающая окно
+ */
+
+typedef struct win {
+	int	x;
+	int	y;
+	unsigned int	w;
+	unsigned int	h;
+	unsigned int	handle;
+	context_t *context;
+	tid_t	tid;	
+	bool	visible;	
+	char	*title;
+	bool	focused;
+	List	<struct win *> *childs;
+} window_t;
+
+typedef struct {
+	unsigned int	hndl;
+	List	<window_t *> *win;
+} lookup_t;
+
+static List <window_t *> *winlist;	//!< Список окон первого уровня
+static List <lookup_t *> *lookup_list;	//!< Список для поиска окна по хендлу
+
+static mutex_t m_winlist = 0;	//!< Мутекс на \ref winlist
+static mutex_t m_lookup = 0;	//!< Мутекс на \ref lookup_list
+
+/*!
+    \brief Функция поиска окна по хендлу
+    \param hndl Хендл окна
+    \return Элемент списка или NULL если окно не существует
+*/
+
+static List <window_t *> *lookup(unsigned int hndl) {
+	List <lookup_t *> * ptr = NULL;
+	while(!mutex_try_lock(&m_lookup))
+		sched_yield();
+
+	list_for_each(ptr, lookup_list) {
+		if(ptr->item->hndl == hndl) {
+			mutex_unlock(&m_lookup);
+			return ptr->item->win;
+		}
+	}
+	mutex_unlock(&m_lookup);
+	return NULL;
+}
+
+/** Инициализирует оконную подсистему.
+ * Считает, что видеоподсистема уже инициализирована и
+ * функция запущена из нити перерисовки.
+ * \return 0 в случае успеха или -1 в случае ошибки
+ */
 
 int windows_init() {
+	winlist = new List <window_t *>;
+	lookup_list = new List <lookup_t *>;
+
 	size_t screen_bytes = screen->w * screen->h * screen->bpp;
 	backbuf = new context_t;
 	assert(backbuf != NULL);
@@ -54,6 +123,9 @@ int windows_init() {
 	return 0;
 }
 
+/**
+ * Производит полную перерисовку экрана.
+ */
 static void FullRedraw() {
 	Rect(0, 0, backbuf->w, backbuf->h, 0x4d6aff, backbuf);
 
@@ -61,9 +133,21 @@ static void FullRedraw() {
 	Blit(backbuf, screen, 0, 0, backbuf->w, backbuf->h, 0, 0);
 }
 
+/**
+ * Производит частичную перерисовку (окно и дочерние).
+ * \param hndl Хендл окна для перерисовки
+ */
+
 static void PartialRedraw(int hndl) {
 
 }
+
+/** Обрабатывает запрос на перерисовку.
+ * Функция для NSI.
+ * \param msg Сообщение.
+ * \return Всегда 0 (не требуется ответ).
+ */
+
 
 static int ProcessRedrawRequest(struct message *msg) {
 	msg->arg[2] = NO_ERR;
@@ -85,33 +169,12 @@ static int ProcessRedrawRequest(struct message *msg) {
 	return 0;
 }
 
+/** Цикл обработки запросов на перерисовку
+ * \return Никогда.
+ */
+
+
 void ProcessRedraw() {
-#if 0
-	while(1) {
-		struct message msg;
-		msg.flags = 0;
-		msg.tid = redraw_thread;
-		msg.send_size = 0;
-		msg.recv_size = 0;
-		receive(&msg);
-		msg.arg[2] = NO_ERR;
-		reply(&msg);
-		printf("Redraw requested\n");
-		switch(msg.arg[1]) {
-			case REDRAW_FULL:
-				FullRedraw();
-				CursorRedraw();
-				break;
-			case REDRAW_PARTIAL:
-				PartialRedraw(msg.arg[2]);
-				CursorRedraw();	
-				break;
-			case REDRAW_CURSOR:
-				CursorRedraw();
-				break;
-		}
-	}
-#endif
 	nsi_t *interface = new nsi_t();
 
 	interface->add(REDRAW_REQUEST, ProcessRedrawRequest);
@@ -119,6 +182,15 @@ void ProcessRedraw() {
 		interface->wait_message();
 
 }
+
+/** Послать запрос перерисовки.
+ * Если запрос послан из нити перерисовки - не отправляет его, а непосредственно перерисовывает
+ * (из-за возможной взаимоблокировки ядро не позволяет нити отправить сообщение самой себе).
+ * \param RedrawType Тип перерисовки (\ref REDRAW_FULL , \ref REDRAW_PARTIAL или \ref REDRAW_CURSOR )
+ * \param window Для \ref REDRAW_PARTIAL - хендл окна для перерисовки, для других - 0.
+ * \return Код ошибки FOS
+ */
+
 
 int RequestRedraw(int RedrawType, int window) {
 	struct message msg;

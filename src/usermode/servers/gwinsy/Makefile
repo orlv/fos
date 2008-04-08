@@ -14,6 +14,10 @@ uninstall: check_config
 check_config: .config config.h
 	( . .config; [ "" != $CONFIG_NEW ] || echo "Warning! Check .config!"; true )
 
+doc:
+	doxygen
+	( if [ -d /var/www/doc.grindars.org.ru/htdocs/gwinsy-src ]; then cp -a -t /var/www/doc.grindars.org.ru/htdocs/gwinsy-src doc/html; fi )
+
 config.h: .config
 	echo Generating config.h
 	echo "#ifndef CONFIG_H" > config.h
@@ -27,6 +31,6 @@ config.h: .config
 	echo "# после редактирования - удалите" >> $@
 	echo "CONFIG_NEW=1" >> $@
 
-
+.PHONY: doc
 
 .PHONY: check_config all clean install uninstall 

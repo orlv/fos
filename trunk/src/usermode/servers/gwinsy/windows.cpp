@@ -21,7 +21,7 @@
 
 #define REDRAW_REQUEST	(BASE_METHOD_N + 0)
 
-static context_t *backbuf;
+context_t *backbuf;
 static context_t *locate;
 static tid_t redraw_thread;
 

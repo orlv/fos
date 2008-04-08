@@ -4,16 +4,20 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <fos/fos.h>
 #include "context.h"
 #include "video.h"
 #include "input.h"
 #include "windows.h"
 #include "cursor.h"
+#include "ipc.h"
 
 context_t *screen = NULL;
 jump_table_t *jmptbl;
 
 int main(int argc, char *argv[]) {
+	u32_t start  = uptime();
+
 	if(argc < 5) {
 		printf("Usage: %s <video driver> <width> <height> <bpp>\n", argv[0]);
 		return 1;
@@ -27,10 +31,15 @@ int main(int argc, char *argv[]) {
 
 
 	cursor_init();
-
 	windows_init();
-
 	input_init();
+	ipc_init();
+
+	u32_t time = uptime() - start;
+
+	printf("gwinsy: started in %d ms\n", time);
+
+	exec("/bin/test2", NULL);
 
 	ProcessRedraw();
 	return 0;

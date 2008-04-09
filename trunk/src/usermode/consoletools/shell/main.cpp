@@ -22,7 +22,7 @@ void echo_builtin(char *arg);
 static void exec_script(char *filename);
 
 static const struct {
-	char *name;
+	const char *name;
 	void (*builtin)(char *);
 } buitins[] = {
 	{"cd", cd_buitin },

@@ -1,10 +1,11 @@
-
 /*
  * Copyright (c) 2008 Sergey Gridassov
  * Original code (PCI Configuration Server) (c) 2007  Michael Zhilin
  */
+
 #include "config.h"
 #include "scan.h"
+#include <stdio.h>
 
 int main(int argc, char *argv[]) {
 	parse_config();

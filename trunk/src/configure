@@ -103,7 +103,7 @@ GCC version:
 LD (binutils) version:
 	$(ld --version | head -n 1)
 Shell version:
-	$(sh --version | head -n 1)
+	$(bash --version | head -n 1)
 Make version:
 	$(make --version | head -n 1)
 Extended CFLAGS:

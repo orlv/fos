@@ -40,9 +40,16 @@ void cursor_move(int x, int y) {
 	old_y = cur_y;
 	cur_x = x;
 	cur_y = y;
+
+	int dx = cur_x - old_x;	// смысл в том, чтобы в событии
+	int dy = cur_y - old_y;	// d[xy] не выходили за экран
+
+	PostEvent(0, 0, EV_GLOBAL, EVG_MMOVE, cur_x, cur_y, dx, dy);
 }
 
 void cursor_sync() {
+//	windows_handle_move(cur_x, cur_y);
+
 	Blit(backbuf, screen, old_x - current->hot_x, old_y - current->hot_y, current->pict->width, current->pict->height, old_x - current->hot_x, old_y - current->hot_y);
 	draw_picture(current->pict, cur_x - current->hot_x, cur_y - current->hot_y, screen);
 }

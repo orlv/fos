@@ -11,6 +11,9 @@
 #include <sched.h>
 #include <stdio.h>
 
+#include "context.h"
+#include "video.h"
+#include "windows.h"
 #include "assert.h"
 #include "ipc.h"
 
@@ -31,11 +34,21 @@ typedef struct {
 	List	<event_q_t *> *events;
 } proc_t;
 
+typedef struct {
+	int	x;
+	int	y;
+	unsigned int w;
+	unsigned int h;
+	unsigned int parent;
+	char title[64];
+} create_win_t;
+
 static mutex_t q_locked = 0;
 
-static List <proc_t *> *proc_head;
+static List <proc_t *> *proc_head = NULL;
 
 static volatile tid_t ipc_thread = 0;
+static volatile tid_t map_thread = 0;
 
 static inline List <proc_t *> *AllocateProcess(tid_t tid, bool waiting) {
 	proc_t *item = new proc_t;
@@ -53,6 +66,10 @@ static inline List <proc_t *> *AllocateProcess(tid_t tid, bool waiting) {
 
 void PostEvent(	tid_t tid, unsigned int handle,	unsigned int ev_class,	unsigned int global,
 		unsigned int a0, unsigned int a1, unsigned int a2, unsigned int a3) {
+
+	if(!proc_head)
+		return;
+
 	while (!mutex_try_lock(&q_locked))
 		sched_yield();
 	if(!global) {
@@ -219,6 +236,27 @@ static void IPCThread() {
 			mutex_unlock(&q_locked);
 			break;
 		}
+		case WIN_CMD_CREATE_WINDOW: {
+			create_win_t *cr = (create_win_t *) buf;
+			msg.arg[0] = window_create(cr->x, cr->y, cr->w, cr->h, cr->title, cr->parent, msg.tid);
+			msg.arg[1] = screen->bpp * cr->w * cr->h;
+			msg.send_size = 0;
+			reply(&msg);
+			break;
+		}
+		case WIN_CMD_GET_WINDOW_ATTR: {
+			win_attr_t attr;
+			msg.arg[0] = window_get_attr(msg.arg[1], &attr);
+			msg.send_size = sizeof(win_attr_t);
+			msg.send_buf = &attr;
+			reply(&msg);
+			break;
+		}
+		case WIN_CMD_SET_WINDOW_ATTR:
+			msg.arg[0] = window_set_attr(msg.arg[1], (win_attr_t *) buf);
+			msg.send_size = 0;
+			reply(&msg);
+			break;
 		default:
 			printf("main events thread received message: %u %u %u %u\n", msg.arg[0], msg.arg[1], msg.arg[2], msg.arg[3]);
 			msg.arg[0] = 0;
@@ -229,9 +267,44 @@ static void IPCThread() {
 	}	
 }
 
+static void MapThread() {
+	resmgr_attach("/dev/gwinsy/map");
+	struct message msg;
+	map_thread = my_tid();
+	while(1) {
+		msg.tid = 0;
+		msg.recv_buf = NULL;
+		msg.flags = MSG_MEM_SHARE;
+		msg.recv_size = screen->w * screen->h * screen->bpp;
+		receive(&msg);
+		switch(msg.arg[0]) {
+		case FS_CMD_ACCESS:
+			msg.arg[0] = 1;
+			msg.arg[1] = 0;
+			msg.arg[2] = NO_ERR;
+			msg.send_size = 0;
+			reply(&msg);
+			break;
+		case WIN_CMD_MAP_WINDOW:
+			msg.arg[0] = window_map(msg.recv_buf, msg.arg[1]);
+			msg.send_size = 0;
+			msg.flags = 0;
+			reply(&msg);
+			break;
+		default:
+			printf("map thread received message: %u %u %u %u\n", msg.arg[0], msg.arg[1], msg.arg[2], msg.arg[3]);
+			msg.arg[0] = 0;
+			msg.arg[2] = ERR_UNKNOWN_METHOD;
+			msg.send_size = 0;
+			reply(&msg);
+		}
+	}
+}
+
 void ipc_init() {
 	proc_head = new List<proc_t *>();
 	thread_create((off_t) & IPCThread, 0);
-	while(ipc_thread == 0)
+	thread_create((off_t) & MapThread, 0);
+	while(ipc_thread == 0 || map_thread == 0)
 		sched_yield();
 }

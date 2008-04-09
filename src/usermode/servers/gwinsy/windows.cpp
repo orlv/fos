@@ -17,7 +17,7 @@
 #include "video.h"
 #include "assert.h"
 #include "cursor.h"
-
+#include "ipc.h"
 
 #define REDRAW_REQUEST	(BASE_METHOD_N + 0)
 
@@ -28,6 +28,8 @@ static tid_t redraw_thread;
 typedef struct win {
 	int	x;
 	int	y;
+	int	absolute_x;
+	int	absolute_y;
 	unsigned int	w;
 	unsigned int	h;
 	unsigned int	handle;
@@ -36,6 +38,8 @@ typedef struct win {
 	bool	visible;	
 	char	*title;
 	bool	focused;
+	unsigned int parent_handle;
+	List	<struct win *> *parent;
 	List	<struct win *> *childs;
 } window_t;
 
@@ -50,18 +54,19 @@ static List <lookup_t *> *lookup_list;
 static mutex_t m_winlist = 0;
 static mutex_t m_lookup = 0;
 
-static List <window_t *> *lookup(unsigned int hndl) {
+static List <window_t *> *lookup(unsigned int hndl, bool unlocked = false) {
 	List <lookup_t *> * ptr = NULL;
-	while(!mutex_try_lock(&m_lookup))
+
+	if(!unlocked) while(!mutex_try_lock(&m_lookup))
 		sched_yield();
 
 	list_for_each(ptr, lookup_list) {
 		if(ptr->item->hndl == hndl) {
-			mutex_unlock(&m_lookup);
+			if(!unlocked) mutex_unlock(&m_lookup);
 			return ptr->item->win;
 		}
 	}
-	mutex_unlock(&m_lookup);
+	if(!unlocked) mutex_unlock(&m_lookup);
 	return NULL;
 }
 
@@ -101,14 +106,36 @@ int windows_init() {
 	return 0;
 }
 
-static void FullRedraw() {
-	Rect(0, 0, backbuf->w, backbuf->h, 0x00EEEEEE, backbuf);
+static void RedrawList(List <window_t *> *list) {
+	List <window_t *> *ptr;
+	printf("Redrawing list %x\n", list);
+	list_for_each_prev(ptr, list) {
+		window_t *win = ptr->item;
+		if(win->visible) {
+			Blit(win->context, backbuf, win->absolute_x, win->absolute_y, win->w, win->h, 0, 0);
 
+			Rect(win->absolute_x, win->absolute_y, win->w, win->h, win->handle, locate);
+
+			RedrawList(win->childs); // превед рекурсия
+		}
+	}
+}
+
+static void FullRedraw() {
+	Rect(0, 0, backbuf->w, backbuf->h, 0x888888, backbuf);
+	Rect(0, 0, locate->w, locate->h, 0, locate);
+
+	while(!mutex_try_lock(&m_winlist))
+		sched_yield();
+
+	RedrawList(winlist);
+
+	mutex_unlock(&m_winlist);
 
 	Blit(backbuf, screen, 0, 0, backbuf->w, backbuf->h, 0, 0);
 }
 
-static void PartialRedraw(int hndl) {
+static void PartialRedraw(unsigned int hndl) {
 
 }
 
@@ -142,7 +169,7 @@ void ProcessRedraw() {
 
 }
 
-int RequestRedraw(int RedrawType, int window) {
+int RequestRedraw(int RedrawType, unsigned int window) {
 	struct message msg;
 	msg.flags = 0;
 	msg.tid = redraw_thread;
@@ -162,8 +189,9 @@ unsigned int last_handle = 0;
 
 unsigned int window_create(int x, int y, unsigned int w, unsigned int h, const char *title,  unsigned int parent, tid_t tid) {
 	window_t *parent_data = NULL;
+	List <window_t *> *parent_item = winlist;
 	if(parent) {
-		List <window_t *> *parent_item = lookup(parent);
+		parent_item = lookup(parent);
 		if(!parent_item)
 			return 0;
 		
@@ -184,9 +212,7 @@ unsigned int window_create(int x, int y, unsigned int w, unsigned int h, const c
 	context->h = h;
 	context->bpp = screen->bpp;
 	context->native_pixels = 0;
-	context->data = kmmap(0, w * h * screen->bpp, 0, 0);
-	
-	assert(context->data != NULL);
+	context->data = NULL;
 
 	window_t *win = new window_t;
 
@@ -194,6 +220,9 @@ unsigned int window_create(int x, int y, unsigned int w, unsigned int h, const c
 
 	win->x = x;
 	win->y = y;
+	win->absolute_x = parent ? parent_data->absolute_x + x: x;
+	win->absolute_y = parent ? parent_data->absolute_y + y: y;
+
 	win->w = w;
 	win->h = h;
 	win->handle = ++last_handle;
@@ -203,7 +232,8 @@ unsigned int window_create(int x, int y, unsigned int w, unsigned int h, const c
 	win->title = strdup(title);
 	win->focused = false;
 	win->childs = new List<window_t *>();
-	
+	win->parent = parent_item;
+	win->parent_handle = parent;
 	lookup_t * lookup = new lookup_t;
 
 	assert(lookup != NULL);
@@ -224,3 +254,110 @@ unsigned int window_create(int x, int y, unsigned int w, unsigned int h, const c
 	return win->handle;
 } 
 
+int window_map(void *buf, unsigned int window) {
+	List <window_t *> *item = lookup(window);
+	if(item == NULL)
+		return -1;
+
+	while(!mutex_try_lock(&m_winlist))
+		sched_yield();
+
+	item->item->context->data = buf;
+
+	printf("Mapped buffer 0x%X to window %u\n", buf, window);
+
+	if(item->item->visible) RequestRedraw(REDRAW_FULL, 0);
+
+	mutex_unlock(&m_winlist);
+
+	return 0;
+}
+
+int window_get_attr(unsigned int handle, win_attr_t *buf) {
+	List <window_t *> *item = lookup(handle);
+	if(item == NULL)
+		return -1;
+
+	while(!mutex_try_lock(&m_winlist))
+		sched_yield();
+
+	window_t *win = item->item;
+
+	buf->parent = win->parent_handle;
+	buf->x = win->x;
+	buf->y = win->y;
+	buf->w = win->w;
+	buf->h = win->h;
+	strncpy(buf->title, win->title, 64);
+
+	mutex_unlock(&m_winlist);
+
+	return 0;
+}
+
+int window_set_attr(unsigned int handle, const win_attr_t *buf) {
+	int need_redraw = 0;
+
+	List <window_t *> *item = lookup(handle);
+
+	if(item == NULL)
+		return -1;
+
+	while(!mutex_try_lock(&m_winlist))
+		sched_yield();
+
+	window_t *win = item->item;
+	
+	if(buf->parent != win->parent_handle) {
+		printf("Re-parenting started\n");
+		List <window_t *> *new_parent = lookup(buf->parent, true);
+		if(new_parent == NULL) {
+			printf("Re-parenting failed\n");
+			mutex_unlock(&m_winlist);
+			return -1;
+		}
+
+		item->move(new_parent->item->childs);
+
+		printf("Re-parenting finished\n");
+		
+	}
+
+	if(win->visible || buf->visible != win->visible) need_redraw = 1;
+
+	win->x = buf->x;
+	win->y = buf->y;
+	win->visible = buf->visible;
+	delete win->title;
+	win->title = strdup(buf->title);	
+
+	win->absolute_x = win->parent_handle ? win->parent->item->absolute_x + win->x: win->x;
+	win->absolute_y = win->parent_handle ? win->parent->item->absolute_y + win->y: win->y;
+
+	mutex_unlock(&m_winlist);
+
+	if(need_redraw) RequestRedraw(REDRAW_FULL, 0);
+
+	PostEvent(0, 0, EV_GLOBAL, EVG_ATTR_MODIFY, handle, 0, 0, 0);
+
+	return 0;
+}
+
+void windows_handle_move(int x, int y) {
+	if(!locate || !locate->data)
+		return;
+
+	unsigned int handle = GetPixel(x, y, locate);
+	if(!handle)
+		return;
+
+	List <window_t *> *win = lookup(handle);
+	assert(win != NULL);
+
+	while(!mutex_try_lock(&m_winlist))
+		sched_yield();
+
+	PostEvent(win->item->tid, win->item->handle, EV_MMOVE, 0, x, y, 0, 0);
+
+	mutex_unlock(&m_winlist);
+}

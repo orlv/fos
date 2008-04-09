@@ -216,19 +216,22 @@ __asm__("cld\n\t"
 return __res;
 }
 
-static inline void * memchr(const void * cs,char c,int count)
+static inline void * memchr(const void * cs,int c,size_t count)
 {
-  register void * __res;
-  if (!count)
-    return NULL;
-  __asm__("cld\n\t"
-	  "repne\n\t"
-	  "scasb\n\t"
-	  "je 1f\n\t"
-	  "movl $2,%0\n"
-	  "1:\tdecl %0"
-	  :"=D" (__res):"a" (c),"D" (cs),"c" (count));
-  return __res;
+int d0;
+register void * __res;
+if (!count)
+	return NULL;
+__asm__ __volatile__(
+	"repne\n\t"
+	"scasb\n\t"
+	"je 1f\n\t"
+	"movl $1,%0\n"
+	"1:\tdecl %0"
+	:"=D" (__res), "=&c" (d0)
+	:"a" (c),"0" (cs),"1" (count)
+	:"memory");
+return __res;
 }
 
 #ifdef __cplusplus

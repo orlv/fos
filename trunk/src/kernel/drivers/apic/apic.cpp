@@ -12,13 +12,6 @@ extern "C" {
 	extern char realmode_code[];
 }
 APIC::APIC() {
-	u32_t features;
-	__asm__ __volatile__ ("cpuid": "=d"(features):"a"(0x01):"ebx", "ecx");
-
-	if((features & 0x220) != 0x220) {
-		printk("APIC: not detected\n");
-		return;
-	}
 
 	u32_t apic_high;
 	u32_t apic_low;
@@ -29,8 +22,10 @@ APIC::APIC() {
 	printk("APIC: Memory at: 0x%08X\n", addr);
 
 
-	apic = (u32_t *)system->kmem->mmap(0, 4096, 0, addr, 0);
+	apic_regs = (u32_t *)system->kmem->mmap(0, 4096, 0, 0xFEE00000, 0);
 
+	printk("APIC mapped to %x\n", apic_regs);
+/*
 	printk("APIC: ID: 0x%08X\n", apic[APIC_DWREG_ID]);
 	printk("APIC: Version: 0x%08X\n", apic[APIC_DWREG_VER]);
 
@@ -63,6 +58,7 @@ APIC::APIC() {
 	apic[APIC_DWREG_LVT_LINT0] = (apic[APIC_DWREG_LVT_LINT0] & 0xfffe00ff) | 0x5700;
 	apic[APIC_DWREG_LVT_LINT1] = (apic[APIC_DWREG_LVT_LINT1] & 0xfffe00ff) | 0x5700;
 	printk("APIC: Virtual wire mode set\n");
+*/
 #if 0
 	printk("APIC: Disabling (for more safety)\n");
 	// и выключаем APIC к черту
@@ -82,6 +78,39 @@ APIC::APIC() {
 
 }
 
-void APIC::setVirtualWire() {
+void APIC::mask(int n) {
+	system->panic("APIC: mask(%d) not implemented\n", n);
+}
 
+void APIC::unmask(int n) {
+	system->panic("APIC: unmask(%d) not implemented\n", n);
+}
+
+void APIC::lock() {
+	system->panic("APIC: lock() not implemented\n");
+}
+
+void APIC::unlock() {
+	system->panic("APIC: unlock() not implemented\n");
+}
+
+void APIC::Route(int n) {
+	system->panic("APIC: Route(%d) not implemented\n", n);
+}
+
+void APIC::EOI(int n) {
+	system->panic("APIC: EOI(%d) not implemented\n", n);
+}
+
+void APIC::setHandler(int n, void *handler) {
+	system->panic("APIC: setHandler(%d, 0x%X) not implemented\n", n, handler);
+}
+
+void *APIC::getHandler(int n) {
+	system->panic("APIC: getHandler(%d) not implemented\n", n);
+	return NULL;
+}
+
+Timer *APIC::getTimer() {
+	return apic_tmr;
 }

@@ -73,7 +73,8 @@ OBJECTS +=	drivers/vesa/vesafb.o		\
 		drivers/pic/pic.o		\
 		drivers/modulefs/modulefs.o	\
 		drivers/apic/apic.o		\
-		drivers/apic/realmode_code.o
+		drivers/apic/realmode_code.o	\
+		drivers/cpuid/cpuid.o
 
 OBJECTS +=	drivers/interfaces/timer.o
 

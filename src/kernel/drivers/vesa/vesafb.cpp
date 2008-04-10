@@ -62,9 +62,9 @@ void vesafb_srv()
     case VBESRV_CMD_SET_MODE:
       system->preempt.disable();
       system->cli();
-      system->pic->lock(); /* обязательно необходимо запретить все IRQ */
+      system->ic->lock(); /* обязательно необходимо запретить все IRQ */
       vbeinfo = vbe_set_video_mode(msg.arg[1]);
-      system->pic->unlock();
+      system->ic->unlock();
       system->sti();
       system->preempt.enable();
 

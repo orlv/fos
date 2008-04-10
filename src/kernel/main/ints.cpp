@@ -8,7 +8,6 @@
 #include <fos/fos.h>
 #include <fos/mm.h>
 #include <fos/procman.h>
-#include <fos/drivers/timer/timer.h>
 
 asmlinkage void sys_call_handler();
 
@@ -42,13 +41,13 @@ void exception(const char *str, unsigned int cs,  unsigned int address, unsigned
   system->panic("fault in kernel mode!");
 #endif
 
-  printk("\n-------------------------------------------------------------------------------\n" \
-	 "Exception: %s \n"						\
-	 "At addr: 0x%02X:0x%08X\n"					\
-	 "Thread: 0x%X, Process: 0x%X \n"				\
-	 "Name: [%s]\n"							\
-	 "Errorcode: 0x%X\n"						\
-	 "-------------------------------------------------------------------------------", \
+  printk("\n-------------------------------------------------------------------------------\n"
+	 "Exception: %s \n"
+	 "At addr: 0x%02X:0x%08X\n"
+	 "Thread: 0x%X, Process: 0x%X \n"
+	 "Name: [%s]\n"
+	 "Errorcode: 0x%X\n"
+	 "-------------------------------------------------------------------------------", 
 	 str, cs, address, system->procman->curr->item, system->procman->curr->item->process, system->procman->curr->item->process->name, errorcode);
   
   if((system->procman->curr->item->flags & FLAG_TSK_KERN) ||
@@ -185,6 +184,7 @@ asm(".globl empty_interrupt \n"						\
 
 asmlinkage void empty_interrupt();
 
+#if 0
 void common_interrupt(u8_t n)
 {
   system->pic->mask(n); /* Демаскировку должен производить обработчик */
@@ -234,6 +234,17 @@ IRQ_HANDLER(irq_13) { common_interrupt(13); }
 IRQ_HANDLER(irq_14) { common_interrupt(14); }
 IRQ_HANDLER(irq_15) { common_interrupt(15); }
 
+#endif
+
+asmlinkage void common_interrupt(u32_t vector, u32_t cs, u32_t address) {
+	system->ic->Route(vector);
+}
+
+extern "C" {
+	extern char interrupt_vectors_start[];
+	extern char interrupt_vectors_end[];
+}
+
 void setup_idt()
 {
   u16_t i;
@@ -260,6 +271,13 @@ void setup_idt()
   for (i = 0x13; i < 0x20; i++)
     system->idt->set_trap_gate(i, (off_t) & reserved_exception, 0);
 
+  size_t one_vector = ((u32_t)interrupt_vectors_end - (u32_t)interrupt_vectors_start) / 221;
+
+  for(int i = 0; i <= 221; i++) {
+    system->idt->set_intr_gate(0x20 + i, (off_t) interrupt_vectors_start + i * one_vector);
+  }
+
+#if 0
   system->idt->set_intr_gate(0x20, (off_t) & irq_0); /* timer */
   system->idt->set_intr_gate(0x21, (off_t) & irq_1); /* keyboard */
 
@@ -276,9 +294,12 @@ void setup_idt()
   system->idt->set_intr_gate(0x2d, (off_t) & irq_13);
   system->idt->set_intr_gate(0x2e, (off_t) & irq_14);
   system->idt->set_intr_gate(0x2f, (off_t) & irq_15);
+#endif
 
-  system->idt->set_trap_gate(0x30, (off_t) & sys_call_handler, 3); /* системный вызов */
+  
 
-  for (i = 0x31; i < 0x100; i++)
-    system->idt->set_trap_gate(i, (off_t) & empty_interrupt, 0);
+  system->idt->set_trap_gate(0xFD, (off_t) & sys_call_handler, 3); /* системный вызов */
+
+//  for (i = 0x31; i < 0x100; i++)
+//    system->idt->set_trap_gate(i, (off_t) & empty_interrupt, 0);
 }

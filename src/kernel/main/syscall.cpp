@@ -7,7 +7,7 @@
 #include <fos/fos.h>
 #include <fos/syscall.h>
 #include <fos/pager.h>
-#include <fos/drivers/timer/timer.h>
+#include <fos/drivers/interfaces/timer.h>
 #include <fos/ipc.h>
 #include <string.h>
 
@@ -88,11 +88,11 @@ SYSCALL_HANDLER(sys_call_handler)
     break;
     
   case _FOS_MASK_INTERRUPT:
-    system->pic->mask(arg1);
+    system->ic->mask(arg1);
     break;
 
   case _FOS_UNMASK_INTERRUPT:
-    system->pic->unmask(arg1);
+    system->ic->unmask(arg1);
     break;
 
   case _FOS_SCHED_YIELD:

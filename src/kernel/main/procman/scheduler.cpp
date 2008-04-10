@@ -7,7 +7,7 @@
 #include <fos/procman.h>
 #include <fos/printk.h>
 #include <fos/fos.h>
-#include <fos/drivers/timer/timer.h>
+#include <fos/drivers/interfaces/timer.h>
 #include <fos/fs.h>
 #include <sys/elf32.h>
 

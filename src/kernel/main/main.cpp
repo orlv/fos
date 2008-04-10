@@ -14,6 +14,7 @@
 #include <fos/traps.h>
 #include <stdarg.h>
 #include <fos/drivers/modulefs/modulefs.h>
+#include <fos/drivers/apic/apic.h>
 #include <fos/fs.h>
 
 TTY *stdout;
@@ -44,14 +45,23 @@ asmlinkage void init()
 
   system->cli();
 
-//  system->apic = new APIC;
-
-  system->ic = new PIC;
+  system->cpuid = new CPUID();
 
   system->gdt = new GDT;
   system->idt = new IDT;
 
   setup_idt();
+
+  if(system->cpuid->features_edx & FEATURE_APIC) {
+    printk("Using APIC\n");
+    system->ic = new APIC;
+    SysTimer = system->ic->getTimer();
+  } else {
+    printk("Using legacy ISA PIC and timer\n");
+    system->ic = new PIC;
+    SysTimer = new i8253;
+  }
+
   system->sti();
 
   /*  TTY *tty1 = new TTY(80, 25);
@@ -63,7 +73,7 @@ asmlinkage void init()
   initrb = new ModuleFS(__mbi);
   system->procman = new TProcMan;
 
-  SysTimer = new i8253;
+
   SysTimer->PeriodicalInt(1000, TimerCallSheduler);
   SysTimer->enable();
 

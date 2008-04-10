@@ -6,6 +6,8 @@
 #ifndef __INTERRUPTCONTROLLER_H
 #define __INTERRUPTCONTROLLER_H
 
+#include "timer.h"
+
 class InterruptController {
 public:
 	virtual void mask(int n) = 0;
@@ -19,7 +21,9 @@ public:
 
 	virtual void* getHandler(int n) = 0;
 
-	virtual void EOI(int irq) = 0;;
+	virtual void EOI(int irq) = 0;
+
+	virtual Timer *getTimer();
 };
 
 #endif

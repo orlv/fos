@@ -7,6 +7,9 @@
 #define __APIC_H
 
 #include <types.h>
+#include <fos/drivers/interfaces/interruptcontroller.h>
+#include <fos/drivers/interfaces/timer.h>
+
 
 #define IA32_APIC_BASE	0x0000001b
 // APIC Base memory-mapped constant
@@ -54,13 +57,31 @@
 #define MP_ENTRY_IO_INT                  3  /* IO Interrupt Assignment              */
 #define MP_ENTRY_LOCAL_INT               4  /* Local Interrupt Assignment           */
 
+class APICTimer;
 
-class APIC {
+class APIC: public InterruptController  {
+	friend class APICTimer;
 private:
-	u32_t *apic;
+	u32_t *apic_regs;
+	APICTimer *apic_tmr;
 public:
 	APIC();
-	void setVirtualWire();
+	void mask(int n);
+	void unmask(int n);
+
+	void lock();
+	void unlock();
+
+	void Route(int n);
+	void setHandler(int n, void *handler);
+	void *getHandler(int n);
+
+	void EOI(int irq);
+
+	virtual Timer *getTimer();
+};
+
+class APICTimer: public Timer {
 };
 
 #endif

@@ -12,6 +12,7 @@
 #include <fos/idt.h>
 #include <fos/procman.h>
 #include <fos/drivers/interfaces/interruptcontroller.h>
+#include <fos/drivers/cpuid/cpuid.h>
 #include <fos/mm.h>
 #include <fos/page.h>
 #include <c++/stack.h>
@@ -28,6 +29,7 @@ class SYSTEM {
   GDT *gdt;
   IDT *idt;
   InterruptController *ic;
+  CPUID *cpuid;
   Thread ** user_int_handler;
 
   VMM *kmem;

@@ -15,4 +15,4 @@ then
 EOF
 fi
 
-qemu -net none -boot d -localtime -cdrom FOS-current.iso -m 32 -serial stdio
+qemu -net none -boot d -localtime -cdrom FOS-current.iso -m 32 -serial stdio $*

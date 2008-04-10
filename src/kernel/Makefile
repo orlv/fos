@@ -70,7 +70,9 @@ OBJECTS +=	drivers/vesa/vesafb.o		\
 		drivers/tty/tty.o		\
 		drivers/timer/timer.o		\
 		drivers/pic/pic.o		\
-		drivers/modulefs/modulefs.o
+		drivers/modulefs/modulefs.o	\
+		drivers/apic/apic.o		\
+		drivers/apic/realmode_code.o
 
 OBJECTS +=	libs/libc/close.o		\
 		libs/libc/lseek.o		\

@@ -34,14 +34,6 @@ APIC::APIC() {
 	printk("APIC: ID: 0x%08X\n", apic[APIC_DWREG_ID]);
 	printk("APIC: Version: 0x%08X\n", apic[APIC_DWREG_VER]);
 
-	printk("Searching MP table:");
-
-	MPInfo *info = FindMP();
-	if(info == NULL) {
-		printk("no table. Skipping APIC init\n");
-		return;
-	}
-
 	// запускаем SMP
 	apic[APIC_DWREG_SVR] = (apic[APIC_DWREG_SVR] & 0xffffff0f) | 0x100;
 	apic[APIC_DWREG_LVT_ERR] = (apic[APIC_DWREG_LVT_ERR] & 0xffffff0f) | 0x20;
@@ -92,27 +84,4 @@ APIC::APIC() {
 
 void APIC::setVirtualWire() {
 
-}
-
-MPInfo *APIC::FindMP() {
-	MPInfo *mp = (MPInfo *)0xE0000;
-	for(int i = 0; i < 0x1000; i++) {
-		printk("Signature 0x%08X Length 0x%04X Version 0x%04X Checksum 0x%02X\n",
-			 mp->Signature, mp->Length, mp->Version, CountChkSum(mp, sizeof(MPInfo)));
-		if(mp->Signature == MP_SIGNATURE && (mp->Length == 1) && ((mp->Version == 1) || (mp->Version == 4)))
-			if(CountChkSum(mp, sizeof(MPInfo)) == 0)
-				return mp;
-		mp++;
-	}
-	return NULL;
-}
-
-u8_t APIC::CountChkSum(void *ptr, size_t count) {
-	u8_t *p = (u8_t *) ptr;
-	int sum = 0;
-
-	for(size_t i = 0; i < count; i++)
-		sum += *(p++);
-
-	return (u8_t)sum;
 }

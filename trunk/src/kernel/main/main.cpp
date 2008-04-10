@@ -40,6 +40,9 @@ asmlinkage void init()
   init_memory();
 
   system->cli();
+
+//  system->apic = new APIC;
+
   system->pic = new PIC;
 
   system->gdt = new GDT;

@@ -54,35 +54,10 @@
 #define MP_ENTRY_IO_INT                  3  /* IO Interrupt Assignment              */
 #define MP_ENTRY_LOCAL_INT               4  /* Local Interrupt Assignment           */
 
-typedef struct {
-	u32_t	Signature;
-	u16_t	Length;
-	u16_t	Version;
-	u8_t	ChkSum;
-	char	OemID[8];
-	char	ProductID[12];
-	void	*OemTable;
-	u16_t	OemSize;
-	u16_t	OemCount;
-	u32_t	*APICAddr;
-	u16_t	ExtLen;
-	u16_t	ExtChkSum;
-} __attribute__((__packed__)) MPCHeader;
-
-typedef struct {
-	u32_t		Signature;
-	MPCHeader *	MPCAddr;
-	u8_t		Length;
-	u8_t		Version;
-	u8_t		ChkSum;
-	u8_t		Features[8];
-} __attribute__((__packed__)) MPInfo;
 
 class APIC {
 private:
 	u32_t *apic;
-	MPInfo *FindMP();
-	u8_t CountChkSum(void *ptr, size_t count);
 public:
 	APIC();
 	void setVirtualWire();

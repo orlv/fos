@@ -9,7 +9,8 @@
 #include <string.h>
 #include <fos/fos.h>
 #include <fos/printk.h>
-#include <fos/drivers/timer/timer.h>
+#include <fos/drivers/i8253/i8253.h>
+#include <fos/drivers/pic/pic.h>
 #include <fos/traps.h>
 #include <stdarg.h>
 #include <fos/drivers/modulefs/modulefs.h>
@@ -39,11 +40,13 @@ asmlinkage void init()
 {
   init_memory();
 
+  out_banner();
+
   system->cli();
 
 //  system->apic = new APIC;
 
-  system->pic = new PIC;
+  system->ic = new PIC;
 
   system->gdt = new GDT;
   system->idt = new IDT;
@@ -55,15 +58,15 @@ asmlinkage void init()
   tty1->set_text_color(WHITE);
   stdout = tty1;*/
 
-  out_banner();
-
   printk("Memory size: %d Kb, free %dK (%dK high/%dK low)\n", system->pages_cnt*4, system->free_pages*4 + system->free_pages_DMA16*4, system->free_pages*4, system->free_pages_DMA16*4);
   extern multiboot_info_t *__mbi;
   initrb = new ModuleFS(__mbi);
   system->procman = new TProcMan;
 
-  SysTimer = new Timer;
-  
+  SysTimer = new i8253;
+  SysTimer->PeriodicalInt(1000, TimerCallSheduler);
+  SysTimer->enable();
+
   printk("Kernel: start task switching\n");
  
   system->preempt.reset();  /* сбросим счетчик на 1 */

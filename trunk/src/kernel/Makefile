@@ -64,15 +64,18 @@ OBJECTS =	main/boot/setup.o		\
 		main/syscall.o  		\
 		main/main.o			\
 		main/ipc.o			\
-		main/version.o
+		main/version.o			\
+		main/vectors.o
 
 OBJECTS +=	drivers/vesa/vesafb.o		\
 		drivers/tty/tty.o		\
-		drivers/timer/timer.o		\
+		drivers/i8253/i8253.o		\
 		drivers/pic/pic.o		\
 		drivers/modulefs/modulefs.o	\
 		drivers/apic/apic.o		\
 		drivers/apic/realmode_code.o
+
+OBJECTS +=	drivers/interfaces/timer.o
 
 OBJECTS +=	libs/libc/close.o		\
 		libs/libc/lseek.o		\

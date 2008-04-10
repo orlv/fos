@@ -1,9 +1,10 @@
 /*
-  drivers/char/timer/timer.cpp
+  drivers/i8253/i8253.cpp
   Copyright (C) 2006-2007 Oleg Fedorov
+            (C)      2008 Sergey Gridassov
 */
 
-#include "timer.h"
+#include "i8253.h"
 #include <fos/printk.h>
 
 #define I8253_CNTR0	0x040	/* timer 0 counter port */
@@ -29,33 +30,45 @@
 
 #define TIMER_FREQ 1193182
 
-Timer::Timer()
+i8253::i8253()
 {
-  printk("SysTimer: setting up.. ");
-  u16_t HZ = 1000;
-  u16_t count = TIMER_FREQ/HZ;
-  //system->outportb(I8253_MODE, I8253_MODE_SEL0 | I8253_MODE_RATEGEN | I8253_MODE_16BIT);
-  system->outportb(I8253_MODE, I8253_MODE_SEL0 | I8253_MODE_SQWAVE | I8253_MODE_16BIT);
 
-  system->outportb(I8253_CNTR0, count & 0xff);
-  system->outportb(I8253_CNTR0, count >> 8);
-
-  printk("[OK]\n");
-  enable();
 }
 
-u32_t kuptime()
-{
-  extern Timer *SysTimer;
-  return SysTimer->uptime();
-}
-
-u32_t Timer::uptime()
+u32_t i8253::uptime()
 {
   return _uptime;
 }
 
-void Timer::tick()
+void i8253::tick()
 {
   _uptime++;
+}
+
+void i8253::enable() {
+	system->ic->unmask(TIMER_IRQ_NUM);
+}
+
+void i8253::disable() {
+	system->ic->mask(TIMER_IRQ_NUM);
+}
+
+static void (*ProxyFunction)();
+asmlinkage void i8253IntHandler() {
+	extern Timer *SysTimer;
+	SysTimer->tick();
+//	asm("incb 0xb8000+150\n" "movb $0x5e,0xb8000+151 ");
+	system->ic->EOI(TIMER_IRQ_NUM);
+	ProxyFunction();
+}
+
+void i8253::PeriodicalInt(int freq, void (*handler)())  {
+	printk("i8253: configured to %d Hz\n", freq);
+	ProxyFunction = handler;
+	system->ic->setHandler(TIMER_IRQ_NUM, (void *)i8253IntHandler);
+	u16_t count = TIMER_FREQ/freq;
+	system->outportb(I8253_MODE, I8253_MODE_SEL0 | I8253_MODE_SQWAVE | I8253_MODE_16BIT);
+
+	system->outportb(I8253_CNTR0, count & 0xff);
+	system->outportb(I8253_CNTR0, count >> 8);
 }

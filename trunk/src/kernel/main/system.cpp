@@ -48,7 +48,7 @@ void SYSTEM::halt()
 
 res_t SYSTEM::interrupt_attach(Thread *thread, u8_t n)
 {
-  if(!user_int_handler[n]){
+  if(!user_int_handler[n] && !ic->getHandler(n)){
     user_int_handler[n] = thread;
     return RES_SUCCESS;
   } else {
@@ -59,7 +59,7 @@ res_t SYSTEM::interrupt_attach(Thread *thread, u8_t n)
 res_t SYSTEM::interrupt_detach(Thread *thread, u8_t n)
 {
   if(user_int_handler[n] == thread){
-    pic->mask(n);
+    ic->mask(n);
     user_int_handler[n] = 0;
     return RES_SUCCESS;
   } else

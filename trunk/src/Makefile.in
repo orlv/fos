@@ -45,6 +45,10 @@ build_kernel:
 	$(YELLOW) $(ECHO) \#------------------------------------------------------------------------------ ; $(GREY)
 	$(ECHO) 
 
+dep:
+	$(ECHO) \# Making dependence:
+	$(MAKE) -s -C kernel dep
+
 build_user:
 	$(YELLOW) $(ECHO) \#---------------------- Building usermode programs ---------------------------- ; $(GREY)
 	$(MAKE) -s -C usermode all ROOT=..

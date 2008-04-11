@@ -1,18 +1,10 @@
 #----------------------------------------------------------------------------#
 # FOS
-# Copyright (C)2004-2007 Oleg Fedorov
-#----------------------------------------------------------------------------#
-
-#----------------------------------------------------------------------------#
-CC = gcc
-C++ = gcc
-AS = gcc
-LD = ld
+# Copyright (C)2004-2008 Oleg Fedorov
 #----------------------------------------------------------------------------#
 
 include ../config.mk
 
-#DEBUG =-g
 DEBUG = -DDEBUG_SERIAL
 
 ASFLAGS		= -D__KERNEL__ $(DEBUG) -Wall -nostdlib -nostdinc -I$(INCLUDE)
@@ -111,11 +103,24 @@ install:
 #	strip $(KERNEL_PATHNAME)
 
 
+#-----------------------------------------------------------------------------#
+
+dep:
+	rm -f .depend
+	$(foreach object,$(OBJECTS),\
+		$(CPP) $(CPPFLAGS) `echo $(object) | $(DEP)` -MT $(object) 2> /dev/null >> .depend ; \
+	)
+
 #--------------------------------- Clean -------------------------------------#
 
 clean:
 	@rm -f $(OBJECTS)
 	@rm -f $(KERNEL_PATHNAME)
 	@rm -f fos
+	@rm -f .depend
 
 #-----------------------------------------------------------------------------#
+
+ifeq (.depend,$(wildcard .depend))
+include .depend
+endif

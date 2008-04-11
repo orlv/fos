@@ -162,13 +162,18 @@ GRUB_KERNEL  = /boot/fos
 # Базовый адрес пользовательских программ
 USER_MEM_BASE = 0x8000000
 # -----------------------------------------------------------------------------
-CC = $CC
-C++ = $CC
-AS = $CC
-LD = ld
-AR = ar
+CC   = $CC
+C++  = $CC
+AS   = $CC
+CPP  = $CC -E
+LD   = ld
+AR   = ar
 MAKE = $MAKE
 ECHO = $ECHO
+
+DEP  = sed 's/.o\$\$/.*/' | sed 's/^/.\//' | xargs -I '{}' find .  -wholename '{}' -type f 2> /dev/null | grep --regexp='.cpp\$\$\|.c\$\$\|.S\$\$'
+
+CPPFLAGS = -nostdinc -nostdinc++ -I\$(INCLUDE) -M
 
 # output coloring:
 GREEN		= $GREEN

@@ -45,30 +45,35 @@ void i8253::tick()
   _uptime++;
 }
 
-void i8253::enable() {
-	system->ic->unmask(TIMER_IRQ_NUM);
+void i8253::enable()
+{
+  system->ic->unmask(TIMER_IRQ_NUM);
 }
 
-void i8253::disable() {
-	system->ic->mask(TIMER_IRQ_NUM);
+void i8253::disable()
+{
+  system->ic->mask(TIMER_IRQ_NUM);
 }
 
 static void (*ProxyFunction)();
-asmlinkage void i8253IntHandler() {
-	extern Timer *SysTimer;
-	SysTimer->tick();
-//	asm("incb 0xb8000+150\n" "movb $0x5e,0xb8000+151 ");
-	system->ic->EOI(TIMER_IRQ_NUM);
-	ProxyFunction();
+
+asmlinkage void i8253IntHandler()
+{
+  extern Timer *SysTimer;
+  SysTimer->tick();
+  //asm("incb 0xb8000+150\n" "movb $0x5e,0xb8000+151 ");
+  system->ic->EOI(TIMER_IRQ_NUM);
+  ProxyFunction();
 }
 
-void i8253::PeriodicalInt(int freq, void (*handler)())  {
-	printk("i8253: configured to %d Hz\n", freq);
-	ProxyFunction = handler;
-	system->ic->setHandler(TIMER_IRQ_NUM, (void *)i8253IntHandler);
-	u16_t count = TIMER_FREQ/freq;
-	system->outportb(I8253_MODE, I8253_MODE_SEL0 | I8253_MODE_SQWAVE | I8253_MODE_16BIT);
+void i8253::PeriodicalInt(int freq, void (*handler)())
+{
+  printk("i8253: configured to %d Hz\n", freq);
+  ProxyFunction = handler;
+  system->ic->setHandler(TIMER_IRQ_NUM, (void *)i8253IntHandler);
+  u16_t count = TIMER_FREQ/freq;
+  system->outportb(I8253_MODE, I8253_MODE_SEL0 | I8253_MODE_SQWAVE | I8253_MODE_16BIT);
 
-	system->outportb(I8253_CNTR0, count & 0xff);
-	system->outportb(I8253_CNTR0, count >> 8);
+  system->outportb(I8253_CNTR0, count & 0xff);
+  system->outportb(I8253_CNTR0, count >> 8);
 }

@@ -79,9 +79,11 @@ void PIC::unlock()
   system->outportb(0x21, status & 0xff);
 }
 
-void PIC::Route(int irq) {
+void PIC::Route(int irq)
+{
   if(irq > 15)
     system->panic("PIC::Route(): irq > 15!");
+
   if(handlers[irq]) {
     (handlers[irq])();
   } else if(system->user_int_handler[irq]) {
@@ -94,26 +96,33 @@ void PIC::Route(int irq) {
     system->panic("PIC: Unhandled interrupt %d\n", irq);
 }
 
-void PIC::EOI(int irq) {
+void PIC::EOI(int irq)
+{
   if(irq > 7)
     system->outportb(0xa0, 0x20);
+
   system->outportb(0x20, 0x20);
 }
 
-void PIC::setHandler(int n, void *handler) {
+void PIC::setHandler(int n, void *handler)
+{
   if(n > 15) 
     system->panic("PIC::setHandler: irq > 15!");
+
   handlers[n] = (void (*)()) handler;
   printk("PIC: handler of irq %d set to 0x%X\n", n, handler);
 }
 
-void *PIC::getHandler(int n) {
+void *PIC::getHandler(int n)
+{
   if(n > 15) 
      system->panic("PIC::getHandler: irq > 15!");
+
   return (void *)handlers[n];
 }
 
-Timer *PIC::getTimer() {
+Timer *PIC::getTimer()
+{
   system->panic("PIC has no timer!\n");
   return NULL;
 }

@@ -1,5 +1,5 @@
 /*
-  drivers/i8253/timer.h
+  drivers/i8253/i8253.h
   Copyright (C) 2006-2007 Oleg Fedorov
             (C)      2008 Sergey Gridassov
 */
@@ -11,12 +11,13 @@
 #include <time.h>
 #include <fos/system.h>
 #include <fos/drivers/interfaces/timer.h>
+
 #define TIMER_IRQ_NUM 0
 
 class i8253: public Timer {
-protected:
+ protected:
   u32_t _uptime;
-public:
+ public:
   i8253();
   u32_t uptime();   /* получить показания таймера */
 

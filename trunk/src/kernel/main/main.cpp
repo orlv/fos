@@ -3,6 +3,8 @@
  * Copyright (C) 2005-2007 Oleg Fedorov
  */
 
+#define ENABLE_APIC	1
+
 #include <multiboot.h>
 #include <fos/drivers/tty/tty.h>
 #include <fos/mm.h>
@@ -41,9 +43,10 @@ asmlinkage void init()
 {
   init_memory();
 
-  out_banner();
 
   system->cli();
+
+  out_banner();
 
   system->cpuid = new CPUID();
 
@@ -52,21 +55,26 @@ asmlinkage void init()
 
   setup_idt();
 
-  if(system->cpuid->features_edx & FEATURE_APIC) {
+  if(system->cpuid->features_edx & FEATURE_APIC && ENABLE_APIC) {
     printk("Using APIC\n");
     system->ic = new APIC;
     SysTimer = system->ic->getTimer();
+    /* APIC недостаточно реализован
+    system->sti();
+    */
   } else {
     printk("Using legacy ISA PIC and timer\n");
     system->ic = new PIC;
     SysTimer = new i8253;
+    system->sti();
   }
 
-  system->sti();
+//  
 
   /*  TTY *tty1 = new TTY(80, 25);
   tty1->set_text_color(WHITE);
   stdout = tty1;*/
+
 
   printk("Memory size: %d Kb, free %dK (%dK high/%dK low)\n", system->pages_cnt*4, system->free_pages*4 + system->free_pages_DMA16*4, system->free_pages*4, system->free_pages_DMA16*4);
   extern multiboot_info_t *__mbi;

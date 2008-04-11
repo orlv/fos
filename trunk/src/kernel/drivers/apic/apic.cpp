@@ -19,12 +19,10 @@ APIC::APIC() {
 	ReadMSR(IA32_APIC_BASE, &apic_low, &apic_high);
 	u32_t addr = apic_low & APIC_MSR_BASE_M;
 
-	printk("APIC: Memory at: 0x%08X\n", addr);
+	apic_regs = (u32_t *)system->kmem->mmap(0, 4096, 0, addr, 0);
 
+	printk("APIC: Memory at 0x%08X, mapped to 0x%08X\n", addr, apic_regs);
 
-	apic_regs = (u32_t *)system->kmem->mmap(0, 4096, 0, 0xFEE00000, 0);
-
-	printk("APIC mapped to %x\n", apic_regs);
 /*
 	printk("APIC: ID: 0x%08X\n", apic[APIC_DWREG_ID]);
 	printk("APIC: Version: 0x%08X\n", apic[APIC_DWREG_VER]);
@@ -75,7 +73,8 @@ APIC::APIC() {
 
 	printk("APIC: disabled\n");
 #endif
-
+	apic_tmr = new APICTimer(apic_regs);
+	printk("APIC: not fully implemented\n");
 }
 
 void APIC::mask(int n) {
@@ -114,3 +113,30 @@ void *APIC::getHandler(int n) {
 Timer *APIC::getTimer() {
 	return apic_tmr;
 }
+
+APICTimer::APICTimer(u32_t *regs) {
+	apic_regs = regs;
+	_uptime = 0;
+}
+
+u32_t APICTimer::uptime()
+{
+  return _uptime;
+}
+
+void APICTimer::tick() {
+  _uptime++;
+}
+
+void APICTimer::enable() {
+  system->panic("APICTimer: enable() not implemented\n");
+}
+
+void APICTimer::disable() {
+  system->panic("APICTimer: enable() not implemented\n");
+}
+
+void APICTimer::PeriodicalInt(int freq, void (*handler)()) {
+  system->panic("APICTImer: PeriodicalInt(%d, 0x%X) not implemented\n", freq, handler);
+}
+

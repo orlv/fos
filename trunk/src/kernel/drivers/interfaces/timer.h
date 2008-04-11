@@ -5,6 +5,8 @@
 
 #ifndef __TIMER_H
 #define __TIMER_H
+#include <types.h>
+
 class Timer {
 public:
 	virtual void enable() = 0;

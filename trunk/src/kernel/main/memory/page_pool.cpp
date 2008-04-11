@@ -4,7 +4,6 @@
  */
 
 #include <fos/fos.h>
-//#include <c++/stack.h>
 
 void put_page(u32_t page)
 {

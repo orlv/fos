@@ -55,10 +55,9 @@ asmlinkage void init()
 
   setup_idt();
 
-  system->smp = new SMP;
-
   if(system->cpuid->features_edx & FEATURE_APIC && ENABLE_APIC) {
     printk("Using APIC\n");
+    system->smp = new SMP;
     system->ic = new APIC;
     SysTimer = system->ic->getTimer();
     /* APIC недостаточно реализован

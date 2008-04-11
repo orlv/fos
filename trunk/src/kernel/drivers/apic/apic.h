@@ -11,7 +11,7 @@
 #include <fos/drivers/interfaces/timer.h>
 
 #define IA32_APIC_BASE	0x0000001b
-// APIC Base memory-mapped constant
+#define	APIC_DEFAULT_PHYS_BASE	0xfee00000
 #define APIC_MSR_BASE_M         0xfffff000  /* APIC MSR memory base address mask    */
 
 #define		APIC_ID		0x20

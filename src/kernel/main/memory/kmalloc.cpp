@@ -105,9 +105,11 @@ void init_memory()
   /* Смонтируем heap */
   system->kmem->mmap(heap_start, heap_size, MAP_FIXED, heap_start, 0);
 
-  /* Дополним пул свободных страниц оставшимися свободными страницами (если они остались, конечно) */
+  /*
+    Дополним пул свободных страниц оставшимися свободными страницами
+    (если они остались, конечно)
+  */
   for(u32_t i = PAGE(KERNEL_MEM_LIMIT); i < system->pages_cnt; i++){
-    alloc_page(i);
     put_page(i);
   }
 

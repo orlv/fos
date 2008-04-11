@@ -1,9 +1,13 @@
+/* (C) 2008 Serge Gridassov */
+
 #include <sys/socket.h>
 #include <sys/un.h> 
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-int main(int argc, char *argv[]) {
+
+int main(int argc, char *argv[]) 
+{
 	int s = socket(AF_UNIX, SOCK_STREAM, 0);
 	struct sockaddr_un local;
 	local.sun_family = AF_UNIX;

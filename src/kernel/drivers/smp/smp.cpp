@@ -15,7 +15,7 @@ int SMP::mpf_checksum(u8_t *mp, int len) {
 }
 
 bool SMP::ScanConfig(u32_t base, u32_t length) {
-	unsigned long *bp = (unsigned long *)base;
+	u32_t *bp = (u32_t *)base;
 	struct intel_mp_floating *mpf;
 
 	printk("Scan SMP from %p for %ld bytes.\n", bp,length);
@@ -25,11 +25,10 @@ bool SMP::ScanConfig(u32_t base, u32_t length) {
 	while (length > 0) {
 		mpf = (struct intel_mp_floating *)bp;
 		if ((*bp == SMP_MAGIC_IDENT) &&
-		//	(mpf->mpf_length == 1) &&
-		//	!mpf_checksum((unsigned char *)bp, 16) &&
-		//	((mpf->mpf_specification == 1)
-		//		|| (mpf->mpf_specification == 4)) 
-		1) {
+			(mpf->mpf_length == 1) &&
+			!mpf_checksum((unsigned char *)bp, 16) &&
+			((mpf->mpf_specification == 1)
+				|| (mpf->mpf_specification == 4)) {
 
 			found_config = 1;
 			printk("found SMP MP-table at %08lx\n",

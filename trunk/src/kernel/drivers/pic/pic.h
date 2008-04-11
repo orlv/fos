@@ -11,9 +11,11 @@
 #include <types.h>
 
 class PIC: public InterruptController {
+ private:
   volatile u16_t status;
   void remap(u8_t v1, u8_t v2);
   void (*handlers[15])();
+
  public:
   PIC();
 

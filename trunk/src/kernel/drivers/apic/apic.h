@@ -3,8 +3,8 @@
   Copyright (C) 2008 Sergey Gridassov
 */
 
-#ifndef __APIC_H
-#define __APIC_H
+#ifndef _DRIVERS_APIC_H
+#define _DRIVERS_APIC_H
 
 #include <types.h>
 #include <fos/drivers/interfaces/interruptcontroller.h>
@@ -59,38 +59,38 @@
 class APICTimer;
 
 class APIC: public InterruptController  {
-	friend class APICTimer;
-private:
-	u32_t *apic_regs;
-	APICTimer *apic_tmr;
-public:
-	APIC();
-	void mask(int n);
-	void unmask(int n);
+  friend class APICTimer;
+ private:
+  u32_t *apic_regs;
+  APICTimer *apic_tmr;
+ public:
+  APIC();
+  void mask(int n);
+  void unmask(int n);
 
-	void lock();
-	void unlock();
+  void lock();
+  void unlock();
 
-	void Route(int n);
-	void setHandler(int n, void *handler);
-	void *getHandler(int n);
+  void Route(int n);
+  void setHandler(int n, void *handler);
+  void *getHandler(int n);
 
-	void EOI(int irq);
+  void EOI(int irq);
 
-	Timer *getTimer();
+  Timer *getTimer();
 };
 
 class APICTimer: public Timer {
-private:
-	u32_t *apic_regs;
-	u32_t _uptime;
-public:
-	APICTimer(u32_t *regs);
-	void tick();
-	void enable();
-	void disable();
-	void PeriodicalInt(int freq, void (*handler)());
-	u32_t uptime();
+ private:
+  u32_t *apic_regs;
+  u32_t _uptime;
+ public:
+  APICTimer(u32_t *regs);
+  void tick();
+  void enable();
+  void disable();
+  void PeriodicalInt(int freq, void (*handler)());
+  u32_t uptime();
 };
 
 #endif

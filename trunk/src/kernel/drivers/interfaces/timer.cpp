@@ -2,6 +2,7 @@
   drivers/interfaces/timer.cpp
   Copyright (C) 2008 Sergey Gridassov
 */
+
 #include <fos/printk.h>
 #include <fos/system.h>
 #include <types.h>
@@ -13,8 +14,8 @@ u32_t kuptime()
   return SysTimer->uptime();
 }
 
-void TimerCallSheduler() {
-	if (system->preempt.status() && sched_ready())
-		sched_yield();
-
+void TimerCallSheduler()
+{
+  if (system->preempt.status() && sched_ready())
+    sched_yield();
 }

@@ -18,6 +18,7 @@ class PIC: public InterruptController {
 
  public:
   PIC();
+  ~PIC();
 
   void mask(int n);
   void unmask(int n);

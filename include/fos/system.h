@@ -13,6 +13,7 @@
 #include <fos/procman.h>
 #include <fos/drivers/interfaces/interruptcontroller.h>
 #include <fos/drivers/cpuid/cpuid.h>
+#include <fos/drivers/smp/smp.h>
 #include <fos/mm.h>
 #include <fos/page.h>
 #include <c++/stack.h>
@@ -30,6 +31,7 @@ class SYSTEM {
   IDT *idt;
   InterruptController *ic;
   CPUID *cpuid;
+  SMP *smp;
   Thread ** user_int_handler;
 
   VMM *kmem;

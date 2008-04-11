@@ -55,6 +55,8 @@ asmlinkage void init()
 
   setup_idt();
 
+  system->smp = new SMP;
+
   if(system->cpuid->features_edx & FEATURE_APIC && ENABLE_APIC) {
     printk("Using APIC\n");
     system->ic = new APIC;

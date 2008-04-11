@@ -3,8 +3,8 @@
   Copyright (C) 2008 Sergey Gridassov
 */
 
-#ifndef _DRIVERS_APIC_H
-#define _DRIVERS_APIC_H
+#ifndef __APIC_H
+#define __APIC_H
 
 #include <types.h>
 #include <fos/drivers/interfaces/interruptcontroller.h>
@@ -13,84 +13,151 @@
 #define IA32_APIC_BASE	0x0000001b
 // APIC Base memory-mapped constant
 #define APIC_MSR_BASE_M         0xfffff000  /* APIC MSR memory base address mask    */
-#define APIC_MSR_GENA           0x00000800  /* APIC MSR Global Enable flag          */
-#define APIC_MSR_BSP            0x00000100  /* APIC MSR BootStrap Processor flag    */
 
-// APIC Base memory-mapped constant
-#define APIC_BASE               0xffe00000  /* APIC Base Address                    */
+#define		APIC_ID		0x20
+#define		APIC_LVR	0x30
+#define			APIC_LVR_MASK		0xFF00FF
+#define			GET_APIC_VERSION(x)	((x)&0xFF)
+#define			GET_APIC_MAXLVT(x)	(((x)>>16)&0xFF)
+#define			APIC_INTEGRATED(x)	((x)&0xF0)
+#define			APIC_XAPIC(x)		((x) >= 0x14)
+#define		APIC_TASKPRI	0x80
+#define			APIC_TPRI_MASK		0xFF
+#define		APIC_ARBPRI	0x90
+#define			APIC_ARBPRI_MASK	0xFF
+#define		APIC_PROCPRI	0xA0
+#define		APIC_EOI	0xB0
+#define			APIC_EIO_ACK		0x0		/* Write this to the EOI register */
+#define		APIC_RRR	0xC0
+#define		APIC_LDR	0xD0
+#define			APIC_LDR_MASK		(0xFF<<24)
+#define			GET_APIC_LOGICAL_ID(x)	(((x)>>24)&0xFF)
+#define			SET_APIC_LOGICAL_ID(x)	(((x)<<24))
+#define			APIC_ALL_CPUS		0xFF
+#define		APIC_DFR	0xE0
+#define			APIC_DFR_CLUSTER		0x0FFFFFFFul
+#define			APIC_DFR_FLAT			0xFFFFFFFFul
+#define		APIC_SPIV	0xF0
+#define			APIC_SPIV_FOCUS_DISABLED	(1<<9)
+#define			APIC_SPIV_APIC_ENABLED		(1<<8)
+#define		APIC_ISR	0x100
+#define         APIC_ISR_NR     0x8     /* Number of 32 bit ISR registers. */
+#define		APIC_TMR	0x180
+#define 	APIC_IRR	0x200
+#define 	APIC_ESR	0x280
+#define			APIC_ESR_SEND_CS	0x00001
+#define			APIC_ESR_RECV_CS	0x00002
+#define			APIC_ESR_SEND_ACC	0x00004
+#define			APIC_ESR_RECV_ACC	0x00008
+#define			APIC_ESR_SENDILL	0x00020
+#define			APIC_ESR_RECVILL	0x00040
+#define			APIC_ESR_ILLREGA	0x00080
+#define		APIC_ICR	0x300
+#define			APIC_DEST_SELF		0x40000
+#define			APIC_DEST_ALLINC	0x80000
+#define			APIC_DEST_ALLBUT	0xC0000
+#define			APIC_ICR_RR_MASK	0x30000
+#define			APIC_ICR_RR_INVALID	0x00000
+#define			APIC_ICR_RR_INPROG	0x10000
+#define			APIC_ICR_RR_VALID	0x20000
+#define			APIC_INT_LEVELTRIG	0x08000
+#define			APIC_INT_ASSERT		0x04000
+#define			APIC_ICR_BUSY		0x01000
+#define			APIC_DEST_LOGICAL	0x00800
+#define			APIC_DM_FIXED		0x00000
+#define			APIC_DM_LOWEST		0x00100
+#define			APIC_DM_SMI		0x00200
+#define			APIC_DM_REMRD		0x00300
+#define			APIC_DM_NMI		0x00400
+#define			APIC_DM_INIT		0x00500
+#define			APIC_DM_STARTUP		0x00600
+#define			APIC_DM_EXTINT		0x00700
+#define			APIC_VECTOR_MASK	0x000FF
+#define		APIC_ICR2	0x310
+#define			GET_APIC_DEST_FIELD(x)	(((x)>>24)&0xFF)
+#define			SET_APIC_DEST_FIELD(x)	((x)<<24)
+#define		APIC_LVTT	0x320
+#define		APIC_LVTTHMR	0x330
+#define		APIC_LVTPC	0x340
+#define		APIC_LVT0	0x350
+#define			APIC_LVT_TIMER_BASE_MASK	(0x3<<18)
+#define			GET_APIC_TIMER_BASE(x)		(((x)>>18)&0x3)
+#define			SET_APIC_TIMER_BASE(x)		(((x)<<18))
+#define			APIC_TIMER_BASE_CLKIN		0x0
+#define			APIC_TIMER_BASE_TMBASE		0x1
+#define			APIC_TIMER_BASE_DIV		0x2
+#define			APIC_LVT_TIMER_PERIODIC		(1<<17)
+#define			APIC_LVT_MASKED			(1<<16)
+#define			APIC_LVT_LEVEL_TRIGGER		(1<<15)
+#define			APIC_LVT_REMOTE_IRR		(1<<14)
+#define			APIC_INPUT_POLARITY		(1<<13)
+#define			APIC_SEND_PENDING		(1<<12)
+#define			APIC_MODE_MASK			0x700
+#define			GET_APIC_DELIVERY_MODE(x)	(((x)>>8)&0x7)
+#define			SET_APIC_DELIVERY_MODE(x,y)	(((x)&~0x700)|((y)<<8))
+#define				APIC_MODE_FIXED		0x0
+#define				APIC_MODE_NMI		0x4
+#define				APIC_MODE_EXTINT	0x7
+#define 	APIC_LVT1	0x360
+#define		APIC_LVTERR	0x370
+#define		APIC_TMICT	0x380
+#define		APIC_TMCCT	0x390
+#define		APIC_TDCR	0x3E0
+#define			APIC_TDR_DIV_TMBASE	(1<<2)
+#define			APIC_TDR_DIV_1		0xB
+#define			APIC_TDR_DIV_2		0x0
+#define			APIC_TDR_DIV_4		0x1
+#define			APIC_TDR_DIV_8		0x2
+#define			APIC_TDR_DIV_16		0x3
+#define			APIC_TDR_DIV_32		0x8
+#define			APIC_TDR_DIV_64		0x9
+#define			APIC_TDR_DIV_128	0xA
 
-// APIC Offsets for DWORD * base
-#define APIC_DWREG_ID               0x0008  /* Local APIC Identifier                */
-#define APIC_DWREG_VER              0x000c  /* Local APIC Version                   */
-#define APIC_DWREG_TPR              0x0020  /* Task Priority Register               */
-#define APIC_DWREG_APR              0x0024  /* Arbitration Priority Register        */
-#define APIC_DWREG_PPR              0x0028  /* Processor Priority Register          */
-#define APIC_DWREG_EOI              0x002c  /* EOI Register                         */
-#define APIC_DWREG_LDR              0x0034  /* Logical Destination Register         */
-#define APIC_DWREG_DFR              0x0038  /* Destination Format Register          */
-#define APIC_DWREG_SVR              0x003c  /* Spurious Interrupt Vector Register   */
-#define APIC_DWREG_ISR              0x0040  /* In-Service Register                  */
-#define APIC_DWREG_TMR              0x0060  /* Trigger Mode Register                */
-#define APIC_DWREG_IRQ              0x0080  /* Interrupt Request Register           */
-#define APIC_DWREG_ESR              0x00a0  /* Error Status Register                */
-#define APIC_DWREG_ICR0             0x00c0  /* Interrupt Command Register 0         */
-#define APIC_DWREG_ICR1             0x00c4  /* Interrupt Command Register 1         */
-#define APIC_DWREG_LVT_TMR          0x00c8  /* LVT Timer Register                   */
-#define APIC_DWREG_LVT_THERM        0x00cc  /* LVT Thermal Sensor Register          */
-#define APIC_DWREG_LVT_PERF         0x00d0  /* LVT Perfomance Monitoring Counters   */
-#define APIC_DWREG_LVT_LINT0        0x00d4  /* LVT LINT0 Register                   */
-#define APIC_DWREG_LVT_LINT1        0x00d8  /* LVT LINT1 Register                   */
-#define APIC_DWREG_LVT_ERR          0x00dc  /* LVT Error Register                   */
-#define APIC_DWREG_TMR_INIT         0x00e0  /* Timer Initial Count Register         */
-#define APIC_DWREG_TMR_CURR         0x00e4  /* Timer Current Count Register         */
-#define APIC_DWREG_TMR_DIVIDE       0x00f8  /* Timer Divide Configuration Register  */
 
-// MP Structure signature
-#define MP_SIGNATURE            0x5f504d5f  /* MP Structure Signature "_MP_"        */
-#define MPC_SIGNATURE           0x504d4350  /* MP Table Header Signature "PCMP"     */
-
-// MP Entry Type
-#define MP_ENTRY_PROCESSOR               0  /* Processor                            */
-#define MP_ENTRY_BUS                     1  /* Bus                                  */
-#define MP_ENTRY_IO_APIC                 2  /* IO APIC                              */
-#define MP_ENTRY_IO_INT                  3  /* IO Interrupt Assignment              */
-#define MP_ENTRY_LOCAL_INT               4  /* Local Interrupt Assignment           */
 
 class APICTimer;
 
 class APIC: public InterruptController  {
-  friend class APICTimer;
- private:
-  u32_t *apic_regs;
-  APICTimer *apic_tmr;
- public:
-  APIC();
-  void mask(int n);
-  void unmask(int n);
+	friend class APICTimer;
+private:
+	u32_t *apic_regs;
+	APICTimer *apic_tmr;
+	bool HaveAPIC();
+	inline void apic_write(u32_t reg, u32_t v) {
+		apic_regs[reg] = v;
+	}
 
-  void lock();
-  void unlock();
+	inline u32_t apic_read(u32_t reg) {
+		return apic_regs[reg];
+	}
+public:
+	APIC();
+	void mask(int n);
+	void unmask(int n);
 
-  void Route(int n);
-  void setHandler(int n, void *handler);
-  void *getHandler(int n);
+	void lock();
+	void unlock();
 
-  void EOI(int irq);
+	void Route(int n);
+	void setHandler(int n, void *handler);
+	void *getHandler(int n);
 
-  Timer *getTimer();
+	void EOI(int irq);
+
+	Timer *getTimer();
 };
 
 class APICTimer: public Timer {
- private:
-  u32_t *apic_regs;
-  u32_t _uptime;
- public:
-  APICTimer(u32_t *regs);
-  void tick();
-  void enable();
-  void disable();
-  void PeriodicalInt(int freq, void (*handler)());
-  u32_t uptime();
+private:
+	u32_t *apic_regs;
+	u32_t _uptime;
+public:
+	APICTimer(u32_t *regs);
+	void tick();
+	void enable();
+	void disable();
+	void PeriodicalInt(int freq, void (*handler)());
+	u32_t uptime();
 };
 
 #endif

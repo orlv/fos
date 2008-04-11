@@ -19,3 +19,7 @@ void TimerCallSheduler()
   if (system->preempt.status() && sched_ready())
     sched_yield();
 }
+
+Timer::~Timer() {
+
+}

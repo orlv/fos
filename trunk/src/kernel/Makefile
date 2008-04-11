@@ -66,9 +66,11 @@ OBJECTS +=	drivers/vesa/vesafb.o		\
 		drivers/modulefs/modulefs.o	\
 		drivers/apic/apic.o		\
 		drivers/apic/realmode_code.o	\
-		drivers/cpuid/cpuid.o
+		drivers/cpuid/cpuid.o		\
+		drivers/smp/smp.o
 
-OBJECTS +=	drivers/interfaces/timer.o
+OBJECTS +=	drivers/interfaces/timer.o	\
+		drivers/interfaces/interruptcontroller.o
 
 OBJECTS +=	libs/libc/close.o		\
 		libs/libc/lseek.o		\

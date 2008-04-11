@@ -15,6 +15,7 @@ class Timer {
   virtual u32_t uptime() = 0;
   virtual void PeriodicalInt(int freq, void (*handler)()) = 0;
   virtual void tick() = 0;
+	virtual ~Timer() = 0;
 };
 
 u32_t kuptime();    /* получить показания таймера */

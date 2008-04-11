@@ -112,3 +112,8 @@ void *PIC::getHandler(int n) {
      system->panic("PIC::getHandler: irq > 15!");
   return (void *)handlers[n];
 }
+
+Timer *PIC::getTimer() {
+  system->panic("PIC has no timer!\n");
+  return NULL;
+}

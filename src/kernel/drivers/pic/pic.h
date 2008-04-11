@@ -7,6 +7,7 @@
 #ifndef _PIC_H
 #define _PIC_H
 #include <fos/drivers/interfaces/interruptcontroller.h>
+#include <fos/drivers/interfaces/timer.h>
 #include <types.h>
 
 class PIC: public InterruptController {
@@ -27,6 +28,8 @@ class PIC: public InterruptController {
   void *getHandler(int n);
 
   void EOI(int irq);
+
+  Timer *getTimer();
 };
 
 #endif

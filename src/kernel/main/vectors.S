@@ -8,7 +8,7 @@ vector=0
 .globl interrupt_vectors_start, interrupt_vectors_end
 
 interrupt_vectors_start:
-.rept 221
+.rept 224
       pusha
       push %ds
       push %es

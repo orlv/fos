@@ -9,9 +9,6 @@
 
 PIC::PIC()
 {
-  system->outportb(0x22, 0x70);
-  system->outportb(0x23, 0x00);
-
   remap(0x20, 0x28);
   printk("PIC: Configured for base 0x20\n");
 }

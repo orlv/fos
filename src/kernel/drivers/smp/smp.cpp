@@ -310,7 +310,7 @@ void SMP::IOAPICInfo(struct mpc_config_ioapic *m) {
 	if (!(m->mpc_flags & MPC_APIC_USABLE))
 		return;
 
-//	printk("I/O APIC #%d Version %d at 0x%lX.\n", m->mpc_apicid, m->mpc_apicver, m->mpc_apicaddr);
+//	
 
 	if (nr_ioapics >= MAX_IO_APICS) {
 		system->panic("Max # of I/O APICs (%d) exceeded (found %d).\n",	MAX_IO_APICS, nr_ioapics);
@@ -320,6 +320,11 @@ void SMP::IOAPICInfo(struct mpc_config_ioapic *m) {
 		return;
 	}
 	mp_ioapics[nr_ioapics] = *m;
+
+	ioapics_regs[nr_ioapics] = system->kmem->mmap(0, 4096, 0, mp_ioapics[nr_ioapics].mpc_apicaddr, 0);
+
+	printk("I/O APIC #%d Version %d at 0x%08X, mapped to 0x%08X\n", m->mpc_apicid, m->mpc_apicver, m->mpc_apicaddr, ioapics_regs[nr_ioapics]);
+
 	nr_ioapics++;
 }
 
@@ -426,6 +431,44 @@ bool SMP::ReadMPC(mp_config_table *mpc) {
 		return false;
 	}
 	return true;
+}
 
-	return true;
+int SMP::FindISAIRQPin(int irq, int type) {
+	for (int i = 0; i < mp_irq_entries; i++) {
+		int lbus = mp_irqs[i].mpc_srcbus;
+
+		if ((mp_bus_id_to_type[lbus] == MP_BUS_ISA ||
+		     mp_bus_id_to_type[lbus] == MP_BUS_EISA ||
+		     mp_bus_id_to_type[lbus] == MP_BUS_MCA
+		    ) &&
+		    (mp_irqs[i].mpc_irqtype == type) &&
+		    (mp_irqs[i].mpc_srcbusirq == irq))
+
+			return mp_irqs[i].mpc_dstirq;
+	}
+	return -1;
+}
+
+int SMP::FindISAIRQAPIC(int irq, int type) {
+	int i = 0;
+	for (i = 0; i < mp_irq_entries; i++) {
+		int lbus = mp_irqs[i].mpc_srcbus;
+
+		if ((mp_bus_id_to_type[lbus] == MP_BUS_ISA ||
+		     mp_bus_id_to_type[lbus] == MP_BUS_EISA ||
+		     mp_bus_id_to_type[lbus] == MP_BUS_MCA
+		    ) &&
+		    (mp_irqs[i].mpc_irqtype == type) &&
+		    (mp_irqs[i].mpc_srcbusirq == irq))
+			break;
+	}
+	if (i < mp_irq_entries) {
+		int apic;
+		for(apic = 0; apic < nr_ioapics; apic++) {
+			if (mp_ioapics[apic].mpc_apicid == mp_irqs[i].mpc_dstapic)
+				return apic;
+		}
+	}
+
+	return -1;
 }

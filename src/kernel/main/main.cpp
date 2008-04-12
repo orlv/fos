@@ -58,11 +58,9 @@ asmlinkage void init()
   if(system->cpuid->features_edx & FEATURE_APIC && ENABLE_APIC) {
     printk("Using APIC\n");
     system->smp = new SMP;
-    system->ic = new APIC;
+    system->ic = new APIC(0);
     SysTimer = system->ic->getTimer();
-    /* APIC недостаточно реализован
-    system->sti();
-    */
+//    system->sti();
   } else {
     printk("Using legacy ISA PIC and timer\n");
     system->ic = new PIC;
@@ -70,7 +68,7 @@ asmlinkage void init()
     system->sti();
   }
 
-//  
+
 
   /*  TTY *tty1 = new TTY(80, 25);
   tty1->set_text_color(WHITE);

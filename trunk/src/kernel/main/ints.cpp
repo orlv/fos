@@ -273,7 +273,7 @@ void setup_idt()
 
   size_t one_vector = ((u32_t)interrupt_vectors_end - (u32_t)interrupt_vectors_start) / 221;
 
-  for(int i = 0; i <= 221; i++) {
+  for(int i = 0; i <= 224; i++) {
     system->idt->set_intr_gate(0x20 + i, (off_t) interrupt_vectors_start + i * one_vector);
   }
 

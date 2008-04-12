@@ -23,7 +23,6 @@ class SMP {
 	void INTSrcInfo(struct mpc_config_intsrc *m);
 	bool ReadMPC(mp_config_table *mpc);
 
-	struct mpc_config_ioapic mp_ioapics[MAX_IO_APICS];
 	struct mpc_config_intsrc mp_irqs[MAX_IRQ_SOURCES];
 	int mp_irq_entries;
 	int num_processors;
@@ -33,16 +32,20 @@ class SMP {
 
 	int mp_bus_id_to_type [MAX_MP_BUSSES];
 	int mp_bus_id_to_pci_bus [MAX_MP_BUSSES];
+	struct mpc_config_ioapic mp_ioapics[MAX_IO_APICS];
 	int mp_current_pci_id;
 	int mpc_record;
 public:
 	SMP();
+	int FindISAIRQPin(int irq, int type);
+	int FindISAIRQAPIC(int irq, int type);
 
 	bool found_config;
 	bool pic_mode;
 	u32_t mp_lapic_addr;
 
 	int nr_ioapics;
+	void *ioapics_regs[MAX_IO_APICS];
 };
 #endif
 

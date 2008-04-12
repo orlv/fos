@@ -66,6 +66,8 @@ OBJECTS +=	drivers/vesa/vesafb.o		\
 		drivers/modulefs/modulefs.o	\
 		drivers/apic/apic.o		\
 		drivers/apic/realmode_code.o	\
+		drivers/apic/timer.o		\
+		drivers/apic/ioapic.o		\
 		drivers/cpuid/cpuid.o		\
 		drivers/smp/smp.o
 

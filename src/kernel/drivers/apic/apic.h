@@ -17,12 +17,13 @@ class APIC: public InterruptController  {
 	friend class IOAPIC;
 private:
 	IOAPIC *ioapic;
-	volatile u32_t *apic_regs;
+	u32_t * volatile apic_regs;
 	APICTimer *apic_tmr;
 	void ConnectBSP();
 	void SetupLocal(int cpu);
 	void ClearLocal();
 	int GetMaxLVT();
+	bool ModernAPIC();
 	inline bool IsIntegrated();
 	inline int GetVersion();
 	inline void AckIRQ();
@@ -35,6 +36,8 @@ private:
 	}
 	bool skip_ioapic_setup;
 
+	void SyncArbIDs();
+	void WaitICRIdle();
 public:
 	APIC(int cpu);
 	void mask(int n);
@@ -50,6 +53,8 @@ public:
 	void EOI(int irq);
 
 	Timer *getTimer();
+
+	int GetPhysicalBroadcast();
 };
 
 

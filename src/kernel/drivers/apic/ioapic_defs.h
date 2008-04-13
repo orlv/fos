@@ -100,4 +100,6 @@ union entry_union {
 	struct IO_APIC_route_entry entry;
 };
 
+#define PIC_CASCADE_IR	2
+#define IO_APIC_IRQ(x) (((x) >= 16) || ((1<<(x)) & io_apic_irqs))
 #endif

@@ -31,7 +31,7 @@ void SYSTEM::panic(register const char *fmt, ...)
   printk("Kernel panic: %s \n", panic_buf);
   u16_t id = curPID();
   printk("ID: %d \n", id);
-  if (procman->curr)
+  if (procman && procman->curr)
     printk("PID: %d \n", procman->curr->item->process);
   printk("System Halted!\n");
   printk("--------------------------------------------------------------------------------\n");

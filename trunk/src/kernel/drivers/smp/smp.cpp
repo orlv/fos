@@ -8,7 +8,6 @@
 #include <fos/drivers/apic/apic.h>
 
 
-
 int SMP::mpf_checksum(u8_t *mp, int len) {
 	int sum = 0;
 
@@ -223,6 +222,8 @@ void SMP::ProcessorInfo(struct mpc_config_processor *m) {
 		printk("BIOS bug, APIC version is 0 for CPU#%d, fixing to 0x10.\n", m->mpc_apicid);
 		ver = 0x10;
 	}
+
+	apic_version[m->mpc_apicid] = ver;
 
 	if (num_processors >= NR_CPUS) {
 		printk("WARNING: NR_CPUS limit of %i reached. Processor ignored.\n", NR_CPUS);
@@ -472,3 +473,158 @@ int SMP::FindISAIRQAPIC(int irq, int type) {
 
 	return -1;
 }
+
+int SMP::FindIRQEntry(int apic, int pin, int type) {
+	for(int i = 0; i < mp_irq_entries; i++)
+		if (mp_irqs[i].mpc_irqtype == type &&
+		    (mp_irqs[i].mpc_dstapic == mp_ioapics[apic].mpc_apicid ||
+		     mp_irqs[i].mpc_dstapic == MP_APIC_ALL) &&
+		    mp_irqs[i].mpc_dstirq == pin)
+			return i;
+
+	return -1;
+}
+
+int SMP::MPBIOS_polarity(int idx)
+{
+	int bus = mp_irqs[idx].mpc_srcbus;
+	int polarity;
+
+	switch (mp_irqs[idx].mpc_irqflag & 3)
+	{
+		case 0: 
+		{
+			switch (mp_bus_id_to_type[bus])
+			{
+				case MP_BUS_ISA:
+				{
+					polarity = default_ISA_polarity(idx);
+					break;
+				}
+				case MP_BUS_EISA:
+				{
+					polarity = default_EISA_polarity(idx);
+					break;
+				}
+				case MP_BUS_PCI:
+				{
+					polarity = default_PCI_polarity(idx);
+					break;
+				}
+				case MP_BUS_MCA:
+				{
+					polarity = default_MCA_polarity(idx);
+					break;
+				}
+				default:
+				{
+					printk("SMP: Broken BIOS, unsupported polarity\n");
+					polarity = 1;
+					break;
+				}
+			}
+			break;
+		}
+		case 1:
+		{
+			polarity = 0;
+			break;
+		}
+		case 2:
+		{
+			printk("SMP: Broken BIOS, unsupported polarity\n");
+			polarity = 1;
+			break;
+		}
+		case 3:
+		{
+			polarity = 1;
+			break;
+		}
+		default:
+		{
+			printk("SMP: Broken BIOS, unsupported polarity\n");
+			polarity = 1;
+			break;
+		}
+	}
+	return polarity;
+}
+
+int SMP::MPBIOS_trigger(int idx)
+{
+	int bus = mp_irqs[idx].mpc_srcbus;
+	int trigger;
+
+	switch ((mp_irqs[idx].mpc_irqflag>>2) & 3)
+	{
+		case 0:
+		{
+			switch (mp_bus_id_to_type[bus])
+			{
+				case MP_BUS_ISA:
+				{
+					trigger = default_ISA_trigger(idx);
+					break;
+				}
+				case MP_BUS_EISA:
+				{
+					trigger = default_EISA_trigger(idx);
+					break;
+				}
+				case MP_BUS_PCI:
+				{
+					trigger = default_PCI_trigger(idx);
+					break;
+				}
+				case MP_BUS_MCA:
+				{
+					trigger = default_MCA_trigger(idx);
+					break;
+				}
+				default:
+				{
+					printk("SMP: Broken BIOS, unsupported trigger\n");
+					trigger = 1;
+					break;
+				}
+			}
+			break;
+		}
+		case 1:
+		{
+			trigger = 0;
+			break;
+		}
+		case 2:
+		{
+			printk("SMP: Broken BIOS, unsupported trigger\n");
+			trigger = 1;
+			break;
+		}
+		case 3:
+		{
+			trigger = 1;
+			break;
+		}
+		default:
+		{
+			printk("SMP: Broken BIOS, unsupported trigger\n");
+			trigger = 0;
+			break;
+		}
+	}
+	return trigger;
+}
+
+
+int SMP::EISA_ELCR(int irq)
+{
+	if (irq < 16) {
+		u16_t port = 0x4d0 + (irq >> 3);
+		return (system->inportb(port) >> (irq & 7)) & 1;
+	}
+	printk("SMP: Broken MPtable reports ISA irq %d\n", irq);
+	return 0;
+}
+

@@ -144,4 +144,17 @@ enum mp_bustype {
 #define MAX_MP_BUSSES	256
 #define NR_CPUS		2
 #define BAD_APICID	0xFF
+
+#define default_EISA_trigger(idx)	(EISA_ELCR(mp_irqs[idx].mpc_srcbusirq))
+#define default_EISA_polarity(idx)	(0)
+
+#define default_ISA_trigger(idx)	(0)
+#define default_ISA_polarity(idx)	(0)
+
+#define default_PCI_trigger(idx)	(1)
+#define default_PCI_polarity(idx)	(1)
+
+#define default_MCA_trigger(idx)	(1)
+#define default_MCA_polarity(idx)	(0)
+
 #endif

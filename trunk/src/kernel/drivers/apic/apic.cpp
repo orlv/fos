@@ -37,7 +37,7 @@ APIC::APIC(int cpu) {
 	ConnectBSP();
 	SetupLocal(cpu);
 	if(system->smp->found_config && !skip_ioapic_setup && system->smp->nr_ioapics)
-		ioapic = new IOAPIC;
+		ioapic = new IOAPIC(this);
 	else
 		ioapic = NULL;
 
@@ -221,4 +221,29 @@ int APIC::GetMaxLVT() {
 	u32_t v = apic_read(APIC_LVR);
 
 	return APIC_INTEGRATED(GET_APIC_VERSION(v)) ? GET_APIC_MAXLVT(v) : 2;
+}
+
+int APIC::GetPhysicalBroadcast() {
+	return ModernAPIC() ? 0xff : 0xf;
+}
+
+bool APIC::ModernAPIC() {
+	if(system->cpuid->vendor_code == VENDOR_AMD && system->cpuid->family >= 0x0F)
+		return 1;
+
+	return GetVersion() >= 0x14;
+}
+
+void APIC::SyncArbIDs() {
+	 if(ModernAPIC())
+		return;
+
+	WaitICRIdle();
+	printk("Synchronizing Arb IDs\n");
+	apic_write(APIC_ICR, APIC_DEST_ALLINC | APIC_INT_LEVELTRIG | APIC_DM_INIT);
+}
+
+void APIC::WaitICRIdle() {
+	while(apic_read(APIC_ICR) & APIC_ICR_BUSY)
+		printk(".");
 }

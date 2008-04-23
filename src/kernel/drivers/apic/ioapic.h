@@ -40,7 +40,6 @@ private:
 	int nr_ioapic_registers[MAX_IO_APICS];
 	int pirq_entries [MAX_PIRQS];
 	int io_apic_irqs;
-	int current_vector, current_offset;
 	u8_t irq_vector[224];
 	struct { int pin, apic; } ioapic_i8259;
 	void disable_8259A_irq(int n);

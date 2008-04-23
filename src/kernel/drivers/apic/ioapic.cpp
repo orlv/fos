@@ -100,8 +100,6 @@ IOAPIC::IOAPIC(APIC *apic) {
 	parent = apic;
 	ioapic_i8259.pin = -1;
 	ioapic_i8259.apic = -1;
-	current_vector = 0x21;
-	current_offset = 0;
 	irq_vector[0] = 0x21;
 	irq_vector[1] = 0;
 	EnableIOAPIC();
@@ -293,7 +291,7 @@ void IOAPIC::AddPinToIRQ(int irq, int apic, int pin)
 }
 
 int IOAPIC::AssignIRQVector(int irq) {
-
+	int current_vector = 0x21, current_offset = 0;
 	printk("[irq %d]", irq);
 
 	int vector, offset, i;

@@ -33,4 +33,15 @@ userlinkage long long int strtoll(const char *nptr, char **endptr, int base);
 userlinkage unsigned long long int strtoull(const char *ptr, char **endptr, int base);
 #define strtouq(a,b,c) stroull(a,b,c)
 
+userlinkage void qsort(void *base, size_t nmemb, size_t size, int(*compar)(const void *, const void *));
+
+static inline int abs(int i) {
+	if(i >= 0)
+		return i;
+	else
+		return -i;
+}
+
+#define labs(a) abs(a)
+
 #endif

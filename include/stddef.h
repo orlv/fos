@@ -1,5 +1,7 @@
-#ifndef _STDDEF_H
-#define _STDDEF_H
+#ifndef ___STDDEF_H
+#define ___STDDEF_H
+
+#include <types.h>
 
 #undef NULL
 #if defined(__cplusplus)

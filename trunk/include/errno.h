@@ -1,6 +1,7 @@
 #ifndef _ERRNO_H
 #define _ERRNO_H
 
+#define ESUCCESS		0
 #define	EPERM		 1	/* Operation not permitted */
 #define	ENOENT		 2	/* No such file or directory */
 #define	ESRCH		 3	/* No such process */
@@ -38,5 +39,10 @@
 #define ENAMETOOLONG	35	/* File name too long */
 #define EILSEQ		36	/* An invalid multibyte sequence has been encountered in the input.*/
 extern int errno;
+
+#ifdef _BSD_SOURCE
+extern const char *sys_errlist[];
+extern int sys_nerr;
+#endif
 
 #endif

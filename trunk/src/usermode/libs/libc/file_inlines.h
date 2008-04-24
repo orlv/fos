@@ -7,7 +7,6 @@
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
-#define BUF_SIZE	512
 
 static inline int format_mode(__fopen_fd *fd, const char *mode) {
 	switch(mode[0]) {
@@ -43,7 +42,7 @@ static inline FILE *funiopen(__fopen_fd *fd) {
 	}
 	fd->using_mutex = 0;
 
-	fd->buf_size = BUF_SIZE;
+	fd->buf_size = _IO_BUFSIZ;
 	fd->buf_ptr = 0;
 	fd->buf = malloc(fd->buf_size);
 	if(!fd->buf) {

@@ -42,6 +42,12 @@ static inline int abs(int i) {
 		return -i;
 }
 
+static inline void *calloc(size_t nmemb, size_t size) {
+	return malloc(nmemb * size);
+}
+
 #define labs(a) abs(a)
+
+userlinkage double strtod(const char* s, char** endptr);
 
 #endif

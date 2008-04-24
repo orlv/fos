@@ -10,7 +10,7 @@
 #include <fos/namer.h>
 #include <errno.h>
 
-int open(const char *pathname, int flags)
+int open(const char *pathname, int flags, ...)
 {
   if(pathname[0] != '/') {
     char *pwd = getenv("PWD");

@@ -3,7 +3,9 @@
 #include <fcntl.h>
 #include <string.h>
 #include <stdio.h>
+//#include <dprintf.h>
 #include "romfs.h"
+
 romfs::romfs(char *filename) {
 	load_fs(filename);
 	check_superblock();
@@ -43,9 +45,9 @@ int romfs::check_superblock() {
 unsigned int romfs::read(romfs_inode_t *in, char *ptr, char *buf, size_t size, off_t offset) {
 	if(offset > in->size)
 		return 0;
-	if(size > in->size)
-		size = in->size;
-//	printf("read %x %x %x %u %u\n", in, ptr, buf, size, offset);
+	if(size + offset > in->size)
+		size = in->size - offset;
+//	dprintf("read %x %x %x %u %u (total size %u) %u%% from start, %u%% of total\n", in, ptr, buf, size, offset, in->size, offset * 100 / in->size, size * 100 / in->size);
 	memcpy(buf, ptr + offset, size);
 	return size;
 }

@@ -25,7 +25,10 @@ OBJECTS		=	close.o		malloc.o	exit.o		lseek.o		\
 			gettimeofday.o	localtime_r.o	gmtime_r.o	time_table_spd.o \
 			isleap.o	mktime.o	timegm.o	strtol.o	\
 			strtoll.o	strtoull.o	strdup.o	 __v_scanf.o	\
-			sscanf.o	vsscanf.o	qsort.o		__assertion_failed.o
+			sscanf.o	vsscanf.o	qsort.o		__assertion_failed.o	\
+			mkdir.o		rmdir.o		rename.o	access.o	\
+			perror.o	errors_list.o	strstr.o	strtod.o	\
+			no-inlines-string.o
 
 include $(SYSTEM_SRC)/mk/trg_lib.mk
 

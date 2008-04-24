@@ -3,7 +3,7 @@
  * Copyright (C) 2005-2007 Oleg Fedorov
  */
 
-#define ENABLE_APIC	1
+#define ENABLE_APIC	0
 
 #include <multiboot.h>
 #include <fos/drivers/tty/tty.h>

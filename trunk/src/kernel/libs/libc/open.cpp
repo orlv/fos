@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 
-int open(const char *pathname, int flags)
+int open(const char *pathname, int flags, ...)
 {
   volatile struct message msg;
   msg.arg[0] = FS_CMD_ACCESS;

@@ -26,6 +26,10 @@
 #define FS_CMD_DIRREAD	10
 #define FS_CMD_UNLINK 	11
 #define FS_CMD_IOCTL	12
+#define FS_CMD_MKDIR	13
+#define FS_CMD_RMDIR	14
+#define FS_CMD_RENAME	15
+#define FS_CMD_POSIX_ACCESS	16
 
 #define BASE_METHOD_N   32 /* количество общесистемных методов */
 #define MAX_METHODS_CNT (BASE_METHOD_N + 32)

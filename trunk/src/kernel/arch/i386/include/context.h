@@ -11,6 +11,8 @@ struct context_t {
   struct TSS *tss;
   gdt_entry descr;
   off_t stack_pl0;
+  char fpu[108];
+  bool fpu_valid;
 };
 
 void set_initial_task(context_t *context);

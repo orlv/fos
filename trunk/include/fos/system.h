@@ -25,7 +25,7 @@ class SYSTEM {
 
  public:
   SYSTEM(register multiboot_info_t * mbi);
-  
+
   TProcMan *procman;
   GDT *gdt;
   IDT *idt;
@@ -42,6 +42,8 @@ class SYSTEM {
   volatile size_t free_pages;    /* количество свободных страниц */
   Stack<u32_t> *free_page_DMA16;
   volatile size_t free_pages_DMA16; /* количество "нижних" страниц (лежащих ниже 16 Мб) */
+
+  Thread *using_fpu;
 
   inline void cli() { asm("cli"); };
   inline void sti() { asm("sti"); };

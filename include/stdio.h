@@ -39,6 +39,7 @@ userlinkage int vsnprintf(char *buf, size_t size, const char *fmt, va_list args)
 
 userlinkage int vsscanf(const char* str, const char* format, va_list arg_ptr);
 userlinkage int sscanf(const char *str, const char *format, ...);
+userlinkage void perror(const char *s);
 
 #define getc(a) fgetc(a)
 
@@ -48,5 +49,11 @@ extern FILE *stdin, *stdout, *stderr;
 #endif
 
 #define EOF (-1)
+
+#define _IO_BUFSIZ 8192
+
+#ifndef BUFSIZ
+# define BUFSIZ _IO_BUFSIZ
+#endif
 
 #endif

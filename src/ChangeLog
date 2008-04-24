@@ -1,3 +1,8 @@
+Thu Apr 24 14:31:12 MSD 2008
+Sergey Gridassov <grindars@grindars.org.ru>:
+	- Перенесены freetype, expat, fontconfig (частично), не
+		работоспособны из-за отсутствия поддержки FPU
+
 Tue Apr  8 18:00:03 MSD 2008
 Sergey Gridassov <grindars@grindars.org.ru>:
 	- Продолжено переписывание граф. сервера

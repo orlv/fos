@@ -243,6 +243,7 @@ extern "C" {
   char *strsep(char **stringp, const char *delim);
   void *memmove(void *dst, const void *src, size_t count);
   char *strdup(const char *s);
+  char *strstr(const char *haystack, const char *needle);
 #ifdef __cplusplus
 }
 #endif

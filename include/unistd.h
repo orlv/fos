@@ -30,5 +30,13 @@ userlinkage char *getcwd(char *buf, size_t size);
 userlinkage int chdir(const char *path);
 
 userlinkage int unlink(const char *pathname);
+userlinkage int rmdir(const char *pathname);
+userlinkage int rename(const char *oldpath, const char *newpath);
 
+userlinkage int access(const char *pathname, int mode);
+
+#define F_OK	(1 << 0)
+#define R_OK	(1 << 1)
+#define W_OK	(1 << 2)
+#define X_OK	(1 << 3)
 #endif

@@ -5,4 +5,4 @@
 include $(ROOT)/config.mk
 include $(SYSTEM_SRC)/mk/subdir.mk
 
-ITEMS = init ipctest shell fortune coreutils pci_scan test2
+ITEMS = init ipctest shell fortune coreutils pci_scan test2 fontconfig-tools

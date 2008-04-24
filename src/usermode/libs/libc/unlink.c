@@ -7,12 +7,19 @@
 #include <unistd.h>
 #include <string.h>
 #include <fos/message.h>
+#include <errno.h>
 
 int unlink(const char *pathname) {
   if(pathname[0] != '/') {
     char *pwd = getenv("PWD");
-    if(!pwd) return -1;
-    if(pwd[0] != '/') return -1;
+    if(!pwd) {
+      errno = ENOMEM;
+      return -1;
+    }
+    if(pwd[0] != '/') {
+      errno = ENOENT;
+      return -1;
+    }
     char *buf = malloc(strlen(pathname) + strlen(pwd) + 1);
     strcpy(buf, pwd); strcat(buf, pathname);
     int ret = unlink(buf);
@@ -21,11 +28,13 @@ int unlink(const char *pathname) {
   }
   struct message msg;
   msg.arg[0] = FS_CMD_UNLINK;
-  size_t len = strlen(pathname);
-  if(len > MAX_PATH_LEN)
+  size_t len = strlen(pathname) + 1;
+  if(len > MAX_PATH_LEN) {
+    errno = ENAMETOOLONG;
     return -1;
+  }
   msg.send_buf = pathname;
-  msg.send_size = strlen(pathname)+1;
+  msg.send_size = len;
   msg.recv_size = 0;
   msg.flags = 0;
   msg.tid = SYSTID_NAMER;

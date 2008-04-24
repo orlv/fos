@@ -29,6 +29,9 @@
 #define	S_IWOTH	(S_IWGRP >> 3)	/* Write by others.  */
 #define	S_IXOTH	(S_IXGRP >> 3)	/* Execute by others.  */
 
+#define S_IFDIR	0040000
+#define	S_ISDIR(mode)	 ((mode & S_IFDIR) == S_IFDIR)
+
 typedef sid_t dev_t;
 typedef size_t nlink_t;
 typedef size_t blksize_t;
@@ -52,5 +55,5 @@ struct stat {
 
 userlinkage int stat(const char *path, struct stat *buf);
 userlinkage int fstat(int fildes, struct stat *buf);
-
+userlinkage int mkdir(const char *pathname, mode_t mode);
 #endif

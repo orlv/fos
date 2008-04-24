@@ -28,7 +28,7 @@ void setup_idt();
       "push %eax \n"							\
       "push %ebp \n"	      /* сохраним ebp */			\
       "call _" #func " \n"						\
-      "add $26, %esp \n"						\
+      "add $16, %esp \n"						\
       "pop %es \n"							\
       "pop %ds \n"							\
       "popa \n"								\

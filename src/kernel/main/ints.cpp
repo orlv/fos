@@ -98,9 +98,35 @@ EXCEPTION_HANDLER(invalid_operation_exception)
   exception("[0x06] invalid operation", cs, address, errorcode, ebp);
 }
 
+// FIXME: только для аппаратной многозадачности!
+
 EXCEPTION_HANDLER(FPU_not_present_exception)
 {
-  exception("[0x07] FPU not present", cs, address, errorcode, ebp);
+  u32_t cr0;
+  __asm__ __volatile__("movl %%cr0, %%eax\nmovl %%eax, %%ebx\nandl $~0x8, %%eax\nmovl %%eax, %%cr0": "=b"(cr0)::"eax");
+  if(cr0 & (1 << 3) == 0)
+    system->panic("FPU not present without TS flag\n");
+
+  if(system->using_fpu == system->procman->curr->item) {
+//    printk("FPU exchange not needed\n");
+    return;
+  }
+
+  if(system->using_fpu) {
+//    printk("Saving FPU context to %x\n", system->using_fpu);
+    __asm__ __volatile__("fsave (%%eax)\nfwait"::"a"(system->using_fpu->context.fpu));
+    system->using_fpu->context.fpu_valid = true;
+  }
+  
+  if(system->procman->curr->item->context.fpu_valid) {
+//    printk("Loading FPU context from %x\n", system->procman->curr->item);
+    __asm__ __volatile__("frstor (%%eax)\nfwait"::"a"(system->procman->curr->item->context.fpu));
+  }
+  system->using_fpu = system->procman->curr->item;
+
+//  exception("[0x07] FPU not present", cs, address, errorcode, ebp);
+
+//  printk("FPU exchange completed\n");
 }
 
 EXCEPTION_HANDLER(double_fault_exception)

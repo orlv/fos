@@ -41,6 +41,10 @@ asmlinkage int main(int argc, char *argv[]) {
 	tmpfs *tfs = new tmpfs();
 	resmgr_attach("/tmp");
 
+	printf(	"TMPFS: Writable /tmp for read-only systems\n"
+		"TMPFS:                             started\n");
+	
+
 	char *buffer = new char[TMPFS_BUF_SIZE];
 	
 	struct stat *statbuf = new struct stat;
@@ -55,12 +59,13 @@ asmlinkage int main(int argc, char *argv[]) {
 		msg.recv_size = TMPFS_BUF_SIZE;
 		msg.flags = 0;
 		receive(&msg);
+		printf("tmpfs: activity %d\n", msg.arg[0]);
 		switch(msg.arg[0]) {
-
 		case FS_CMD_ACCESS: {
 			handle_t *hndl = new handle_t;
 			buffer[msg.recv_size] = 0;
 			int exists = (tfs->locate_file(buffer, &hndl->target) == 0);
+			printf("opening %s with mode %d\n", buffer, msg.arg[1]);
 			if(msg.arg[1] & O_EXCL && exists) {
 				msg.arg[0] = 0;
 				msg.arg[1] = TMPFS_BUF_SIZE;
@@ -74,6 +79,7 @@ asmlinkage int main(int argc, char *argv[]) {
 				tfs->create_file(buffer);
 		
 			if(!(msg.arg[1] & O_CREAT) && !exists) {
+				printf("%s not exist\n", buffer);
 				msg.arg[0] = 0;
 				msg.arg[1] = TMPFS_BUF_SIZE;
 				msg.arg[2] = ERR_NO_SUCH_FILE;

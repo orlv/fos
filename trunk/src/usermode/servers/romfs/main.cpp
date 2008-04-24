@@ -56,7 +56,7 @@ asmlinkage int main(int argc, char *argv[]) {
 	thread_create((off_t) outdated, 0);
 	resmgr_attach("/");
 	while(1) {
-	  msg.tid = 0;
+		msg.tid = 0;
 		msg.recv_buf = buffer;
 		msg.recv_size = ROMFS_BUF_SIZE;
 		msg.flags = 0;
@@ -65,7 +65,7 @@ asmlinkage int main(int argc, char *argv[]) {
 		case FS_CMD_ACCESS: {
 			handle_t *hndl = new handle_t;
 			buffer[msg.recv_size] = 0;
-			char *data = rfs->search_path(buffer, &hndl->in, 0);
+			char *data = rfs->search_path(buffer, &hndl->in, NEED_FILE);
 			if(!data) {
 				msg.arg[0] = 0;
 				msg.arg[1] = ROMFS_BUF_SIZE;
@@ -97,11 +97,12 @@ asmlinkage int main(int argc, char *argv[]) {
 		case FS_CMD_STAT: {
 			romfs_inode_t in;
 			buffer[msg.recv_size] = 0;
-			if(!rfs->search_path(buffer, &in, 0)) {
+			if(!rfs->search_path(buffer, &in, NEED_DIR_OR_FILE)) {
 				msg.send_size = 0;
 				msg.arg[2] =ERR_NO_SUCH_FILE;
 				break;
 			}
+
 			rfs->stat(&in, statbuf);
 			msg.arg[1] = ROMFS_BUF_SIZE;
 			msg.arg[2] = NO_ERR;
@@ -166,7 +167,7 @@ asmlinkage int main(int argc, char *argv[]) {
 		case FS_CMD_DIROPEN: {
 			handle_t *hndl = new handle_t;
 			buffer[msg.recv_size] = 0;
-			char *data = rfs->search_path(buffer, &hndl->in, 1);
+			char *data = rfs->search_path(buffer, &hndl->in, NEED_DIR);
 			if(!data) {
 				msg.arg[0] = 0;
 				msg.arg[1] = 0;
@@ -179,6 +180,7 @@ asmlinkage int main(int argc, char *argv[]) {
 	 				 sched_yield();
 				last_handle ++;
 				hndl->data = data;
+				memcpy(&hndl->in, data, sizeof(hndl->in));
 				hndl->touched = uptime();
 				hndl->handle = last_handle;
 				hndl->next = head;
@@ -216,6 +218,23 @@ asmlinkage int main(int argc, char *argv[]) {
 			msg.send_buf = &dent;
 			msg.arg[2] = NO_ERR;
 			break;			
+		}
+		case FS_CMD_POSIX_ACCESS: {
+			romfs_inode_t in;
+			buffer[msg.recv_size] = 0;
+			if(!rfs->search_path(buffer, &in, NEED_DIR_OR_FILE)) {
+				msg.arg[2] = ERR_NO_SUCH_FILE;
+				msg.send_size = 0;
+				break;
+			}
+			if(msg.arg[1] & W_OK) {
+				msg.arg[2] = ERR_ACCESS_DENIED;
+				msg.send_size = 0;
+				break;
+			}
+			msg.arg[0] = NO_ERR;
+			msg.send_size = 0;
+			break;
 		}
 		default:
 			printf("romfs: unknown command %u %u %u %u\n", msg.arg[0], msg.arg[1], msg.arg[2], msg.arg[3]);

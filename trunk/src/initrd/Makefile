@@ -8,7 +8,8 @@ genromfs: genromfs.c
 	gcc genromfs.c -o genromfs -s -Os -DVERSION="\"le\""
 initrd.gz: initrd
 	cp $< .compressing
-	gzip -9 -f $<
+#	gzip -9 -f $<
+	cp $< $@
 	mv .compressing $<
 initrd: genromfs
 	./genromfs -f $@ -d contents -V "FOS Initrd" -x .svn

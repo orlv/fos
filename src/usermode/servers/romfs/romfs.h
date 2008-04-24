@@ -15,6 +15,9 @@
 #define ROMFS_FIFO	7
 
 #define ROMFS_ALIGN(a)	(((u32_t)a + 15) & ~15)
+#define NEED_FILE	0
+#define NEED_DIR	1
+#define NEED_DIR_OR_FILE	2
 	typedef struct {
 		u32_t next;
 		u32_t info;
@@ -39,13 +42,13 @@ private:
 	romfs_superblock_t *sb;
 	int sb_size;
 	
-	int load_fs(char *filename);
+	int load_fs(const char *filename);
 	int check_superblock();
 	char *search_file(char *name, romfs_inode_t *in, romfs_inode_t *parent);
 public:
-	romfs(char *filename);
+	romfs(const char *filename);
 	unsigned int read(romfs_inode_t *in, char *ptr, char *buf, size_t size, off_t offset);
-	char *search_path(char *name, romfs_inode_t *inode, int need_directory);
+	char * search_path(char *name, romfs_inode_t *inode, int need_type);
 	void stat(romfs_inode_t *inode, struct stat *st);
 	int get_ent_count(romfs_inode_t *inode);
 	romfs_inode_t *get_inode(romfs_inode_t *parent, int offset);

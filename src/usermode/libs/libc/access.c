@@ -32,10 +32,13 @@ int access(const char *pathname, int mode) {
     free(buf);
     return ret;
   }
+
+  printf("Accessing %s %s\n", pathname, mode & W_OK ? "write required" : "");
+
   struct message msg;
   msg.arg[0] = FS_CMD_POSIX_ACCESS;
   msg.arg[1] = mode;
-  size_t len = strlen(pathname + 1);
+  size_t len = strlen(pathname) + 1;
   if(len > MAX_PATH_LEN) {
     errno = ENAMETOOLONG;
     return -1;
@@ -45,7 +48,9 @@ int access(const char *pathname, int mode) {
   msg.recv_size = 0;
   msg.flags = 0;
   msg.tid = SYSTID_NAMER;
+  printf("method %d\n", msg.arg[0]);
   u32_t result = send((struct message *)&msg);
+  printf("access sent: namer say %d, server say %d\n", result, msg.arg[2]); 
   if(result == RES_SUCCESS && msg.arg[2] == NO_ERR)
     return 0;
   else if(result != RES_SUCCESS) {

@@ -3,16 +3,15 @@
 #include <fcntl.h>
 #include <string.h>
 #include <stdio.h>
-//#include <dprintf.h>
 #include "romfs.h"
 
-romfs::romfs(char *filename) {
+romfs::romfs(const char *filename) {
 	load_fs(filename);
 	check_superblock();
 	printf("Loaded ROMFS image: '%s'\n", sb->volume);
 }
 
-int romfs::load_fs(char *filename) {
+int romfs::load_fs(const char *filename) {
 //	struct stat st;
 	int hndl = open(filename, 0);
 	if(!hndl) 
@@ -70,7 +69,7 @@ char * romfs::search_file(char *name, romfs_inode_t *in, romfs_inode_t *parent) 
 	return NULL;
 }
 
-char * romfs::search_path(char *name, romfs_inode_t *inode, int need_directory) {
+char * romfs::search_path(char *name, romfs_inode_t *inode, int need_type) {
 	char *part = new char[256];
 	int i = 1;
 	romfs_inode_t inl;
@@ -104,8 +103,8 @@ scan_inode:
 			if(!last_part) {
 				parent = (romfs_inode_t *)(fs + in->info);
 				continue;
-			} else if(need_directory) {
-				memcpy(inode, (fs + in->info), sizeof(*inode));
+			} else if(need_type == NEED_DIR || need_type == NEED_DIR_OR_FILE) {
+				memcpy(inode, in, sizeof(*inode));
 				delete part;
 				return (fs + in->info);
 			} else {
@@ -114,7 +113,7 @@ scan_inode:
 			}
 		}
 		if(type == ROMFS_FILE) {
-			if(last_part && !need_directory) {
+			if(last_part && (need_type == NEED_FILE || need_type == NEED_DIR_OR_FILE)) {
 				memcpy(inode, in, sizeof(*in));
 				delete part;
 				return ptr;
@@ -143,6 +142,9 @@ void romfs::stat(romfs_inode_t *inode, struct stat* st) {
 	st->st_dev     = 0;
 	st->st_ino     = inode->checksum;
 	st->st_mode    = 0777;
+        if(ROMFS_TYPE(inode->next) == ROMFS_DIRECTORY)
+		st->st_mode |= S_IFDIR;
+
 	st->st_nlink   = 1;
 	st->st_uid     = 0;
 	st->st_gid     = 0;

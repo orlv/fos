@@ -7,4 +7,4 @@
 #/bin/rtc::Starting RTC
 /bin/tmpfs::Starting up tmpfs
 .:open_in:/dev/keyboard
-/bin/shell:/root/.login:Starting shell
+/bin/shell::Starting shell

@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <stdio.h>
+//#include <dprintf.h>
 #include "romfs.h"
 
 romfs::romfs(const char *filename) {

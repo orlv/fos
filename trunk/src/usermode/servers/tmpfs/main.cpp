@@ -17,7 +17,7 @@ typedef struct h {
 	unsigned int touched;
 	unsigned int handle;
 	int type;
-	tmpfs_file *target;
+	tmpfs_file_t *target;
 } handle_t;
 
 handle_t *head = NULL;
@@ -40,10 +40,6 @@ handle_t *resolve_handle(unsigned int hndl, int type) {
 asmlinkage int main(int argc, char *argv[]) {
 	tmpfs *tfs = new tmpfs();
 	resmgr_attach("/tmp");
-
-	printf(	"TMPFS: Writable /tmp for read-only systems\n"
-		"TMPFS:                             started\n");
-	
 
 	char *buffer = new char[TMPFS_BUF_SIZE];
 	
@@ -109,7 +105,7 @@ asmlinkage int main(int argc, char *argv[]) {
 			break;
 		}
 		case FS_CMD_STAT: {
-			tmpfs_file *f;
+			tmpfs_file_t *f;
 			buffer[msg.recv_size] = 0;
 			if(tfs->locate_file(buffer, &f) < 0) {
 				msg.send_size = 0;
@@ -200,10 +196,16 @@ asmlinkage int main(int argc, char *argv[]) {
 		case FS_CMD_DIROPEN: {
 			handle_t *hndl = new handle_t;
 			buffer[msg.recv_size] = 0;
+			if(tfs->open_dir(buffer, &hndl->target) < 0) {
+				msg.arg[2] = ERR_NO_SUCH_FILE;
+				msg.arg[1] = 0;
+				msg.send_size = 0;
+				break;
+			}
 			while(!mutex_try_lock(&q_locked))
  				 sched_yield();
+
 			last_handle ++;
-			tfs->first_file(&hndl->target);
 			hndl->touched = uptime();
 			hndl->handle = last_handle;
 			hndl->next = head;
@@ -211,7 +213,7 @@ asmlinkage int main(int argc, char *argv[]) {
 			head = hndl;
 			mutex_unlock(&q_locked);
 			msg.arg[0] = last_handle;
-			msg.arg[1] = tfs->files_count();
+			msg.arg[1] = hndl->target->size;
 			msg.arg[2] = NO_ERR;
 			msg.send_size = 0;
 			break;
@@ -223,8 +225,8 @@ asmlinkage int main(int argc, char *argv[]) {
 				msg.send_size = 0;
 				break;
 			}
-			tmpfs_file *file;
-			if(tfs->get_file_by_offset(&file, msg.arg[2]) < 0) {
+			tmpfs_file_t *file;
+			if(tfs->get_file_by_offset(h->target, &file, msg.arg[2]) < 0) {
 				msg.arg[2] = ERR_EOF;
 				msg.send_size = 0;
 				break;
@@ -239,11 +241,31 @@ asmlinkage int main(int argc, char *argv[]) {
 		}
 		case FS_CMD_UNLINK: {
 			buffer[msg.recv_size] = 0;
-			tfs->unlink(buffer + 1);
+			tfs->unlink(buffer);
 			msg.arg[2] = NO_ERR;
 			msg.send_size = 0;
 			break;
 		}
+		case FS_CMD_POSIX_ACCESS:
+			buffer[msg.recv_size] = 0;
+			if(tfs->posix_access(buffer) < 0) {
+				msg.arg[2] = ERR_NO_SUCH_FILE;
+				msg.send_size = 0;
+				break;
+			}
+			msg.arg[2] = NO_ERR;
+			msg.send_size = 0;
+			break;
+		case FS_CMD_MKDIR:
+			buffer[msg.recv_size] = 0;
+			if(tfs->mkdir(buffer) < 0) {
+				msg.arg[2] = ERR_NO_SUCH_FILE;
+				msg.send_size = 0;
+				break;
+			}
+			msg.arg[2] = NO_ERR;
+			msg.send_size = 0;
+			break;				
 		default:
 			printf("tmpfs: unknown command %u %u %u %u\n", msg.arg[0], msg.arg[1], msg.arg[2], msg.arg[3]);
 			msg.arg[0] = 0;
@@ -262,7 +284,7 @@ void outdated() {
 		msg.recv_buf = NULL;
 		msg.recv_size = 0;
 		msg.flags = 0;
-		alarm(60000);	// это в районе минуты на самом деле.
+		alarm(60000);
 		receive(&msg);
 		reply(&msg);
 		while(!mutex_try_lock(&q_locked))

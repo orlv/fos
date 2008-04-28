@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <fos/fos.h>
 #include <sched.h>
+#include <sys/mount.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -47,6 +48,11 @@ asmlinkage int main()
 
   printf("INIT: All started up.\n");
 
+  if(mount("/mnt/modules/ext2-initrd.gz", "/alt", "ext2", 0, NULL) == -1) {
+    printf("INIT: alternative root mounting failed\n");
+  } else {
+    printf("INIT: alternative root mounted\n");
+  }
   return 0;
 }
 

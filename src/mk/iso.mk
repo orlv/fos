@@ -20,7 +20,7 @@ iso: clean_iso
 		-publisher "O.S.Fedorov" \
 		-o $(ISO_OUTPUT) $(ISO_BUILD_DIR)
 
-	bzip2 -kf $(ISO_OUTPUT)
+#	bzip2 -kf $(ISO_OUTPUT)
 	rm -f $(SYSTEM_ROOT)/src/$(ISO_NAME)
 	ln -s $(ISO_OUTPUT) $(SYSTEM_ROOT)/src/$(ISO_NAME)
 

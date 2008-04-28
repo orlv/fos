@@ -45,7 +45,7 @@ int mkdir(const char *pathname, mode_t mode) {
   msg.recv_size = 0;
   msg.flags = 0;
   msg.tid = SYSTID_NAMER;
-  printf("sending %x cmd %d\n", pathname, msg.arg[0]);
+  printf("sending %s cmd %d\n", pathname, msg.arg[0]);
   u32_t result = send((struct message *)&msg);
   if(result == RES_SUCCESS && msg.arg[2] == NO_ERR)
     return 0;

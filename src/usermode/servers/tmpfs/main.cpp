@@ -258,6 +258,7 @@ asmlinkage int main(int argc, char *argv[]) {
 			break;
 		case FS_CMD_MKDIR:
 			buffer[msg.recv_size] = 0;
+			printf("buffer %s size %d\n", buffer, msg.recv_size);
 			if(tfs->mkdir(buffer) < 0) {
 				msg.arg[2] = ERR_NO_SUCH_FILE;
 				msg.send_size = 0;

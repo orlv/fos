@@ -57,6 +57,7 @@ asmlinkage int main()
     case FS_CMD_MKDIR:
     case FS_CMD_RMDIR:
     case FS_CMD_POSIX_ACCESS:
+    case FS_CMD_PING:
       //printf("namer: requested access to [%s]\n", pathname);
       obj = namer->find_branch_last_match(pathname);
       //printf("[0x%X]", obj);

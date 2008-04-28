@@ -55,7 +55,7 @@ THREAD(floppy_timer_thread)
 asmlinkage int main()
 {
   printf("Usermode floppy driver\n");
-  thread_create((off_t) &floppy_timer_thread);
+  thread_create((off_t) &floppy_timer_thread, 0);
 
   if(interrupt_attach(FLOPPY_IRQ_NUM) == RES_SUCCESS)
     printf("floppy: interrupt attached\n");
@@ -78,7 +78,7 @@ asmlinkage int main()
     msg.flags = 0;
     receive(&msg);
 
-/*    if(msg.arg[0] == SIGNAL_IRQ){
+    if(msg.arg[0] == SIGNAL_IRQ){
       switch(msg.arg[1]){
       case FLOPPY_IRQ_NUM:
 	unmask_interrupt(FLOPPY_IRQ_NUM);
@@ -90,7 +90,7 @@ asmlinkage int main()
       default:
 	printf("floppy: unknown signal received! (%d)\n", msg.arg[0]);
       }
-    } else {*/
+    } else {
       switch(msg.arg[0]){
       case FS_CMD_ACCESS:
 	msg.arg[0] = 1;
@@ -124,7 +124,7 @@ asmlinkage int main()
 	msg.send_size = 0;
       }
       reply(&msg);
-//   }
+   }
   }
   return 0;
 }
@@ -153,8 +153,8 @@ Floppy::Floppy()
 
 //  track_buf_phys = kmalloc(FLOPPY_BUFF_SIZE, MEM_FLAG_LOWPAGE);
 //  track_buf = kmemmap((offs_t)track_buf_phys, FLOPPY_BUFF_SIZE);
-   track_buf_phys = (void *)0x1000;
-   track_buf = kmmap(0, FLOPPY_BUFF_SIZE, 0, 0x1000);
+   track_buf = kmmap(0, FLOPPY_BUFF_SIZE, 0x40, 0);
+   track_buf_phys = (void *)getpagephysaddr((off_t) track_buf);
   //  printf("0x%X",track_buf);
 
   unmask_interrupt(FLOPPY_IRQ_NUM);
@@ -167,13 +167,14 @@ void Floppy::sendbyte(u8_t count)
 {
   volatile u8_t msr;
 
-  for (u8_t tmo = 0; tmo < 128; tmo++) {
+  for (u8_t tmo = 0; tmo < 128 || 1; tmo++) {
     msr = inb(FDC_MSR);
     if ((msr & 0xc0) == 0x80) {
       outb(count, FDC_DATA);
       return;
     }
-    inb(0x80);		/* задержка */
+//    inb(0x80);		/* задержка */
+    sched_yield();
   }
 }
 
@@ -185,7 +186,8 @@ u8_t Floppy::getbyte()
     msr = inb(FDC_MSR);
     if ((msr & 0xd0) == 0xd0)
       return inb(FDC_DATA);
-    inb(0x80);
+//    inb(0x80);
+    sched_yield();
   }
 
   return 0;

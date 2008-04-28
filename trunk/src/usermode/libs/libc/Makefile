@@ -28,7 +28,7 @@ OBJECTS		=	close.o		malloc.o	exit.o		lseek.o		\
 			sscanf.o	vsscanf.o	qsort.o		__assertion_failed.o	\
 			mkdir.o		rmdir.o		rename.o	access.o	\
 			perror.o	errors_list.o	strstr.o	strtod.o	\
-			no-inlines-string.o
+			no-inlines-string.o		mount.o
 
 include $(SYSTEM_SRC)/mk/trg_lib.mk
 

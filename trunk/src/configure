@@ -145,7 +145,8 @@ GREY		= $GREY
 GRUB_MODULES =	/boot/modules/namer		\\
 		/boot/modules/init		\\
 		/boot/modules/romfs		\\
-		/boot/modules/initrd.gz
+		/boot/modules/initrd.gz		\\
+		/boot/modules/ext2-initrd.gz
 
 #/boot/modules/int16b
 #/boot/modules/stty

@@ -6,6 +6,8 @@
 #define TYPE_DIR	(1 << 0)
 #define TYPE_FILE	(1 << 1)
 #define TYPE_HARDLINK	(1 << 2)
+#define TYPE_ANY	(TYPE_DIR | TYPE_FILE | TYPE_HARDLINK)
+
 
 typedef struct __file {
 	int	type;
@@ -18,6 +20,7 @@ typedef struct __file {
 class tmpfs {
 	tmpfs_file_t	*root;
 	int locate_object(const char *filename, List <struct __file *> **target, int allowed_types, tmpfs_file_t *parent);
+	void add_hardlinks(List <tmpfs_file_t *> *item);
 public:
 	tmpfs();
 	int create_file(char *filename);

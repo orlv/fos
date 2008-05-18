@@ -3,6 +3,7 @@
 #include <fos/fs.h>
 #include <fos/message.h>
 #include <stdio.h>
+#include <fos/nsi.h>
 #include "mouse.h"
 #include "keyboard.h"
 #include "i8042.h"
@@ -15,6 +16,7 @@ volatile signed int b = 0;
 volatile signed int dx = 0, dy = 0, dz = 0;
 volatile int moved = 0;
 u8_t buf[3];
+struct mouse_pos mouse_struct;
 
 static int set_sample_rate(int rate)
 {
@@ -172,44 +174,50 @@ struct mouse_pos {
   int b;
 };
 
+int mouse_access(struct message *msg)
+{
+  msg->arg[0] = 1;
+  msg->arg[1] = sizeof(mouse_struct);
+  msg->arg[2] = NO_ERR;
+  msg->send_size = 0;
+  return 1;
+}
+
+int mouse_read(struct message *msg)
+{
+  while (!moved) {
+    sched_yield();
+  }
+  moved = 0;
+  mouse_struct.dx = dx;
+  mouse_struct.dy = dy;
+  mouse_struct.dz = dz;
+  mouse_struct.b = b;
+  msg->send_size = sizeof(mouse_struct);
+  msg->arg[0] = sizeof(mouse_struct);
+  msg->arg[2] = NO_ERR;
+  msg->send_buf = &mouse_struct;
+  return 1;
+}
+
 void MouseHandlerThread()
 {
-  resmgr_attach("/dev/psaux");
-  struct message msg;
-  struct mouse_pos mouse_struct;
+  fos_nsi *mouse = nsi_init("/dev/psaux");
+  //resmgr_attach("/dev/psaux");
+  //struct message msg;
 
+
+  /* стандартные параметры */
+  // mouse->std.recv_buf = &mouse_struct;
+  //mouse->std.send_buf = &mouse_struct;
+  //mouse->std.send_size = sizeof(mouse_struct);
+
+  /* объявим интерфейсы */
+  nsi_add_method(mouse, FS_CMD_ACCESS, &mouse_access);
+  nsi_add_method(mouse, FS_CMD_READ, &mouse_read);
+
+  /* обрабатываем поступающие сообщения */
   while (1) {
-    msg.tid = 0;
-    msg.flags = 0;
-    msg.recv_buf = &mouse_struct;
-    msg.recv_size = sizeof(mouse_struct);
-    receive(&msg);
-    switch (msg.arg[0]) {
-    case FS_CMD_ACCESS:
-      msg.arg[0] = 1;
-      msg.arg[1] = sizeof(mouse_struct);
-      msg.arg[2] = NO_ERR;
-      msg.send_size = 0;
-      break;
-    case FS_CMD_READ:
-      while (!moved) {
-	sched_yield();
-      }
-      moved = 0;
-      mouse_struct.dx = dx;
-      mouse_struct.dy = dy;
-      mouse_struct.dz = dz;
-      mouse_struct.b = b;
-      msg.send_size = sizeof(mouse_struct);
-      msg.arg[0] = sizeof(mouse_struct);
-      msg.arg[2] = NO_ERR;
-      msg.send_buf = &mouse_struct;
-      break;
-    default:
-      msg.arg[0] = 0;
-      msg.arg[2] = ERR_UNKNOWN_METHOD;
-      msg.send_size = 0;
-    }
-    reply(&msg);
-  }
+    nsi_wait_message(mouse);
+  };
 }

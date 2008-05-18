@@ -81,6 +81,7 @@ int main(int argc, char *argv[])
 
   thread_create((off_t) & MouseHandlerThread, 0);
   thread_create((off_t) & thread_handler, 0);
+
   fos_nsi *interface = nsi_init("/dev/keyboard");
 
   /* стандартные параметры */
